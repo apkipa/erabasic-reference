@@ -1,0 +1,22 @@
+**Summary**
+- Like `CALL`, but the function name is a formatted (FORM) string expression evaluated at runtime.
+
+**Syntax**
+- `CALLFORM <formString> [, <arg1>, <arg2>, ... ]`
+- `CALLFORM <formString>(<arg1>, <arg2>, ... )`
+
+**Arguments**
+- `<formString>`: FORM/formatted string; the evaluated result is used as the function name.
+- `<argN>`: same as `CALL`.
+
+**Defaults / optional arguments**
+- Same as `CALL`.
+
+**Semantics**
+- Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.
+
+**Errors & validation**
+- Same as `CALL`, but errors may occur at runtime if the evaluated function name varies.
+
+**Examples**
+- `CALLFORM "TRAIN_%TARGET%", TARGET`

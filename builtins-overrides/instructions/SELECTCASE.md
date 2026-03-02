@@ -1,0 +1,40 @@
+**Summary**
+- Begins a `SELECTCASE ... ENDSELECT` multi-branch block that compares a single selector expression against one or more `CASE` conditions.
+
+**Syntax**
+- `SELECTCASE <expr>`
+  - `CASE <caseExpr> (, <caseExpr> ... )`
+  - `...`
+  - `CASEELSE`
+  - `...`
+  - `ENDSELECT`
+
+**Arguments**
+- `<expr>`: selector expression; may be int or string.
+
+**Defaults / optional arguments**
+- None.
+
+**Semantics**
+- The loader gathers all `CASE` / `CASEELSE` headers into an ordered list and links them to the matching `ENDSELECT`.
+- At runtime:
+  - Evaluates the selector once to either `long` or `string`.
+  - Scans each `CASE` in order; the first `CASE` that matches becomes the chosen clause.
+  - If no `CASE` matches and a `CASEELSE` exists, chooses `CASEELSE`.
+  - Otherwise jumps to the `ENDSELECT` marker (skipping the whole block).
+- When a clause is chosen, the engine jumps to that `CASE`/`CASEELSE` header as a **marker** and begins executing at the next line (the clause body).
+
+**Errors & validation**
+- Missing selector expression produces a load-time warning and may break the block.
+- `CASE` expressions whose type does not match the selector type produce load-time warnings.
+- Mis-nesting / unexpected `CASE` / unexpected `ENDSELECT` produces load-time warnings.
+
+**Examples**
+- `SELECTCASE A`
+- `CASE 0`
+- `  PRINTL "zero"`
+- `CASE 1 TO 9`
+- `  PRINTL "small"`
+- `CASEELSE`
+- `  PRINTL "other"`
+- `ENDSELECT`
