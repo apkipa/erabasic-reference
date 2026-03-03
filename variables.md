@@ -33,6 +33,34 @@ Practical consequence (important for compatibility):
 - For **character-data 1D arrays**, the value form uses two indices `[chara, index]`; many “array storage” operations only use the character selector and effectively treat the element index as a dummy.
 - For **2D/3D arrays**, omitting indices can parse as a special “no-arg variable term” that cannot be read or assigned as a value (it throws a “missing variable argument” error if evaluated).
 
+## Variable terms (r-values, l-values, and “by-ref-like” uses)
+
+In this reference, a **variable term** means the expression node produced by parsing a variable reference such as:
+
+- `V` / `V:0` / `V:1:2` / `LOCAL@OtherFunction:3`
+
+Engine-accurate model:
+
+- The parser first resolves the identifier (and optional `@subKey`) into a **variable token** (the resolved variable identity + its type/dimension metadata).
+- It then parses up to three `:` index expressions and applies argument inference rules (see below).
+- The resulting variable term can be used in different roles:
+  - **r-value** (most expressions): reads one scalar cell value (`long` or `string`)
+  - **l-value** (assignment LHS, `++/--`): identifies a writable cell (must not be `CONST`)
+  - **“by-ref-like” operand** for some built-ins: the operand must be a variable term so the engine can locate the underlying variable storage (for example, array manipulation built-ins, and method arguments whose rule includes a `Ref*` constraint).
+
+Evaluation note:
+
+- A variable term’s index expressions are evaluated **each time** the term is evaluated, left-to-right.
+- A single source line may evaluate the “same-looking” variable term more than once (for example, a compound assignment that lowers into a read-then-write path), so indices with side effects can be observed more than once.
+
+Special forms that matter for compatibility:
+
+- **Fixed variable terms**: when all indices are compile-time constants, the engine may restructure a variable term into a “fixed” form that stores the indices as numeric constants.
+  - This is observable only via error timing (some bounds/type errors can occur at load time due to constant folding).
+- **No-arg variable terms** (missing required indices): for some arrays, writing no `:` indices at all can produce a distinct term that cannot be read/written as a value.
+  - Evaluating it as a value (or assigning to it) throws a “missing variable argument” error.
+  - Some built-ins accept this form only via instruction-specific special cases. Do not assume it behaves like “the whole array”.
+
 ## Variable sizes and prohibiting variables
 
 In Emuera, the element count of many built-in array variables is configurable via `csv/VariableSize.csv`.
@@ -71,6 +99,23 @@ When an index is out of range at runtime, the engine throws an error (it convert
 When reading a string variable cell, if the underlying storage contains `null`, the engine returns `""` (empty string) instead of `null`.
 
 This applies both to normal string variables and to `RESULTS`/`RESULTS:n`.
+
+## “Calculated” variables (`__CALC__`) and special cases
+
+Some built-in variables are marked as “calculated” in the engine (`__CALC__` flag).
+This is a metadata flag on the variable token; it does **not** change the surface syntax of variable terms.
+
+Typical examples include:
+
+- `RAND:n` (random value; see the dedicated argument restrictions below)
+- `CHARANUM` (derived from the current character list length)
+- `__FILE__`, `__FUNCTION__`, `__LINE__` (debug/introspection variables)
+- `WINDOW_TITLE` (engine/UI state; writable in this codebase)
+
+Compatibility-relevant implications:
+
+- Many calculated variables are also `CONST`/unchangeable, but not all of them.
+- Some “by-ref-like” contexts explicitly reject calculated variables even if they look like normal variable terms (for example, method arguments whose rule includes a `Ref*` requirement).
 
 ## Batch assignment to arrays
 
@@ -228,6 +273,23 @@ Prefer `#DIM/#DIMS` variables for clarity and predictable scoping.
 
 - They are not saved.
 - Their size is at least the configured default, but the engine also ensures enough elements exist to hold the largest referenced argument index for that function.
+
+### Optional local subkey: `LOCAL@subKey` / `ARG@subKey` (engine behavior)
+
+In variable syntax, `NAME@subKey` is **not** a general “variable namespace” feature.
+In this codebase, `@subKey` is accepted only for the local-variable families:
+
+- `LOCAL`, `LOCALS`, `ARG`, `ARGS`
+
+Semantics:
+
+- Without `@subKey`, the engine uses the **current function label name** as the implicit subkey. This is why locals are “scoped per function name”.
+- With an explicit `@subKey`, the engine selects (and may create) a separate local-variable store keyed by that string, and emits a warning that this is not recommended.
+
+Important constraints:
+
+- Using `@subKey` with a non-local variable (built-in global, ERH global, or `#DIM` private variable) is an error.
+- Referencing `LOCAL/ARG/LOCALS/ARGS` without an explicit `@subKey` is an error when the engine is not currently scanning/executing inside a function body (for example, in some debug contexts).
 
 ## User-defined variables: `#DIM` / `#DIMS`
 

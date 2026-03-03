@@ -226,7 +226,9 @@ arglist   ::= expr { "," expr } ;
 Notes:
 
 - `IDENT "[" ... "]"` function calls are explicitly rejected in this codebase.
-- Argument lists permit omitted arguments only in certain call-like instruction syntaxes; for expression-function calls, an empty field is still tokenized but may become `null` and later rejected by argument checks.
+- Argument lists can contain **empty slots** (e.g. `F(a,,c)` or `F(a,)`):
+  - the expression parser represents an empty slot as `null` in the argument list
+  - whether `null` is accepted, treated as “omitted”, or rejected is method-specific (validated by the called built-in method or user-defined signature rules)
 
 ### 5.2 Variable term
 
@@ -240,6 +242,11 @@ var_arg ::= expr ;
 Notes and constraints:
 
 - Up to **3** `:` arguments are allowed syntactically; semantic rules then depend on the variable’s dimension and category (see `variables.md` and `runtime-model.md`).
+- `@IDENT` is not a general “namespace” feature in this codebase:
+  - it is accepted only for the local-variable families `LOCAL`, `LOCALS`, `ARG`, and `ARGS`
+  - using it with a global variable or a private `#DIM/#DIMS` variable is an error
+  - `@` is **not** an expression operator: it is recognized only in this specific spot while parsing a variable identifier.
+    - Example: `(A+B)@X` is a parse error (“unexpected symbol `@`”) in expression-parsed contexts.
 - Omitted/implicit indices are part of variable-term construction (argument inference):
   - For non-character **1D** arrays, omitting the index makes it `:0` (except `RAND`, which can reject omission depending on config).
   - For character-data **1D** arrays, a single written index is treated as the element index and the character selector defaults to `TARGET` (when `SystemNoTarget=NO`); selecting a specific character requires writing both indices.

@@ -23,6 +23,20 @@ Engine-accurate notes:
   - and it is not evaluated at runtime (so it cannot cause runtime errors/side-effects by itself).
 - Some constructs still enforce **loader-time constraints** using this parsed data. For example, `TRYGOTOLIST` explicitly forbids `[...]` (and also forbids an argument list).
 
+### Load-time linking vs runtime resolution (compatibility-critical)
+
+This engine performs a load-time “linking” pass over many control-flow instructions.
+
+Key rule:
+
+- If a call/jump/goto target name is a **compile-time constant** (including some `...FORM` cases where the FORM reduces to a constant), the loader attempts to resolve it during load.
+  - If resolution fails and the instruction is not a `TRY*` form, the line is typically marked as an **error line** during load (execution will throw if reached).
+  - The config `FunctionNotFoundWarning` can suppress *printing* of the warning, but it does not prevent the line from becoming an error line when `isError=true` is used.
+- If the target name is **not** compile-time constant, the loader sets a global “computed call target exists” flag and defers resolution to runtime.
+  - In that case, missing targets raise runtime errors for non-`TRY*` instructions, and are soft-fail for `TRY*`/`TRYC*` instructions.
+
+These behaviors also interact with whole-program “function never called” checks; see `pipeline.md`.
+
 ### `CALL`
 
 `CALL funcName` invokes a function label named `@funcName`.
@@ -108,6 +122,10 @@ Just like `TRY*`, `TRYC*` does not catch runtime errors thrown after the target 
 
 For `...FORM` variants (`CALLFORM`, `TRYCCALLFORM`, `TRYCGOTOFORM`, etc.), the target name is obtained by evaluating a formatted string first.
 See `formatted-strings.md` for FORM scanning rules.
+
+Compatibility detail:
+
+- Even for `...FORM` variants, if the engine can fold the FORM into a constant at load time, it may still link the target during the load-time linking pass (so “target not found” can become a load-time error line rather than a runtime error).
 
 ### 4) “Try list” blocks: `TRYCALLLIST` / `TRYJUMPLIST` / `TRYGOTOLIST`
 

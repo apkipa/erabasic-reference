@@ -92,7 +92,7 @@ EraBasic has many array variables (including multi-dimensional and per-character
 
 Variable terms have the shape:
 
-- `NAME` (optionally `NAME@subName`) followed by up to 3 `:` arguments.
+- `NAME` (optionally `NAME@subKey`) followed by up to 3 `:` arguments.
 - Each `:` argument is an expression, but it is ultimately converted to a numeric index:
   - normally: numeric expression → numeric index
   - for specific CSV-backed variables/positions: string key → numeric index via name tables (this is targeted, not general “string indexing”)
@@ -122,6 +122,20 @@ Engine references (fact-check):
 
 - Variable argument inference and “no-arg variable term”: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableParser.cs`
 - “No-arg term” throws on value access: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableTerm.cs` (`VariableNoArgTerm`)
+
+### `@subKey` is only for local-variable families
+
+Although the syntax permits `NAME@subKey`, `@subKey` is **not** supported for general variables in this codebase.
+It is accepted only for:
+
+- `LOCAL`, `LOCALS`, `ARG`, `ARGS`
+
+Where it selects a particular “local store key” (normally the current function name). See `variables.md` for the precise behavior and warnings.
+
+Important parser note:
+
+- `@` is **not** a general expression operator. It is recognized only as part of `NAME@subKey` while resolving a variable identifier.
+- Therefore, forms like `(A+B)@X` are syntax errors in expression-parsed contexts (they are reported as an “unexpected symbol `@`”).
 
 ## Operators
 

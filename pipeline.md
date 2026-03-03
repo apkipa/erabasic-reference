@@ -168,6 +168,97 @@ After ERH has been loaded, macro expansion is enabled only if at least one macro
 
 This is a real phase boundary: the same tokenization call behaves differently depending on whether `UseMacro` is enabled.
 
+## ERB parse/build passes (function-level validation and linking)
+
+After all enabled ERB files are read, the engine performs additional parsing/validation passes that are critical for compatibility.
+
+High-level phases:
+
+1) **Read ERB into a linked list of “logical lines”** (per file).
+2) **Parse function label signatures** (user-defined function argument declarations).
+3) **Per function**: run three validation/linking passes:
+   - argument parsing and method-safe checks
+   - structural block matching (“nest check”)
+   - jump/call target linking (`JumpTo` wiring)
+4) **Whole-program checks**: “function never called” warnings and optional suppression of uncalled functions.
+
+### 1) ERB load: build `LogicalLine` objects
+
+For each enabled ERB line, the loader classifies it by its first non-whitespace character:
+
+- `[` (but not `[[`) → ERB preprocessor directive (handled immediately; does not become a `LogicalLine`)
+- `#` → sharp directive, but only valid immediately after a function label line (`@...`)
+- `@` / `$` → label line (`FunctionLabelLine` / `GotoLabelLine`)
+- otherwise → statement line (`InstructionLine` or `InvalidLine`)
+
+This step does **not** fully parse instruction arguments in the general case. Most instruction lines store a raw “argument slice” and are parsed later (either during load-time validation, or lazily at runtime).
+
+Certain parse failures set an internal “load error” flag (`noError=false` in the engine) even though the loader continues to read the rest of the files:
+
+- invalid function labels (`InvalidLabelLine`)
+- invalid statement lines (`InvalidLine`)
+- invalid `#...` attribute lines (sharp-line parse failure)
+
+This flag is later used by the startup gate controlled by `CompatiErrorLine` (see `errors-and-warnings.md`).
+
+### 2) Function label signature parsing
+
+After label collection, the loader parses function label signatures (the optional `@NAME(...)` / `@NAME, ...` parameter declarations) and builds per-label metadata used by later passes and runtime call binding.
+
+### 3) Per-function three-pass validation/linking
+
+For each function label, the loader performs:
+
+#### Pass 1/3: argument parsing + “method-safe” enforcement
+
+The loader iterates `InstructionLine`s in the function and:
+
+- If the function is a user-defined expression function (`#FUNCTION/#FUNCTIONS`), rejects any instruction whose metadata lacks `METHOD_SAFE` by marking that line as an error line.
+- Parses instruction arguments on load when any of these holds:
+  - `NeedReduceArgumentOnLoad=YES`, or
+  - analysis mode, or
+  - the instruction forces load-time argument parsing (engine metadata flag `FORCE_SETARG`).
+
+This pass is where many “this line will crash if executed” issues become explicit `line.IsError` traps.
+
+#### Pass 2/3: structural block matching (“nest check”)
+
+The loader validates block structure and “syntax blocks” using a nesting stack:
+
+- pairs/matches: `IF..ENDIF`, `SELECTCASE..ENDSELECT`, `REPEAT..REND`, `FOR..NEXT`, `WHILE..WEND`, `DO..LOOP`, `TRYC*..CATCH..ENDCATCH`, `TRY*LIST..ENDFUNC`
+- validates restricted regions like `PRINTDATA`/`STRDATA`/`DATALIST` bodies (only specific child lines allowed)
+- validates that `$` labels do not appear inside some syntax blocks (they become error lines)
+- wires some per-line jump anchors (e.g. `BREAK`/`CONTINUE` target the nearest enclosing loop marker)
+
+Missing/extra closers and invalid nesting are typically reported as warnings with `isError=true`, which marks the offending marker line(s) as error lines.
+
+#### Pass 3/3: `JumpTo` wiring and load-time name resolution
+
+The loader calls each instruction’s `SetJumpTo(...)` hook to:
+
+- wire jump targets between marker lines (e.g. `IF` → selected `ELSEIF/ELSE/ENDIF`, `WHILE` ↔ `WEND`, etc.)
+- resolve and link constant call/jump targets where applicable:
+  - If a call/jump/goto target is a compile-time constant, the engine may resolve it at load time and cache the result on the line.
+  - If such a target cannot be resolved and the instruction is not a `TRY*` form, the loader typically marks the line as an error line.
+  - If the target is not constant (e.g. `CALLFORM`, or any “computed name” call), the loader sets an internal `useCallForm` flag; resolution is deferred to runtime.
+
+Config interaction (important):
+
+- `FunctionNotFoundWarning` affects whether “function not found” warnings are printed, but when this pass marks a line as an error line (`isError=true`), that happens regardless of whether the warning is later suppressed by config (see `errors-and-warnings.md`).
+
+### 4) Whole-program function reachability checks
+
+After per-function parsing, the loader runs a “function never called” check unless `useCallForm` is set:
+
+- If `useCallForm=true`, the loader treats all functions as “potentially called” (because targets may be computed at runtime) and parses them all.
+- Otherwise, it warns for functions never reached via static call graph discovery, controlled by `FunctionNotCalledWarning`.
+
+Optional hardening (default in this codebase):
+
+- If `IgnoreUncalledFunction=YES`, the loader does **not** parse uncalled functions, and instead plants a runtime trap at the function entry:
+  - the first executable line after the label is marked as an error line (“this function should not be called”).
+  - calling such a function at runtime therefore throws immediately on entry.
+
 ## Line reading (common behavior across config/ERH/ERB/CSV readers)
 
 The core line reader:
