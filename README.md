@@ -2,6 +2,8 @@
 
 This is a compact, English-language reference for the EraBasic (ERB) language as implemented by the Emuera engine in this workspace.
 
+This reference was assembled and curated by **OpenAI GPT-5.2 (high)**.
+
 This folder is intended to be **self-contained**: you should be able to read and use it without needing to open other documentation files in this repository.
 
 ## Contents
