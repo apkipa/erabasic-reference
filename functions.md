@@ -31,6 +31,27 @@ Engine-accurate notes:
 - When the called function ends, execution returns to the line after the `CALL`.
 - If the function reaches its end without an explicit `RETURN`, `RESULT` becomes `0`.
 
+## Calling expression functions as statements (`METHOD`-dispatch and `CALLF`)
+
+Expression functions (built-in methods and user-defined `#FUNCTION/#FUNCTIONS`) are normally called inside expressions:
+
+- `X = FOO(1, 2)`
+
+This engine also supports statement-style invocation in two different ways:
+
+1) **Statement-form method execution (keyword = method name)**
+
+- If a line’s keyword matches a registered expression function name, the engine executes that function and writes:
+  - numeric result → `RESULT`
+  - string result → `RESULTS`
+- This is available only when the method name is also registered as an instruction keyword (no conflict with an existing instruction keyword).
+
+2) **`CALLF` / `CALLFORMF` (explicit method-name call)**
+
+- `CALLF` / `CALLFORMF` resolve and evaluate an expression function by name.
+- In this codebase, these instructions **do not** assign the return value into `RESULT/RESULTS` (the value is computed and discarded).
+  - Use expression-call form (assignment) if you need the value.
+
 ## “Try” call/jump/goto variants (`TRY*` and `TRYC*`)
 
 This engine implements two “soft failure” families for `CALL`/`JUMP`/`GOTO`.

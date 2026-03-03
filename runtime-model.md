@@ -228,6 +228,20 @@ If execution “falls off the end” of a function body (the interpreter reaches
 
 So the observable “return value behavior” depends on which instructions explicitly write these variables.
 
+### 4.7 Other common writers to `RESULT` / `RESULTS` (compatibility notes)
+
+In addition to `RETURN` / implicit return, this engine has other entry points that write `RESULT`/`RESULTS`.
+This matters because `RESULT`/`RESULTS` are global and are not saved/restored.
+
+- **Expression functions executed as standalone statements**:
+  - If a logical line’s *keyword* matches a registered expression function name, the engine executes it via an internal shared instruction and writes:
+    - `RESULT` when the function returns numeric (`long`)
+    - `RESULTS` when the function returns string (`string`)
+  - Not all expression functions are callable in statement form: the engine only registers method names as instruction keywords when there is no conflict with an existing instruction keyword.
+- **`CALLF` / `CALLFORMF`**:
+  - These explicitly call an expression function by name, but (in this codebase) they do **not** assign the return value into `RESULT`/`RESULTS`.
+  - If you need the value, call the function in an expression (e.g. `X = FOO(...)`) or use statement-form method execution where available.
+
 ## 5) Event functions (`@EVENT...`) and `#PRI/#LATER/#SINGLE/#ONLY`
 
 ### 5.1 Which names are “event functions”
