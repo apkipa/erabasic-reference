@@ -16,7 +16,10 @@
   - If false, falls through to the next line after `WEND`.
 
 **Errors & validation**
-- `WEND` without a matching open `WHILE` produces a load-time warning.
+- `WEND` without a matching open `WHILE` is a load-time error (the line is marked as error).
 
 **Examples**
 - `WEND`
+
+**Progress state**
+- complete

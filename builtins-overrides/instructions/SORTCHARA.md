@@ -28,3 +28,6 @@
 - `SORTCHARA NO`
 - `SORTCHARA CFLAG:3, BACK`
 - `SORTCHARA NAME, FORWARD`
+
+**Progress state**
+- complete

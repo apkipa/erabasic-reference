@@ -19,3 +19,6 @@
 
 **Examples**
 - `TRYGOTOFORM "LABEL_%RESULT%"`
+
+**Progress state**
+- complete

@@ -17,4 +17,7 @@
 - Errors if the formatted string evaluation fails.
 
 **Examples**
-- `STRLENFORMU "NAME=%NAME%"` sets `RESULT` to the character length of the expanded string.
+- `STRLENFORMU NAME=%NAME%` sets `RESULT` to the character length of the expanded string.
+
+**Progress state**
+- complete

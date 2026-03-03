@@ -59,6 +59,17 @@ Collision outcomes when `WarnFunctionOverloading=YES`:
 - **User macro**: error (should normally be unreachable if preprocessing/lexing succeeded, but is treated as fatal anyway).
 - **User ref-function**: error.
 
+### 2.3 Optional bracket tail: `@NAME[...]` (parsed, then discarded)
+
+After `@NAME`, the loader can also accept a bracket list `[...]` before the normal signature separator (`,` or `(`).
+
+Engine-accurate behavior:
+
+- This bracket list is sometimes called “subNames” in the engine.
+- It is **validated** at load time, but **not stored** on the label object in this codebase (the assignment is left as a TODO/commented-out), so it has **no runtime effect** on which label is called.
+- The bracket list must be **non-empty**, and each element must be a **constant term** (non-constant expressions are rejected).
+- Event functions (`@EVENT...`) do not parse any signature content at all: any trailing tokens (including `[...]`) cause a warning and are ignored for argument-binding purposes.
+
 ## 3) Event functions vs normal functions
 
 Some label names are treated as “event functions” by name.

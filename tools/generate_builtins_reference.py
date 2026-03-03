@@ -3,22 +3,31 @@
 Generate a single Markdown catalog for all EraBasic built-in instructions and expression functions
 from the EvilMask/Emuera engine source.
 
-Output:
-  erabasic-reference/builtins-reference.md
+Outputs:
+  - User-facing reference (manual overrides only):
+      erabasic-reference/builtins-reference.md
+  - Writer/debug engine dump (engine-extracted skeletons, signatures, and refs):
+      erabasic-reference/appendix/tooling/builtins-reference-engine.md
 
 Design goals:
   - English
   - No tables (per user preference)
-  - Self-contained for built-in catalog use: includes an argument-spec glossary
   - Source of truth: emuera.em (engine code)
+
+Notes:
+  - The user-facing doc intentionally omits engine-internal validation structures and file/line refs.
+  - The engine-dump doc exists for fact-checking and doc-authoring only.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import argparse
 import datetime as _dt
+import os
 import re
+import sys
 from typing import Iterable
 
 
@@ -32,10 +41,37 @@ PATH_METHOD_CREATOR = REPO_ROOT / "emuera.em/Emuera/Runtime/Script/Statements/Fu
 PATH_METHOD_IMPL = REPO_ROOT / "emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.Method.cs"
 
 OUTPUT_MD = REPO_ROOT / "erabasic-reference/builtins-reference.md"
+OUTPUT_ENGINE_MD = REPO_ROOT / "erabasic-reference/appendix/tooling/builtins-reference-engine.md"
+OUTPUT_INDEX_MD = REPO_ROOT / "erabasic-reference/builtins-index.md"
 OUTPUT_PROGRESS_MD = REPO_ROOT / "erabasic-reference/builtins-overrides/builtins-progress.md"
 OVERRIDES_DIR = REPO_ROOT / "erabasic-reference/builtins-overrides"
 INSTRUCTION_OVERRIDES_DIR = OVERRIDES_DIR / "instructions"
 METHOD_OVERRIDES_DIR = OVERRIDES_DIR / "methods"
+
+USER_INSTRUCTION_SECTIONS = [
+    "Summary",
+    "Tags",
+    "Syntax",
+    "Arguments",
+    "Defaults / optional arguments",
+    "Semantics",
+    "Errors & validation",
+    "Examples",
+]
+
+USER_METHOD_SECTIONS = [
+    "Summary",
+    "Tags",
+    "Syntax",
+    "Signatures / argument rules",
+    "Arguments",
+    "Defaults / optional arguments",
+    "Semantics",
+    "Errors & validation",
+    "Examples",
+]
+
+OPTIONAL_USER_SECTIONS = {"Tags"}
 
 
 def _read_text(path: Path) -> str:
@@ -676,6 +712,26 @@ def _extract_instruction_class_info(class_block: list[str], class_name: str) -> 
     return _dedup(arg_builders), _dedup(flag_stmts), key_ops, throws
 
 
+def _infer_arg_types_from_argbuilder_lines(argb_lines: list[str]) -> list[str]:
+    """
+    Extract referenced FunctionArgType values from ArgBuilder assignment statements.
+
+    Note: many instruction classes assign ArgBuilder conditionally based on constructor args
+    (e.g. the PRINT family). In those cases this returns multiple candidates and callers
+    should avoid claiming a single Arg spec.
+    """
+    out: list[str] = []
+    seen: set[str] = set()
+    for ln in argb_lines:
+        for m in re.finditer(r"\bFunctionArgType\.(\w+)\b", ln):
+            t = m.group(1)
+            if t in seen:
+                continue
+            seen.add(t)
+            out.append(t)
+    return out
+
+
 def parse_switch_cases(script_proc_lines: list[str]) -> dict[str, ImplSnippet]:
     """
     Extract per-FunctionCode snippets from:
@@ -1149,6 +1205,371 @@ def _has_manual_override(kind: str, name: str) -> bool:
     return bool(secs)
 
 
+def _has_user_facing_content(kind: str, name: str) -> bool:
+    """
+    Return True if an override contributes any user-facing content lines.
+
+    Overrides may contain internal tooling-only sections (e.g. Progress state)
+    without documenting the built-in for readers.
+    """
+    secs = _load_override_sections(kind, name)
+    if not secs:
+        return False
+    titles = USER_INSTRUCTION_SECTIONS if kind == "instruction" else USER_METHOD_SECTIONS
+    for t in titles:
+        if t in OPTIONAL_USER_SECTIONS:
+            continue
+        body = secs.get(t, [])
+        if any(ln.strip() for ln in body):
+            return True
+    return False
+
+
+def _render_instruction_entry_user(reg: InstructionReg) -> str:
+    parts: list[str] = [f"## {reg.name} (instruction)"]
+    override = _load_override_sections("instruction", reg.name)
+    if not _has_user_facing_content("instruction", reg.name):
+        parts.append("**Summary**")
+        parts.append("- (TODO: not yet documented)")
+        return "\n".join(parts) + "\n"
+    for title in USER_INSTRUCTION_SECTIONS:
+        if title == "Tags" and not any(ln.strip() for ln in override.get("Tags", [])):
+            continue
+        parts.append("")
+        parts.extend(_render_section(title, override.get(title, [])))
+    return "\n".join(parts) + "\n"
+
+
+def _render_method_entry_user(reg: MethodReg) -> str:
+    parts: list[str] = [f"## {reg.name} (expression function)"]
+    override = _load_override_sections("method", reg.name)
+    if not _has_user_facing_content("method", reg.name):
+        parts.append("**Summary**")
+        parts.append("- (TODO: not yet documented)")
+        return "\n".join(parts) + "\n"
+    for title in USER_METHOD_SECTIONS:
+        if title == "Tags" and not any(ln.strip() for ln in override.get("Tags", [])):
+            continue
+        parts.append("")
+        parts.extend(_render_section(title, override.get(title, [])))
+    return "\n".join(parts) + "\n"
+
+
+@dataclass(frozen=True)
+class ValidationIssue:
+    severity: str  # "WARN" | "ERROR"
+    code: str
+    kind: str  # "instruction" | "method"
+    name: str
+    message: str
+
+
+def _progress_state_raw(secs: dict[str, list[str]]) -> list[str]:
+    return secs.get("Progress state", []) or secs.get("Progress", []) or []
+
+
+def _progress_state_value(secs: dict[str, list[str]]) -> str | None:
+    """
+    Best-effort interpret Progress state markers.
+
+    Returns: "complete" | "partial" | None (not specified)
+    """
+    raw = _progress_state_raw(secs)
+    if not raw:
+        return None
+    for ln in raw:
+        t = ln.strip().lstrip("-").strip().lower()
+        if not t:
+            continue
+        if t in ("complete", "completed", "done"):
+            return "complete"
+        if t in ("partial", "incomplete", "wip", "draft"):
+            return "partial"
+    return "invalid"
+
+
+def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: list[MethodReg]) -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+
+    engine_instr = {r.name for r in instr_regs}
+    engine_meth = {r.name for r in method_regs}
+
+    allowed_instruction = set(USER_INSTRUCTION_SECTIONS) | {"Documentation depth", "Progress state", "Progress"}
+    allowed_method = set(USER_METHOD_SECTIONS) | {"Documentation depth", "Progress state", "Progress"}
+
+    def check_override_file(kind: str, name: str, secs: dict[str, list[str]]) -> None:
+        allowed = allowed_instruction if kind == "instruction" else allowed_method
+        unknown = sorted([k for k in secs.keys() if k not in allowed])
+        for k in unknown:
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="unknown-section",
+                    kind=kind,
+                    name=name,
+                    message=f"Unknown override section title: `{k}` (typo?)",
+                )
+            )
+        ps = _progress_state_value(secs)
+        if ps == "invalid":
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="invalid-progress-state",
+                    kind=kind,
+                    name=name,
+                    message="Progress state is present but not recognized (use `partial`/`complete`).",
+                )
+            )
+
+        titles = USER_INSTRUCTION_SECTIONS if kind == "instruction" else USER_METHOD_SECTIONS
+        missing_sections = [
+            t for t in titles if t not in OPTIONAL_USER_SECTIONS and not any(ln.strip() for ln in secs.get(t, []))
+        ]
+        if ps == "complete" and missing_sections:
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="complete-missing-sections",
+                    kind=kind,
+                    name=name,
+                    message="Marked complete but missing user-facing sections: " + ", ".join(f"`{t}`" for t in missing_sections),
+                )
+            )
+
+    # Stale override files (exist on disk but not in engine lists).
+    for p in sorted(INSTRUCTION_OVERRIDES_DIR.glob("*.md")):
+        name = p.stem
+        if name not in engine_instr and name != "builtins-progress":
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="stale-override",
+                    kind="instruction",
+                    name=name,
+                    message=f"Override file exists but instruction is not engine-registered: `{p.relative_to(REPO_ROOT)}`",
+                )
+            )
+            continue
+        secs = _parse_override_sections(_read_text(p))
+        check_override_file("instruction", name, secs)
+
+    for p in sorted(METHOD_OVERRIDES_DIR.glob("*.md")):
+        name = p.stem
+        if name not in engine_meth:
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="stale-override",
+                    kind="method",
+                    name=name,
+                    message=f"Override file exists but method is not engine-registered: `{p.relative_to(REPO_ROOT)}`",
+                )
+            )
+            continue
+        secs = _parse_override_sections(_read_text(p))
+        check_override_file("method", name, secs)
+
+    # Missing user-facing docs (engine-registered, but no user-facing sections filled).
+    for r in instr_regs:
+        if not _has_user_facing_content("instruction", r.name):
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="missing-user-doc",
+                    kind="instruction",
+                    name=r.name,
+                    message="No user-facing override content (will render as TODO).",
+                )
+            )
+    for r in method_regs:
+        if not _has_user_facing_content("method", r.name):
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="missing-user-doc",
+                    kind="method",
+                    name=r.name,
+                    message="No user-facing override content (will render as TODO).",
+                )
+            )
+
+    return issues
+
+
+def _print_validation_report(issues: list[ValidationIssue], *, verbose: bool) -> None:
+    if not issues:
+        print("OK: no built-ins override validation issues found.", file=sys.stderr)
+        return
+    counts: dict[tuple[str, str], int] = {}
+    for it in issues:
+        counts[(it.severity, it.code)] = counts.get((it.severity, it.code), 0) + 1
+    summary = ", ".join([f"{sev}:{code}={n}" for (sev, code), n in sorted(counts.items())])
+    print(f"WARN: built-ins override validation issues found: {summary}", file=sys.stderr)
+    if not verbose:
+        return
+    for it in issues:
+        print(f"{it.severity} {it.code} {it.kind} {it.name}: {it.message}", file=sys.stderr)
+
+
+def _parse_tag_lines(lines: list[str]) -> list[str]:
+    tags: list[str] = []
+    for raw in lines:
+        t = raw.strip()
+        if not t:
+            continue
+        if t.startswith(("-", "*")):
+            t = t[1:].strip()
+        t = t.strip("`").strip()
+        if not t:
+            continue
+        tags.append(t)
+    # stable order, unique
+    seen: set[str] = set()
+    out: list[str] = []
+    for t in tags:
+        if t in seen:
+            continue
+        seen.add(t)
+        out.append(t)
+    return out
+
+
+def generate_builtins_index_md(
+    *,
+    gen_date: str,
+    instr_regs: list[InstructionReg],
+    method_regs: list[MethodReg],
+) -> str:
+    """
+    Build a user-facing tag index based solely on override files.
+
+    Only entries with user-facing content are indexed.
+    """
+    tag_map: dict[str, list[tuple[str, str]]] = {}  # tag -> [(kind, name)]
+    uncategorized: list[tuple[str, str]] = []
+
+    def add(kind: str, name: str, tags: list[str]) -> None:
+        if not tags:
+            uncategorized.append((kind, name))
+            return
+        for tg in tags:
+            tag_map.setdefault(tg, []).append((kind, name))
+
+    for r in instr_regs:
+        if not _has_user_facing_content("instruction", r.name):
+            continue
+        secs = _load_override_sections("instruction", r.name)
+        tags = _parse_tag_lines(secs.get("Tags", []))
+        add("instruction", r.name, tags)
+
+    for r in method_regs:
+        if not _has_user_facing_content("method", r.name):
+            continue
+        secs = _load_override_sections("method", r.name)
+        tags = _parse_tag_lines(secs.get("Tags", []))
+        add("method", r.name, tags)
+
+    def link(kind: str, name: str) -> str:
+        suffix = "(instruction)" if kind == "instruction" else "(expression function)"
+        anchor = _md_anchor(f"{name} {suffix}")
+        return f"- [`{name}`](builtins-reference.md#{anchor}) ({kind})"
+
+    out: list[str] = []
+    out.append("# EraBasic Built-ins Index (by tag)")
+    out.append("")
+    out.append(f"Generated on `{gen_date}`.")
+    out.append("")
+    out.append("This index is built from `builtins-overrides/**` tags and links into `builtins-reference.md`.")
+    out.append("")
+
+    for tg in sorted(tag_map.keys(), key=lambda s: s.lower()):
+        out.append(f"## {tg}")
+        out.append("")
+        items = sorted(tag_map[tg], key=lambda it: (it[0], it[1]))
+        for kind, name in items:
+            out.append(link(kind, name))
+        out.append("")
+
+    if uncategorized:
+        out.append("## (uncategorized)")
+        out.append("")
+        for kind, name in sorted(uncategorized, key=lambda it: (it[0], it[1])):
+            out.append(link(kind, name))
+        out.append("")
+
+    return "\n".join(out).rstrip() + "\n"
+
+
+def _estimate_doc_depth(override: dict[str, list[str]]) -> tuple[str, str]:
+    """
+    Best-effort doc-depth indicator for per-entry visibility.
+
+    Returns:
+      (depth_label, note)
+
+    depth_label is one of: "Skeleton", "Low", "Medium", "High", "Manual".
+    """
+    if not override:
+        return ("Skeleton", "Engine-extracted hooks only; semantics mostly TODO.")
+
+    manual = override.get("Documentation depth")
+    if manual:
+        for line in manual:
+            t = line.strip()
+            if t:
+                return ("Manual", t.lstrip("- ").strip())
+        return ("Manual", "Manual override present (depth not specified).")
+
+    score_sections = [
+        "Summary",
+        "Syntax",
+        "Arguments",
+        "Defaults / optional arguments",
+        "Signatures / argument rules",
+        "Semantics",
+        "Errors & validation",
+        "Examples",
+    ]
+    non_empty = 0
+    for k in score_sections:
+        for line in override.get(k, []):
+            if line.strip():
+                non_empty += 1
+
+    if non_empty >= 60:
+        return ("High", "Heuristic: substantial manual semantics present; still verify edge cases.")
+    if non_empty >= 25:
+        return ("Medium", "Heuristic: main behavior described; some edge cases may be missing.")
+    return ("Low", "Heuristic: minimal manual semantics; use engine refs for strict behavior.")
+
+
+def _progress_state(override: dict[str, list[str]]) -> str:
+    """
+    Writing-progress state for overrides.
+
+    States:
+      - "none": no manual override exists
+      - "partial": manual override exists but is not declared complete
+      - "complete": explicitly declared complete in the override file
+
+    This is intentionally conservative: in absence of an explicit marker, we treat
+    an override as "partial" even if it looks detailed.
+    """
+    if not override:
+        return "none"
+    raw = override.get("Progress state", []) or override.get("Progress", [])
+    for ln in raw:
+        t = ln.strip().lstrip("-").strip().lower()
+        if not t:
+            continue
+        if t in ("complete", "completed", "done"):
+            return "complete"
+        if t in ("partial", "incomplete", "wip", "draft"):
+            return "partial"
+    return "partial"
+
+
 def _render_instruction_entry(
     reg: InstructionReg,
     structural: StructuralInfo | None,
@@ -1160,13 +1581,47 @@ def _render_instruction_entry(
 
     override = _load_override_sections("instruction", reg.name)
 
+    # Best-effort: some AInstruction classes set ArgBuilder to a standard FunctionArgType,
+    # but the registration site does not declare it. Infer it from the class body when
+    # it is unambiguous (exactly one FunctionArgType referenced in ArgBuilder assignments).
+    inferred_arg_type: str | None = None
+    inferred_arg_note: str | None = None
+    cls_impl: tuple[Path, int, int, list[str]] | None = None
+    cls_name: str | None = None
+    cls_argb_lines: list[str] = []
+    cls_flag_lines: list[str] = []
+    cls_ops: list[str] = []
+    cls_thr: list[str] = []
+
+    if reg.reg_kind not in ("Switch", "Internal"):
+        if reg.impl_ctor:
+            mm = re.match(r"new\s+([A-Za-z0-9_]+)\b", reg.impl_ctor)
+            if mm:
+                cls_name = mm.group(1)
+        if cls_name and cls_name not in instr_class_impl:
+            cls_name = None
+        if not cls_name:
+            cls_name = f"{reg.name}_Instruction"
+        if cls_name in instr_class_impl:
+            cls_impl = instr_class_impl[cls_name]
+            _p, _start, _end, _block = cls_impl
+            cls_argb_lines, cls_flag_lines, cls_ops, cls_thr = _extract_instruction_class_info(_block, cls_name)
+            candidates = _infer_arg_types_from_argbuilder_lines(cls_argb_lines)
+            if reg.arg_type is None and len(candidates) == 1:
+                inferred_arg_type = candidates[0]
+                inferred_arg_note = f"(inferred from `{cls_name}` ArgBuilder assignment)"
+
     # Summary
     parts.extend(_render_section("Summary", override.get("Summary", [])))
 
     # Metadata
     meta: list[str] = []
-    if reg.arg_type:
-        meta.append(f"- Arg spec: `{reg.arg_type}` (see #{_md_anchor('Argument spec: ' + reg.arg_type)})")
+    effective_arg_type = reg.arg_type or inferred_arg_type
+    if effective_arg_type:
+        note = ""
+        if reg.arg_type is None and inferred_arg_note:
+            note = f" {inferred_arg_note}"
+        meta.append(f"- Arg spec: `{effective_arg_type}` (see #{_md_anchor('Argument spec: ' + effective_arg_type)}){note}")
     else:
         meta.append("- Arg spec: (instruction-defined)")
     if reg.impl_ctor:
@@ -1185,7 +1640,7 @@ def _render_instruction_entry(
     parts.extend(_render_section("Metadata", meta))
 
     # Syntax / Arguments (best-effort from arg spec hints + builder metadata)
-    spec = arg_specs.get(reg.arg_type) if reg.arg_type else None
+    spec = arg_specs.get(effective_arg_type) if effective_arg_type else None
 
     if "Syntax" in override:
         syntax = override["Syntax"]
@@ -1227,8 +1682,8 @@ def _render_instruction_entry(
     refs: list[str] = []
 
     refs.append(f"- Registration: `{PATH_FUNCTION_IDENTIFIER.relative_to(REPO_ROOT)}`")
-    if reg.arg_type:
-        refs.append(f"- Arg builder mapping: `{PATH_ARGUMENT_BUILDER.relative_to(REPO_ROOT)}` (search `FunctionArgType.{reg.arg_type}`)")
+    if effective_arg_type:
+        refs.append(f"- Arg builder mapping: `{PATH_ARGUMENT_BUILDER.relative_to(REPO_ROOT)}` (search `FunctionArgType.{effective_arg_type}`)")
 
     if reg.reg_kind == "Switch":
         impl = switch_impl.get(reg.name)
@@ -1254,31 +1709,21 @@ def _render_instruction_entry(
             semantics.append("- Internal pseudo-instruction used by the parser/runtime; not a user-facing keyword.")
         refs.append(f"- Internal: `{PATH_FUNCTION_IDENTIFIER.relative_to(REPO_ROOT)}` (`setFunc` / `SETFunction`)")
     else:
-        cls = None
-        if reg.impl_ctor:
-            mm = re.match(r"new\s+([A-Za-z0-9_]+)\b", reg.impl_ctor)
-            if mm:
-                cls = mm.group(1)
-        if cls and cls not in instr_class_impl:
-            cls = None
-        if not cls:
-            cls = f"{reg.name}_Instruction"
-        if cls in instr_class_impl:
-            p, start, _end, block = instr_class_impl[cls]
-            argb_lines, flag_lines, ops, thr = _extract_instruction_class_info(block, cls)
-            refs.append(f"- Execution: `{p.relative_to(REPO_ROOT)}`:{start} (`{cls}`)")
-            base_flag_lines = [fl for fl in flag_lines if re.match(r"^flag\s*=", fl)]
+        if cls_impl and cls_name:
+            p, start, _end, _block = cls_impl
+            refs.append(f"- Execution: `{p.relative_to(REPO_ROOT)}`:{start} (`{cls_name}`)")
+            base_flag_lines = [fl for fl in cls_flag_lines if re.match(r"^flag\s*=", fl)]
             if base_flag_lines:
                 semantics.append("- Engine-extracted notes (base flags from class):")
                 for fl in base_flag_lines[:5]:
                     semantics.append(f"  - `{fl}`")
-            if ops:
+            if cls_ops:
                 semantics.append("- Engine-extracted notes (key operations):")
-                for op in ops[:12]:
+                for op in cls_ops[:12]:
                     semantics.append(f"  - `{op}`")
-            if thr:
+            if cls_thr:
                 errors.append("- Engine-extracted notes (throws/errors):")
-                for t in thr[:10]:
+                for t in cls_thr[:10]:
                     errors.append(f"  - `{t}`")
         else:
             if not semantics:
@@ -1315,6 +1760,9 @@ def _render_method_entry(reg: MethodReg, info: MethodClassInfo | None) -> str:
     parts.append("")
     parts.extend(_render_section("Metadata", meta))
 
+    parts.append("")
+    parts.extend(_render_section("Syntax", override.get("Syntax", [])))
+
     sig: list[str] = []
     if "Signatures / argument rules" in override:
         sig = override["Signatures / argument rules"]
@@ -1326,6 +1774,8 @@ def _render_method_entry(reg: MethodReg, info: MethodClassInfo | None) -> str:
     parts.extend(_render_section("Signatures / argument rules", sig))
     parts.append("")
     parts.extend(_render_section("Arguments", override.get("Arguments", [])))
+    parts.append("")
+    parts.extend(_render_section("Defaults / optional arguments", override.get("Defaults / optional arguments", [])))
 
     sem: list[str] = list(override.get("Semantics", []))
     errs: list[str] = list(override.get("Errors & validation", []))
@@ -1356,7 +1806,30 @@ def _render_method_entry(reg: MethodReg, info: MethodClassInfo | None) -> str:
     return "\n".join(parts) + "\n"
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Generate and/or validate EraBasic built-ins documentation outputs.")
+    ap.add_argument("--no-write", action="store_true", help="Do not write any markdown outputs; run validation only.")
+    ap.add_argument(
+        "--no-fail",
+        action="store_true",
+        help="Do not exit non-zero on validation issues (still prints a warning report).",
+    )
+    ap.add_argument("--report", action="store_true", help="Print a detailed validation report to stderr.")
+    ap.add_argument(
+        "--fail-on",
+        action="append",
+        default=[],
+        choices=[
+            "missing-user-doc",
+            "stale-override",
+            "unknown-section",
+            "invalid-progress-state",
+            "complete-missing-sections",
+        ],
+        help="Exit non-zero if any matching validation issue exists (can be repeated).",
+    )
+    args = ap.parse_args(argv)
+
     fi_lines = _lines(PATH_FUNCTION_IDENTIFIER)
     fa_lines = _lines(PATH_FUNCTION_ARG_TYPE)
     ab_lines = _lines(PATH_ARGUMENT_BUILDER)
@@ -1394,12 +1867,80 @@ def main() -> None:
         for k, v in method_classes.items()
     }
 
-    # Compose markdown.
+    issues = validate_builtins_overrides(instr_regs, method_regs)
+    _print_validation_report(issues, verbose=args.report)
+
+    exit_code = 0
+    if issues and not args.no_fail:
+        # Default behavior: fail on *any* validation issue.
+        # If --fail-on is specified, restrict failure to those codes.
+        if args.fail_on:
+            wanted = set(args.fail_on)
+            if any(it.code in wanted for it in issues):
+                exit_code = 2
+        else:
+            exit_code = 2
+
+    if args.no_write:
+        return exit_code
+
     gen_date = _dt.date.today().isoformat()
+
+    # ---------------------------------------------------------------------
+    # User-facing doc (manual overrides only)
+    # ---------------------------------------------------------------------
+    md_user: list[str] = []
+    md_user.append("# EraBasic Built-ins Reference (Emuera / EvilMask)")
+    md_user.append("")
+    md_user.append(f"Generated on `{gen_date}`.")
+    md_user.append("")
+    md_user.append("This file is **user-facing**: it contains only human-written documentation overrides.")
+    md_user.append("Undocumented built-ins are listed but contain only a `(TODO)` placeholder.")
+    md_user.append("")
+    md_user.append("For engine-extracted skeletons, validation structures, and file/line references, see:")
+    md_user.append(f"- `{OUTPUT_ENGINE_MD.relative_to(REPO_ROOT)}` (writer/debug dump; not user-facing)")
+    md_user.append("")
+    md_user.append("# Expression functions as statements")
+    md_user.append("")
+    md_user.append("Some expression functions are also accepted as standalone statements (without `=` assignment).")
+    md_user.append("In statement form, the engine evaluates the function and writes the return value to:")
+    md_user.append("- `RESULT` for integer-returning functions")
+    md_user.append("- `RESULTS` for string-returning functions")
+    md_user.append("")
+
+    md_user.append("# Instructions")
+    md_user.append("")
+    for reg in instr_regs:
+        md_user.append(_render_instruction_entry_user(reg).rstrip())
+        md_user.append("")
+
+    md_user.append("# Expression functions (methods)")
+    md_user.append("")
+    for reg in method_regs:
+        md_user.append(_render_method_entry_user(reg).rstrip())
+        md_user.append("")
+
+    OUTPUT_MD.write_text("\n".join(md_user).rstrip() + "\n", encoding="utf-8")
+
+    # Tag index (user-facing; derived from overrides)
+    OUTPUT_INDEX_MD.write_text(
+        generate_builtins_index_md(gen_date=gen_date, instr_regs=instr_regs, method_regs=method_regs),
+        encoding="utf-8",
+    )
+
+    # ---------------------------------------------------------------------
+    # Engine dump (writer/debug)
+    # ---------------------------------------------------------------------
     md: list[str] = []
-    md.append("# EraBasic Built-ins Reference (Emuera / EvilMask)")
+    md.append("# EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)")
     md.append("")
     md.append(f"Generated from engine source on `{gen_date}`.")
+    md.append("")
+    md.append("This file is **not user-facing**.")
+    md.append("It exists for doc authors and fact-checking, and includes engine-extracted skeletons, validation structures, and file/line references.")
+    md.append("")
+    md.append("User-facing built-ins documentation lives in:")
+    md.append(f"- `{OUTPUT_MD.relative_to(REPO_ROOT)}`")
     md.append("")
     md.append("This document is intentionally **no-table** and uses a per-entry template:")
     md.append("- Summary / Syntax / Arguments / Defaults / Semantics / Errors / Examples / Engine refs")
@@ -1432,6 +1973,10 @@ def main() -> None:
     md.append("")
     md.append("Each instruction registered with an `Arg spec` references one of the `FunctionArgType` values below.")
     md.append("The entries here are generated from `ArgumentParser.Initialize()` and (best-effort) builder-class constructors.")
+    md.append("")
+    md.append("How to interpret argument parsing (important):")
+    md.append("- The `Arg spec` / builder largely determines whether the argument region is parsed as raw text vs expressions vs FORM, and whether `;` starts an inline comment or is literal.")
+    md.append("- This document intentionally does not repeat the parsing rules per instruction. See `argument-parsing-modes.md` for the normative, self-contained parsing-mode definitions and examples.")
     md.append("")
 
     for argt in sorted(arg_specs):
@@ -1468,6 +2013,26 @@ def main() -> None:
     # Methods
     md.append("# Expression functions (methods)")
     md.append("")
+    md.append("## How to read method argument rules")
+    md.append("")
+    md.append("Method entries describe argument checking using one of two engine models:")
+    md.append("- `argumentTypeArray = [typeof(...), ...]`: fixed arity and fixed operand types (`long` vs `string`).")
+    md.append("- `argumentTypeArrayEx`: a list of `ArgTypeList` signature options used for refs/arrays/variadics/optional args.")
+    md.append("")
+    md.append("For `argumentTypeArrayEx` entries:")
+    md.append("- Each `ArgTypeList:` line is one **signature option** (an overload-like alternative). Any one option may match; the engine accepts the first one that passes all checks.")
+    md.append("- `OmitStart = k` is a **0-based index** controlling omission/`null`:")
+    md.append("  - Argument count must satisfy `k <= argc <= len(ArgTypes)` (unless variadic). If `OmitStart = -1`, then `argc` must equal `len(ArgTypes)` (unless variadic).")
+    md.append("  - Trailing arguments may be omitted by passing fewer than `len(ArgTypes)` arguments (method supplies defaults in its implementation, typically by checking `arguments.Count`).")
+    md.append("  - A blank argument inside the call (e.g. `FUNC(a,,c)` or `FUNC(a,)`) becomes `null`. `null` is rejected for positions `< OmitStart`, and may also be rejected at/after `OmitStart` when the rule includes `DisallowVoid`.")
+    md.append("- Common `ArgType` flags you may see:")
+    md.append("  - `Ref*`: argument must be a variable term (by-reference-like), not an arbitrary expression.")
+    md.append("  - `AllowConstRef`: allows referencing `CONST` variables where otherwise refs reject them.")
+    md.append("  - `CharacterData`: requires a character-data variable term (chara var).")
+    md.append("  - `Variadic*`: variable-length tail; when `MatchVariadicGroup=true`, the tail repeats in fixed-size groups.")
+    md.append("  - `SameAsFirst`: enforces operand-type equality with argument 1 for that position.")
+    md.append("  - `DisallowVoid`: forbids omission/`null` for that position even when `OmitStart` would allow it.")
+    md.append("")
     md.append(f"Total (method names in `FunctionMethodCreator`): `{len(method_regs)}`.")
     md.append("")
     for reg in method_regs:
@@ -1475,7 +2040,8 @@ def main() -> None:
         md.append(_render_method_entry(reg, info).rstrip())
         md.append("")
 
-    OUTPUT_MD.write_text("\n".join(md).rstrip() + "\n", encoding="utf-8")
+    OUTPUT_ENGINE_MD.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_ENGINE_MD.write_text("\n".join(md).rstrip() + "\n", encoding="utf-8")
 
     # Progress tracker (manual overrides vs skeleton).
     prog: list[str] = []
@@ -1484,35 +2050,66 @@ def main() -> None:
     prog.append(f"Generated on `{gen_date}`.")
     prog.append("")
     prog.append("Legend:")
-    prog.append("- `✅` manual entry written (override present)")
-    prog.append("- `⛔` skeleton only (needs manual write-up)")
+    prog.append("- `⛔` none: no manual override yet")
+    prog.append("- `🟡` partial: manual override exists but not declared complete")
+    prog.append("- `✅` complete: declared complete (explicit marker in override file)")
+    prog.append("")
+    prog.append("Notes:")
+    prog.append("- To mark an entry complete, add a section `**Progress state**` with `- complete` to the override file.")
     prog.append("")
 
-    instr_done = sum(1 for r in instr_regs if _has_manual_override("instruction", r.name))
-    meth_done = sum(1 for r in method_regs if _has_manual_override("method", r.name))
+    instr_none = 0
+    instr_partial = 0
+    instr_complete = 0
+    for r in instr_regs:
+        st = _progress_state(_load_override_sections("instruction", r.name))
+        if st == "none":
+            instr_none += 1
+        elif st == "complete":
+            instr_complete += 1
+        else:
+            instr_partial += 1
 
-    prog.append(f"Instructions with manual override: `{instr_done}` / `{len(instr_regs)}`.")
-    prog.append(f"Expression functions with manual override: `{meth_done}` / `{len(method_regs)}`.")
+    meth_none = 0
+    meth_partial = 0
+    meth_complete = 0
+    for r in method_regs:
+        st = _progress_state(_load_override_sections("method", r.name))
+        if st == "none":
+            meth_none += 1
+        elif st == "complete":
+            meth_complete += 1
+        else:
+            meth_partial += 1
+
+    prog.append(f"Instructions: `⛔ {instr_none}` / `🟡 {instr_partial}` / `✅ {instr_complete}` (total `{len(instr_regs)}`).")
+    prog.append(f"Expression functions: `⛔ {meth_none}` / `🟡 {meth_partial}` / `✅ {meth_complete}` (total `{len(method_regs)}`).")
     prog.append("")
 
     prog.append("## Instructions")
     prog.append("")
+    progress_link_target = Path(os.path.relpath(OUTPUT_MD, OUTPUT_PROGRESS_MD.parent)).as_posix()
     for r in instr_regs:
-        mark = "✅" if _has_manual_override("instruction", r.name) else "⛔"
+        override = _load_override_sections("instruction", r.name)
+        st = _progress_state(override)
+        mark = "⛔" if st == "none" else ("✅" if st == "complete" else "🟡")
         anchor = _md_anchor(f"{r.name} (instruction)")
-        prog.append(f"- {mark} `{r.name}` (`builtins-reference.md#{anchor}`)")
+        prog.append(f"- {mark} [`{r.name}`]({progress_link_target}#{anchor})")
     prog.append("")
 
     prog.append("## Expression functions")
     prog.append("")
     for r in method_regs:
-        mark = "✅" if _has_manual_override("method", r.name) else "⛔"
+        override = _load_override_sections("method", r.name)
+        st = _progress_state(override)
+        mark = "⛔" if st == "none" else ("✅" if st == "complete" else "🟡")
         anchor = _md_anchor(f"{r.name} (expression function)")
-        prog.append(f"- {mark} `{r.name}` (`builtins-reference.md#{anchor}`)")
+        prog.append(f"- {mark} [`{r.name}`]({progress_link_target}#{anchor})")
     prog.append("")
 
     OUTPUT_PROGRESS_MD.write_text("\n".join(prog).rstrip() + "\n", encoding="utf-8")
+    return exit_code
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

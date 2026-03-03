@@ -15,8 +15,11 @@
 - The loader wires `PRINTDATA*` / `STRDATA` to jump here after printing/selection.
 
 **Errors & validation**
-- `ENDDATA` without an open `PRINTDATA*` / `STRDATA` produces loader diagnostics.
-- Closing a block while a `DATALIST` is still open produces a loader diagnostic.
+- `ENDDATA` without an open `PRINTDATA*` / `STRDATA` is a load-time error (the line is marked as error).
+- Closing a block while a `DATALIST` is still open is a load-time error.
 
 **Examples**
 - (See `PRINTDATA`.)
+
+**Progress state**
+- complete

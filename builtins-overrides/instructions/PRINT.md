@@ -24,13 +24,14 @@
 
 **Semantics**
 - Output is appended to the engine’s **print buffer** (it is not necessarily flushed to the UI immediately).
+- Implementation detail: if `SkipPrint` is enabled, `PRINT*` does nothing (no output, no newline, no wait).
 - Common behavior across the PRINT family:
   - `...L` variants: after output, flush and append a newline (`Console.NewLine()`).
   - `...W` variants: like `...L`, then wait for a key (`Console.ReadAnyKey()`).
   - `...N` variants: wait for a key **without ending the logical output line** (implementation detail: prints with `lineEnd=false` before flushing).
   - `...K` variants: apply kana conversion to the produced string, as configured by `FORCEKANA` (`ConvertStringType`).
   - `...D` variants: ignore `SETCOLOR`’s *color* for this output (still respects font style and font name).
-  - `...C` / `...LC` variants: output a fixed-width *cell* using `Config.PrintCLength`; width is measured in **Shift-JIS byte count** (implementation detail).
+  - `...C` / `...LC` variants: output a fixed-width *cell* using `Config.PrintCLength`; width is measured in **Shift-JIS byte count** (implementation detail; current console implementation hardcodes Shift-JIS for this measurement).
 - `PRINT` itself:
   - Uses the raw literal argument as the output string.
   - Treats the output as ending a logical line (`lineEnd=true`) even though it does not insert a newline by itself.
@@ -42,3 +43,6 @@
 - `PRINT Hello`
 - `PRINT;Hello`
 - `PRINT  (leading space is preserved)`
+
+**Progress state**
+- complete

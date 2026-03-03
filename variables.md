@@ -445,7 +445,9 @@ High-level model:
 - `GLOBAL` + `SAVEDATA`: belongs to the “global save” data (separate from normal save slot data).
 - `GLOBAL` (without `SAVEDATA`): persists in memory across normal “reset data”, but is not necessarily persisted to disk unless dedicated global-save mechanisms are used.
 
-This reference does not yet specify the on-disk formats or the full semantics of save/load built-ins; it only specifies how the engine partitions variable storage.
+This document only specifies how the engine partitions variable storage (and the reset/load boundaries).
+The semantics of the save/load built-ins are documented in `builtins-reference.md`.
+The on-disk file formats are specified in `save-files.md` (binary + legacy text).
 
 ### 5) `CHARADATA` variables
 

@@ -162,7 +162,9 @@ Where described today:
 
 ### 7.3 Global scope (ERH variables)
 
-- ✅ `SAVEDATA/GLOBAL/CHARADATA` storage partitioning and reset/load boundaries (engine-accurate). (On-disk IO formats and full save/load built-in semantics remain deferred.)
+- ✅ `SAVEDATA/GLOBAL/CHARADATA` storage partitioning and reset/load boundaries (engine-accurate).
+- ✅ Save/load built-in semantics (see `builtins-reference.md`).
+- ✅ On-disk save file formats (field/byte-level spec): `save-files.md`.
 
 Where described today:
 

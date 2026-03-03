@@ -25,9 +25,9 @@
 - When a clause is chosen, the engine jumps to that `CASE`/`CASEELSE` header as a **marker** and begins executing at the next line (the clause body).
 
 **Errors & validation**
-- Missing selector expression produces a load-time warning and may break the block.
-- `CASE` expressions whose type does not match the selector type produce load-time warnings.
-- Mis-nesting / unexpected `CASE` / unexpected `ENDSELECT` produces load-time warnings.
+- Missing selector expression is a load-time error (the `SELECTCASE` line is marked as error).
+- `CASE` expressions whose type does not match the selector type are load-time errors (the `CASE` line is marked as error and is skipped by the runtime selector scan).
+- Mis-nesting / unexpected `CASE` / unexpected `ENDSELECT` are load-time errors (the line is marked as error).
 
 **Examples**
 - `SELECTCASE A`
@@ -38,3 +38,6 @@
 - `CASEELSE`
 - `  PRINTL "other"`
 - `ENDSELECT`
+
+**Progress state**
+- complete

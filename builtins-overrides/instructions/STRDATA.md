@@ -16,6 +16,7 @@
 - Selects one entry uniformly at random.
 - Concatenates the selected lines with `\n` between them (for `DATALIST` multi-line entries).
 - Stores the result into the destination variable and jumps to `ENDDATA`.
+- If the block contains no `DATA`/`DATAFORM` choices at all, it simply jumps to `ENDDATA` and does **not** assign anything to the destination variable (it remains unchanged).
 
 **Errors & validation**
 - The destination must be a changeable string variable term.
@@ -29,3 +30,6 @@ STRDATA
 ENDDATA
 PRINTFORML RESULTS
 ```
+
+**Progress state**
+- complete

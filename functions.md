@@ -7,6 +7,22 @@ Normal functions are defined by `@NAME` labels and called by commands such as:
 - `CALL`, `CALLFORM`, `TRYCALL...`
 - `JUMP`, `JUMPFORM`, etc.
 
+### Call target tails: `NAME[subNames](args)` (engine behavior)
+
+Many call-like built-ins parse their *target* with optional “tails”:
+
+- `NAME` (raw text or a FORM string, depending on the instruction)
+- optional bracket list: `[...]` (“subNames” in the engine)
+- optional argument list: `(arg1, arg2, ...)` or comma form `, arg1, arg2, ...`
+
+Engine-accurate notes:
+
+- The `NAME` text is read up to one of: `(`, `[`, `,`, `;` (then trimmed of half-width spaces/tabs). `;` starts a comment.
+- In this Emuera codebase, the bracket list is **parsed and stored** on the call argument object as `SubNames`, but it is **not used for runtime dispatch**:
+  - it does not change which `@NAME` / `$NAME` is selected,
+  - and it is not evaluated at runtime (so it cannot cause runtime errors/side-effects by itself).
+- Some constructs still enforce **loader-time constraints** using this parsed data. For example, `TRYGOTOLIST` explicitly forbids `[...]` (and also forbids an argument list).
+
 ### `CALL`
 
 `CALL funcName` invokes a function label named `@funcName`.

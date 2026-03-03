@@ -16,7 +16,11 @@
 - When selected, the engine jumps to the `CASEELSE` header as a **marker** and begins executing at the next line (the clause body).
 
 **Errors & validation**
+- Invalid placement (outside `SELECTCASE`) is a load-time error (the line is marked as error).
 - `CASE` after `CASEELSE` produces a load-time warning.
 
 **Examples**
 - `CASEELSE`
+
+**Progress state**
+- complete

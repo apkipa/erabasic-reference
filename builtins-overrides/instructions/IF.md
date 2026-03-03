@@ -27,7 +27,7 @@
   - Otherwise it jumps to the `ENDIF` marker (skipping the whole block).
 
 **Errors & validation**
-- `ELSE` / `ELSEIF` without a matching open `IF`, or `ENDIF` without a matching open `IF`, produce load-time warnings and may leave the block partially broken.
+- `ELSE` / `ELSEIF` without a matching open `IF`, or `ENDIF` without a matching open `IF`, are load-time errors (the line is marked as error).
 - `ELSEIF` after an `ELSE` produces a load-time warning.
 
 **Examples**
@@ -36,3 +36,6 @@
 - `ELSE`
 - `  PRINTL "no"`
 - `ENDIF`
+
+**Progress state**
+- complete

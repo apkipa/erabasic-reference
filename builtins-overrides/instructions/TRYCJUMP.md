@@ -14,7 +14,7 @@
 - Same as `JUMP`.
 
 **Semantics**
-- If the target function exists: behaves like `JUMP`, then (on eventual return) reaches `CATCH` sequentially; `CATCH` skips the catch body.
+- If the target function exists: behaves like `JUMP` (tail-call-like); the current function is discarded, so it does not return to reach `CATCH`.
 - If the function does not exist: jumps to the `CATCH` marker (entering the catch body).
 
 **Errors & validation**
@@ -25,3 +25,6 @@
 - `CATCH`
 - `  PRINTL "phase missing"`
 - `ENDCATCH`
+
+**Progress state**
+- complete

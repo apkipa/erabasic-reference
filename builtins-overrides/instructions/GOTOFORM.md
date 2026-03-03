@@ -18,3 +18,6 @@
 
 **Examples**
 - `GOTOFORM "CASE_%RESULT%"`
+
+**Progress state**
+- complete

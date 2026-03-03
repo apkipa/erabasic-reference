@@ -23,3 +23,6 @@
 
 **Examples**
 - `PRINTDATAW CHOICE` ... `ENDDATA`
+
+**Progress state**
+- complete

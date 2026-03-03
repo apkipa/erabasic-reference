@@ -10,7 +10,7 @@
 - `<countExpr>`: int expression giving the number of iterations.
 
 **Defaults / optional arguments**
-- If omitted, the count defaults to `0` (and emits a load-time warning).
+- If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
 
 **Semantics**
 - `REPEAT` is implemented as a FOR-like loop over `COUNT:0`:
@@ -23,11 +23,14 @@
   - Jumping to `REND` exits to the first line after `REND`.
 
 **Errors & validation**
-- If the system variable `COUNT` is forbidden by the current variable-scope configuration, `REPEAT` is rejected at load time.
-- If a constant count is `<= 0`, the engine emits a warning.
+- If the system variable `COUNT` is forbidden by the current variable-scope configuration, `REPEAT` raises an error when its argument is parsed (typically: first execution of the `REPEAT` line).
+- If a constant count is `<= 0`, the engine emits a warning when the line’s argument is parsed.
 - Nested `REPEAT` is warned about by the loader (not necessarily a hard error).
 
 **Examples**
 - `REPEAT 10`
 - `  PRINTV COUNT`
 - `REND`
+
+**Progress state**
+- complete

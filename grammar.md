@@ -92,6 +92,7 @@ Notes:
 - `pp_directive` token matching is **case-sensitive** in current code.
 - `ignored_trailing` means any trailing characters after `]` exist but are ignored with a warning.
 - `goto_label_line` warns if anything follows the label name.
+- In this codebase, `func_signature` subnames (`@NAME[...]`) are validated at load time but do not affect runtime dispatch (they are discarded). See `labels.md`.
 
 ## 4) `#...` lines inside ERB functions (sharp lines)
 
@@ -460,7 +461,7 @@ Notes:
 
 - `call_target_str` is read as raw text up to one of: `(`, `[`, `,`, `;` and then trimmed of half-width spaces/tabs.
 - If `;` appears, it starts a comment; the remaining text is ignored.
-- The engine also supports “subnames” syntax (`[...]`) at call sites and in label definitions.
+- The engine also supports “subnames” syntax (`[...]`) at call sites and in label definitions, but in this codebase it is effectively **validated then ignored** (it does not affect runtime dispatch). See `functions.md` and `labels.md` for details.
 
 ## 9) ERH file grammar (header files)
 

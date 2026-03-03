@@ -25,9 +25,12 @@
 
 **Errors & validation**
 - Errors if `<intVarTerm>` is not a changeable variable term, or if it is character-data.
-- `NEXT` without a matching open `FOR` produces a load-time warning.
+- `NEXT` without a matching open `FOR` is a load-time error (the `NEXT` line is marked as error).
 
 **Examples**
 - `FOR I, 0, 10`
 - `  PRINTV I`
 - `NEXT`
+
+**Progress state**
+- complete

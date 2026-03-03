@@ -23,3 +23,6 @@
 
 **Examples**
 - `PRINTDATAKW CHOICE` ... `ENDDATA`
+
+**Progress state**
+- complete

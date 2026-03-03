@@ -19,10 +19,13 @@
 
 **Errors & validation**
 - Still errors for invalid argument binding/type conversion when a function is found.
-- Mis-nesting (`CATCH` without `TRYC*`, `ENDCATCH` without `CATCH`) produces load-time warnings.
+- Mis-nesting (`CATCH` without `TRYC*`, `ENDCATCH` without `CATCH`) is a load-time error (the line is marked as error).
 
 **Examples**
 - `TRYCCALL OPTIONAL_HOOK`
 - `CATCH`
 - `  PRINTL "hook missing"`
 - `ENDCATCH`
+
+**Progress state**
+- complete

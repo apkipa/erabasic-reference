@@ -17,7 +17,10 @@
 - Engine quirk: if the loop counter state is missing (e.g. due to invalid jumps into/out of the loop), `REND` exits the loop instead of throwing.
 
 **Errors & validation**
-- `REND` without a matching open `REPEAT` produces a load-time warning.
+- `REND` without a matching open `REPEAT` is a load-time error (the line is marked as error).
 
 **Examples**
 - `REND`
+
+**Progress state**
+- complete

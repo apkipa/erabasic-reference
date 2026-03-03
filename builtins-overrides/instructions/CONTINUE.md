@@ -19,7 +19,10 @@
 - `DO`: evaluates the matching `LOOP` condition and either continues or exits.
 
 **Errors & validation**
-- `CONTINUE` outside any loop produces a load-time warning.
+- `CONTINUE` outside any loop is a load-time error (the line is marked as error).
 
 **Examples**
 - `CONTINUE`
+
+**Progress state**
+- complete

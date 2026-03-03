@@ -10,7 +10,7 @@
 - `<int expr>`: loop condition (0 = false, non-zero = true).
 
 **Defaults / optional arguments**
-- If omitted, the condition defaults to `0` (false) and emits a load-time warning.
+- If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
 
 **Semantics**
 - At `WHILE`, evaluates the condition:
@@ -19,9 +19,12 @@
 - At `WEND`, the engine re-evaluates the `WHILE` condition and loops again if it is still true.
 
 **Errors & validation**
-- `WEND` without a matching open `WHILE` produces a load-time warning.
+- `WEND` without a matching open `WHILE` is a load-time error (the `WEND` line is marked as error).
 
 **Examples**
 - `WHILE I < 10`
 - `  I += 1`
 - `WEND`
+
+**Progress state**
+- complete

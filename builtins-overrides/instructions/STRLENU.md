@@ -18,3 +18,6 @@
 
 **Examples**
 - `STRLENU ABC` sets `RESULT` to `3`.
+
+**Progress state**
+- complete

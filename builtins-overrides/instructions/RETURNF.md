@@ -9,11 +9,13 @@
 - `<expr>` may be int or string, but should match the function’s declared return type.
 
 **Defaults / optional arguments**
-- With no argument: returns the engine’s “null” method value (treated as 0 / empty depending on context).
+- With no argument: returns the engine’s “null” method value (a null internal return term; typically treated as `0` / empty depending on context).
 
 **Semantics**
 - Sets the method return value for the current expression-function call and exits the method body.
-- Load-time validation warns if used outside a method function, and warns on obvious return-type mismatch.
+- Load-time validation:
+  - `RETURNF` outside a `#FUNCTION/#FUNCTIONS` body is a load-time error (the line is marked as error).
+  - A return-type mismatch (`RETURNF` returns string from an int method, or int from a string method) is a load-time error.
 
 **Errors & validation**
 - Argument parsing errors follow normal expression parsing rules.
@@ -21,3 +23,6 @@
 **Examples**
 - `RETURNF 0`
 - `RETURNF "OK"`
+
+**Progress state**
+- complete

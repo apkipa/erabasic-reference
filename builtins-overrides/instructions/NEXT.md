@@ -17,7 +17,10 @@
   - Otherwise falls through to the next line after `NEXT`.
 
 **Errors & validation**
-- `NEXT` without a matching open `FOR` produces a load-time warning.
+- `NEXT` without a matching open `FOR` is a load-time error (the line is marked as error).
 
 **Examples**
 - `NEXT`
+
+**Progress state**
+- complete

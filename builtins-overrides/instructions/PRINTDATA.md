@@ -20,9 +20,11 @@
 - Load-time structure rules (enforced by the loader):
   - `PRINTDATA*` must be closed by a matching `ENDDATA`.
   - `DATA` / `DATAFORM` must appear inside `PRINTDATA*`, `STRDATA`, or inside a `DATALIST` that is itself inside one of those blocks.
-  - Nested `PRINTDATA*` blocks are rejected (warning/error).
-  - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (warning/error).
+  - Nested `PRINTDATA*` blocks are a load-time error (the line is marked as error).
+  - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (load-time error).
+  - The block body only permits `DATA` / `DATAFORM` / `DATALIST` / `ENDLIST` / `ENDDATA`; any other instruction (and any label definition) inside is a load-time error.
 - Runtime behavior:
+  - Implementation detail: if `SkipPrint` is enabled, `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
   - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.
   - Otherwise:
     - Choose `choice = RAND(0..count-1)` using the engine RNG.
@@ -34,7 +36,8 @@
     - Jump to the `ENDDATA` line, skipping over the block body.
 
 **Errors & validation**
-- Errors/warnings for missing `ENDDATA`, `DATA` outside a block, `ENDLIST` without `DATALIST`, etc., are produced by the loader.
+- Load-time structure errors (the line is marked as error) are produced for missing `ENDDATA`, `DATA` outside a block, `ENDLIST` without `DATALIST`, invalid instructions inside the block, etc.
+- Non-fatal loader warnings also exist (e.g. empty choice lists), but the block still loads.
 - The optional `<intVarTerm>` must be a changeable int variable term.
 
 **Examples**
@@ -53,3 +56,6 @@ PRINTDATA
   ENDLIST
 ENDDATA
 ```
+
+**Progress state**
+- complete

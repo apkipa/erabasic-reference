@@ -14,14 +14,17 @@
 - None.
 
 **Semantics**
-- If the `$label` exists: behaves like `GOTO`, then reaches `CATCH` sequentially and `CATCH` skips the catch body.
+- If the `$label` exists: behaves like `GOTO` (jumps to the label). Whether the `CATCH` line is ever reached depends on subsequent control flow.
 - If the `$label` does not exist: jumps to the `CATCH` marker (entering the catch body).
 
 **Errors & validation**
-- Same mis-nesting warnings as other `TRYC*` constructs.
+- Mis-nesting (`CATCH` without `TRYC*`, `ENDCATCH` without `CATCH`) is a load-time error (the line is marked as error).
 
 **Examples**
 - `TRYCGOTO OPTIONAL_LABEL`
 - `CATCH`
 - `  PRINTL "label missing"`
 - `ENDCATCH`
+
+**Progress state**
+- complete

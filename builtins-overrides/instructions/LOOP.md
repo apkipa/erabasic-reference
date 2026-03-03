@@ -16,7 +16,10 @@
   - If false, falls through to the next line after `LOOP`.
 
 **Errors & validation**
-- `LOOP` without a matching open `DO` produces a load-time warning.
+- `LOOP` without a matching open `DO` is a load-time error (the line is marked as error).
 
 **Examples**
 - `LOOP I < 10`
+
+**Progress state**
+- complete

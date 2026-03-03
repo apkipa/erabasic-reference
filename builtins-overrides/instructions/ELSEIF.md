@@ -15,7 +15,10 @@
 - When entered as the selected clause, the engine jumps to the `ELSEIF` line as a **marker** and begins executing at the next line (the clause body); the `ELSEIF` instruction itself is not executed in that path.
 
 **Errors & validation**
-- Invalid placement (outside `IF`) produces a load-time warning.
+- Invalid placement (outside `IF`) is a load-time error (the line is marked as error).
 
 **Examples**
 - `ELSEIF A > 10`
+
+**Progress state**
+- complete

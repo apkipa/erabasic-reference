@@ -1,0 +1,24 @@
+**Summary**
+- Declared but **not implemented** in this engine build (always errors).
+
+**Syntax**
+- `LOADVAR <name>`
+
+**Arguments**
+- `<name>`: string expression; intended file name component.
+
+**Defaults / optional arguments**
+- None.
+
+**Semantics**
+- The current engine implementation throws a “not implemented” error at runtime.
+- See also: `save-files.md` (directories, partitions, and on-disk formats)
+
+**Errors & validation**
+- Always errors at runtime (`NotImplCodeEE`).
+
+**Examples**
+- `LOADVAR "vars"`
+
+**Progress state**
+- complete

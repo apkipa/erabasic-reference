@@ -21,3 +21,6 @@
 
 **Examples**
 - `PRINTSW ...`
+
+**Progress state**
+- complete

@@ -17,7 +17,11 @@
 - The return value is computed but not assigned to `RESULT/RESULTS` by this instruction (use statement-form method calls or assignment if you need the value).
 
 **Errors & validation**
-- Errors if the method does not exist or if argument checking fails.
+- If `<methodName>` is a constant string: unknown methods are a load-time error (the line is marked as error).
+- Errors if the method exists but argument checking fails.
 
 **Examples**
-- `CALLF "MYFUNC", 1, 2`
+- `CALLF MYFUNC, 1, 2`
+
+**Progress state**
+- complete

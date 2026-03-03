@@ -9,20 +9,32 @@
   - `ENDFUNC`
 
 **Arguments**
-- Each `FUNC` item provides a label name (as a FORM string expression).
+- Each `FUNC` item provides a label name as a **FORM/formatted string expression** (evaluated to a string at runtime).
 
 **Defaults / optional arguments**
 - None.
 
 **Semantics**
-- Evaluates each `FUNC` item in order and resolves it as a `$label` in the current function.
-- Jumps to the first `$label` that exists; otherwise exits the block at `ENDFUNC`.
+- Structural notes:
+  - The lines between `TRYGOTOLIST` and `ENDFUNC` are list items, not a normal executable block body (same model as `TRYCALLLIST`).
+- Runtime algorithm:
+  - For each `FUNC` item in source order:
+    - Evaluate the candidate name to a string.
+    - Resolve it as a `$label` inside the **current function**.
+    - If it exists, jump to it and stop searching.
+  - If no candidate exists, jump to the `ENDFUNC` line (then continue after it).
 
 **Errors & validation**
-- For `TRYGOTOLIST`, the loader rejects `FUNC` items that specify `[...]` subnames or arguments.
+- Load-time structure errors (the line is marked as error) follow `TRYCALLLIST`.
+- Additional load-time restriction: in a `TRYGOTOLIST` block, each `FUNC` item must be a plain candidate name only:
+  - no `[...]` subname segment
+  - no argument list (neither `(... )` nor `, ...`)
 
 **Examples**
 - `TRYGOTOLIST`
-- `  FUNC "LABEL_%RESULT%"`
-- `  FUNC "LABEL_DEFAULT"`
+- `  FUNC LABEL_%RESULT%`
+- `  FUNC LABEL_DEFAULT`
 - `ENDFUNC`
+
+**Progress state**
+- complete

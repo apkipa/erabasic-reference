@@ -17,9 +17,12 @@
 - When entered by a failed `TRYC*` instruction, execution jumps to the `CATCH` marker and (due to the engine’s advance-first model) begins executing at the first line of the catch body.
 
 **Errors & validation**
-- `CATCH` without a matching open `TRYC*` produces a load-time warning.
+- `CATCH` without a matching open `TRYC*` is a load-time error (the line is marked as error).
 
 **Examples**
 - `CATCH`
 - `  PRINTL "not found"`
 - `ENDCATCH`
+
+**Progress state**
+- complete

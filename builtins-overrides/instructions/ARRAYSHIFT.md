@@ -27,3 +27,6 @@
 **Examples**
 - `ARRAYSHIFT SOME_INT_ARRAY, 1, 0`
 - `ARRAYSHIFT SOME_STR_ARRAY, -2, "", 10`
+
+**Progress state**
+- complete

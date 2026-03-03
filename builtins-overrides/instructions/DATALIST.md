@@ -17,8 +17,9 @@
 - At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.
 
 **Errors & validation**
-- `DATALIST` outside `PRINTDATA*` / `STRDATA` is rejected by the loader.
-- Missing `ENDLIST` produces loader diagnostics; an empty list produces a warning.
+- `DATALIST` must appear inside `PRINTDATA*` or `STRDATA`; otherwise it is a load-time error (the line is marked as error).
+- Missing `ENDLIST` produces a load-time error at end of file/load.
+- An empty list produces a non-fatal loader warning, but still creates an empty choice entry.
 
 **Examples**
 ```erabasic
@@ -29,3 +30,6 @@ PRINTDATA
   ENDLIST
 ENDDATA
 ```
+
+**Progress state**
+- complete

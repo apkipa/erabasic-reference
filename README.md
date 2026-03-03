@@ -36,14 +36,17 @@ This reference has two “layers”:
 
 ### Built-ins (engine truth)
 
-- [`builtins-reference.md`](builtins-reference.md) — full built-in instruction + expression-function catalog (engine-extracted, no tables)
+- [`builtins-reference.md`](builtins-reference.md) — user-facing built-ins reference (manual overrides only; no engine debug info)
+- [`builtins-index.md`](builtins-index.md) — user-facing built-ins index by tag (from `builtins-overrides/**`)
 - [`builtins-overrides/`](builtins-overrides/) — manual entry overrides used to “realize” entries beyond the engine-extracted skeletons
 - [`builtins-overrides/builtins-progress.md`](builtins-overrides/builtins-progress.md) — writing progress tracker for `builtins-reference.md` (manual overrides vs skeleton)
 
 ### Built-ins (appendix / tooling)
 
+- [`appendix/README.md`](appendix/README.md) — what lives in `appendix/` and how to treat it
 - [`appendix/tooling/builtins-engine.md`](appendix/tooling/builtins-engine.md) — built-in instruction/method name catalogs extracted from engine source
 - [`appendix/tooling/builtins-engine-metadata.md`](appendix/tooling/builtins-engine-metadata.md) — built-in instruction metadata extracted from engine source (argument builders, flags, block pairing)
+- [`appendix/tooling/builtins-reference-engine.md`](appendix/tooling/builtins-reference-engine.md) — engine-dump built-ins reference (skeletons + validation structures + file/line refs; not user-facing)
 - [`appendix/tooling/builtins.md`](appendix/tooling/builtins.md) — doc-derived built-in command/function quick index (for fact-check)
 - [`appendix/tooling/builtins-signatures.md`](appendix/tooling/builtins-signatures.md) — doc-derived built-in signatures (erbapi blocks, offline lookup / fact-check)
 
@@ -52,12 +55,13 @@ This reference has two “layers”:
 - [`runtime-model.md`](runtime-model.md) — core runtime execution model (stack, events, scopes)
 - [`pipeline.md`](pipeline.md) — exact load/preprocess/parse ordering (engine source of truth)
 - [`source-position-mapping.md`](source-position-mapping.md) — how Emuera maps warnings/errors to file/line (implementation detail)
-- [`appendix/implementation/builtins-core-implementation-notes.md`](appendix/implementation/builtins-core-implementation-notes.md) — readable, implementation-oriented notes for core control-flow/call/return (and the instruction keyword catalog)
+- [`appendix/implementation/builtins-core-implementation-notes.md`](appendix/implementation/builtins-core-implementation-notes.md) — legacy (kept for older links; content migrated into the main docs)
 
 ### Data and config (tightly coupled to language use)
 
 - [`data-files.md`](data-files.md) — config/CSV/rename/ERD formats tied to the language
 - [`config-items.md`](config-items.md) — config key catalog (types, defaults, key spellings)
+- [`save-files.md`](save-files.md) — save directories, persistence partitions, and on-disk save formats (binary + legacy text)
 
 ### Project meta
 

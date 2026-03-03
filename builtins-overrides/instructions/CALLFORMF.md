@@ -21,3 +21,6 @@
 
 **Examples**
 - `CALLFORMF "FUNC_%X%", A, B`
+
+**Progress state**
+- complete

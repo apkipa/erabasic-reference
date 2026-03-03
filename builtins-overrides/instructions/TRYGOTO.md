@@ -19,3 +19,6 @@
 
 **Examples**
 - `TRYGOTO OPTIONAL_LABEL`
+
+**Progress state**
+- complete
