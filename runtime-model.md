@@ -12,6 +12,14 @@ It focuses on:
 
 UI, graphics, audio, save UI, and other “built-in command semantics” are intentionally not fully specified here (see `coverage.md` for scope tracking).
 
+## TL;DR: “line-threaded” interpreter model
+
+If you want a short mental model label: this engine is a **line-based, (direct-)threaded interpreter**.
+
+- Each function body is compiled into a linked list IR of `LogicalLine` nodes connected by `NextLine`.
+- Many control-flow constructs are “linked” at load time by filling `JumpTo` pointers between marker lines.
+- The interpreter loop advances first (`ShiftNextLine`) and then executes the current line, so jumps typically target marker lines and execution resumes at `marker.NextLine`.
+
 ## 1) Executable unit: a linked list of logical lines
 
 After loading and parsing, Emuera executes a **linked list** of `LogicalLine` objects per function body.
