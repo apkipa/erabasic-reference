@@ -1,6 +1,9 @@
 **Summary**
 - Returns from a user-defined expression function (`#FUNCTION/#FUNCTIONS`) with an optional return value.
 
+**Tags**
+- calls
+
 **Syntax**
 - `RETURNF`
 - `RETURNF <expr>`
@@ -8,8 +11,8 @@
 **Arguments**
 - `<expr>` may be int or string, but should match the function’s declared return type.
 
-**Defaults / optional arguments**
-- With no argument: returns the engine’s “null” method value (a null internal return term; typically treated as `0` / empty depending on context).
+- Omitted arguments / defaults:
+  - With no argument: returns the engine’s “null” method value (a null internal return term; typically treated as `0` / empty depending on context).
 
 **Semantics**
 - Sets the method return value for the current expression-function call and exits the method body.

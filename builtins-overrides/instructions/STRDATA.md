@@ -1,15 +1,18 @@
 **Summary**
 - Like `PRINTDATA`, but instead of printing, it selects a `DATA`/`DATAFORM` choice and concatenates it into a destination string variable.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `STRDATA [<strVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Optional `<strVarTerm>`: changeable string variable term to receive the result.
-- If omitted, defaults to `RESULTS` (engine behavior).
+- If omitted, defaults to `RESULTS`.
 
-**Defaults / optional arguments**
-- Destination defaults to `RESULTS` when omitted.
+- Omitted arguments / defaults:
+  - Destination defaults to `RESULTS` when omitted.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).

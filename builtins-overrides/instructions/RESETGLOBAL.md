@@ -1,19 +1,18 @@
 **Summary**
 - Resets global variables to their default values.
 
+**Tags**
+- save-system
+
 **Syntax**
 - `RESETGLOBAL`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Calls `VEvaluator.ResetGlobalData()`, which (high-level):
-  - Resets global variables to default values.
-  - Removes certain Emuera-private global/static data structures (implementation detail; e.g. XML/maps global/static extensions).
+- Resets global variables to their default values.
+- Removes Emuera-private global/static extension data (e.g. XML/maps global/static extensions).
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -24,4 +23,3 @@
 
 **Progress state**
 - complete
-

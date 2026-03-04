@@ -27,7 +27,7 @@ Values are parsed by the item’s declared type:
 - `int` / `long`
 - `string`: generally trimmed; **except** `EditorArgument` which is assigned without trimming.
 - `char`: must be a single character
-- `Color`: `R,G,B` integers (0..255)
+- `Color`: `R,G,B` integers (each component satisfies `0 <= component <= 255`)
 - enums: parsed by enum name (case-insensitive)
 - `List<long>`: `/`-separated integers
 - `List<string>`: comma-separated strings (each trimmed)

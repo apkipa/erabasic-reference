@@ -1,6 +1,9 @@
 **Summary**
 - Begins a `FOR ... NEXT` counted loop over a mutable integer variable term.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `FOR <intVarTerm>, <start>, <end> [, <step>]`
 - Start may be omitted by leaving an empty slot: `FOR <intVarTerm>, , <end> [, <step>]`
@@ -13,9 +16,9 @@
 - `<end>`: int expression.
 - `<step>`: int expression (defaults to `1` if omitted).
 
-**Defaults / optional arguments**
-- `<start>` defaults to `0` when omitted as an empty argument.
-- `<step>` defaults to `1` when omitted.
+- Omitted arguments / defaults:
+  - `<start>` defaults to `0` when omitted as an empty argument.
+  - `<step>` defaults to `1` when omitted.
 
 **Semantics**
 - Initializes the counter variable to `<start>`, then loops while:

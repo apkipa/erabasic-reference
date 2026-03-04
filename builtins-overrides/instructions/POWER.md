@@ -1,6 +1,9 @@
 **Summary**
 - Computes an integer power using `Math.Pow` and stores the result into a destination integer variable.
 
+**Tags**
+- math
+
 **Syntax**
 - `POWER <dest>, <x>, <y>`
 
@@ -8,9 +11,6 @@
 - `<dest>`: changeable integer variable term (destination).
 - `<x>`: integer expression (base).
 - `<y>`: integer expression (exponent).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Evaluates `<x>` and `<y>` as integers, converts them to `double`, then computes `pow = Math.Pow(x, y)`.
@@ -30,4 +30,3 @@
 
 **Progress state**
 - complete
-

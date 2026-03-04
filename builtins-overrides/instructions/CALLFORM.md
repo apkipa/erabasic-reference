@@ -1,6 +1,9 @@
 **Summary**
 - Like `CALL`, but the function name is a formatted (FORM) string expression evaluated at runtime.
 
+**Tags**
+- calls
+
 **Syntax**
 - `CALLFORM <formString> [, <arg1>, <arg2>, ... ]`
 - `CALLFORM <formString>(<arg1>, <arg2>, ... )`
@@ -10,8 +13,8 @@
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
 - `<argN>`: same as `CALL`.
 
-**Defaults / optional arguments**
-- Same as `CALL`.
+- Omitted arguments / defaults:
+  - Same as `CALL`.
 
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.

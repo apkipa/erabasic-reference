@@ -2,6 +2,9 @@
 - `PRINTFORMKL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMKL [<FORM string>]`
 
@@ -9,8 +12,8 @@
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

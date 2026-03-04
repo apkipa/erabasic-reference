@@ -2,6 +2,9 @@
 - `PRINTSINGLEFORMS` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEFORMS <string expr>`
 
@@ -9,14 +12,15 @@
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 
 **Errors & validation**

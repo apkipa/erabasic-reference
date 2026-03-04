@@ -1,6 +1,9 @@
 **Summary**
 - Like `TRYJUMP`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCJUMP <functionName> [, <arg1>, ... ]`
 - `CATCH`
@@ -10,8 +13,8 @@
 **Arguments**
 - Same as `JUMP`.
 
-**Defaults / optional arguments**
-- Same as `JUMP`.
+- Omitted arguments / defaults:
+  - Same as `JUMP`.
 
 **Semantics**
 - If the target function exists: behaves like `JUMP` (tail-call-like); the current function is discarded, so it does not return to reach `CATCH`.

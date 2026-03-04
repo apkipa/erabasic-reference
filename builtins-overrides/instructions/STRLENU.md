@@ -1,14 +1,17 @@
 **Summary**
 - Sets `RESULT` to the Unicode code-unit length (`string.Length`) of a raw string argument.
 
+**Tags**
+- text
+
 **Syntax**
 - `STRLENU <rawString>`
 
 **Arguments**
 - `<rawString>`: the literal remainder of the line (not a normal string expression).
 
-**Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Computes length as `str.Length` and assigns it to `RESULT`.

@@ -1,6 +1,9 @@
 **Summary**
 - Like `JUMPFORM`, but if the evaluated function name does not resolve to a function the instruction **does not error** and simply falls through.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYJUMPFORM <formString> [, <arg1>, <arg2>, ... ]`
 - `TRYJUMPFORM <formString>(<arg1>, <arg2>, ... )`
@@ -8,8 +11,8 @@
 **Arguments**
 - Same as `JUMPFORM`.
 
-**Defaults / optional arguments**
-- Same as `JUMPFORM`.
+- Omitted arguments / defaults:
+  - Same as `JUMPFORM`.
 
 **Semantics**
 - If the target function exists: behaves like `JUMPFORM`.

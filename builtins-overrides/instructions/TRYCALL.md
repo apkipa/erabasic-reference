@@ -1,6 +1,9 @@
 **Summary**
 - Like `CALL`, but if the target function does not exist the instruction **does not error** and simply falls through to the next line.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCALL <functionName> [, <arg1>, <arg2>, ... ]`
 - `TRYCALL <functionName>(<arg1>, <arg2>, ... )`
@@ -8,8 +11,8 @@
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- Same as `CALL`.
+- Omitted arguments / defaults:
+  - Same as `CALL`.
 
 **Semantics**
 - If the target function exists: behaves like `CALL`.

@@ -1,14 +1,14 @@
 **Summary**
 - Declared but **not implemented** in this engine build (always errors).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `LOADVAR <name>`
 
 **Arguments**
 - `<name>`: string expression; intended file name component.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.

@@ -1,6 +1,9 @@
 **Summary**
 - Reorders the engine’s character list (`0 .. CHARANUM-1`) by a key taken from a character-data variable.
-- Observable engine behavior: keeps `MASTER` fixed at its numeric position for this instruction.
+- Observable behavior: keeps `MASTER` fixed at its numeric position for this instruction.
+
+**Tags**
+- characters
 
 **Syntax**
 - `SORTCHARA`
@@ -12,8 +15,8 @@
 - Order: `FORWARD` = ascending, `BACK` = descending.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
 
-**Defaults / optional arguments**
-- If no args: uses key `NO` and ascending.
+- Omitted arguments / defaults:
+  - If no args: uses key `NO` and ascending.
 
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.

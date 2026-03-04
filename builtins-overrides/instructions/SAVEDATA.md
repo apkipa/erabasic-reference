@@ -1,6 +1,9 @@
 **Summary**
 - Saves the current game state to a numbered save slot file (script-controlled save).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `SAVEDATA <slot>, <saveText>`
 
@@ -9,14 +12,11 @@
 - `<saveText>`: string expression; saved into the file and shown by the built-in save/load UI.
   - Must not contain a newline (`'\n'`).
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Evaluates `<slot>` and `<saveText>`.
 - Writes a save file under `Config.SavDir`:
   - Path is `save{slot:00}.sav` (e.g. slot `0` -> `save00.sav`).
-- Save format (implementation detail):
+- Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.
   - Otherwise, writes the legacy text save format.
   - The save always includes:

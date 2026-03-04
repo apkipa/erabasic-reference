@@ -1,17 +1,22 @@
 **Summary**
 - Like `TINPUTS`, but uses the “one input” mode (`OneInput = true`).
 
+**Tags**
+- io
+
 **Syntax**
 - Same as `TINPUTS`.
 
 **Arguments**
 - Same as `TINPUTS`.
 
-**Defaults / optional arguments**
-- Same as `TINPUTS`.
+- Omitted arguments / defaults:
+  - Same as `TINPUTS`.
 
 **Semantics**
-- Same as `TINPUTS`, but the UI may truncate the entered text to at most one character (implementation detail).
+- Same as `TINPUTS`, but with “one input” mode enabled:
+  - If the entered text has length > 1, it is truncated to the first character.
+  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 
 **Errors & validation**
 - Same as `TINPUTS`.

@@ -1,14 +1,14 @@
 **Summary**
 - Jumps to a local `$label` within the current function.
 
+**Tags**
+- calls
+
 **Syntax**
 - `GOTO <labelName>`
 
 **Arguments**
 - `<labelName>`: a raw string token; used to resolve a `$label` relative to the current function.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If the label exists, jumps to the `$label` marker; execution continues at the line after the `$label`.

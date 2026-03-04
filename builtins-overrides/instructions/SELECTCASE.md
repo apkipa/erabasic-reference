@@ -1,6 +1,9 @@
 **Summary**
 - Begins a `SELECTCASE ... ENDSELECT` multi-branch block that compares a single selector expression against one or more `CASE` conditions.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `SELECTCASE <expr>`
   - `CASE <caseExpr> (, <caseExpr> ... )`
@@ -11,9 +14,6 @@
 
 **Arguments**
 - `<expr>`: selector expression; may be int or string.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - The loader gathers all `CASE` / `CASEELSE` headers into an ordered list and links them to the matching `ENDSELECT`.

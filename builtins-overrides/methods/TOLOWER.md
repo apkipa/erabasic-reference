@@ -1,8 +1,8 @@
 **Summary**
 - Converts a string to lowercase.
 
-**Documentation depth**
-- High: direct mapping to engine implementation (including null/empty handling and casing rules).
+**Tags**
+- text
 
 **Syntax**
 - `TOLOWER(str)`
@@ -12,9 +12,6 @@
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.

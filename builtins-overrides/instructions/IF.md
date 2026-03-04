@@ -1,6 +1,9 @@
 **Summary**
 - Begins an `IF ... ENDIF` block. Chooses the first true clause among `IF` / `ELSEIF` / `ELSE` and executes that clause body.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `IF <int expr>`
 - `IF <int expr>`
@@ -14,17 +17,17 @@
 **Arguments**
 - `<int expr>`: evaluated as integer; zero = false, non-zero = true.
 
-**Defaults / optional arguments**
-- If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- Omitted arguments / defaults:
+  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
 
 **Semantics**
-- The loader builds an ordered clause list (`IF` header, then each `ELSEIF`, and optional `ELSE`) and links every clause header to the matching `ENDIF`.
-- At runtime, the `IF` header evaluates its own condition and then each `ELSEIF` in order:
-  - If a condition is true, the engine jumps to that clause header as a **marker**.
-  - Because Emuera’s execution loop advances to `NextLine` before executing, jumping to a clause header causes the next executed line to be the **first line of that clause body**, not the header itself.
+- Evaluates its own condition and then each `ELSEIF` condition in order.
+- If a condition is true, that clause’s body is selected and executed.
 - If no condition matches:
-  - If there is an `ELSE`, the engine jumps to the `ELSE` header marker (and thus executes the `ELSE` body).
-  - Otherwise it jumps to the `ENDIF` marker (skipping the whole block).
+  - If there is an `ELSE`, the `ELSE` body is executed.
+  - Otherwise, the whole block is skipped.
+- After any selected clause body finishes, the rest of the `IF` block is skipped and execution continues after the matching `ENDIF`.
+- Jump behavior note (affects unstructured entry such as `GOTO` into blocks): when control transfers to an `IF`/`ELSEIF`/`ELSE` line as a jump target, execution begins at the **next** logical line (the clause body), not on the marker line itself. See `control-flow.md`.
 
 **Errors & validation**
 - `ELSE` / `ELSEIF` without a matching open `IF`, or `ENDIF` without a matching open `IF`, are load-time errors (the line is marked as error).

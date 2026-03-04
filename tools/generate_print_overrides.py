@@ -348,7 +348,7 @@ def _sections_for_printdata_base() -> dict[str, list[str]]:
             "- Runtime behavior:",
             "  - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.",
             "  - Otherwise:",
-            "    - Choose `choice = RAND(0..count-1)` using the engine RNG.",
+            "    - Choose `choice` uniformly such that `0 <= choice < count` (using the engine RNG).",
             "    - If `<intVarTerm>` is present, assign it the chosen index.",
             "    - Print the selected `DATA` entry:",
             "      - A single `DATA`/`DATAFORM` line prints as one line.",

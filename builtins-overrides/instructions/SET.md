@@ -1,6 +1,9 @@
 **Summary**
-- Internal pseudo-instruction used by the engine to represent **assignment statements** (produced by parsing assignment syntax).
-- Implements scalar assignment, compound assignment (`+=`, `-=`, etc.), `++/--`, and comma-list assignment into arrays.
+- Describes **assignment statements** (`=`, `'=` and compound forms) and their observable behavior.
+- Covers scalar assignment, compound assignment (`+=`, `-=`, etc.), `++/--`, and comma-list assignment into arrays.
+
+**Tags**
+- variables
 
 **Syntax**
 - Scalar assignment (int): `<intVarTerm> = <int expr>`
@@ -20,33 +23,28 @@
   - string LHS with `=`: RHS is scanned as a formatted string until end-of-line.
   - string LHS with `'=` / `+=` / `*=`: RHS is parsed as normal expressions.
 
-**Defaults / optional arguments**
-- For `++/--`, the implicit delta is `+1` / `-1`.
+- Omitted arguments / defaults:
+  - For `++/--`, the implicit delta is `+1` / `-1`.
 
 **Semantics**
-- How “SET” appears:
-  - This is not a script-level keyword; an assignment line is parsed into an `InstructionLine` whose function is internally `SET` and whose `AssignOperator` encodes the operator.
-  - If a script tries to write a literal `SET ...` instruction, it is not parsed as an assignment line and will fail argument parsing (implementation detail).
-- Assignment operator recognition (parser-level):
+- There is no `SET` keyword in EraBasic source; this entry documents the language’s assignment syntax.
+- Assignment operator recognition:
   - The engine recognizes: `=`, `'=`; `++`, `--`; and compound forms `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `|=`, `&=`, `^=`.
 - Allowed operators depend on LHS type:
   - int LHS: all the above operators are accepted by the assignment builder.
   - string LHS: only `=`, `'=` (string-expression assignment), `+=`, `*=` are accepted; other compound operators are rejected as invalid.
 - If the RHS is a single value:
   - `=` assigns that value.
-  - For compound assignment operators, the builder lowers the statement into either:
-    - an in-place delta update (`ChangeValue`) only for the `+= <const>` / `-= <const>` / `++` / `--` cases, or
-    - a read-then-write expression of the form `LHS = (LHS <op> RHS)` for all other cases (via the engine’s operator reducers).
+  - For compound assignment operators, the resulting value is the same as `LHS = (LHS <op> RHS)` (using the operator implied by the compound form).
 - Index evaluation and side effects (important compatibility detail):
-  - In the `ChangeValue` path (`+= <const>`, `-= <const>`, `++`, `--`), the variable term’s indices are evaluated once.
-  - In the general read-then-write path (`LHS = (LHS <op> RHS)`), the variable term is evaluated once for the read and again for the write; if indices contain expressions with side effects, they may run twice (engine behavior).
+  - For `++`, `--`, `+= <const int>`, `-= <const int>`: the LHS variable term (including indices/subscripts) is evaluated once.
+  - For other compound assignments: the LHS variable term is evaluated twice (once to read the old value, and once to write the new value), so any side effects in indices can run twice.
 - If the RHS is a comma list:
   - This is only allowed for `=` on integer variables, and only allowed for `'=` on string variables.
-  - Evaluates each element and writes a batch of consecutive elements via the variable term’s `SetValue(long[]/string[])` overload (for multidimensional arrays, the list advances the last dimension).
+  - Evaluates each element and writes a batch of consecutive elements starting at the LHS element (for multidimensional arrays, the list advances the last dimension only).
   - If any RHS element is omitted, it is an error.
 - For string `=` assignment, the RHS is treated as FORM/formatted text (not a normal expression) and then compiled to a string expression internally.
-  - Implementation detail: after the operator, the engine skips **ASCII spaces only** (not tabs) before scanning the FORM string.
-  - Implementation detail: the FORM scanner is invoked in a “trimmed” mode to approximate EraMaker behavior.
+  - After the operator, the parser skips **ASCII spaces only** (not tabs) before scanning the FORM string.
 
 **Errors & validation**
 - Parse-time errors:

@@ -1,6 +1,9 @@
 **Summary**
 - Jumps into another non-event function (`@NAME`) like `CALL`, but does not return to the current function.
 
+**Tags**
+- calls
+
 **Syntax**
 - `JUMP <functionName> [, <arg1>, <arg2>, ... ]`
 - `JUMP <functionName>(<arg1>, <arg2>, ... )`
@@ -8,8 +11,8 @@
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- Same as `CALL`.
+- Omitted arguments / defaults:
+  - Same as `CALL`.
 
 **Semantics**
 - Enters the target function.

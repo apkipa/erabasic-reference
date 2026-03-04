@@ -1,6 +1,9 @@
 **Summary**
 - Tries a list of candidate `$label` targets and jumps to the first one that exists; otherwise jumps to `ENDFUNC` (end of the list).
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYGOTOLIST`
   - `FUNC <formString>`
@@ -10,9 +13,6 @@
 
 **Arguments**
 - Each `FUNC` item provides a label name as a **FORM/formatted string expression** (evaluated to a string at runtime).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Structural notes:

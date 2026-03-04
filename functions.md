@@ -179,7 +179,7 @@ Engine-accurate notes:
 - `RESULT` is an alias for `RESULT:0`.
 - `RETURN` does **not** clear `RESULT:1+`:
   - with no arguments, it sets only `RESULT:0 = 0`
-  - with `k` arguments, it sets `RESULT:i` for `i=0..k-1` (truncated to the physical `RESULT` length) and leaves all other cells unchanged
+  - with `k` arguments, it sets `RESULT:i` for `0 <= i < k` (truncated to the physical `RESULT` length) and leaves all other cells unchanged
 
 ### `RETURNFORM`
 

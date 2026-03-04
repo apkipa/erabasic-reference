@@ -1,6 +1,9 @@
 **Summary**
 - Like `TRYGOTO`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCGOTO <labelName>`
 - `CATCH`
@@ -9,9 +12,6 @@
 
 **Arguments**
 - Same as `GOTO`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If the `$label` exists: behaves like `GOTO` (jumps to the label). Whether the `CATCH` line is ever reached depends on subsequent control flow.

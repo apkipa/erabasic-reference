@@ -1,6 +1,9 @@
 **Summary**
 - Begins a `WHILE ... WEND` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `WHILE <int expr>`
   - `...`
@@ -9,8 +12,8 @@
 **Arguments**
 - `<int expr>`: loop condition (0 = false, non-zero = true).
 
-**Defaults / optional arguments**
-- If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
+- Omitted arguments / defaults:
+  - If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
 
 **Semantics**
 - At `WHILE`, evaluates the condition:

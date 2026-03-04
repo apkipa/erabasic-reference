@@ -1,6 +1,9 @@
 **Summary**
 - Tries a list of candidate non-event functions and `CALL`s the first one that exists; otherwise skips the block.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCALLLIST`
   - `FUNC <formString> [, <arg1>, <arg2>, ... ]`
@@ -14,9 +17,6 @@
   - a candidate function name as a **FORM/formatted string expression** (evaluated to a string at runtime)
   - optional call arguments (expressions)
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Structural notes:
   - The lines between `TRYCALLLIST` and `ENDFUNC` are **list items**, not a normal executable block body.
@@ -28,7 +28,7 @@
     - Otherwise, bind arguments and enter that function (like `CALL`).
       - When the callee returns, execution resumes at the `ENDFUNC` line (then continues after it).
   - If no candidate matches, jump directly to the `ENDFUNC` line (then continue after it).
-- Implementation detail: `FUNC` syntax is parsed using the same argument builder as `CALLFORM` (candidate name is a FORM string; arguments are normal expressions).
+- `FUNC` syntax matches `CALLFORM`: candidate name is a FORM string; arguments are normal expressions.
 
 **Errors & validation**
 - Load-time structure errors (the line is marked as error):

@@ -2,6 +2,9 @@
 - `PRINTVKL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVKL <expr1> [, <expr2> ...]`
 
@@ -9,8 +12,8 @@
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

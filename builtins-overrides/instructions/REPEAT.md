@@ -1,6 +1,9 @@
 **Summary**
 - Begins a `REPEAT ... REND` counted loop using the built-in variable `COUNT` as the loop counter.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `REPEAT <countExpr>`
   - `...`
@@ -9,8 +12,8 @@
 **Arguments**
 - `<countExpr>`: int expression giving the number of iterations.
 
-**Defaults / optional arguments**
-- If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
+- Omitted arguments / defaults:
+  - If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
 
 **Semantics**
 - `REPEAT` is implemented as a FOR-like loop over `COUNT:0`:
@@ -18,7 +21,7 @@
   - Uses `end = <countExpr>` and `step = 1`.
   - The loop continues while `COUNT:0 < end`.
 - `COUNT:0` is incremented by `1` at `REND` time (and also by `BREAK`/`CONTINUE` for era-maker compatibility).
-- Because the engine advances to `NextLine` before executing, jumps between `REPEAT` and `REND` are done via marker lines:
+- Jump behavior note: control transfers between `REPEAT` and `REND` are done via their marker lines, and entering a marker line as a jump target begins execution at the following logical line:
   - Jumping to `REPEAT` re-enters at the first line of the body.
   - Jumping to `REND` exits to the first line after `REND`.
 

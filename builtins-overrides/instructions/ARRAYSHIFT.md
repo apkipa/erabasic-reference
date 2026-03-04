@@ -1,6 +1,9 @@
 **Summary**
 - Shifts elements in a mutable 1D array variable by a signed offset and fills new slots with a default value.
 
+**Tags**
+- arrays
+
 **Syntax**
 - `ARRAYSHIFT <arrayVar>, <shift>, <default> [, <start> [, <count>]]`
 
@@ -11,9 +14,9 @@
 - `<start>`: int expression (default `0`).
 - `<count>`: int expression (default “to end”; engine uses a sentinel).
 
-**Defaults / optional arguments**
-- `<start>` defaults to `0`.
-- `<count>` omitted means “to the end”.
+- Omitted arguments / defaults:
+  - `<start>` defaults to `0`.
+  - `<count>` omitted means “to the end”.
 
 **Semantics**
 - Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).

@@ -2,6 +2,10 @@
 - Begins a **PRINTDATA block** that contains `DATA` / `DATAFORM` (and optional `DATALIST` groups).
 - At runtime, the engine picks one choice uniformly at random, prints it, then jumps to `ENDDATA`.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATA [<intVarTerm>]`
 - Block form:
@@ -13,8 +17,8 @@
 **Arguments**
 - Optional `<intVarTerm>`: a changeable int variable term that receives the 0-based chosen index.
 
-**Defaults / optional arguments**
-- If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.
+- Omitted arguments / defaults:
+  - If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.
 
 **Semantics**
 - Load-time structure rules (enforced by the loader):
@@ -24,10 +28,10 @@
   - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (load-time error).
   - The block body only permits `DATA` / `DATAFORM` / `DATALIST` / `ENDLIST` / `ENDDATA`; any other instruction (and any label definition) inside is a load-time error.
 - Runtime behavior:
-  - Implementation detail: if `SkipPrint` is enabled, `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
+  - If output skipping is active (script runner `skipPrint`), `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
   - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.
   - Otherwise:
-    - Choose `choice = RAND(0..count-1)` using the engine RNG.
+    - Choose `choice` uniformly such that `0 <= choice < count` (using the engine RNG).
     - If `<intVarTerm>` is present, assign it the chosen index.
     - Print the selected `DATA` entry:
       - A single `DATA`/`DATAFORM` line prints as one line.

@@ -1,14 +1,17 @@
 **Summary**
 - Closes a `PRINTDATA*` or `STRDATA` block.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `ENDDATA`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- N/A.
+- Omitted arguments / defaults:
+  - N/A.
 
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.

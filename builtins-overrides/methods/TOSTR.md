@@ -1,9 +1,11 @@
 **Summary**
 - Converts an integer to a string, optionally using a .NET numeric format string.
 
+**Tags**
+- text
+
 **Syntax**
 - `TOSTR(i [, format])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `TOSTR(42, )`).
 
 **Signatures / argument rules**
 - `TOSTR(i)` → `string`
@@ -13,8 +15,8 @@
 - `i`: int expression.
 - `format` (optional): string expression passed to `Int64.ToString(format)`.
 
-**Defaults / optional arguments**
-- If `format` is omitted or `null`: uses the default `i.ToString()` formatting.
+- Omitted arguments / defaults:
+  - If `format` is omitted or `null`: uses the default `i.ToString()` formatting.
 
 **Semantics**
 - If `format` is omitted or null: returns `i.ToString()`.

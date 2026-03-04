@@ -1,13 +1,13 @@
 **Summary**
 - Writes the current local date/time into `RESULT` (as a packed integer) and `RESULTS` (as a formatted string).
 
+**Tags**
+- time
+
 **Syntax**
 - `GETTIME`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -24,4 +24,3 @@
 
 **Progress state**
 - complete
-

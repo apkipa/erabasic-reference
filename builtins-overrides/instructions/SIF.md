@@ -1,6 +1,9 @@
 **Summary**
 - “Single-line IF”: conditionally skips the **next logical line only**.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `SIF <int expr>`
   - `<next logical line>`
@@ -8,8 +11,8 @@
 **Arguments**
 - `<int expr>`: evaluated as integer; zero = false, non-zero = true.
 
-**Defaults / optional arguments**
-- If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- Omitted arguments / defaults:
+  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.
@@ -18,7 +21,7 @@
   - If the following line is a **partial instruction** (structural marker / block delimiter; e.g. `IF`, `ELSE`, `CASE`, loop markers), the engine warns because skipping marker lines breaks block structure.
   - If the following line is a `$label` line, the engine warns.
   - If there is no following executable line (EOF / next `@label`), the engine warns.
-  - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns (implementation detail: it compares source line numbers and reports “empty line(s) after SIF”).
+  - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns.
 
 **Errors & validation**
 - Some invalid “next line” situations are treated as load-time errors (the `SIF` line is marked as error and cannot run safely), including:
@@ -26,7 +29,7 @@
   - following line is a function label line (`@...`) or a null terminator line
   - following instruction line is a **partial instruction** (structural marker / block delimiter)
   - following line is a `$label` line
-- The engine may also warn if there are physically empty line(s) between `SIF` and the next logical line (implementation detail).
+- The engine may also warn if there are physically empty line(s) between `SIF` and the next logical line.
 
 **Examples**
 - `SIF A == 0`

@@ -1,13 +1,13 @@
 **Summary**
 - Final clause header inside an `IF ... ENDIF` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `ELSE`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

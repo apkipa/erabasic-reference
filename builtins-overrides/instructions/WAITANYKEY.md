@@ -1,13 +1,13 @@
 **Summary**
 - Like `WAIT`, but accepts **any key** input (not only Enter) to continue.
 
+**Tags**
+- io
+
 **Syntax**
 - `WAITANYKEY`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

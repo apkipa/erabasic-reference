@@ -1,45 +1,78 @@
 **Summary**
 - Requests an integer input from the user and stores it into `RESULT` (with mouse-related side channels in some cases).
 
+**Tags**
+- io
+
 **Syntax**
-- `INPUT`
-- `INPUT <default>`
-- `INPUT <default>, <mouse>, <canSkip> [, <extra>]`
+- `INPUT [<default> [, <mouse> [, <canSkip> [, <extra>]]]]`
 
 **Arguments**
-- `<default>` (optional): integer expression for the default value.
-- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input (implementation detail: selecting buttons can fill the input).
-- `<canSkip>` (optional): integer expression; if present and non-zero, allows “message skip” (`MesSkip`) to auto-accept the default value without waiting.
-- `<extra>` (optional): accepted by the current argument builder but ignored by the runtime implementation (implementation detail).
-
-**Defaults / optional arguments**
-- If `<default>` is omitted, there is no default value.
+- `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
+- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input (e.g. selecting buttons can fill the input).
+  - `0`: accepted value is written to `RESULT`.
+  - Note: mouse mode does not change where the accepted integer is stored on the normal wait path (it is still stored into `RESULT`).
+- `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
+- `<extra>` (optional, int): accepted by the argument parser but ignored by the runtime (not read/evaluated).
 
 **Semantics**
-- Enters an integer-input UI wait (`InputType.IntValue`).
-- If `<default>` is provided, it becomes the default used when the input is empty and the request is not running a timer.
+- Enters an integer-input UI wait.
+- Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
 - On successful completion:
-  - Stores the integer value into `RESULT`.
-  - Echoes the entered text to output (UI behavior).
-- `MesSkip` integration (implementation detail):
+  - Writes the accepted integer to `RESULT`.
+  - Echoes the accepted input text to output.
+    - If the user submits an empty input and a default is used, the echoed text is the default’s decimal string form (e.g. `10`).
+- Empty / invalid input handling:
+  - If there is no default and the user submits an empty input, the input is rejected and the engine stays in the wait state.
+  - If the submitted text is not a valid integer, the input is rejected and the engine stays in the wait state.
+  - On a rejected input, no `RESULT*` variables are assigned and the rejected text is not echoed.
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
-  - In that no-wait path, the engine assigns the default to:
-    - `RESULT` if `<mouse> == 0`
-    - `RESULT_ARRAY[1]` if `<mouse> != 0`
-  - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
-- Mouse-enabled input side channels (implementation detail; WinForms UI behavior):
-  - If mouse input is enabled and the user completes input via a mouse interaction, the UI may also write metadata into:
-    - `RESULT_ARRAY[1]`: mouse button (`1`=left, `2`=right, `3`=middle) in some click paths.
-    - `RESULT_ARRAY[2]`: a modifier-key bitfield in some click paths (Shift=`2^16`, Ctrl=`2^17`, Alt=`2^18`).
-    - `RESULTS_ARRAY[1]`: the clicked button’s string (if any) in some click paths.
-    - `RESULT_ARRAY[3]`: a mapped “button color” value in some click paths.
+  - In that no-wait path:
+    - `<mouse>` must be present (it is read to choose the output slot).
+    - `<default>` must be present; otherwise the engine throws a runtime error.
+    - The accepted value is written to:
+      - `RESULT` if `<mouse> == 0`
+      - `RESULT_ARRAY[1]` if `<mouse> != 0`
+    - The input string is not echoed (because the UI wait is skipped entirely).
+- Mouse-enabled input side channels (UI behavior):
+  - If mouse input is enabled and the user completes input via a mouse click, the UI also writes metadata into:
+    - `RESULT_ARRAY[1]`: mouse button (`1`=left, `2`=right, `3`=middle).
+    - `RESULT_ARRAY[2]`: a modifier-key bitfield (Shift=`2^16`, Ctrl=`2^17`, Alt=`2^18`).
+    - `RESULTS_ARRAY[1]`: the clicked button’s string (if any).
+    - `RESULT_ARRAY[3]`: mapped “button color” (see below).
+  - These side channels are only written on the UI click completion path (not on keyboard-only completion, and not in the `MesSkip` no-wait path).
+
+#### Mapped “button color” (`RESULT:3`) from `<img srcm='...'>`
+
+When a click completes mouse-enabled input, the UI computes `RESULT:3` as follows:
+
+- If the clicked button contains at least one HTML `<img ...>` segment, take the **last** `<img ...>` in that button.
+- If that `<img>` has a `srcm` mapping sprite that exists and is loaded:
+  - Convert the click position to a pixel coordinate in the mapping sprite by scaling within the rendered image rectangle:
+    - Let `drawnWidthPx` / `drawnHeightPx` be the (positive) rendered size of that `<img>` segment.
+    - Let `localX` / `localY` be the click position inside that rendered rectangle, in pixels.
+    - Let `mapWidthPx` / `mapHeightPx` be the mapping sprite’s base size, in pixels.
+    - The sampled mapping coordinate uses integer division (floor):
+      - `mapX = localX * mapWidthPx / drawnWidthPx`
+      - `mapY = localY * mapHeightPx / drawnHeightPx`
+  - Sample the mapping sprite pixel color at `(mapX, mapY)`.
+  - Store `RESULT:3 = (color.ToArgb() & 0x00FFFFFF)` (24-bit RGB).
+- Otherwise, store `RESULT:3 = 0`.
+
+Compatibility notes:
+
+- The mapping color uses the mapping sprite’s base size (the size defined by `resources/**/*.csv`), not the drawn size.
+- If the click is exactly on the image rectangle boundary, the mapping color is treated as `0` (the hit-test uses strict `>`/`<`).
+- Some other UI wait types (not `INPUT` itself) may write a mapping color to `RESULT:6` instead of `RESULT:3` (e.g. the “primitive mouse/key” wait used by `INPUTMOUSEKEY`).
 - If the script runner’s `skipPrint` mode is active (e.g. via `SKIPDISP`), `INPUT` is treated as a print-family instruction:
   - In internal skip modes, it is skipped.
   - If skip was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
 
 **Errors & validation**
-- Argument-type errors are raised if a non-integer argument is provided.
-- If input cannot be parsed as an integer, the engine stays in the wait state (no value is stored).
+- Argument-type errors are raised if a provided argument is not an `int` expression (including `<canSkip>` and `<extra>`).
+- Integer parsing is equivalent to `.NET` `Int64.TryParse` on the submitted text.
+  - If parsing fails, the engine stays in the wait state.
 
 **Examples**
 - `INPUT`

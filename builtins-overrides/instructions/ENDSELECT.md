@@ -1,13 +1,13 @@
 **Summary**
 - Ends a `SELECTCASE ... ENDSELECT` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `ENDSELECT`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

@@ -1,14 +1,17 @@
 **Summary**
 - Closes a `DATALIST` block.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `ENDLIST`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- N/A.
+- Omitted arguments / defaults:
+  - N/A.
 
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.

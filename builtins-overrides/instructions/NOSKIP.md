@@ -2,15 +2,15 @@
 - Begins a `NOSKIP ... ENDNOSKIP` block that temporarily disables `skipPrint` within the block body.
 - Intended to force some output/wait behavior to run even if `SKIPDISP` is currently skipping print-family instructions.
 
+**Tags**
+- skip-mode
+
 **Syntax**
 - `NOSKIP`
   - `...`
 - `ENDNOSKIP`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

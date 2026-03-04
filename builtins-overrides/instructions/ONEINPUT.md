@@ -1,6 +1,9 @@
 **Summary**
 - Like `INPUT`, but requests a “one input” integer entry (UI-side restriction).
 
+**Tags**
+- io
+
 **Syntax**
 - `ONEINPUT`
 - `ONEINPUT <default>`
@@ -9,8 +12,8 @@
 **Arguments**
 - Same as `INPUT`.
 
-**Defaults / optional arguments**
-- Same as `INPUT`.
+- Omitted arguments / defaults:
+  - Same as `INPUT`.
 
 **Semantics**
 - Like `INPUT` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.

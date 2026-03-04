@@ -1,15 +1,15 @@
 **Summary**
 - Begins a `DO ... LOOP` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `DO`
   - `...`
   - `LOOP <int expr>`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

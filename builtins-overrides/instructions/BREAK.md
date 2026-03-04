@@ -1,13 +1,13 @@
 **Summary**
 - Exits the nearest enclosing loop (`REPEAT`, `FOR`, `WHILE`, or `DO`).
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `BREAK`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

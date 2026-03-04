@@ -1,13 +1,13 @@
 **Summary**
 - Ends a `NOSKIP ... ENDNOSKIP` block.
 
+**Tags**
+- skip-mode
+
 **Syntax**
 - `ENDNOSKIP`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

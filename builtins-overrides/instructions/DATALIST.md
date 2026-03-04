@@ -2,6 +2,9 @@
 - Starts a **multi-line** choice list inside a surrounding `PRINTDATA*` or `STRDATA` block.
 - Each `DATA` / `DATAFORM` inside the list becomes a separate output line when this choice is selected.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `DATALIST`
   - `DATA ...` / `DATAFORM ...` (one or more)
@@ -10,8 +13,8 @@
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- N/A.
+- Omitted arguments / defaults:
+  - N/A.
 
 **Semantics**
 - At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.

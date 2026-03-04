@@ -1,20 +1,21 @@
 **Summary**
 - Initializes the engine’s legacy RNG state from the `RANDDATA` variable.
 
+**Tags**
+- random
+
 **Syntax**
 - `INITRAND`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
-  - Emits a warning and does nothing (implementation detail).
+  - Emits a warning and does nothing.
 - Otherwise:
-  - Loads the legacy RNG state from `RANDDATA` (via `MTRandom.SetRand(RANDDATA)`).
+  - Loads the legacy RNG state from `RANDDATA`.
+  - `RANDDATA` must have length 625; otherwise a runtime error is raised.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -25,4 +26,3 @@
 
 **Progress state**
 - complete
-

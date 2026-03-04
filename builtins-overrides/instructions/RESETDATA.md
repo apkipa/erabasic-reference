@@ -1,22 +1,20 @@
 **Summary**
 - Resets the current game/runtime variable state (excluding global variables).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `RESETDATA`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Calls `VEvaluator.ResetData()`, which (high-level):
-  - Clears local/default variable state.
-  - Disposes and clears the character list.
-  - Removes certain Emuera-private save-related data structures (implementation detail; e.g. XML/maps/DT savedata extensions).
-  - Does **not** reset global variables.
-- Resets console style (`Console.ResetStyle()`).
+- Resets non-global variables to their default values (global variables are not reset).
+- Disposes and clears the character list.
+- Removes Emuera-private save-related extension data (e.g. XML/maps/data-table extensions).
+- Resets output style to defaults.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -27,4 +25,3 @@
 
 **Progress state**
 - complete
-

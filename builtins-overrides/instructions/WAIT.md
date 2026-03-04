@@ -1,13 +1,13 @@
 **Summary**
 - Waits for the user to press Enter (or click, depending on the UI), then continues.
 
+**Tags**
+- io
+
 **Syntax**
 - `WAIT`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

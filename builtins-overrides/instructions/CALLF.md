@@ -1,6 +1,9 @@
 **Summary**
 - Calls an expression function (built-in method or user-defined `#FUNCTION/#FUNCTIONS`) by name and evaluates it as a statement.
 
+**Tags**
+- calls
+
 **Syntax**
 - `CALLF <methodName> [, <arg1>, <arg2>, ... ]`
 - `CALLF <methodName>(<arg1>, <arg2>, ... )`
@@ -9,8 +12,8 @@
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
 - `<argN>`: expressions passed to the method.
 
-**Defaults / optional arguments**
-- Depends on the called method’s own signature rules (omission/variadics/etc.).
+- Omitted arguments / defaults:
+  - Depends on the called method’s own signature rules (omission/variadics/etc.).
 
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.

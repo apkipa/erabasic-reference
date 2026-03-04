@@ -1,13 +1,13 @@
 **Summary**
 - Ends a `CATCH ... ENDCATCH` block.
 
+**Tags**
+- error-handling
+
 **Syntax**
 - `ENDCATCH`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

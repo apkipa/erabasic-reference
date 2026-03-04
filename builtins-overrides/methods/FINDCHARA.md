@@ -1,9 +1,11 @@
 **Summary**
-- Returns the first character index in the current character list whose character-variable cell equals a target value.
+- Returns the first chara index (role index) in the current character list whose character-data cell equals a target value.
+
+**Tags**
+- characters
 
 **Syntax**
 - `FINDCHARA(charaVarTerm, value [, startIndex [, lastIndex]])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `FINDCHARA(NAME, "A", , 10)`).
 
 **Signatures / argument rules**
 - `FINDCHARA(charaVarTerm, value)` → `long`
@@ -11,20 +13,17 @@
 - `FINDCHARA(charaVarTerm, value, startIndex, lastIndex)` → `long`
 
 **Arguments**
-- `charaVarTerm`: character-data variable term.
-  - Must evaluate to a variable term whose identifier is marked as “character data”.
-  - If the variable is a 1D/2D array, the array subscripts on `charaVarTerm` select which per-character cell is compared.
-- `value`: scalar value to match; must be the same scalar type as the selected cell (string vs int).
-- `startIndex` (optional): int expression; inclusive start character index.
-- `lastIndex` (optional): int expression; exclusive end character index.
-
-**Defaults / optional arguments**
-- If `startIndex` is omitted (or omitted as an empty slot): defaults to `0`.
-- If `lastIndex` is omitted (or omitted as an empty slot): defaults to `CHARANUM` (the current total number of characters).
+- `charaVarTerm` (character-data variable term): selects a character-data variable (scalar or array).
+  - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
+  - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
+- The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+- `value` (int|string; must match the selected cell type): scalar value to match.
+- `startIndex` (optional, int; default `0`): inclusive start chara index.
+- `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
 
 **Semantics**
 - Reads the current `CHARANUM` and searches forward in the half-open range `[startIndex, lastIndex)`.
-- For each character index `i` in the range, compares `charaVarTerm(i)` against `value` using direct equality:
+- For each chara index `i` in the range, compares the selected per-chara cell against `value` using direct equality:
   - string cell: `==` (ordinal string equality in .NET)
   - int cell: `==`
 - Returns the first matching index `i`, or `-1` if:

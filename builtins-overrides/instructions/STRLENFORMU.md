@@ -1,14 +1,17 @@
 **Summary**
 - Sets `RESULT` to the Unicode code-unit length (`string.Length`) of a FORM/formatted string.
 
+**Tags**
+- text
+
 **Syntax**
 - `STRLENFORMU <formString>`
 
 **Arguments**
 - `<formString>`: FORM/formatted string expression.
 
-**Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Evaluates the formatted string to a string value, then assigns `str.Length` to `RESULT`.

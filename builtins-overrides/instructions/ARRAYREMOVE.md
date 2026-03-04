@@ -1,6 +1,9 @@
 **Summary**
 - Removes a slice of elements from a mutable 1D array by shifting later elements left and filling the tail with default values.
 
+**Tags**
+- arrays
+
 **Syntax**
 - `ARRAYREMOVE <arrayVar>, <start>, <count>`
 
@@ -8,9 +11,6 @@
 - `<arrayVar>`: changeable 1D array variable term.
 - `<start>`: integer expression; start index (0-based).
 - `<count>`: integer expression; number of elements to remove.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Works only on 1D arrays (int or string).

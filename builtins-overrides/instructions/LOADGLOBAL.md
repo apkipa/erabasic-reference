@@ -1,13 +1,13 @@
 **Summary**
 - Loads global variables from `global.sav` and reports success via `RESULT`.
 
+**Tags**
+- save-system
+
 **Syntax**
 - `LOADGLOBAL`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -17,7 +17,7 @@
   - Sets `RESULT = 1`.
 - On failure:
   - Sets `RESULT = 0`.
-- Implementation detail: before attempting to read, the loader removes certain Emuera-private global extension data; if loading then fails, this removal may still have occurred.
+- Before attempting to read, the loader removes certain Emuera-private global extension data; if loading then fails, this removal may still have occurred.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 
 **Errors & validation**

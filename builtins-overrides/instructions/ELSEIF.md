@@ -1,14 +1,14 @@
 **Summary**
 - Clause header inside an `IF ... ENDIF` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `ELSEIF <int expr>`
 
 **Arguments**
 - `<int expr>` is evaluated by the `IF` header’s clause-selection logic (not by the `ELSEIF` instruction itself).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - When reached **sequentially** (i.e., a previous clause already executed and control fell through), `ELSEIF` unconditionally jumps to the matching `ENDIF` marker, skipping the rest of the block.

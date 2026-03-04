@@ -1,6 +1,9 @@
 **Summary**
 - Like `TRYCALLLIST`, but performs a `JUMP` into the first existing candidate.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYJUMPLIST`
   - `FUNC <formString> [, <arg1>, ... ]`
@@ -9,9 +12,6 @@
 
 **Arguments**
 - Same as `TRYCALLLIST`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Same selection rules as `TRYCALLLIST`.

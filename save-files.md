@@ -50,6 +50,8 @@ These instructions store files under the `dat/` folder (not `SavDir`):
 
 The `name` part must be non-empty and must not contain any OS-invalid filename characters (engine uses `Path.GetInvalidFileNameChars()`).
 
+In this codebase, some call sites format the `{name}` portion from an integer slot/index using the numeric formatting pattern `{index:00}` (two digits minimum), producing filenames like `var_00.dat` and `chara_07.dat`.
+
 The engine also provides an enumeration helper that lists `dat/var_*.dat` or `dat/chara_*.dat` with a wildcard pattern and extracts the `{name}` portion by stripping the prefix and the `.dat` extension.
 
 ## 2) Persistence partitions (what gets saved where)
@@ -233,7 +235,7 @@ Arrays are encoded as a length prefix plus a token stream. Tokens are single byt
 
 ```text
 Ebdb tokens (byte)
-  0xCF Byte     ; numeric literal 0..207 (encoded directly as the byte value)
+  0xCF Byte     ; numeric literal where `0 <= value <= 207` (encoded directly as the byte value)
   0xD0 Int16
   0xD1 Int32
   0xD2 Int64
@@ -434,7 +436,7 @@ Engine quirk:
 
 For integer arrays (`long[]`):
 
-- The writer emits elements `0..k-1` up to the last non-zero element (`k` is computed as “last non-zero index + 1”).
+- The writer emits elements with indices `0 <= i < k` up to the last non-zero element (`k` is computed as “last non-zero index + 1”).
 - Then it writes `__FINISHED`.
 - The reader reads until `__FINISHED`. Missing elements are set to `0`.
 

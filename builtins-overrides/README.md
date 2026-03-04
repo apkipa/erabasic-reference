@@ -25,11 +25,9 @@ Use the exact section titles below (bold Markdown lines):
 
 - `**Summary**`
 - `**Tags**` (optional; user-facing)
-- `**Documentation depth**` (optional; internal tooling only)
 - `**Progress state**` (optional; internal tooling only)
 - `**Syntax**`
 - `**Arguments**`
-- `**Defaults / optional arguments**`
 - `**Signatures / argument rules**` (methods only)
 - `**Semantics**`
 - `**Errors & validation**`
@@ -41,6 +39,9 @@ Notes:
 - `builtins-reference.md` is intentionally strict: it does **not** show engine-extracted skeletons. Missing sections remain `(TODO)`.
 - `builtins-reference-engine.md` contains the engine-extracted skeletons and file/line references for fact-checking.
 - The generator **fails by default** if any validation issues are found (missing docs, unknown section titles, etc.). Use `--no-fail` to override.
+
+Argument defaults and “omitted argument” behavior should be documented inline under `**Arguments**` (for example:
+`- start (optional, default 0): ...`), not in a standalone section.
 
 ### `Tags` (optional; user-facing)
 
@@ -64,12 +65,6 @@ To mark an entry as complete, add:
 - `**Progress state**`
 - `- complete`
 
-### `Documentation depth` (optional)
+## Authoring rules
 
-If present, this section should be a short, human-authored depth indicator for this entry, for example:
-
-- `High (reimplementation-grade): edge cases and error behavior specified.`
-- `Medium: main behavior described; some edge cases TODO.`
-- `Low: minimal semantics; use engine refs for details.`
-
-This value is not shown to readers of `builtins-reference.md`.
+Default authoring rules for this reference live in `erabasic-reference/agents.md`.

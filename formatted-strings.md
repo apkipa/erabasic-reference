@@ -19,8 +19,8 @@ FORM parsing is **not** the same as double-quoted string literal parsing:
 
 The formatted-string analyzer produces a token (`StrFormWord`) that represents:
 
-- an array of literal segments: `strs[0..n]` (length is `subwords.Length + 1`)
-- an array of placeholders/subwords: `subwords[0..n-1]`
+- an array of literal segments `strs` with length `subwords.Length + 1` (indices `0 <= i <= subwords.Length`)
+- an array of placeholders/subwords `subwords` (indices `0 <= i < subwords.Length`)
 
 Evaluation concatenates them in order:
 

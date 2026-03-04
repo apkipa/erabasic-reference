@@ -1,6 +1,9 @@
 **Summary**
 - Like `TRYGOTOFORM`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCGOTOFORM <formString>`
 - `CATCH`
@@ -9,9 +12,6 @@
 
 **Arguments**
 - Same as `GOTOFORM`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Same as `TRYCGOTO`, but with a runtime-evaluated label name.

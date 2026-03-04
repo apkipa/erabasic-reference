@@ -1,13 +1,13 @@
 **Summary**
 - Ends a `FOR ... NEXT` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `NEXT`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

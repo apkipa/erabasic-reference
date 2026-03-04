@@ -1,6 +1,9 @@
 **Summary**
 - Like `JUMP`, but the function name is a formatted (FORM) string expression evaluated at runtime.
 
+**Tags**
+- calls
+
 **Syntax**
 - `JUMPFORM <formString> [, <arg1>, <arg2>, ... ]`
 - `JUMPFORM <formString>(<arg1>, <arg2>, ... )`
@@ -8,8 +11,8 @@
 **Arguments**
 - Same as `CALLFORM`.
 
-**Defaults / optional arguments**
-- Same as `CALLFORM`.
+- Omitted arguments / defaults:
+  - Same as `CALLFORM`.
 
 **Semantics**
 - Same as `JUMP`, with a runtime-evaluated function name.

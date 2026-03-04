@@ -1,6 +1,9 @@
 **Summary**
 - Returns from the current function. Also assigns the integer `RESULT` array (`RESULT:0`, `RESULT:1`, ...) from the provided values.
 
+**Tags**
+- calls
+
 **Syntax**
 - `RETURN`
 - `RETURN <int expr1> [, <int expr2>, <int expr3>, ... ]`
@@ -8,8 +11,8 @@
 **Arguments**
 - Each argument is evaluated as an integer and stored into `RESULT:<index>`.
 
-**Defaults / optional arguments**
-- With no arguments: sets `RESULT:0` to `0` and returns `0`.
+- Omitted arguments / defaults:
+  - With no arguments: sets `RESULT:0` to `0` and returns `0`.
 
 **Semantics**
 - Evaluates all provided integer expressions (left-to-right), stores them into the `RESULT` integer array starting at index 0, then returns from the function.

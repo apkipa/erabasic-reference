@@ -1,14 +1,14 @@
 **Summary**
 - Like `GOTOFORM`, but if the evaluated `$label` name does not exist the instruction **does not error** and simply falls through.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYGOTOFORM <formString>`
 
 **Arguments**
 - Same as `GOTOFORM`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If the `$label` exists: behaves like `GOTOFORM`.

@@ -1,12 +1,45 @@
 # EraBasic Built-ins Reference (Emuera / EvilMask)
 
-Generated on `2026-03-03`.
+Generated on `2026-03-05`.
 
 This file is **user-facing**: it contains only human-written documentation overrides.
 Undocumented built-ins are listed but contain only a `(TODO)` placeholder.
 
 For engine-extracted skeletons, validation structures, and file/line references, see:
 - `erabasic-reference/appendix/tooling/builtins-reference-engine.md` (writer/debug dump; not user-facing)
+
+# Conventions used by this reference
+
+Unless an entry explicitly says otherwise, interpret this reference using the conventions below.
+
+## Evaluation order (default)
+
+- Arguments are evaluated left-to-right.
+- Each argument (and any subscripts inside it) is evaluated once.
+- If an entry describes a different evaluation rule, that entry overrides this default.
+
+## Optional arguments and defaults
+
+- Whether an argument can be omitted is defined by an entry’s `Syntax` (instructions) or `Signatures` (methods).
+- Optional arguments can be omitted by leaving an empty argument slot (e.g. `FUNC(a, , c)`); in that case the argument value is treated as “omitted” for the purpose of default substitution.
+- Default values/behaviors for omitted arguments are documented inline under that entry’s `Arguments` (e.g. “optional, default `0`”).
+- Omitted arguments are not the same as passing an empty string; if empty-string behavior matters for compatibility, the entry documents it explicitly.
+
+## Output skipping / skipped execution
+
+- Some instructions are skipped entirely when output skipping is active (e.g. `SKIPDISP` / skip-print mode).
+- When an instruction is **skipped**, it is not executed: arguments are not evaluated and there are no side effects.
+- Note: the engine may still parse/compile the line’s arguments before the skip check; skips only suppress execution-time evaluation and side effects.
+
+## Range notation
+
+- This reference avoids `a..b` range notation, because inclusive/exclusive bounds are easy to misread.
+- Ranges are written using explicit inequalities (e.g. `0 <= i < n`) or half-open interval notation (e.g. `[startIndex, lastIndex)`).
+
+## Terminology: errors vs rejection
+
+- **Error**: the engine reports an error (typically aborting the current execution).
+- **Reject** (input/choice contexts): the engine ignores the input and continues waiting; side effects such as `RESULT*` writes happen only as documented for the accepting path.
 
 # Expression functions as statements
 
@@ -20,8 +53,11 @@ In statement form, the engine evaluates the function and writes the return value
 ## SET (instruction)
 
 **Summary**
-- Internal pseudo-instruction used by the engine to represent **assignment statements** (produced by parsing assignment syntax).
-- Implements scalar assignment, compound assignment (`+=`, `-=`, etc.), `++/--`, and comma-list assignment into arrays.
+- Describes **assignment statements** (`=`, `'=` and compound forms) and their observable behavior.
+- Covers scalar assignment, compound assignment (`+=`, `-=`, etc.), `++/--`, and comma-list assignment into arrays.
+
+**Tags**
+- variables
 
 **Syntax**
 - Scalar assignment (int): `<intVarTerm> = <int expr>`
@@ -41,33 +77,28 @@ In statement form, the engine evaluates the function and writes the return value
   - string LHS with `=`: RHS is scanned as a formatted string until end-of-line.
   - string LHS with `'=` / `+=` / `*=`: RHS is parsed as normal expressions.
 
-**Defaults / optional arguments**
-- For `++/--`, the implicit delta is `+1` / `-1`.
+- Omitted arguments / defaults:
+  - For `++/--`, the implicit delta is `+1` / `-1`.
 
 **Semantics**
-- How “SET” appears:
-  - This is not a script-level keyword; an assignment line is parsed into an `InstructionLine` whose function is internally `SET` and whose `AssignOperator` encodes the operator.
-  - If a script tries to write a literal `SET ...` instruction, it is not parsed as an assignment line and will fail argument parsing (implementation detail).
-- Assignment operator recognition (parser-level):
+- There is no `SET` keyword in EraBasic source; this entry documents the language’s assignment syntax.
+- Assignment operator recognition:
   - The engine recognizes: `=`, `'=`; `++`, `--`; and compound forms `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `|=`, `&=`, `^=`.
 - Allowed operators depend on LHS type:
   - int LHS: all the above operators are accepted by the assignment builder.
   - string LHS: only `=`, `'=` (string-expression assignment), `+=`, `*=` are accepted; other compound operators are rejected as invalid.
 - If the RHS is a single value:
   - `=` assigns that value.
-  - For compound assignment operators, the builder lowers the statement into either:
-    - an in-place delta update (`ChangeValue`) only for the `+= <const>` / `-= <const>` / `++` / `--` cases, or
-    - a read-then-write expression of the form `LHS = (LHS <op> RHS)` for all other cases (via the engine’s operator reducers).
+  - For compound assignment operators, the resulting value is the same as `LHS = (LHS <op> RHS)` (using the operator implied by the compound form).
 - Index evaluation and side effects (important compatibility detail):
-  - In the `ChangeValue` path (`+= <const>`, `-= <const>`, `++`, `--`), the variable term’s indices are evaluated once.
-  - In the general read-then-write path (`LHS = (LHS <op> RHS)`), the variable term is evaluated once for the read and again for the write; if indices contain expressions with side effects, they may run twice (engine behavior).
+  - For `++`, `--`, `+= <const int>`, `-= <const int>`: the LHS variable term (including indices/subscripts) is evaluated once.
+  - For other compound assignments: the LHS variable term is evaluated twice (once to read the old value, and once to write the new value), so any side effects in indices can run twice.
 - If the RHS is a comma list:
   - This is only allowed for `=` on integer variables, and only allowed for `'=` on string variables.
-  - Evaluates each element and writes a batch of consecutive elements via the variable term’s `SetValue(long[]/string[])` overload (for multidimensional arrays, the list advances the last dimension).
+  - Evaluates each element and writes a batch of consecutive elements starting at the LHS element (for multidimensional arrays, the list advances the last dimension only).
   - If any RHS element is omitted, it is an error.
 - For string `=` assignment, the RHS is treated as FORM/formatted text (not a normal expression) and then compiled to a string expression internally.
-  - Implementation detail: after the operator, the engine skips **ASCII spaces only** (not tabs) before scanning the FORM string.
-  - Implementation detail: the FORM scanner is invoked in a “trimmed” mode to approximate EraMaker behavior.
+  - After the operator, the parser skips **ASCII spaces only** (not tabs) before scanning the FORM string.
 
 **Errors & validation**
 - Parse-time errors:
@@ -90,8 +121,10 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Summary**
 - Prints a **raw literal string** (the remainder of the source line) into the console output buffer.
-- See also: `PRINTV` (variadic expressions), `PRINTS` (string expression), `PRINTFORM` (FORM scanned at load-time), `PRINTFORMS` (FORM scanned at runtime).
 - This entry also documents **common PRINT-family semantics** (suffix letters, buffering, `K`/`D`, `C`/`LC`).
+
+**Tags**
+- io
 
 **Syntax**
 - `PRINT`
@@ -99,7 +132,8 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINT;<raw text>`
 
 **Arguments**
-- `<raw text>` is **not an expression**. It is taken as the raw character sequence after the instruction delimiter.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` is taken as the raw character sequence after the instruction delimiter.
 - The parser consumes exactly one delimiter character after the keyword:
   - a single space / tab
   - or a full-width space if `SystemAllowFullSpace` is enabled
@@ -109,22 +143,36 @@ In statement form, the engine evaluates the function and writes the return value
   - `PRINT  X` prints `" X"` (the second space remains in the argument).
   - `PRINT;X` prints `X` (no leading whitespace in the argument).
 
-**Defaults / optional arguments**
-- If omitted, the argument is treated as the empty string.
-
 **Semantics**
 - Output is appended to the engine’s **print buffer** (it is not necessarily flushed to the UI immediately).
-- Implementation detail: if `SkipPrint` is enabled, `PRINT*` does nothing (no output, no newline, no wait).
-- Common behavior across the PRINT family:
-  - `...L` variants: after output, flush and append a newline (`Console.NewLine()`).
-  - `...W` variants: like `...L`, then wait for a key (`Console.ReadAnyKey()`).
-  - `...N` variants: wait for a key **without ending the logical output line** (implementation detail: prints with `lineEnd=false` before flushing).
-  - `...K` variants: apply kana conversion to the produced string, as configured by `FORCEKANA` (`ConvertStringType`).
-  - `...D` variants: ignore `SETCOLOR`’s *color* for this output (still respects font style and font name).
-  - `...C` / `...LC` variants: output a fixed-width *cell* using `Config.PrintCLength`; width is measured in **Shift-JIS byte count** (implementation detail; current console implementation hardcodes Shift-JIS for this measurement).
+- If output skipping is active (`SKIPDISP`):
+  - These instructions are skipped before execution by the interpreter.
+  - Arguments are not evaluated and there are no side effects.
+- Argument/evaluation modes by base variant (before suffix letters):
+  - `PRINT*` (raw): uses the raw literal remainder-of-line (not an expression).
+  - `PRINTS*`: evaluates one string expression.
+  - `PRINTV*`: evaluates a comma-separated list of expressions; each element must be either integer or string; results are concatenated with no separator (left-to-right).
+  - `PRINTFORM*`: parses its argument as a FORM/formatted string at load/parse time, then evaluates it at runtime.
+  - `PRINTFORMS*`: evaluates one string expression to obtain a format-string source, then parses and evaluates it as a FORM string at runtime (see below).
+- Suffix letters and their meaning (parser order is important):
+  - `C` / `LC` (cell output): after building the output string, outputs a fixed-width cell:
+    - `...C` uses right alignment, `...LC` uses left alignment.
+    - This is **not** the same as the newline suffix `L`; for example, `PRINTLC` means “left-aligned cell”, not “PRINTL + C”.
+    - Cell formatting rules are defined by the console implementation; see `PRINTC` / `PRINTLC`.
+    - Cell variants do not use the `...L / ...W / ...N` newline/wait handling; they only append a cell to the buffer.
+  - `K` (kana conversion): applies kana conversion as configured by `FORCEKANA`.
+  - `D` (ignore SETCOLOR color): ignores `SETCOLOR`’s *color* for this output (font name/style still apply).
+  - `L` (newline): after printing, flushes the current buffer and appends a newline.
+  - `W` (wait): like `L`, then waits for a key.
+  - `N` (wait without ending the logical line): prints without ending the logical line, then flushes and waits like `W`.
+    - The *next* flushed output will be merged onto the same logical line.
+- FORM-at-runtime behavior (`PRINTFORMS*`):
+  - Evaluates the string expression to `src`.
+  - Normalizes escapes (the same escape-handling used by FORM strings).
+  - Parses `src` as a FORM string up to end-of-line, then evaluates it and prints the result.
 - `PRINT` itself:
   - Uses the raw literal argument as the output string.
-  - Treats the output as ending a logical line (`lineEnd=true`) even though it does not insert a newline by itself.
+  - Treats the output as ending a logical line (even though it does not insert a newline by itself).
 
 **Errors & validation**
 - None for `PRINT` itself (argument is optional and not parsed as an expression).
@@ -140,6 +188,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTL [<raw text>]`
 - `PRINTL;<raw text>`
@@ -147,8 +198,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -166,6 +217,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTW [<raw text>]`
 - `PRINTW;<raw text>`
@@ -173,8 +227,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -192,6 +246,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTV` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTV <expr1> [, <expr2> ...]`
 
@@ -199,8 +256,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -218,6 +275,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTVL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVL <expr1> [, <expr2> ...]`
 
@@ -225,8 +285,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -245,6 +305,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTVW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVW <expr1> [, <expr2> ...]`
 
@@ -252,8 +315,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -272,14 +335,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTS` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTS <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -297,14 +363,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSL <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -323,14 +392,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSW <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -349,6 +421,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORM` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORM [<FORM string>]`
 
@@ -356,8 +431,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -375,6 +450,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORML` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORML [<FORM string>]`
 
@@ -382,8 +460,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -402,6 +480,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMW [<FORM string>]`
 
@@ -409,8 +490,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -429,6 +510,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMS` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMS <string expr>`
 
@@ -436,8 +520,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -456,6 +540,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMSL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSL <string expr>`
 
@@ -463,8 +550,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -484,6 +571,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMSW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSW <string expr>`
 
@@ -491,8 +581,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -512,6 +602,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTK [<raw text>]`
 - `PRINTK;<raw text>`
@@ -519,8 +612,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -538,6 +631,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTKL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTKL [<raw text>]`
 - `PRINTKL;<raw text>`
@@ -545,8 +641,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -565,6 +661,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTKW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTKW [<raw text>]`
 - `PRINTKW;<raw text>`
@@ -572,8 +671,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -592,6 +691,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTVK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVK <expr1> [, <expr2> ...]`
 
@@ -599,8 +701,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -619,6 +721,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTVKL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVKL <expr1> [, <expr2> ...]`
 
@@ -626,8 +731,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -647,6 +752,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTVKW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVKW <expr1> [, <expr2> ...]`
 
@@ -654,8 +762,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -675,14 +783,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSK <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -701,14 +812,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSKL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSKL <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -728,14 +842,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSKW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSKW <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -755,6 +872,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMK [<FORM string>]`
 
@@ -762,8 +882,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -782,6 +902,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMKL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMKL [<FORM string>]`
 
@@ -789,8 +912,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -810,6 +933,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMKW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMKW [<FORM string>]`
 
@@ -817,8 +943,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -838,6 +964,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMSK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSK <string expr>`
 
@@ -845,8 +974,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -866,6 +995,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMSKL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSKL <string expr>`
 
@@ -873,8 +1005,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -895,6 +1027,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMSKW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSKW <string expr>`
 
@@ -902,8 +1037,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -924,6 +1059,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTD [<raw text>]`
 - `PRINTD;<raw text>`
@@ -931,8 +1069,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -950,6 +1088,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTDL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTDL [<raw text>]`
 - `PRINTDL;<raw text>`
@@ -957,8 +1098,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -977,6 +1118,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTDW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTDW [<raw text>]`
 - `PRINTDW;<raw text>`
@@ -984,8 +1128,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1004,6 +1148,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTVD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVD <expr1> [, <expr2> ...]`
 
@@ -1011,8 +1158,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1031,6 +1178,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTVDL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVDL <expr1> [, <expr2> ...]`
 
@@ -1038,8 +1188,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1059,6 +1209,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTVDW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVDW <expr1> [, <expr2> ...]`
 
@@ -1066,8 +1219,8 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1087,14 +1240,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSD <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1113,14 +1269,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSDL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSDL <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1140,14 +1299,17 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSDW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSDW <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1167,6 +1329,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMD [<FORM string>]`
 
@@ -1174,8 +1339,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1194,6 +1359,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMDL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMDL [<FORM string>]`
 
@@ -1201,8 +1369,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1222,6 +1390,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMDW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMDW [<FORM string>]`
 
@@ -1229,8 +1400,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1250,6 +1421,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMSD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSD <string expr>`
 
@@ -1257,8 +1431,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1278,6 +1452,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMSDL` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSDL <string expr>`
 
@@ -1285,8 +1462,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1307,6 +1484,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMSDW` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSDW <string expr>`
 
@@ -1314,8 +1494,8 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1336,6 +1516,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLE` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLE [<raw text>]`
 - `PRINTSINGLE;<raw text>`
@@ -1343,12 +1526,13 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 
 **Errors & validation**
@@ -1363,6 +1547,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEV` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEV <expr1> [, <expr2> ...]`
 
@@ -1370,13 +1557,14 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 
 **Errors & validation**
@@ -1391,19 +1579,23 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLES` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLES <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 
 **Errors & validation**
@@ -1418,6 +1610,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEFORM` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEFORM [<FORM string>]`
 
@@ -1425,13 +1620,14 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 
 **Errors & validation**
@@ -1446,6 +1642,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEFORMS` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEFORMS <string expr>`
 
@@ -1453,14 +1652,15 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 
 **Errors & validation**
@@ -1475,6 +1675,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEK [<raw text>]`
 - `PRINTSINGLEK;<raw text>`
@@ -1482,12 +1685,13 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 
@@ -1503,6 +1707,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEVK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEVK <expr1> [, <expr2> ...]`
 
@@ -1510,13 +1717,14 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 
@@ -1532,19 +1740,23 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLESK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLESK <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 
@@ -1560,6 +1772,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEFORMK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEFORMK [<FORM string>]`
 
@@ -1567,13 +1782,14 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 
@@ -1589,6 +1805,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEFORMSK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEFORMSK <string expr>`
 
@@ -1596,14 +1815,15 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 
@@ -1619,6 +1839,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLED` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLED [<raw text>]`
 - `PRINTSINGLED;<raw text>`
@@ -1626,12 +1849,13 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
@@ -1647,6 +1871,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEVD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEVD <expr1> [, <expr2> ...]`
 
@@ -1654,13 +1881,14 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
@@ -1676,19 +1904,23 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLESD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLESD <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
@@ -1704,6 +1936,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEFORMD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEFORMD [<FORM string>]`
 
@@ -1711,13 +1946,14 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
@@ -1733,6 +1969,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEFORMSD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSINGLEFORMSD <string expr>`
 
@@ -1740,14 +1979,15 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
@@ -1763,21 +2003,32 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTC` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTC [<raw text>]`
 - `PRINTC;<raw text>`
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is converted to a fixed-width “cell” string (see below).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string, and therefore produces no output.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Writes one fixed-width cell; does not append a newline and does not flush immediately.
+- Cell formatting (right-aligned cell; observable behavior):
+  - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
+  - Let `n = Config.PrintCLength`.
+  - Computes a target pixel width by measuring `n` spaces using the default font.
+  - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
+    - If font creation fails, returns `str` unchanged.
+  - If `len < n`, left-pads spaces to reach exactly `n` bytes.
+  - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
+  - If `len >= n`, it does not add padding and does not truncate (overlong strings are kept as-is).
 
 **Errors & validation**
 - Argument parsing/type-checking errors follow the underlying argument mode for this variant.
@@ -1791,21 +2042,32 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLC` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTLC [<raw text>]`
 - `PRINTLC;<raw text>`
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is converted to a fixed-width “cell” string (see below).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string, and therefore produces no output.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Writes one fixed-width cell; does not append a newline and does not flush immediately.
+- Cell formatting (left-aligned cell; observable behavior):
+  - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
+  - Let `n = Config.PrintCLength`.
+  - Computes a target pixel width by measuring `n` spaces using the default font.
+  - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
+    - If font creation fails, returns `str` unchanged.
+  - If `len < n + 1`, right-pads spaces to reach exactly `n + 1` bytes.
+  - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the last character is a space, it removes one trailing space and re-measures.
+  - If `len >= n + 1`, it does not add padding and does not truncate (overlong strings are kept as-is).
 
 **Errors & validation**
 - Argument parsing/type-checking errors follow the underlying argument mode for this variant.
@@ -1819,22 +2081,25 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMC` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMC [<FORM string>]`
 
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 
 **Errors & validation**
 - Argument parsing/type-checking errors follow the underlying argument mode for this variant.
@@ -1848,22 +2113,25 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMLC` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMLC [<FORM string>]`
 
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 
 **Errors & validation**
 - Argument parsing/type-checking errors follow the underlying argument mode for this variant.
@@ -1877,21 +2145,24 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTCK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTCK [<raw text>]`
 - `PRINTCK;<raw text>`
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 
 **Errors & validation**
@@ -1906,21 +2177,24 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLCK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTLCK [<raw text>]`
 - `PRINTLCK;<raw text>`
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 
 **Errors & validation**
@@ -1935,22 +2209,25 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMCK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMCK [<FORM string>]`
 
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 
 **Errors & validation**
@@ -1965,22 +2242,25 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMLCK` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMLCK [<FORM string>]`
 
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 
 **Errors & validation**
@@ -1995,21 +2275,24 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTCD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTCD [<raw text>]`
 - `PRINTCD;<raw text>`
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
 **Errors & validation**
@@ -2024,21 +2307,24 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLCD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTLCD [<raw text>]`
 - `PRINTLCD;<raw text>`
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
 **Errors & validation**
@@ -2053,22 +2339,25 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMCD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMCD [<FORM string>]`
 
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
 **Errors & validation**
@@ -2083,22 +2372,25 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTFORMLCD` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMLCD [<FORM string>]`
 
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 
 **Errors & validation**
@@ -2113,6 +2405,10 @@ In statement form, the engine evaluates the function and writes the return value
 - Begins a **PRINTDATA block** that contains `DATA` / `DATAFORM` (and optional `DATALIST` groups).
 - At runtime, the engine picks one choice uniformly at random, prints it, then jumps to `ENDDATA`.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATA [<intVarTerm>]`
 - Block form:
@@ -2124,8 +2420,8 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - Optional `<intVarTerm>`: a changeable int variable term that receives the 0-based chosen index.
 
-**Defaults / optional arguments**
-- If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.
+- Omitted arguments / defaults:
+  - If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.
 
 **Semantics**
 - Load-time structure rules (enforced by the loader):
@@ -2135,10 +2431,10 @@ In statement form, the engine evaluates the function and writes the return value
   - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (load-time error).
   - The block body only permits `DATA` / `DATAFORM` / `DATALIST` / `ENDLIST` / `ENDDATA`; any other instruction (and any label definition) inside is a load-time error.
 - Runtime behavior:
-  - Implementation detail: if `SkipPrint` is enabled, `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
+  - If output skipping is active (script runner `skipPrint`), `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
   - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.
   - Otherwise:
-    - Choose `choice = RAND(0..count-1)` using the engine RNG.
+    - Choose `choice` uniformly such that `0 <= choice < count` (using the engine RNG).
     - If `<intVarTerm>` is present, assign it the chosen index.
     - Print the selected `DATA` entry:
       - A single `DATA`/`DATAFORM` line prints as one line.
@@ -2174,14 +2470,18 @@ ENDDATA
 - `PRINTDATAL` is a `PRINTDATA`-family block instruction.
 - See `PRINTDATA` for the full block model and structure rules.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATAL [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2202,14 +2502,18 @@ ENDDATA
 - `PRINTDATAW` is a `PRINTDATA`-family block instruction.
 - See `PRINTDATA` for the full block model and structure rules.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATAW [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2230,14 +2534,18 @@ ENDDATA
 - `PRINTDATAK` is a `PRINTDATA`-family block instruction.
 - See `PRINTDATA` for the full block model and structure rules.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATAK [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2258,14 +2566,18 @@ ENDDATA
 - `PRINTDATAKL` is a `PRINTDATA`-family block instruction.
 - See `PRINTDATA` for the full block model and structure rules.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATAKL [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2286,14 +2598,18 @@ ENDDATA
 - `PRINTDATAKW` is a `PRINTDATA`-family block instruction.
 - See `PRINTDATA` for the full block model and structure rules.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATAKW [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2314,14 +2630,18 @@ ENDDATA
 - `PRINTDATAD` is a `PRINTDATA`-family block instruction.
 - See `PRINTDATA` for the full block model and structure rules.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATAD [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2342,14 +2662,18 @@ ENDDATA
 - `PRINTDATADL` is a `PRINTDATA`-family block instruction.
 - See `PRINTDATA` for the full block model and structure rules.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATADL [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2370,14 +2694,18 @@ ENDDATA
 - `PRINTDATADW` is a `PRINTDATA`-family block instruction.
 - See `PRINTDATA` for the full block model and structure rules.
 
+**Tags**
+- io
+- data-blocks
+
 **Syntax**
 - `PRINTDATADW [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2393,81 +2721,638 @@ ENDDATA
 - `PRINTDATADW CHOICE` ... `ENDDATA`
 
 ## PRINTBUTTON (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a clickable button with a script-provided input value.
+- Unlike automatic button conversion (e.g. `[0] ...` inside normal `PRINT` output), this instruction forces the output segment to be a button.
+
+**Tags**
+- io
+
+**Syntax**
+- `PRINTBUTTON <text>, <buttonValue>`
+
+**Arguments**
+- `<text>`: string expression (button label).
+- `<buttonValue>`: expression whose runtime type is either:
+  - integer (button produces that integer as input), or
+  - string (button produces that string as input; useful with `INPUTS`).
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Uses the current text style for output (and honors `SETCOLOR` color).
+- Evaluates `<text>` to a string, then removes any newline characters (`'\n'`) from it.
+- If the resulting label is empty, this instruction produces no output segment (no button is created).
+- Appends one button segment to the print buffer:
+  - If `<buttonValue>` is an integer, the button produces that integer when clicked.
+  - If `<buttonValue>` is a string, the button produces that string when clicked.
+- This instruction does **not** add a newline and does not flush by itself (it behaves like other non-`...L` print-family commands).
+
+**Errors & validation**
+- Argument type/count errors follow the normal expression argument rules.
+
+**Examples**
+```erabasic
+PRINTS "Are you sure? "
+PRINTBUTTON "[0] Yes", 0
+PRINTS "  "
+PRINTBUTTON "[1] No", 1
+INPUT
+```
+
+```erabasic
+PRINTL Enter your name:
+PRINTBUTTON "[Alice]", "Alice"
+PRINTBUTTON " [Bob]", "Bob"
+INPUTS
+```
 
 ## PRINTBUTTONC (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `PRINTBUTTON`, but formats the label as a fixed-width `PRINTC`-style cell aligned to the right.
+
+**Tags**
+- io
+
+**Syntax**
+- `PRINTBUTTONC <text>, <buttonValue>`
+
+**Arguments**
+- Same as `PRINTBUTTON`.
+
+**Semantics**
+- Same as `PRINTBUTTON`, with these differences:
+  - The label still has all `'\n'` characters removed (same as `PRINTBUTTON`).
+  - Before creating the button segment, the label is formatted as a `PRINTC`-style fixed-width cell, aligned to the right (same cell formatting rules as `PRINTC`).
+
+**Errors & validation**
+- Same as `PRINTBUTTON`.
+
+**Examples**
+```erabasic
+PRINTBUTTONC "[0] OK", 0
+PRINTBUTTONC "[1] Cancel", 1
+INPUT
+```
 
 ## PRINTBUTTONLC (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `PRINTBUTTON`, but formats the label as a fixed-width `PRINTC`-style cell aligned to the left.
+
+**Tags**
+- io
+
+**Syntax**
+- `PRINTBUTTONLC <text>, <buttonValue>`
+
+**Arguments**
+- Same as `PRINTBUTTON`.
+
+**Semantics**
+- Same as `PRINTBUTTONC`, except the label cell is aligned to the left:
+  - Uses the same fixed-width cell formatting rules as `PRINTLC`.
+
+**Errors & validation**
+- Same as `PRINTBUTTON`.
+
+**Examples**
+```erabasic
+PRINTBUTTONLC "[0] OK", 0
+PRINTBUTTONLC "[1] Cancel", 1
+INPUT
+```
 
 ## PRINTPLAIN (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Outputs a raw string argument as plain text, without automatic button conversion.
+
+**Tags**
+- io
+
+**Syntax**
+- `PRINTPLAIN`
+- `PRINTPLAIN <raw text>`
+
+**Arguments**
+- `<raw text>`: the literal remainder of the line (not a string expression).
+
+- Omitted arguments / defaults:
+  - If omitted, the argument is treated as the empty string; empty output produces no output segment.
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Appends the raw string to the print buffer as a “plain” segment:
+  - It is **not** scanned for numeric button patterns like `[0]`.
+  - It still uses the current style (`SETCOLOR`, font style, etc.).
+- Does not add a newline and does not flush by itself.
+
+**Errors & validation**
+- None.
+
+**Examples**
+```erabasic
+; This will NOT become a clickable button:
+PRINTPLAIN [0] Save
+PRINTL
+```
 
 ## PRINTPLAINFORM (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `PRINTPLAIN`, but reads its argument as a FORM/formatted string.
+
+**Tags**
+- io
+
+**Syntax**
+- `PRINTPLAINFORM`
+- `PRINTPLAINFORM <FORM string>`
+
+**Arguments**
+- `<FORM string>`: a FORM argument scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
+
+- Omitted arguments / defaults:
+  - If omitted, the argument is treated as the empty string; empty output produces no output segment.
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Evaluates the FORM argument to a string, then appends it as a “plain” segment (no automatic button conversion).
+- Does not add a newline and does not flush by itself.
+
+**Errors & validation**
+- FORM parsing errors follow the engine’s normal FORM rules.
+
+**Examples**
+```erabasic
+PRINTPLAINFORM HP: {HP}/{MAXHP}  [0] Not a button
+PRINTL
+```
 
 ## PRINT_ABL (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a one-line summary of a character’s non-zero abilities (`ABL`), then ends the line.
+
+**Tags**
+- io
+- characters
+
+**Syntax**
+- `PRINT_ABL`
+- `PRINT_ABL <charaIndex>`
+
+**Arguments**
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- Builds a summary string `s` as follows:
+  - Let `abl[]` be the target character’s `ABL` 1D array.
+  - Let `names[]` be the constant CSV name list `ABLNAME`.
+  - For `i` such that `0 <= i < abl.Length`:
+    - If `i >= names.Length`: stop the loop (`break`).
+    - If `abl[i] == 0`: continue.
+    - If `names[i]` is null/empty: continue (engine uses `string.IsNullOrEmpty`).
+    - Append: `names[i] + "LV" + abl[i] + " "` (note the trailing space).
+  - `s` is the concatenation of all appended parts; it may be the empty string.
+- Prints `s`, then ends the line.
+  - If `s` is empty, this still outputs a blank line.
+
+**Errors & validation**
+- Runtime error if `charaIndex` is out of range (`charaIndex < 0` or `charaIndex >= CHARANUM`).
+
+**Examples**
+```erabasic
+PRINT_ABL TARGET
+```
 
 ## PRINT_TALENT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a one-line summary of a character’s enabled talents (`TALENT`), then ends the line.
+
+**Tags**
+- io
+- characters
+
+**Syntax**
+- `PRINT_TALENT`
+- `PRINT_TALENT <charaIndex>`
+
+**Arguments**
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- Builds a summary string `s` as follows:
+  - Let `talent[]` be the target character’s `TALENT` 1D array.
+  - Let `names[]` be the constant CSV name list `TALENTNAME`.
+  - For `i` such that `0 <= i < talent.Length`:
+    - If `i >= names.Length`: stop the loop (`break`).
+    - If `talent[i] == 0`: continue.
+    - If `names[i]` is null/empty: continue (engine uses `string.IsNullOrEmpty`).
+    - Append: `"[" + names[i] + "]"` (no spaces are added by the engine).
+  - `s` is the concatenation of all appended parts; it may be the empty string.
+- Prints `s`, then ends the line.
+  - If `s` is empty, this still outputs a blank line.
+
+**Errors & validation**
+- Runtime error if `charaIndex` is out of range.
+
+**Examples**
+```erabasic
+PRINT_TALENT TARGET
+```
 
 ## PRINT_MARK (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a one-line summary of a character’s non-zero marks (`MARK`), then ends the line.
+
+**Tags**
+- io
+- characters
+
+**Syntax**
+- `PRINT_MARK`
+- `PRINT_MARK <charaIndex>`
+
+**Arguments**
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- Builds a summary string `s` as follows:
+  - Let `mark[]` be the target character’s `MARK` 1D array.
+  - Let `names[]` be the constant CSV name list `MARKNAME`.
+  - For `i` such that `0 <= i < mark.Length`:
+    - If `i >= names.Length`: stop the loop (`break`).
+    - If `mark[i] == 0`: continue.
+    - If `names[i]` is null/empty: continue (engine uses `string.IsNullOrEmpty`).
+    - Append: `names[i] + "LV" + mark[i] + " "` (note the trailing space).
+  - `s` is the concatenation of all appended parts; it may be the empty string.
+- Prints `s`, then ends the line.
+  - If `s` is empty, this still outputs a blank line.
+
+**Errors & validation**
+- Runtime error if `charaIndex` is out of range.
+
+**Examples**
+```erabasic
+PRINT_MARK TARGET
+```
 
 ## PRINT_EXP (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a one-line summary of a character’s non-zero experiences (`EXP`), then ends the line.
+
+**Tags**
+- io
+- characters
+
+**Syntax**
+- `PRINT_EXP`
+- `PRINT_EXP <charaIndex>`
+
+**Arguments**
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- Builds a summary string `s` as follows:
+  - Let `exp[]` be the target character’s `EXP` 1D array.
+  - Let `names[]` be the constant CSV name list `EXPNAME`.
+  - For `i` such that `0 <= i < exp.Length`:
+    - If `i >= names.Length`: stop the loop (`break`).
+    - If `exp[i] == 0`: continue.
+    - If `names[i]` is null/empty: continue (engine uses `string.IsNullOrEmpty`).
+    - Append: `names[i] + exp[i] + " "` (note the trailing space).
+  - `s` is the concatenation of all appended parts; it may be the empty string.
+- Prints `s`, then ends the line.
+  - If `s` is empty, this still outputs a blank line.
+
+**Errors & validation**
+- Runtime error if `charaIndex` is out of range.
+
+**Examples**
+```erabasic
+PRINT_EXP TARGET
+```
 
 ## PRINT_PALAM (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a multi-column view of a character’s parameters (`PALAM`) using `PRINTC`-style cells.
+
+**Tags**
+- io
+- characters
+
+**Syntax**
+- `PRINT_PALAM`
+- `PRINT_PALAM <charaIndex>`
+
+**Arguments**
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, defaults to `0` and emits a warning.
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- For each parameter code `i` such that `0 <= i < 100`, it computes a cell string `s` and prints it if present:
+  - Let `param = PALAM[charaIndex, i]`.
+  - Let `name = PALAMNAME[i]` (treat `null` as `""`).
+  - If `param == 0` and `name == ""`: omit this cell (no output).
+  - Otherwise:
+    - Let `paramlv = PALAMLV` (global array).
+    - Choose the bar fill character `c` and its threshold `border`:
+      - Start with `c = '-'` and `border = paramlv[1]`.
+      - If `param >= border`: set `c = '='`, `border = paramlv[2]`.
+      - If `param >= border`: set `c = '>'`, `border = paramlv[3]`.
+      - If `param >= border`: set `c = '*'`, `border = paramlv[4]`.
+    - Build a 10-character bar string `bar`:
+      - If `border <= 0` or `border <= param`: bar fill is 10 copies of `c`.
+      - Else if `param <= 0`: bar fill is 10 copies of `'.'`.
+      - Else:
+        - Compute `filled = floor(param * 10 / border)` using integer division (integer overflow wraps).
+        - Bar fill is `filled` copies of `c` followed by `10 - filled` copies of `'.'`.
+    - Build the final cell string:
+      - `name + "[" + barFill + "]" + paramText`
+      - where `paramText` is `param` formatted as a decimal integer right-aligned in width 6 (equivalent to C# interpolated `{param,6}` under `CultureInfo.InvariantCulture`).
+- Each produced cell string is printed via `PRINTC`-style output with right alignment.
+- Keeps a per-line cell counter:
+  - After each printed cell, `count += 1`.
+  - If `Config.PrintCPerLine > 0` and `count % Config.PrintCPerLine == 0`, it flushes pending output.
+- After finishing the loop, it flushes pending output and refreshes the display.
+- This instruction does not automatically append a trailing newline.
+
+**Errors & validation**
+- Runtime error if `charaIndex` is out of range.
+
+**Examples**
+```erabasic
+PRINT_PALAM TARGET
+```
 
 ## PRINT_ITEM (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a one-line summary of currently owned items (`ITEM`), then ends the line.
+
+**Tags**
+- io
+
+**Syntax**
+- `PRINT_ITEM`
+
+**Arguments**
+- None.
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Builds a Japanese summary string `s` as follows:
+  - Let `count[]` be the integer array `ITEM`.
+  - Let `names[]` be the string array `ITEMNAME`.
+  - Let `length = min(count.Length, names.Length)`.
+  - Start with `s = "所持アイテム："`.
+  - For each `i` such that `0 <= i < length`:
+    - If `count[i] == 0`: continue.
+    - If `names[i] != null`: append `names[i]` (note: unlike some other lists, empty string is not filtered out here).
+    - Append: `"(" + count[i] + ") "` (note the trailing space).
+  - If no `i` satisfied `count[i] != 0`, append `"なし"`.
+- Prints `s`, then ends the line.
+
+**Errors & validation**
+- None specific to this instruction.
+
+**Examples**
+- `PRINT_ITEM`
 
 ## PRINT_SHOPITEM (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a grid of items currently for sale in the shop (based on `ITEMSALES`), including their indices and prices.
+
+**Tags**
+- io
+
+**Syntax**
+- `PRINT_SHOPITEM`
+
+**Arguments**
+- None.
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Let:
+  - `sales = ITEMSALES` (numeric array)
+  - `names = ITEMNAME` (CSV name list; string array)
+  - `prices = ITEMPRICE` (numeric array)
+- Iterates `i` such that `0 <= i < length`, where:
+  - `length = min(sales.Length, names.Length)`, then
+  - if `length > prices.Length`, `length = prices.Length`.
+- An item is considered “for sale” iff:
+  - `sales[i] != 0`, and
+  - `names[i] != null`.
+- For each `i` that is for sale:
+  - Let `name = names[i]` (engine also guards against null by treating it as `""`, but the sale predicate rejects null names).
+  - Let `price = prices[i]`.
+  - Format the cell text as:
+    - If `Config.MoneyFirst` is true: `[{i}] {name}({Config.MoneyLabel}{price})`
+    - Otherwise: `[{i}] {name}({price}{Config.MoneyLabel})`
+  - Prints the cell using `PRINTC`-style formatting with left alignment.
+  - Increments a per-line cell counter and flushes every `Config.PrintCPerLine` cells when `Config.PrintCPerLine > 0`.
+- After finishing the loop, it flushes pending output and refreshes the display.
+- This instruction does not automatically append a trailing newline.
+
+**Errors & validation**
+- None specific to this instruction.
+
+**Examples**
+- `PRINT_SHOPITEM`
 
 ## DRAWLINE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Draws a horizontal line across the console using the configured `DRAWLINE` pattern.
+
+**Tags**
+- io
+
+**Syntax**
+- `DRAWLINE`
+
+**Arguments**
+- None.
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- The engine prints a precomputed “draw line” string and then ends the line.
+- Pattern source:
+  - The base pattern comes from replace config `DrawLineString` (default `"-"`).
+-  The engine precomputes an expanded line string from `DrawLineString` on initialization.
+- Expansion algorithm:
+  - Uses `Config.DrawableWidth` as the target width in pixels and `Config.DefaultFont` for width measurement.
+  - Builds a string by repeating the pattern string until its measured display width is at least `DrawableWidth`.
+  - Then trims one character at a time from the end until the measured width is at most `DrawableWidth`.
+  - Returns the resulting string.
+- Rendering:
+  - The line is printed using `FontStyle.Regular` regardless of the current font style (engine temporarily forces regular for this print).
+  - The engine then ends the line (flushes the buffer and refreshes the display).
+- Important: `DRAWLINE` does not automatically flush existing buffered output *before* printing the line. If you need the line to start at the left edge, end the current logical line first (e.g. `PRINTL`) before calling `DRAWLINE`.
+
+**Errors & validation**
+- None (arguments are not accepted).
+
+**Examples**
+```erabasic
+DRAWLINE
+PRINTL Header
+DRAWLINE
+```
 
 ## BAR (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints a bracketed bar-graph string representing the ratio `value / maxValue`.
+
+**Tags**
+- io
+
+**Syntax**
+- `BAR value, maxValue, length`
+
+**Arguments**
+- `value`: int expression (numerator).
+- `maxValue`: int expression (denominator); must evaluate to `> 0`.
+- `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
+
+**Semantics**
+- Computes `filled = clamp(value * length / maxValue, 0, length)` using 64-bit integer arithmetic (integer overflow wraps).
+- Produces and prints:
+  - `[` + (`BarChar1` repeated `filled`) + (`BarChar2` repeated `length - filled`) + `]`
+- `BarChar1` / `BarChar2` are configurable:
+  - `BarChar1` default `*`
+  - `BarChar2` default `.`
+- Does **not** append a newline; use `BARL` if you want a newline.
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped like other print-family instructions.
+
+**Errors & validation**
+- Runtime errors if:
+  - `maxValue <= 0`
+  - `length <= 0`
+  - `length >= 100`
+
+**Examples**
+```erabasic
+BAR 2, 10, 20
+PRINTL (2/10)
+```
 
 ## BARL (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `BAR`, but appends a newline after printing the bar.
+
+**Tags**
+- io
+
+**Syntax**
+- `BARL value, maxValue, length`
+
+**Arguments**
+- Same as `BAR`.
+
+**Semantics**
+- Prints the same bar string as `BAR value, maxValue, length`.
+- Appends a newline after printing.
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped like other print-family instructions.
+
+**Errors & validation**
+- Same as `BAR`.
+
+**Examples**
+```erabasic
+BARL 114, 514, 81
+```
 
 ## TIMES (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Multiplies a changeable integer variable by a real-number literal and stores the truncated result back.
+
+**Tags**
+- math
+
+**Syntax**
+- `TIMES intVarTerm, realLiteral`
+
+**Arguments**
+- `intVarTerm`: a changeable integer variable term (must not be `CONST`).
+- `realLiteral`: a real-number **literal** parsed as `double` (not an expression).
+
+**Semantics**
+- Reads `intVarTerm`’s current value, multiplies it by `realLiteral`, then stores `(long)product` back into `intVarTerm`.
+  - The cast truncates toward zero (`125.9` → `125`, `-1.9` → `-1`).
+- Calculation mode depends on config `TimesNotRigorousCalculation`:
+  - If enabled: uses `double` math.
+  - Otherwise: uses `decimal` math (with a fallback conversion path for overflow) to reduce rounding differences.
+- The assignment is performed in an `unchecked` context (overflow does not raise an error).
+
+**Errors & validation**
+- Load/parse-time validation rejects:
+  - non-variable first argument
+  - string variables
+  - `CONST` variables
+- If `realLiteral` is not a valid real number literal, the engine warns and treats it as `0.0`.
+
+**Examples**
+```erabasic
+#DIM X
+X = 100
+TIMES X, 1.25
+PRINTFORML {X}  ; 125
+```
 
 ## WAIT (instruction)
 
 **Summary**
 - Waits for the user to press Enter (or click, depending on the UI), then continues.
 
+**Tags**
+- io
+
 **Syntax**
 - `WAIT`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -2486,45 +3371,78 @@ ENDDATA
 **Summary**
 - Requests an integer input from the user and stores it into `RESULT` (with mouse-related side channels in some cases).
 
+**Tags**
+- io
+
 **Syntax**
-- `INPUT`
-- `INPUT <default>`
-- `INPUT <default>, <mouse>, <canSkip> [, <extra>]`
+- `INPUT [<default> [, <mouse> [, <canSkip> [, <extra>]]]]`
 
 **Arguments**
-- `<default>` (optional): integer expression for the default value.
-- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input (implementation detail: selecting buttons can fill the input).
-- `<canSkip>` (optional): integer expression; if present and non-zero, allows “message skip” (`MesSkip`) to auto-accept the default value without waiting.
-- `<extra>` (optional): accepted by the current argument builder but ignored by the runtime implementation (implementation detail).
-
-**Defaults / optional arguments**
-- If `<default>` is omitted, there is no default value.
+- `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
+- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input (e.g. selecting buttons can fill the input).
+  - `0`: accepted value is written to `RESULT`.
+  - Note: mouse mode does not change where the accepted integer is stored on the normal wait path (it is still stored into `RESULT`).
+- `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
+- `<extra>` (optional, int): accepted by the argument parser but ignored by the runtime (not read/evaluated).
 
 **Semantics**
-- Enters an integer-input UI wait (`InputType.IntValue`).
-- If `<default>` is provided, it becomes the default used when the input is empty and the request is not running a timer.
+- Enters an integer-input UI wait.
+- Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
 - On successful completion:
-  - Stores the integer value into `RESULT`.
-  - Echoes the entered text to output (UI behavior).
-- `MesSkip` integration (implementation detail):
+  - Writes the accepted integer to `RESULT`.
+  - Echoes the accepted input text to output.
+    - If the user submits an empty input and a default is used, the echoed text is the default’s decimal string form (e.g. `10`).
+- Empty / invalid input handling:
+  - If there is no default and the user submits an empty input, the input is rejected and the engine stays in the wait state.
+  - If the submitted text is not a valid integer, the input is rejected and the engine stays in the wait state.
+  - On a rejected input, no `RESULT*` variables are assigned and the rejected text is not echoed.
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
-  - In that no-wait path, the engine assigns the default to:
-    - `RESULT` if `<mouse> == 0`
-    - `RESULT_ARRAY[1]` if `<mouse> != 0`
-  - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
-- Mouse-enabled input side channels (implementation detail; WinForms UI behavior):
-  - If mouse input is enabled and the user completes input via a mouse interaction, the UI may also write metadata into:
-    - `RESULT_ARRAY[1]`: mouse button (`1`=left, `2`=right, `3`=middle) in some click paths.
-    - `RESULT_ARRAY[2]`: a modifier-key bitfield in some click paths (Shift=`2^16`, Ctrl=`2^17`, Alt=`2^18`).
-    - `RESULTS_ARRAY[1]`: the clicked button’s string (if any) in some click paths.
-    - `RESULT_ARRAY[3]`: a mapped “button color” value in some click paths.
+  - In that no-wait path:
+    - `<mouse>` must be present (it is read to choose the output slot).
+    - `<default>` must be present; otherwise the engine throws a runtime error.
+    - The accepted value is written to:
+      - `RESULT` if `<mouse> == 0`
+      - `RESULT_ARRAY[1]` if `<mouse> != 0`
+    - The input string is not echoed (because the UI wait is skipped entirely).
+- Mouse-enabled input side channels (UI behavior):
+  - If mouse input is enabled and the user completes input via a mouse click, the UI also writes metadata into:
+    - `RESULT_ARRAY[1]`: mouse button (`1`=left, `2`=right, `3`=middle).
+    - `RESULT_ARRAY[2]`: a modifier-key bitfield (Shift=`2^16`, Ctrl=`2^17`, Alt=`2^18`).
+    - `RESULTS_ARRAY[1]`: the clicked button’s string (if any).
+    - `RESULT_ARRAY[3]`: mapped “button color” (see below).
+  - These side channels are only written on the UI click completion path (not on keyboard-only completion, and not in the `MesSkip` no-wait path).
+
+#### Mapped “button color” (`RESULT:3`) from `<img srcm='...'>`
+
+When a click completes mouse-enabled input, the UI computes `RESULT:3` as follows:
+
+- If the clicked button contains at least one HTML `<img ...>` segment, take the **last** `<img ...>` in that button.
+- If that `<img>` has a `srcm` mapping sprite that exists and is loaded:
+  - Convert the click position to a pixel coordinate in the mapping sprite by scaling within the rendered image rectangle:
+    - Let `drawnWidthPx` / `drawnHeightPx` be the (positive) rendered size of that `<img>` segment.
+    - Let `localX` / `localY` be the click position inside that rendered rectangle, in pixels.
+    - Let `mapWidthPx` / `mapHeightPx` be the mapping sprite’s base size, in pixels.
+    - The sampled mapping coordinate uses integer division (floor):
+      - `mapX = localX * mapWidthPx / drawnWidthPx`
+      - `mapY = localY * mapHeightPx / drawnHeightPx`
+  - Sample the mapping sprite pixel color at `(mapX, mapY)`.
+  - Store `RESULT:3 = (color.ToArgb() & 0x00FFFFFF)` (24-bit RGB).
+- Otherwise, store `RESULT:3 = 0`.
+
+Compatibility notes:
+
+- The mapping color uses the mapping sprite’s base size (the size defined by `resources/**/*.csv`), not the drawn size.
+- If the click is exactly on the image rectangle boundary, the mapping color is treated as `0` (the hit-test uses strict `>`/`<`).
+- Some other UI wait types (not `INPUT` itself) may write a mapping color to `RESULT:6` instead of `RESULT:3` (e.g. the “primitive mouse/key” wait used by `INPUTMOUSEKEY`).
 - If the script runner’s `skipPrint` mode is active (e.g. via `SKIPDISP`), `INPUT` is treated as a print-family instruction:
   - In internal skip modes, it is skipped.
   - If skip was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
 
 **Errors & validation**
-- Argument-type errors are raised if a non-integer argument is provided.
-- If input cannot be parsed as an integer, the engine stays in the wait state (no value is stored).
+- Argument-type errors are raised if a provided argument is not an `int` expression (including `<canSkip>` and `<extra>`).
+- Integer parsing is equivalent to `.NET` `Int64.TryParse` on the submitted text.
+  - If parsing fails, the engine stays in the wait state.
 
 **Examples**
 - `INPUT`
@@ -2536,6 +3454,9 @@ ENDDATA
 **Summary**
 - Requests a string input from the user and stores it into `RESULTS` (with mouse-related side channels in some cases).
 
+**Tags**
+- io
+
 **Syntax**
 - `INPUTS`
 - `INPUTS <defaultFormString>`
@@ -2543,30 +3464,36 @@ ENDDATA
 
 **Arguments**
 - `<defaultFormString>` (optional): a FORM/formatted string expression used as the default string.
-- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input (implementation detail).
+- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
 
-**Defaults / optional arguments**
-- If `<defaultFormString>` is omitted, there is no default value.
+- Omitted arguments / defaults:
+  - If `<defaultFormString>` is omitted, there is no default value.
 
 **Semantics**
-- Enters a string-input UI wait (`InputType.StrValue`).
+- Enters a string-input UI wait.
 - If `<defaultFormString>` is provided, it is evaluated to a string and used as the default when the input is empty and the request is not running a timer.
 - On successful completion:
   - Stores the string into `RESULTS`.
-  - Echoes the entered text to output (UI behavior).
-- `MesSkip` integration (implementation detail):
+  - Echoes the accepted input text to output (UI behavior).
+    - If the user submits an empty input and a default is used, the echoed text is that default string.
+- Empty input handling:
+  - If there is no default and the user submits an empty input, the accepted value is `""` (empty string).
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:
     - `RESULTS` if `<mouse> == 0`
     - `RESULTS_ARRAY[1]` if `<mouse> != 0`
   - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
+- Note: if `<canSkip>` is present, `<mouse>` must also be present (it is read in the `MesSkip` no-wait path).
+- Note: if `<canSkip>` is present and `MesSkip` is true at runtime, `<defaultFormString>` must be present.
+  - If it is omitted, the engine throws a runtime error when taking the `MesSkip` no-wait path.
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 - Skip-print interaction is the same as `INPUT` (print-family skip rule + `SKIPDISP` input error case).
 
 **Errors & validation**
 - Argument parsing errors follow the underlying builder rules for `INPUTS`.
-- Implementation detail (current argument builder quirks):
+- Argument parsing quirks:
   - After the first comma, non-integer expressions are ignored with a warning.
   - Supplying `<canSkip>` may still emit a “too many arguments” warning, but the value is accepted and used by the runtime.
 
@@ -2580,6 +3507,9 @@ ENDDATA
 **Summary**
 - Timed integer input: like `INPUT`, but with a time limit and timeout message.
 
+**Tags**
+- io
+
 **Syntax**
 - `TINPUT <timeMs>, <default> [, <displayTime> [, <timeoutMessage> [, <mouse> [, <canSkip>]]]]`
 
@@ -2588,12 +3518,12 @@ ENDDATA
 - `<default>`: integer expression; default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional): integer expression; if non-zero, displays remaining time (UI behavior). Default `1`.
 - `<timeoutMessage>` (optional): string expression; message used on timeout. Default `Config.TimeupLabel`.
-- `<mouse>` (optional): integer expression; enables mouse input when equal to `1` (implementation detail).
+- `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
 
-**Defaults / optional arguments**
-- `<displayTime>` defaults to `1`.
-- `<timeoutMessage>` defaults to `Config.TimeupLabel`.
+- Omitted arguments / defaults:
+  - `<displayTime>` defaults to `1`.
+  - `<timeoutMessage>` defaults to `Config.TimeupLabel`.
 
 **Semantics**
 - Enters an integer-input UI wait with a timer:
@@ -2603,7 +3533,7 @@ ENDDATA
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
   - A timeout message is displayed (either by updating the last “remaining time” line, or by printing a single line, depending on `<displayTime>`).
-- `MesSkip` integration (implementation detail):
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:
     - `RESULT` if `<mouse> == 0`
@@ -2624,6 +3554,9 @@ ENDDATA
 **Summary**
 - Timed string input: like `INPUTS`, but with a time limit and timeout message.
 
+**Tags**
+- io
+
 **Syntax**
 - `TINPUTS <timeMs>, <default> [, <displayTime> [, <timeoutMessage> [, <mouse> [, <canSkip>]]]]`
 
@@ -2632,16 +3565,16 @@ ENDDATA
 - `<default>`: string expression; default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional): integer expression; if non-zero, displays remaining time. Default `1`.
 - `<timeoutMessage>` (optional): string expression; timeout message. Default `Config.TimeupLabel`.
-- `<mouse>` (optional): integer expression; enables mouse input when equal to `1` (implementation detail).
+- `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
 
-**Defaults / optional arguments**
-- `<displayTime>` defaults to `1`.
-- `<timeoutMessage>` defaults to `Config.TimeupLabel`.
+- Omitted arguments / defaults:
+  - `<displayTime>` defaults to `1`.
+  - `<timeoutMessage>` defaults to `Config.TimeupLabel`.
 
 **Semantics**
 - Same model as `TINPUT`, but stores into `RESULTS` (string) rather than `RESULT` (int).
-- `MesSkip` integration (implementation detail):
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:
     - `RESULTS` if `<mouse> == 0`
@@ -2661,17 +3594,22 @@ ENDDATA
 **Summary**
 - Like `TINPUT`, but uses the “one input” mode (`OneInput = true`).
 
+**Tags**
+- io
+
 **Syntax**
 - Same as `TINPUT`.
 
 **Arguments**
 - Same as `TINPUT`.
 
-**Defaults / optional arguments**
-- Same as `TINPUT`.
+- Omitted arguments / defaults:
+  - Same as `TINPUT`.
 
 **Semantics**
-- Same as `TINPUT`, but the UI may truncate the entered text to at most one character (implementation detail).
+- Same as `TINPUT`, but with “one input” mode enabled:
+  - If the entered text has length > 1, it is truncated to the first character.
+  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 
 **Errors & validation**
 - Same as `TINPUT`.
@@ -2684,17 +3622,22 @@ ENDDATA
 **Summary**
 - Like `TINPUTS`, but uses the “one input” mode (`OneInput = true`).
 
+**Tags**
+- io
+
 **Syntax**
 - Same as `TINPUTS`.
 
 **Arguments**
 - Same as `TINPUTS`.
 
-**Defaults / optional arguments**
-- Same as `TINPUTS`.
+- Omitted arguments / defaults:
+  - Same as `TINPUTS`.
 
 **Semantics**
-- Same as `TINPUTS`, but the UI may truncate the entered text to at most one character (implementation detail).
+- Same as `TINPUTS`, but with “one input” mode enabled:
+  - If the entered text has length > 1, it is truncated to the first character.
+  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 
 **Errors & validation**
 - Same as `TINPUTS`.
@@ -2707,6 +3650,9 @@ ENDDATA
 **Summary**
 - Timed wait: waits for a limited time (and optionally disallows user input), then continues.
 
+**Tags**
+- io
+
 **Syntax**
 - `TWAIT <timeMs>, <mode>`
 
@@ -2716,14 +3662,9 @@ ENDDATA
   - `0`: wait for Enter/click, but time out after `<timeMs>`.
   - non-zero: disallow input and simply wait `<timeMs>` (or be affected by macro/skip behavior).
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Implementation detail: `TWAIT` first calls an Enter-style wait, then replaces it with a timed `WaitInput` request.
-- Creates an `InputRequest` with:
-  - `InputType = EnterKey` if `<mode> == 0`, otherwise `Void`
-  - `Timelimit = <timeMs>`
+- If `<mode> == 0`: waits for Enter/click, but times out after `<timeMs>`.
+- If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
@@ -2740,13 +3681,13 @@ ENDDATA
 **Summary**
 - Like `WAIT`, but accepts **any key** input (not only Enter) to continue.
 
+**Tags**
+- io
+
 **Syntax**
 - `WAITANYKEY`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -2765,18 +3706,17 @@ ENDDATA
 **Summary**
 - Like `WAIT`, but stops “message skip” from auto-advancing past the wait.
 
+**Tags**
+- io
+
 **Syntax**
 - `FORCEWAIT`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Enters an Enter-style UI wait (`InputType.EnterKey`) with `StopMesskip = true`.
-  - Implementation detail: this prevents `MesSkip`-driven macro/skip logic from treating the wait as a no-op.
+- Waits for Enter/click, and stops “message skip” from auto-advancing past the wait.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
 
@@ -2791,6 +3731,9 @@ ENDDATA
 **Summary**
 - Like `INPUT`, but requests a “one input” integer entry (UI-side restriction).
 
+**Tags**
+- io
+
 **Syntax**
 - `ONEINPUT`
 - `ONEINPUT <default>`
@@ -2799,8 +3742,8 @@ ENDDATA
 **Arguments**
 - Same as `INPUT`.
 
-**Defaults / optional arguments**
-- Same as `INPUT`.
+- Omitted arguments / defaults:
+  - Same as `INPUT`.
 
 **Semantics**
 - Like `INPUT` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
@@ -2820,6 +3763,9 @@ ENDDATA
 **Summary**
 - Like `INPUTS`, but requests a “one input” string entry (UI-side restriction).
 
+**Tags**
+- io
+
 **Syntax**
 - `ONEINPUTS`
 - `ONEINPUTS <defaultFormString>`
@@ -2828,12 +3774,13 @@ ENDDATA
 **Arguments**
 - Same as `INPUTS`.
 
-**Defaults / optional arguments**
-- Same as `INPUTS`.
+- Omitted arguments / defaults:
+  - Same as `INPUTS`.
 
 **Semantics**
-- Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
-- Implementation detail: the UI input handler may truncate the entered string to at most one character.
+- Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
+  - If the entered text has length > 1, it is truncated to the first character.
+  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 
 **Errors & validation**
 - Same as `INPUTS`.
@@ -2847,25 +3794,27 @@ ENDDATA
 **Summary**
 - Deletes the last *N logical output lines* from the console display/log.
 
+**Tags**
+- io
+
 **Syntax**
 - `CLEARLINE <n>`
 
 **Arguments**
-- `<n>`: integer expression (cast to a 32-bit signed integer before use; out-of-range values are implementation-defined).
-
-**Defaults / optional arguments**
-- None.
+- `<n>`: integer expression.
+  - The evaluated value is converted to a 32-bit signed integer by truncation (i.e. low 32 bits interpreted as signed).
 
 **Semantics**
-- Evaluates `<n>` and calls the console’s internal `deleteLine(<n>)`.
+- Evaluates `<n>` and deletes the last `n` logical output lines from the console display/log.
 - The deletion count is in **logical lines**, not raw display lines:
   - One logical line can occupy multiple display lines (e.g. word wrapping).
   - Deletion walks backward from the end of the display list and counts only entries marked as “logical line” boundaries; all associated display lines are removed.
-- After deleting, the console is refreshed (`RefreshStrings(false)`).
+- If `n <= 0`, nothing is deleted.
+- After deleting, the display is refreshed.
 
 **Errors & validation**
 - No explicit validation in the instruction.
-- Engine behavior is only well-defined for small non-negative `<n>`; negative or overflowed values can lead to implementation-specific results.
+- No error is raised for negative or overflowed values (after the 32-bit conversion).
 
 **Examples**
 - `CLEARLINE 1`
@@ -2876,6 +3825,9 @@ ENDDATA
 **Summary**
 - Prints a **temporary single line** that is intended to be overwritten by the next printed line.
 
+**Tags**
+- io
+
 **Syntax**
 - `REUSELASTLINE`
 - `REUSELASTLINE <formString>`
@@ -2883,11 +3835,11 @@ ENDDATA
 **Arguments**
 - `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
 
-**Defaults / optional arguments**
-- If omitted, the argument is treated as the empty string.
+- Omitted arguments / defaults:
+  - If omitted, the argument is treated as the empty string.
 
 **Semantics**
-- Evaluates `<formString>` to a string and calls `Console.PrintTemporaryLine(str)`.
+- Evaluates `<formString>` to a string and prints it as a temporary line.
 - A “temporary line” has a special overwrite behavior:
   - When the engine later adds a new display line, if the current last display line is temporary, it is deleted first; the new line then takes its place.
   - As a result, repeated `REUSELASTLINE` calls typically “update” a single line (useful for progress/timer displays).
@@ -2901,37 +3853,276 @@ ENDDATA
 - `REUSELASTLINE %TIME%`
 
 ## UPCHECK (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Applies the `UP`/`DOWN` delta arrays to `PALAM` for the current `TARGET` character, and prints each applied change.
+
+**Tags**
+- characters
+- io
+
+**Syntax**
+- `UPCHECK`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Reads:
+  - global arrays `UP` and `DOWN`
+  - the current `TARGET` character index
+  - the target character’s `PALAM` array
+  - parameter names from `PALAMNAME`
+- If `TARGET` is out of range (`TARGET < 0` or `TARGET >= CHARANUM`):
+  - no parameter changes are applied, and nothing is printed
+  - it still clears `UP` and `DOWN` to `0` (see below).
+- Otherwise, it computes the loop bound `length` as follows (note the ordering):
+  - Start with `length = PALAM.Length`.
+  - If `PALAM.Length > UP.Length`, set `length = UP.Length`.
+  - If `PALAM.Length > DOWN.Length`, set `length = DOWN.Length`.
+- For each parameter index `i` such that `0 <= i < length`:
+  - Negative and zero deltas are ignored: if `UP[i] <= 0` and `DOWN[i] <= 0`, this index is skipped (no change, no output).
+  - Otherwise:
+    - Let `old = PALAM[i]`.
+    - Apply the change in an `unchecked` context: `PALAM[i] = old + UP[i] - DOWN[i]`.
+    - If output is not being skipped, prints one line (and ends the line) in this exact format:
+      - `PALAMNAME[i] + " " + old + ("+" + UP[i] if UP[i] > 0) + ("-" + DOWN[i] if DOWN[i] > 0) + "=" + PALAM[i]`
+      - Notes:
+        - There are no parentheses around `+...` / `-...`.
+        - If `PALAMNAME[i]` is `null`, it is treated as `""` (so the line starts with a space).
+        - Each printed change ends the line immediately (i.e. it is printed as its own line).
+- After finishing, clears **all elements** of `UP` and `DOWN` to `0`.
+- If output skipping is active (`SKIPDISP` / `skipPrint`), changes are still applied and `UP`/`DOWN` are still cleared, but nothing is printed.
+
+**Errors & validation**
+- None specific to this instruction.
+
+**Examples**
+```erabasic
+UP:0 = 123
+UP:1 = 456
+UPCHECK
+```
 
 ## CUPCHECK (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `UPCHECK`, but applies `CUP`/`CDOWN` to `PALAM` for a specified character index.
+
+**Tags**
+- characters
+- io
+
+**Syntax**
+- `CUPCHECK [charaIndex]`
+
+**Arguments**
+- `charaIndex` (optional): int expression; the character index to apply changes to.
+  - If omitted, defaults to `0` and emits a warning.
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
+
+**Semantics**
+- Reads the target character’s per-character arrays:
+  - `CUP` and `CDOWN`
+  - and that character’s `PALAM`
+- If `charaIndex` is out of range, returns immediately:
+  - no changes are applied, nothing is printed
+  - `CUP`/`CDOWN` are **not** cleared.
+- Otherwise, it computes the loop bound `length` as follows (note the ordering):
+  - Start with `length = PALAM.Length`.
+  - If `PALAM.Length > CUP.Length`, set `length = CUP.Length`.
+  - If `PALAM.Length > CDOWN.Length`, set `length = CDOWN.Length`.
+- For each parameter index `i` such that `0 <= i < length`:
+  - Negative and zero deltas are ignored: if `CUP[i] <= 0` and `CDOWN[i] <= 0`, this index is skipped.
+  - Otherwise:
+    - Let `old = PALAM[i]`.
+    - Apply the change in an `unchecked` context: `PALAM[i] = old + CUP[i] - CDOWN[i]`.
+    - If output is not being skipped, prints one line (and ends the line) in the same format as `UPCHECK`, but using `CUP`/`CDOWN`:
+      - `PALAMNAME[i] + " " + old + ("+" + CUP[i] if CUP[i] > 0) + ("-" + CDOWN[i] if CDOWN[i] > 0) + "=" + PALAM[i]`
+      - Each printed change ends the line immediately (i.e. it is printed as its own line).
+- After finishing, clears **all elements** of that character’s `CUP` and `CDOWN` arrays to `0`.
+- If output skipping is active (`SKIPDISP` / `skipPrint`), changes are still applied and `CUP`/`CDOWN` are still cleared, but nothing is printed.
+
+**Errors & validation**
+- None specific to this instruction (out-of-range just returns).
+
+**Examples**
+```erabasic
+CUP:TARGET:0 = 10
+CUPCHECK TARGET
+```
 
 ## ADDCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Adds one or more characters to the current character list using character templates loaded from CSV.
+
+**Tags**
+- characters
+
+**Syntax**
+- `ADDCHARA charaNo`
+- `ADDCHARA charaNo1, charaNo2, ...`
+
+**Arguments**
+- Each `charaNo`: int expression selecting a character template.
+
+**Semantics**
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
+- For each `charaNo` (evaluated left-to-right), the engine immediately appends one character to the current character list:
+  - If `Config.CompatiSPChara` is enabled: calls `AddCharacter_UseSp(charaNo, isSp=false)`.
+  - Otherwise: calls `AddCharacter(charaNo)`.
+- `CHARANUM` increases by 1 for each successfully added character.
+- If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
+- This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
+
+**Errors & validation**
+- Runtime error if any `charaNo` does not resolve to a known character template.
+
+**Examples**
+```erabasic
+ADDCHARA 3, 5, 6
+PRINTFORML {CHARANUM}
+```
 
 ## ADDSPCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Adds one or more “SP characters” using the SP-character template path.
+
+**Tags**
+- characters
+
+**Syntax**
+- `ADDSPCHARA charaNo`
+- `ADDSPCHARA charaNo1, charaNo2, ...`
+
+**Arguments**
+- Each `charaNo`: int expression selecting a character template.
+
+**Semantics**
+- Requires `Config.CompatiSPChara` to be enabled; otherwise this instruction errors before evaluating any arguments.
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
+- For each `charaNo` (evaluated left-to-right), immediately appends one character using the SP template lookup path.
+- `CHARANUM` increases by 1 for each successfully added character.
+- If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
+- This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
+
+**Errors & validation**
+- Runtime error if `CompatiSPChara` is disabled.
+- Runtime error if any `charaNo` does not resolve to a known character template.
+
+**Examples**
+```erabasic
+ADDSPCHARA 10
+```
 
 ## ADDDEFCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Performs the engine’s “default character initialization” step used at game start.
+
+**Tags**
+- characters
+- system
+
+**Syntax**
+- `ADDDEFCHARA`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Intended for use in `@SYSTEM_TITLE`.
+- When executed, the engine adds:
+  - the character template for CSV number `0`, and then
+  - the initial character specified by `gamebase.csv` (`GameBaseData.DefaultCharacter`) if it is `> 0`.
+- This uses “CSV number” lookup (engine template lookup by CSV slot), which is distinct from `ADDCHARA 0` (template lookup by character `NO`).
+- If a referenced CSV template does not exist, the engine falls back to adding a “pseudo character” (like `ADDVOIDCHARA`).
+
+**Errors & validation**
+- Runtime error if executed outside `@SYSTEM_TITLE` (unless executed in a debug-only context where no parent label is attached).
+
+**Examples**
+```erabasic
+@SYSTEM_TITLE
+ADDDEFCHARA
+```
 
 ## ADDVOIDCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Adds a “pseudo character” that is not loaded from CSV.
+
+**Tags**
+- characters
+
+**Syntax**
+- `ADDVOIDCHARA`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Appends a new character record created from the engine’s pseudo-character template.
+- The new character’s variables start from the language defaults (`0` for numeric cells, `""` for string reads).
+- This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
+
+**Errors & validation**
+- None specific to this instruction.
+
+**Examples**
+```erabasic
+ADDVOIDCHARA
+TARGET = CHARANUM - 1
+```
 
 ## DELCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Deletes one or more characters from the current character list by character index.
+
+**Tags**
+- characters
+
+**Syntax**
+- `DELCHARA charaIndex`
+- `DELCHARA charaIndex1, charaIndex2, ...`
+
+**Arguments**
+- Each `charaIndex`: int expression selecting an existing character index.
+
+**Semantics**
+- Requires at least one argument; multiple arguments are accepted but a parse-time warning is emitted for multi-argument uses.
+- Evaluates all `charaIndex` arguments first (left-to-right), storing the integer results in an array.
+- Deletion behavior depends on argument count:
+  - If exactly one index was provided: deletes that character immediately by index.
+  - If multiple indices were provided: deletes all referenced characters as a set.
+    - Each index is resolved against the character list as it existed before any removals in this call.
+    - The engine rejects duplicate deletions by identity (two indices that resolve to the same character object cause an error).
+    - If an error occurs while processing a multi-delete list, some earlier listed characters may already have been deleted (no rollback).
+- Deleting characters shifts indices of later characters; after deletion, valid indices are always a dense range `0 <= i < CHARANUM`.
+- The engine does not automatically rebind `TARGET`/`MASTER`/`ASSI` after deletion.
+
+**Errors & validation**
+- Runtime error if any `charaIndex` is out of range.
+- When deleting multiple characters, runtime error if the same character is specified more than once (duplicate deletion).
+
+**Examples**
+```erabasic
+DELCHARA 2
+DELCHARA 1, 3
+```
 
 ## PUTFORM (instruction)
 
 **Summary**
 - Appends a formatted string to the save-description buffer (`SAVEDATA_TEXT`).
+
+**Tags**
+- io
 
 **Syntax**
 - `PUTFORM`
@@ -2940,8 +4131,8 @@ ENDDATA
 **Arguments**
 - `<formString>` (optional): FORM/formatted string.
 
-**Defaults / optional arguments**
-- If omitted, the argument is treated as the empty string.
+- Omitted arguments / defaults:
+  - If omitted, the argument is treated as the empty string.
 
 **Semantics**
 - Evaluates `<formString>` to a string.
@@ -2949,7 +4140,7 @@ ENDDATA
   - If `SAVEDATA_TEXT` is non-null, `SAVEDATA_TEXT += <string>`.
   - Otherwise, `SAVEDATA_TEXT = <string>`.
 - Does not print to the console.
-- Intended for use by the save-info generation path (implementation detail).
+- Typically used by the save-info generation path (e.g. `@SAVEINFO`) to build `SAVEDATA_TEXT`.
 
 **Errors & validation**
 - None.
@@ -2962,19 +4153,19 @@ ENDDATA
 **Summary**
 - Ends the current run by requesting the console to quit.
 
+**Tags**
+- system
+
 **Syntax**
 - `QUIT`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Calls `Console.Quit()`, which sets the console state to `Quit`.
-- Script execution stops because `Console.IsRunning` becomes false.
-- UI shutdown is handled by the console’s event loop (implementation detail).
+- Requests the engine to quit the game.
+- Script execution stops immediately.
+- UI shutdown is performed by the console/UI host after the quit request is posted.
 
 **Errors & validation**
 - None.
@@ -2987,6 +4178,9 @@ ENDDATA
 **Summary**
 - Requests a transition into one of the engine’s **system phases** (e.g. `SHOP`, `TRAIN`, `TITLE`) after the current call stack unwinds.
 
+**Tags**
+- system
+
 **Syntax**
 - `BEGIN <keyword>`
 
@@ -2995,21 +4189,17 @@ ENDDATA
   - Must match one of the supported keywords exactly (see below).
   - The current engine compares this string literally (no automatic trim or case-folding).
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Recognized keywords (engine-defined):
   - `SHOP`, `TRAIN`, `AFTERTRAIN`, `ABLUP`, `TURNEND`, `FIRST`, `TITLE`
 - On execution:
   - Validates `<keyword>` by matching it against the list above; otherwise raises an error.
-  - Sets an internal “begin type” on the process state.
+  - Requests a transition into that system phase after the current call stack unwinds.
   - Immediately performs some keyword-specific side effects:
-    - `SHOP` and `FIRST` unload temporary loaded image resources (implementation detail).
-  - Calls `state.Return(0)`:
-    - This starts unwinding the current EraBasic call stack.
-    - When unwinding reaches the top-level (no return address), the engine performs the actual system-phase transition (`state.Begin()`), clears the function stack, and continues execution in the new system state.
-  - Resets console style (`Console.ResetStyle()`).
+    - `SHOP` and `FIRST` unload temporary loaded image resources.
+  - Ends the current function immediately (as if returning) and continues unwinding until reaching the top-level.
+  - After reaching the top-level, enters the requested system phase, clears the call stack, and continues execution in that phase.
+  - Resets output style to defaults.
 
 **Errors & validation**
 - If `<keyword>` is not recognized, raises a runtime error (“invalid BEGIN argument”).
@@ -3023,20 +4213,20 @@ ENDDATA
 **Summary**
 - Opens the engine’s interactive **save UI** (system-driven save).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `SAVEGAME`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Requires that the current system state allows saving (implementation detail: `SystemStateCode.__CAN_SAVE__`), otherwise raises an error.
+- Requires that the current system state allows saving; otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system save flow.
 - The system save flow (high-level behavior):
-  - Displays save slots `0..Config.SaveDataNos-1` in pages of 20.
+  - Displays save slots with indices `0 <= slot < Config.SaveDataNos` in pages of 20.
   - Uses `100` as the “back/cancel” input.
   - After selecting a slot:
     - If it already contains data, prompts for overwrite confirmation.
@@ -3058,21 +4248,21 @@ ENDDATA
 **Summary**
 - Opens the engine’s interactive **load UI** (system-driven load).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `LOADGAME`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Requires that the current system state allows saving/loading (same gate as `SAVEGAME`), otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system load flow.
 - The system load flow (high-level behavior):
-  - Displays save slots `0..Config.SaveDataNos-1` in pages of 20.
-  - Includes a special autosave entry `99` when applicable (implementation detail).
+  - Displays save slots with indices `0 <= slot < Config.SaveDataNos` in pages of 20.
+  - Includes a special autosave entry `99` when applicable.
   - Uses `100` as the “back/cancel” input.
   - After selecting a valid slot:
     - Loads the slot file (as `save{slot:00}.sav` under `Config.SavDir`).
@@ -3096,6 +4286,9 @@ ENDDATA
 **Summary**
 - Saves the current game state to a numbered save slot file (script-controlled save).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `SAVEDATA <slot>, <saveText>`
 
@@ -3104,14 +4297,11 @@ ENDDATA
 - `<saveText>`: string expression; saved into the file and shown by the built-in save/load UI.
   - Must not contain a newline (`'\n'`).
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Evaluates `<slot>` and `<saveText>`.
 - Writes a save file under `Config.SavDir`:
   - Path is `save{slot:00}.sav` (e.g. slot `0` -> `save00.sav`).
-- Save format (implementation detail):
+- Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.
   - Otherwise, writes the legacy text save format.
   - The save always includes:
@@ -3135,6 +4325,9 @@ ENDDATA
 **Summary**
 - Loads a numbered save slot file (script-controlled load), resets the call stack, and then runs the engine’s post-load system hooks.
 
+**Tags**
+- save-system
+
 **Syntax**
 - `LOADDATA <slot>`
 
@@ -3142,30 +4335,27 @@ ENDDATA
 - `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
   - If omitted, the argument parser supplies `0` (with a warning); this effectively loads slot `0`.
 
-**Defaults / optional arguments**
-- None (but see omitted-argument behavior above).
+- Omitted arguments / defaults:
+  - None (but see omitted-argument behavior above).
 
 **Semantics**
-- Validates the target save file via `CheckData(slot, Normal)`; if the file is missing/corrupt/mismatched, raises an error.
-- Loads the save file:
-  - Resets variable state and reloads characters/variables from the file (implementation detail).
-  - Sets the pseudo variables:
-    - `LASTLOAD_NO` to the loaded slot number
-    - `LASTLOAD_TEXT` to the saved `<saveText>`
-    - `LASTLOAD_VERSION` to the save file’s recorded script version
-- Clears the EraBasic function stack (`state.ClearFunctionList()`), discarding the current call context.
-- Transfers control into the system “data loaded” phase:
-  - Sets `SystemState = LoadData_DataLoaded`.
-  - System processing then calls (if they exist):
-    - `SYSTEM_LOADEND`
-    - `EVENTLOAD`
-  - If `EVENTLOAD` returns normally without performing a `BEGIN`, the engine proceeds as if `BEGIN SHOP` occurred (implementation detail).
-- See also: `save-files.md` (directories, partitions, and on-disk formats)
+- Validates the target save file; if the file is missing/corrupt/mismatched, raises a runtime error.
+- Loads the save slot and replaces the current saveable state (characters and variables) with the loaded contents.
+- Sets the pseudo variables:
+  - `LASTLOAD_NO` to the loaded slot number
+  - `LASTLOAD_TEXT` to the saved `<saveText>`
+  - `LASTLOAD_VERSION` to the save file’s recorded script version
+- Clears the EraBasic call stack, discarding the current call context.
+- Runs post-load system hooks (if they exist), in this order:
+  - `SYSTEM_LOADEND`
+  - `EVENTLOAD`
+- If `EVENTLOAD` returns normally without performing a `BEGIN`, execution proceeds as if `BEGIN SHOP` occurred.
+- See also: `save-files.md` (directories, partitions, and on-disk formats).
 
 **Errors & validation**
 - Errors if `<slot>` is negative or larger than `int.MaxValue`.
-- Error if the file is not considered valid by `CheckData(..., Normal)` (“corrupted save data” path).
-- If loading fails after validation, the engine throws an internal execution error.
+- Error if the target save file is missing/corrupt/mismatched.
+- If loading fails unexpectedly after validation, a runtime error is raised.
 
 **Examples**
 - `LOADDATA 0`
@@ -3175,6 +4365,9 @@ ENDDATA
 **Summary**
 - Deletes a numbered save slot file (`saveXX.sav`) if it exists.
 
+**Tags**
+- save-system
+
 **Syntax**
 - `DELDATA <slot>`
 
@@ -3182,8 +4375,8 @@ ENDDATA
 - `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
   - If omitted, the argument parser supplies `0` (with a warning); this deletes slot `0`.
 
-**Defaults / optional arguments**
-- None (but see omitted-argument behavior above).
+- Omitted arguments / defaults:
+  - None (but see omitted-argument behavior above).
 
 **Semantics**
 - Computes the save file path under `Config.SavDir` as `save{slot:00}.sav`.
@@ -3205,19 +4398,19 @@ ENDDATA
 **Summary**
 - Saves global variables to `global.sav`.
 
+**Tags**
+- save-system
+
 **Syntax**
 - `SAVEGLOBAL`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Writes the global save file under `Config.SavDir`:
   - Path is `global.sav`.
-- Save format (implementation detail):
+- Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Global`.
   - Otherwise, writes the legacy text save format.
   - Emuera-private global extension blocks may also be written.
@@ -3235,13 +4428,13 @@ ENDDATA
 **Summary**
 - Loads global variables from `global.sav` and reports success via `RESULT`.
 
+**Tags**
+- save-system
+
 **Syntax**
 - `LOADGLOBAL`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3251,7 +4444,7 @@ ENDDATA
   - Sets `RESULT = 1`.
 - On failure:
   - Sets `RESULT = 0`.
-- Implementation detail: before attempting to read, the loader removes certain Emuera-private global extension data; if loading then fails, this removal may still have occurred.
+- Before attempting to read, the loader removes certain Emuera-private global extension data; if loading then fails, this removal may still have occurred.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 
 **Errors & validation**
@@ -3265,22 +4458,20 @@ ENDDATA
 **Summary**
 - Resets the current game/runtime variable state (excluding global variables).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `RESETDATA`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Calls `VEvaluator.ResetData()`, which (high-level):
-  - Clears local/default variable state.
-  - Disposes and clears the character list.
-  - Removes certain Emuera-private save-related data structures (implementation detail; e.g. XML/maps/DT savedata extensions).
-  - Does **not** reset global variables.
-- Resets console style (`Console.ResetStyle()`).
+- Resets non-global variables to their default values (global variables are not reset).
+- Disposes and clears the character list.
+- Removes Emuera-private save-related extension data (e.g. XML/maps/data-table extensions).
+- Resets output style to defaults.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -3294,19 +4485,18 @@ ENDDATA
 **Summary**
 - Resets global variables to their default values.
 
+**Tags**
+- save-system
+
 **Syntax**
 - `RESETGLOBAL`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Calls `VEvaluator.ResetGlobalData()`, which (high-level):
-  - Resets global variables to default values.
-  - Removes certain Emuera-private global/static data structures (implementation detail; e.g. XML/maps global/static extensions).
+- Resets global variables to their default values.
+- Removes Emuera-private global/static extension data (e.g. XML/maps global/static extensions).
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -3320,6 +4510,9 @@ ENDDATA
 **Summary**
 - “Single-line IF”: conditionally skips the **next logical line only**.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `SIF <int expr>`
   - `<next logical line>`
@@ -3327,8 +4520,8 @@ ENDDATA
 **Arguments**
 - `<int expr>`: evaluated as integer; zero = false, non-zero = true.
 
-**Defaults / optional arguments**
-- If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- Omitted arguments / defaults:
+  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.
@@ -3337,7 +4530,7 @@ ENDDATA
   - If the following line is a **partial instruction** (structural marker / block delimiter; e.g. `IF`, `ELSE`, `CASE`, loop markers), the engine warns because skipping marker lines breaks block structure.
   - If the following line is a `$label` line, the engine warns.
   - If there is no following executable line (EOF / next `@label`), the engine warns.
-  - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns (implementation detail: it compares source line numbers and reports “empty line(s) after SIF”).
+  - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns.
 
 **Errors & validation**
 - Some invalid “next line” situations are treated as load-time errors (the `SIF` line is marked as error and cannot run safely), including:
@@ -3345,7 +4538,7 @@ ENDDATA
   - following line is a function label line (`@...`) or a null terminator line
   - following instruction line is a **partial instruction** (structural marker / block delimiter)
   - following line is a `$label` line
-- The engine may also warn if there are physically empty line(s) between `SIF` and the next logical line (implementation detail).
+- The engine may also warn if there are physically empty line(s) between `SIF` and the next logical line.
 
 **Examples**
 - `SIF A == 0`
@@ -3355,6 +4548,9 @@ ENDDATA
 
 **Summary**
 - Begins an `IF ... ENDIF` block. Chooses the first true clause among `IF` / `ELSEIF` / `ELSE` and executes that clause body.
+
+**Tags**
+- control-flow
 
 **Syntax**
 - `IF <int expr>`
@@ -3369,17 +4565,17 @@ ENDDATA
 **Arguments**
 - `<int expr>`: evaluated as integer; zero = false, non-zero = true.
 
-**Defaults / optional arguments**
-- If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- Omitted arguments / defaults:
+  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
 
 **Semantics**
-- The loader builds an ordered clause list (`IF` header, then each `ELSEIF`, and optional `ELSE`) and links every clause header to the matching `ENDIF`.
-- At runtime, the `IF` header evaluates its own condition and then each `ELSEIF` in order:
-  - If a condition is true, the engine jumps to that clause header as a **marker**.
-  - Because Emuera’s execution loop advances to `NextLine` before executing, jumping to a clause header causes the next executed line to be the **first line of that clause body**, not the header itself.
+- Evaluates its own condition and then each `ELSEIF` condition in order.
+- If a condition is true, that clause’s body is selected and executed.
 - If no condition matches:
-  - If there is an `ELSE`, the engine jumps to the `ELSE` header marker (and thus executes the `ELSE` body).
-  - Otherwise it jumps to the `ENDIF` marker (skipping the whole block).
+  - If there is an `ELSE`, the `ELSE` body is executed.
+  - Otherwise, the whole block is skipped.
+- After any selected clause body finishes, the rest of the `IF` block is skipped and execution continues after the matching `ENDIF`.
+- Jump behavior note (affects unstructured entry such as `GOTO` into blocks): when control transfers to an `IF`/`ELSEIF`/`ELSE` line as a jump target, execution begins at the **next** logical line (the clause body), not on the marker line itself. See `control-flow.md`.
 
 **Errors & validation**
 - `ELSE` / `ELSEIF` without a matching open `IF`, or `ENDIF` without a matching open `IF`, are load-time errors (the line is marked as error).
@@ -3397,13 +4593,13 @@ ENDDATA
 **Summary**
 - Final clause header inside an `IF ... ENDIF` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `ELSE`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3422,14 +4618,14 @@ ENDDATA
 **Summary**
 - Clause header inside an `IF ... ENDIF` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `ELSEIF <int expr>`
 
 **Arguments**
 - `<int expr>` is evaluated by the `IF` header’s clause-selection logic (not by the `ELSEIF` instruction itself).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - When reached **sequentially** (i.e., a previous clause already executed and control fell through), `ELSEIF` unconditionally jumps to the matching `ENDIF` marker, skipping the rest of the block.
@@ -3446,13 +4642,13 @@ ENDDATA
 **Summary**
 - Ends an `IF ... ENDIF` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `ENDIF`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3469,6 +4665,9 @@ ENDDATA
 **Summary**
 - Begins a `SELECTCASE ... ENDSELECT` multi-branch block that compares a single selector expression against one or more `CASE` conditions.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `SELECTCASE <expr>`
   - `CASE <caseExpr> (, <caseExpr> ... )`
@@ -3479,9 +4678,6 @@ ENDDATA
 
 **Arguments**
 - `<expr>`: selector expression; may be int or string.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - The loader gathers all `CASE` / `CASEELSE` headers into an ordered list and links them to the matching `ENDSELECT`.
@@ -3512,6 +4708,9 @@ ENDDATA
 **Summary**
 - Clause header inside a `SELECTCASE ... ENDSELECT` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `CASE <caseExpr> (, <caseExpr> ... )`
 
@@ -3520,9 +4719,6 @@ ENDDATA
   - Normal: `<expr>` (matches by equality against the selector).
   - Range: `<expr> TO <expr>` (inclusive range).
   - “IS form”: `IS <binaryOp> <expr>` (e.g. `IS >= 10`), using the engine’s binary-operator semantics.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - When reached **sequentially** (fall-through after another case body), `CASE` unconditionally jumps to the matching `ENDSELECT` marker, skipping the rest of the block.
@@ -3549,13 +4745,13 @@ ENDDATA
 **Summary**
 - Default clause header inside a `SELECTCASE ... ENDSELECT` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `CASEELSE`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3575,13 +4771,13 @@ ENDDATA
 **Summary**
 - Ends a `SELECTCASE ... ENDSELECT` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `ENDSELECT`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3598,6 +4794,9 @@ ENDDATA
 **Summary**
 - Begins a `REPEAT ... REND` counted loop using the built-in variable `COUNT` as the loop counter.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `REPEAT <countExpr>`
   - `...`
@@ -3606,8 +4805,8 @@ ENDDATA
 **Arguments**
 - `<countExpr>`: int expression giving the number of iterations.
 
-**Defaults / optional arguments**
-- If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
+- Omitted arguments / defaults:
+  - If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
 
 **Semantics**
 - `REPEAT` is implemented as a FOR-like loop over `COUNT:0`:
@@ -3615,7 +4814,7 @@ ENDDATA
   - Uses `end = <countExpr>` and `step = 1`.
   - The loop continues while `COUNT:0 < end`.
 - `COUNT:0` is incremented by `1` at `REND` time (and also by `BREAK`/`CONTINUE` for era-maker compatibility).
-- Because the engine advances to `NextLine` before executing, jumps between `REPEAT` and `REND` are done via marker lines:
+- Jump behavior note: control transfers between `REPEAT` and `REND` are done via their marker lines, and entering a marker line as a jump target begins execution at the following logical line:
   - Jumping to `REPEAT` re-enters at the first line of the body.
   - Jumping to `REND` exits to the first line after `REND`.
 
@@ -3634,13 +4833,13 @@ ENDDATA
 **Summary**
 - Ends a `REPEAT ... REND` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `REND`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3660,6 +4859,9 @@ ENDDATA
 **Summary**
 - Begins a `FOR ... NEXT` counted loop over a mutable integer variable term.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `FOR <intVarTerm>, <start>, <end> [, <step>]`
 - Start may be omitted by leaving an empty slot: `FOR <intVarTerm>, , <end> [, <step>]`
@@ -3672,9 +4874,9 @@ ENDDATA
 - `<end>`: int expression.
 - `<step>`: int expression (defaults to `1` if omitted).
 
-**Defaults / optional arguments**
-- `<start>` defaults to `0` when omitted as an empty argument.
-- `<step>` defaults to `1` when omitted.
+- Omitted arguments / defaults:
+  - `<start>` defaults to `0` when omitted as an empty argument.
+  - `<step>` defaults to `1` when omitted.
 
 **Semantics**
 - Initializes the counter variable to `<start>`, then loops while:
@@ -3696,13 +4898,13 @@ ENDDATA
 **Summary**
 - Ends a `FOR ... NEXT` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `NEXT`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3722,6 +4924,9 @@ ENDDATA
 **Summary**
 - Begins a `WHILE ... WEND` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `WHILE <int expr>`
   - `...`
@@ -3730,8 +4935,8 @@ ENDDATA
 **Arguments**
 - `<int expr>`: loop condition (0 = false, non-zero = true).
 
-**Defaults / optional arguments**
-- If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
+- Omitted arguments / defaults:
+  - If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
 
 **Semantics**
 - At `WHILE`, evaluates the condition:
@@ -3752,13 +4957,13 @@ ENDDATA
 **Summary**
 - Ends a `WHILE ... WEND` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `WEND`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3777,15 +4982,15 @@ ENDDATA
 **Summary**
 - Begins a `DO ... LOOP` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `DO`
   - `...`
   - `LOOP <int expr>`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3805,14 +5010,17 @@ ENDDATA
 **Summary**
 - Ends a `DO ... LOOP` loop and provides the loop condition.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `LOOP <int expr>`
 
 **Arguments**
 - `<int expr>`: loop condition (0 = false, non-zero = true).
 
-**Defaults / optional arguments**
-- If omitted, the condition defaults to `0` (false) and emits a load-time warning.
+- Omitted arguments / defaults:
+  - If omitted, the condition defaults to `0` (false) and emits a load-time warning.
 
 **Semantics**
 - Evaluates the condition:
@@ -3830,13 +5038,13 @@ ENDDATA
 **Summary**
 - Skips to the next iteration of the nearest enclosing loop (`REPEAT`, `FOR`, `WHILE`, or `DO`).
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `CONTINUE`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3858,13 +5066,13 @@ ENDDATA
 **Summary**
 - Exits the nearest enclosing loop (`REPEAT`, `FOR`, `WHILE`, or `DO`).
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `BREAK`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -3883,6 +5091,9 @@ ENDDATA
 **Summary**
 - Returns from the current function. Also assigns the integer `RESULT` array (`RESULT:0`, `RESULT:1`, ...) from the provided values.
 
+**Tags**
+- calls
+
 **Syntax**
 - `RETURN`
 - `RETURN <int expr1> [, <int expr2>, <int expr3>, ... ]`
@@ -3890,8 +5101,8 @@ ENDDATA
 **Arguments**
 - Each argument is evaluated as an integer and stored into `RESULT:<index>`.
 
-**Defaults / optional arguments**
-- With no arguments: sets `RESULT:0` to `0` and returns `0`.
+- Omitted arguments / defaults:
+  - With no arguments: sets `RESULT:0` to `0` and returns `0`.
 
 **Semantics**
 - Evaluates all provided integer expressions (left-to-right), stores them into the `RESULT` integer array starting at index 0, then returns from the function.
@@ -3912,20 +5123,23 @@ ENDDATA
 **Summary**
 - Returns from the current function like `RETURN`, but parses its values from a FORM/formatted string.
 
+**Tags**
+- calls
+
 **Syntax**
 - `RETURNFORM <formString>`
 
 **Arguments**
 - `<formString>` is evaluated to a string `s`, then `s` is re-lexed as one or more **comma-separated integer expressions**.
 
-**Defaults / optional arguments**
-- If `s` is empty, the engine behaves like `RETURN 0`.
+- Omitted arguments / defaults:
+  - If `s` is empty, the engine behaves like `RETURN 0`.
 
 **Semantics**
 - Evaluates the formatted string to a string `s`.
 - Parses `s` as `expr1, expr2, ...` using the engine’s expression lexer/parser.
 - Parsing detail: after each comma, the engine skips ASCII spaces (not tabs) before reading the next expression.
-- Stores the resulting integer values into `RESULT:0..` and returns.
+- Stores the resulting integer values into `RESULT:0`, `RESULT:1`, ... and returns.
 
 **Errors & validation**
 - Errors if any parsed expression is not a valid integer expression.
@@ -3938,6 +5152,9 @@ ENDDATA
 **Summary**
 - Returns from a user-defined expression function (`#FUNCTION/#FUNCTIONS`) with an optional return value.
 
+**Tags**
+- calls
+
 **Syntax**
 - `RETURNF`
 - `RETURNF <expr>`
@@ -3945,8 +5162,8 @@ ENDDATA
 **Arguments**
 - `<expr>` may be int or string, but should match the function’s declared return type.
 
-**Defaults / optional arguments**
-- With no argument: returns the engine’s “null” method value (a null internal return term; typically treated as `0` / empty depending on context).
+- Omitted arguments / defaults:
+  - With no argument: returns the engine’s “null” method value (a null internal return term; typically treated as `0` / empty depending on context).
 
 **Semantics**
 - Sets the method return value for the current expression-function call and exits the method body.
@@ -3966,14 +5183,17 @@ ENDDATA
 **Summary**
 - Sets `RESULT` to the engine’s **language/encoding length** of a raw string argument.
 
+**Tags**
+- text
+
 **Syntax**
 - `STRLEN <rawString>`
 
 **Arguments**
 - `<rawString>`: the literal remainder of the line (not a normal string expression).
 
-**Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Computes length via the engine’s language-aware length counter and assigns it to `RESULT`:
@@ -3992,14 +5212,17 @@ ENDDATA
 **Summary**
 - Sets `RESULT` to the engine’s **language/encoding length** of a FORM/formatted string.
 
+**Tags**
+- text
+
 **Syntax**
 - `STRLENFORM <formString>`
 
 **Arguments**
 - `<formString>`: FORM/formatted string expression (supports `%...%` and `{...}`).
 
-**Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Evaluates the formatted string to a string value, then computes its language/encoding length (see `STRLEN` for details).
@@ -4016,14 +5239,17 @@ ENDDATA
 **Summary**
 - Sets `RESULT` to the Unicode code-unit length (`string.Length`) of a raw string argument.
 
+**Tags**
+- text
+
 **Syntax**
 - `STRLENU <rawString>`
 
 **Arguments**
 - `<rawString>`: the literal remainder of the line (not a normal string expression).
 
-**Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Computes length as `str.Length` and assigns it to `RESULT`.
@@ -4039,14 +5265,17 @@ ENDDATA
 **Summary**
 - Sets `RESULT` to the Unicode code-unit length (`string.Length`) of a FORM/formatted string.
 
+**Tags**
+- text
+
 **Syntax**
 - `STRLENFORMU <formString>`
 
 **Arguments**
 - `<formString>`: FORM/formatted string expression.
 
-**Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Evaluates the formatted string to a string value, then assigns `str.Length` to `RESULT`.
@@ -4066,8 +5295,36 @@ ENDDATA
 - (TODO: not yet documented)
 
 ## ADDCOPYCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Adds one or more new characters by copying an existing character’s data.
+
+**Tags**
+- characters
+
+**Syntax**
+- `ADDCOPYCHARA charaIndex`
+- `ADDCOPYCHARA charaIndex1, charaIndex2, ...`
+
+**Arguments**
+- Each `charaIndex`: int expression selecting an existing character index to copy from.
+
+**Semantics**
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
+- For each `charaIndex` (evaluated and executed left-to-right), the engine:
+  - Validates the source index is in range; otherwise errors.
+  - Appends a new pseudo character.
+  - Copies all character data from the source character into the newly appended last character.
+- `CHARANUM` increases by 1 for each successfully created copy.
+- This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
+
+**Errors & validation**
+- Runtime error if any `charaIndex` is out of range.
+
+**Examples**
+```erabasic
+ADDCOPYCHARA 0
+```
 
 ## SPLIT (instruction)
 **Summary**
@@ -4125,7 +5382,10 @@ ENDDATA
 
 **Summary**
 - Reorders the engine’s character list (`0 .. CHARANUM-1`) by a key taken from a character-data variable.
-- Observable engine behavior: keeps `MASTER` fixed at its numeric position for this instruction.
+- Observable behavior: keeps `MASTER` fixed at its numeric position for this instruction.
+
+**Tags**
+- characters
 
 **Syntax**
 - `SORTCHARA`
@@ -4137,8 +5397,8 @@ ENDDATA
 - Order: `FORWARD` = ascending, `BACK` = descending.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
 
-**Defaults / optional arguments**
-- If no args: uses key `NO` and ascending.
+- Omitted arguments / defaults:
+  - If no args: uses key `NO` and ascending.
 
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.
@@ -4183,15 +5443,15 @@ ENDDATA
 **Summary**
 - Swaps the values of two **changeable variables** (integer or string).
 
+**Tags**
+- variables
+
 **Syntax**
 - `SWAP <var1>, <var2>`
 
 **Arguments**
 - `<var1>`: a changeable variable term (must not be `CONST`).
 - `<var2>`: a changeable variable term (same type as `<var1>`).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - The engine first **fixes** both variable terms’ indices (important when indices contain expressions like `RAND`):
@@ -4214,7 +5474,10 @@ ENDDATA
 ## RANDOMIZE (instruction)
 
 **Summary**
-- Seeds the engine’s legacy RNG (Mersenne Twister) with a specified integer seed.
+- Seeds the legacy RNG with a specified integer seed.
+
+**Tags**
+- random
 
 **Syntax**
 - `RANDOMIZE`
@@ -4223,14 +5486,14 @@ ENDDATA
 **Arguments**
 - `<seed>` (optional): integer expression. If omitted, the seed defaults to `0`.
 
-**Defaults / optional arguments**
-- `<seed>` defaults to `0`.
+- Omitted arguments / defaults:
+  - `<seed>` defaults to `0`.
 
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
-  - Emits a warning and does nothing (implementation detail).
+  - Emits a warning and does nothing.
 - Otherwise:
-  - Replaces the engine’s legacy RNG instance with `new MTRandom(<seed>)`.
+  - Re-seeds the legacy RNG with `<seed>` truncated to 32 bits (i.e. low 32 bits used as an unsigned seed).
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -4245,20 +5508,21 @@ ENDDATA
 **Summary**
 - Dumps the engine’s legacy RNG state into the `RANDDATA` variable.
 
+**Tags**
+- random
+
 **Syntax**
 - `DUMPRAND`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
-  - Emits a warning and does nothing (implementation detail).
+  - Emits a warning and does nothing.
 - Otherwise:
-  - Writes the legacy RNG state into `RANDDATA` (via `MTRandom.GetRand(RANDDATA)`).
+  - Writes the legacy RNG state into `RANDDATA`.
+  - `RANDDATA` must have length 625; otherwise a runtime error is raised.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -4272,20 +5536,21 @@ ENDDATA
 **Summary**
 - Initializes the engine’s legacy RNG state from the `RANDDATA` variable.
 
+**Tags**
+- random
+
 **Syntax**
 - `INITRAND`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
-  - Emits a warning and does nothing (implementation detail).
+  - Emits a warning and does nothing.
 - Otherwise:
-  - Loads the legacy RNG state from `RANDDATA` (via `MTRandom.SetRand(RANDDATA)`).
+  - Loads the legacy RNG state from `RANDDATA`.
+  - `RANDDATA` must have length 625; otherwise a runtime error is raised.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -4316,6 +5581,9 @@ ENDDATA
 - Declares one printable choice inside a surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` block.
 - `DATA` lines are *not* intended to execute as standalone statements; they are consumed by the loader into the surrounding block’s data list.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `DATA [<raw text>]`
 - `DATA;<raw text>`
@@ -4324,8 +5592,8 @@ ENDDATA
 - Optional raw literal text (not an expression).
   - Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
 
-**Defaults / optional arguments**
-- Omitted argument is treated as empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as empty string.
 
 **Semantics**
 - At load time, the loader attaches `DATA` lines to the nearest surrounding block (`PRINTDATA*`, `STRDATA`, or `DATALIST`).
@@ -4347,14 +5615,17 @@ ENDDATA
 **Summary**
 - Like `DATA`, but the text is a FORM/formatted string (scanned at load time).
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `DATAFORM [<FORM string>]`
 
 **Arguments**
 - Optional FORM/formatted string scanned to end-of-line.
 
-**Defaults / optional arguments**
-- Omitted argument is treated as empty string.
+- Omitted arguments / defaults:
+  - Omitted argument is treated as empty string.
 
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.
@@ -4376,14 +5647,17 @@ ENDDATA
 **Summary**
 - Closes a `PRINTDATA*` or `STRDATA` block.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `ENDDATA`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- N/A.
+- Omitted arguments / defaults:
+  - N/A.
 
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
@@ -4402,6 +5676,9 @@ ENDDATA
 - Starts a **multi-line** choice list inside a surrounding `PRINTDATA*` or `STRDATA` block.
 - Each `DATA` / `DATAFORM` inside the list becomes a separate output line when this choice is selected.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `DATALIST`
   - `DATA ...` / `DATAFORM ...` (one or more)
@@ -4410,8 +5687,8 @@ ENDDATA
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- N/A.
+- Omitted arguments / defaults:
+  - N/A.
 
 **Semantics**
 - At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.
@@ -4436,14 +5713,17 @@ ENDDATA
 **Summary**
 - Closes a `DATALIST` block.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `ENDLIST`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- N/A.
+- Omitted arguments / defaults:
+  - N/A.
 
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
@@ -4459,15 +5739,18 @@ ENDDATA
 **Summary**
 - Like `PRINTDATA`, but instead of printing, it selects a `DATA`/`DATAFORM` choice and concatenates it into a destination string variable.
 
+**Tags**
+- data-blocks
+
 **Syntax**
 - `STRDATA [<strVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Optional `<strVarTerm>`: changeable string variable term to receive the result.
-- If omitted, defaults to `RESULTS` (engine behavior).
+- If omitted, defaults to `RESULTS`.
 
-**Defaults / optional arguments**
-- Destination defaults to `RESULTS` when omitted.
+- Omitted arguments / defaults:
+  - Destination defaults to `RESULTS` when omitted.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).
@@ -4531,14 +5814,14 @@ PRINTFORML RESULTS
 - Enables/disables Emuera’s “skip output” mode (`skipPrint`), which causes most print/wait/input built-ins to be skipped by the script runner.
 - Also sets `RESULT` to indicate whether skip mode is currently enabled.
 
+**Tags**
+- skip-mode
+
 **Syntax**
 - `SKIPDISP <int expr>`
 
 **Arguments**
 - `<int expr>`: `0` disables skip mode; non-zero enables skip mode.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.
@@ -4563,15 +5846,15 @@ PRINTFORML RESULTS
 - Begins a `NOSKIP ... ENDNOSKIP` block that temporarily disables `skipPrint` within the block body.
 - Intended to force some output/wait behavior to run even if `SKIPDISP` is currently skipping print-family instructions.
 
+**Tags**
+- skip-mode
+
 **Syntax**
 - `NOSKIP`
   - `...`
 - `ENDNOSKIP`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -4605,13 +5888,13 @@ ENDNOSKIP
 **Summary**
 - Ends a `NOSKIP ... ENDNOSKIP` block.
 
+**Tags**
+- skip-mode
+
 **Syntax**
 - `ENDNOSKIP`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -4629,6 +5912,9 @@ ENDNOSKIP
 **Summary**
 - Shifts elements in a mutable 1D array variable by a signed offset and fills new slots with a default value.
 
+**Tags**
+- arrays
+
 **Syntax**
 - `ARRAYSHIFT <arrayVar>, <shift>, <default> [, <start> [, <count>]]`
 
@@ -4639,9 +5925,9 @@ ENDNOSKIP
 - `<start>`: int expression (default `0`).
 - `<count>`: int expression (default “to end”; engine uses a sentinel).
 
-**Defaults / optional arguments**
-- `<start>` defaults to `0`.
-- `<count>` omitted means “to the end”.
+- Omitted arguments / defaults:
+  - `<start>` defaults to `0`.
+  - `<count>` omitted means “to the end”.
 
 **Semantics**
 - Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).
@@ -4661,6 +5947,9 @@ ENDNOSKIP
 **Summary**
 - Removes a slice of elements from a mutable 1D array by shifting later elements left and filling the tail with default values.
 
+**Tags**
+- arrays
+
 **Syntax**
 - `ARRAYREMOVE <arrayVar>, <start>, <count>`
 
@@ -4668,9 +5957,6 @@ ENDNOSKIP
 - `<arrayVar>`: changeable 1D array variable term.
 - `<start>`: integer expression; start index (0-based).
 - `<count>`: integer expression; number of elements to remove.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Works only on 1D arrays (int or string).
@@ -4697,6 +5983,9 @@ ENDNOSKIP
 **Summary**
 - Sorts a mutable 1D array in ascending or descending order, optionally within a subrange.
 
+**Tags**
+- arrays
+
 **Syntax**
 - Minimal form:
   - `ARRAYSORT <arrayVar>`
@@ -4711,16 +6000,16 @@ ENDNOSKIP
 - `<start>` (optional): integer expression; default `0`.
 - `<count>` (optional): integer expression; if omitted, sorts to end.
 
-**Defaults / optional arguments**
-- If `FORWARD|BACK` is omitted, order defaults to ascending and the engine does not accept `<start>/<count>` (parsing quirk).
-- `<start>` defaults to `0` when `FORWARD|BACK` is present but no subrange is provided.
-- `<count>` omitted means “to the end”.
+- Omitted arguments / defaults:
+  - If `FORWARD|BACK` is omitted, order defaults to ascending and the engine does not accept `<start>/<count>` (parsing quirk).
+  - `<start>` defaults to `0` when `FORWARD|BACK` is present but no subrange is provided.
+  - `<count>` omitted means “to the end”.
 
 **Semantics**
 - Sorts the specified region of the array:
   - The runtime treats `count <= 0` as “to the end” (but an explicitly provided `count == 0` is handled as a no-op in the instruction dispatcher).
-- Implementation detail / parsing quirk:
-  - The argument builder only parses `<start>` and `<count>` if the `FORWARD|BACK` token is present.
+- Parsing rule:
+  - `<start>` and `<count>` are only accepted when the `FORWARD|BACK` token is present.
 
 **Errors & validation**
 - Parse-time errors if:
@@ -4742,15 +6031,15 @@ ENDNOSKIP
 **Summary**
 - Copies elements from one array variable to another array variable of the same element type and dimension.
 
+**Tags**
+- arrays
+
 **Syntax**
 - `ARRAYCOPY <srcVarNameExpr>, <dstVarNameExpr>`
 
 **Arguments**
 - `<srcVarNameExpr>`: string expression whose value is a variable name.
 - `<dstVarNameExpr>`: string expression whose value is a variable name.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Resolves both variable names to variable tokens (early when literal, otherwise at runtime).
@@ -4772,18 +6061,18 @@ ENDNOSKIP
 - Sets the console’s “message skip” flag (`MesSkip`), which affects UI-side input handling and macro/skip behavior.
 - This is **not** the same mechanism as `SKIPDISP` (which skips print-family instructions in the script runner).
 
+**Tags**
+- skip-mode
+
 **Syntax**
 - `SKIPLOG <int expr>`
 
 **Arguments**
 - `<int expr>`: `0` clears message-skip; non-zero enables message-skip.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Evaluates `<int expr>` to `v`.
-- Sets `Console.MesSkip = (v != 0)`.
+- Sets the message-skip flag `MesSkip` to `(v != 0)`.
 - Implementation-oriented effect (UI-side):
   - When `MesSkip` is true, the input loop may automatically advance through waits that do not require a value, unless the current wait request explicitly stops message skip.
   - Some input instructions (`INPUT*`/`TINPUT*`) have a `canSkip` option that uses `MesSkip` to auto-accept their default value without waiting.
@@ -4800,6 +6089,9 @@ ENDNOSKIP
 **Summary**
 - Jumps into another non-event function (`@NAME`) like `CALL`, but does not return to the current function.
 
+**Tags**
+- calls
+
 **Syntax**
 - `JUMP <functionName> [, <arg1>, <arg2>, ... ]`
 - `JUMP <functionName>(<arg1>, <arg2>, ... )`
@@ -4807,8 +6099,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- Same as `CALL`.
+- Omitted arguments / defaults:
+  - Same as `CALL`.
 
 **Semantics**
 - Enters the target function.
@@ -4825,6 +6117,9 @@ ENDNOSKIP
 **Summary**
 - Calls a non-event script function (`@NAME`) and returns to the next line after the `CALL` when the callee returns.
 
+**Tags**
+- calls
+
 **Syntax**
 - `CALL <functionName> [, <arg1>, <arg2>, ... ]`
 - `CALL <functionName>(<arg1>, <arg2>, ... )`
@@ -4837,15 +6132,15 @@ ENDNOSKIP
 - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
 - `<argN>`: expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
 
-**Defaults / optional arguments**
-- If the callee declares more parameters than provided arguments, omitted arguments are handled by the engine’s user-function argument binder (defaults and config gates apply).
+- Omitted arguments / defaults:
+  - If the callee declares more parameters than provided arguments, omitted arguments are handled by the engine’s user-function argument binder (defaults and config gates apply).
 
 **Semantics**
 - Resolves the target label to a non-event function.
   - If `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
 - Evaluates arguments, binds them to the callee’s declared formals (including `REF` behavior), then enters the callee.
 - When the callee executes `RETURN` (or reaches end-of-function), control returns to the statement after the `CALL`.
-- Engine implementation detail: if `<functionName>` is a compile-time constant, the loader tries to resolve the callee and pre-check argument binding during the load phase.
+- Load-time behavior: if `<functionName>` is a compile-time constant, the loader tries to resolve the callee and may emit early diagnostics (e.g. unknown function, argument binding issues).
 
 **Errors & validation**
 - If `<functionName>` is a constant string:
@@ -4865,6 +6160,9 @@ ENDNOSKIP
 **Summary**
 - Like `JUMP`, but if the target function does not exist the instruction **does not error** and simply falls through to the next line.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYJUMP <functionName> [, <arg1>, <arg2>, ... ]`
 - `TRYJUMP <functionName>(<arg1>, <arg2>, ... )`
@@ -4872,8 +6170,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMP`.
 
-**Defaults / optional arguments**
-- Same as `JUMP`.
+- Omitted arguments / defaults:
+  - Same as `JUMP`.
 
 **Semantics**
 - If the target function exists: behaves like `JUMP`.
@@ -4890,6 +6188,9 @@ ENDNOSKIP
 **Summary**
 - Like `CALL`, but if the target function does not exist the instruction **does not error** and simply falls through to the next line.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCALL <functionName> [, <arg1>, <arg2>, ... ]`
 - `TRYCALL <functionName>(<arg1>, <arg2>, ... )`
@@ -4897,8 +6198,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- Same as `CALL`.
+- Omitted arguments / defaults:
+  - Same as `CALL`.
 
 **Semantics**
 - If the target function exists: behaves like `CALL`.
@@ -4915,6 +6216,9 @@ ENDNOSKIP
 **Summary**
 - Like `JUMP`, but the function name is a formatted (FORM) string expression evaluated at runtime.
 
+**Tags**
+- calls
+
 **Syntax**
 - `JUMPFORM <formString> [, <arg1>, <arg2>, ... ]`
 - `JUMPFORM <formString>(<arg1>, <arg2>, ... )`
@@ -4922,8 +6226,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
-**Defaults / optional arguments**
-- Same as `CALLFORM`.
+- Omitted arguments / defaults:
+  - Same as `CALLFORM`.
 
 **Semantics**
 - Same as `JUMP`, with a runtime-evaluated function name.
@@ -4939,6 +6243,9 @@ ENDNOSKIP
 **Summary**
 - Like `CALL`, but the function name is a formatted (FORM) string expression evaluated at runtime.
 
+**Tags**
+- calls
+
 **Syntax**
 - `CALLFORM <formString> [, <arg1>, <arg2>, ... ]`
 - `CALLFORM <formString>(<arg1>, <arg2>, ... )`
@@ -4948,8 +6255,8 @@ ENDNOSKIP
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
 - `<argN>`: same as `CALL`.
 
-**Defaults / optional arguments**
-- Same as `CALL`.
+- Omitted arguments / defaults:
+  - Same as `CALL`.
 
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.
@@ -4965,6 +6272,9 @@ ENDNOSKIP
 **Summary**
 - Like `JUMPFORM`, but if the evaluated function name does not resolve to a function the instruction **does not error** and simply falls through.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYJUMPFORM <formString> [, <arg1>, <arg2>, ... ]`
 - `TRYJUMPFORM <formString>(<arg1>, <arg2>, ... )`
@@ -4972,8 +6282,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMPFORM`.
 
-**Defaults / optional arguments**
-- Same as `JUMPFORM`.
+- Omitted arguments / defaults:
+  - Same as `JUMPFORM`.
 
 **Semantics**
 - If the target function exists: behaves like `JUMPFORM`.
@@ -4990,6 +6300,9 @@ ENDNOSKIP
 **Summary**
 - Like `CALLFORM`, but if the evaluated function name does not resolve to a function the instruction **does not error** and simply falls through.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCALLFORM <formString> [, <arg1>, <arg2>, ... ]`
 - `TRYCALLFORM <formString>(<arg1>, <arg2>, ... )`
@@ -4997,8 +6310,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
-**Defaults / optional arguments**
-- Same as `CALLFORM`.
+- Omitted arguments / defaults:
+  - Same as `CALLFORM`.
 
 **Semantics**
 - If the target function exists: behaves like `CALLFORM`.
@@ -5015,6 +6328,9 @@ ENDNOSKIP
 **Summary**
 - Like `TRYJUMP`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCJUMP <functionName> [, <arg1>, ... ]`
 - `CATCH`
@@ -5024,8 +6340,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMP`.
 
-**Defaults / optional arguments**
-- Same as `JUMP`.
+- Omitted arguments / defaults:
+  - Same as `JUMP`.
 
 **Semantics**
 - If the target function exists: behaves like `JUMP` (tail-call-like); the current function is discarded, so it does not return to reach `CATCH`.
@@ -5045,6 +6361,9 @@ ENDNOSKIP
 **Summary**
 - Like `TRYCALL`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCCALL <functionName> [, <arg1>, ... ]`
 - `CATCH`
@@ -5054,8 +6373,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- Same as `CALL`.
+- Omitted arguments / defaults:
+  - Same as `CALL`.
 
 **Semantics**
 - If the target function exists: behaves like `CALL`, then control returns and reaches `CATCH` sequentially; `CATCH` skips the catch body.
@@ -5076,6 +6395,9 @@ ENDNOSKIP
 **Summary**
 - Like `TRYJUMPFORM`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCJUMPFORM <formString> [, <arg1>, ... ]`
 - `CATCH`
@@ -5085,8 +6407,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMPFORM`.
 
-**Defaults / optional arguments**
-- Same as `JUMPFORM`.
+- Omitted arguments / defaults:
+  - Same as `JUMPFORM`.
 
 **Semantics**
 - Same as `TRYCJUMP`, but with a runtime-evaluated function name.
@@ -5105,6 +6427,9 @@ ENDNOSKIP
 **Summary**
 - Like `TRYCALLFORM`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCCALLFORM <formString> [, <arg1>, ... ]`
 - `CATCH`
@@ -5114,8 +6439,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
-**Defaults / optional arguments**
-- Same as `CALLFORM`.
+- Omitted arguments / defaults:
+  - Same as `CALLFORM`.
 
 **Semantics**
 - Same as `TRYCCALL`, but with a runtime-evaluated function name.
@@ -5138,6 +6463,9 @@ ENDNOSKIP
 **Summary**
 - Calls an expression function (built-in method or user-defined `#FUNCTION/#FUNCTIONS`) by name and evaluates it as a statement.
 
+**Tags**
+- calls
+
 **Syntax**
 - `CALLF <methodName> [, <arg1>, <arg2>, ... ]`
 - `CALLF <methodName>(<arg1>, <arg2>, ... )`
@@ -5146,8 +6474,8 @@ ENDNOSKIP
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
 - `<argN>`: expressions passed to the method.
 
-**Defaults / optional arguments**
-- Depends on the called method’s own signature rules (omission/variadics/etc.).
+- Omitted arguments / defaults:
+  - Depends on the called method’s own signature rules (omission/variadics/etc.).
 
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.
@@ -5165,6 +6493,9 @@ ENDNOSKIP
 **Summary**
 - Like `CALLF`, but the method name is a formatted (FORM) string expression evaluated at runtime.
 
+**Tags**
+- calls
+
 **Syntax**
 - `CALLFORMF <formString> [, <arg1>, <arg2>, ... ]`
 - `CALLFORMF <formString>(<arg1>, <arg2>, ... )`
@@ -5173,8 +6504,8 @@ ENDNOSKIP
 - `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
 - `<argN>`: expressions passed to the method.
 
-**Defaults / optional arguments**
-- Depends on the called method’s own signature rules.
+- Omitted arguments / defaults:
+  - Depends on the called method’s own signature rules.
 
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.
@@ -5199,14 +6530,14 @@ ENDNOSKIP
 **Summary**
 - Jumps to a local `$label` within the current function.
 
+**Tags**
+- calls
+
 **Syntax**
 - `GOTO <labelName>`
 
 **Arguments**
 - `<labelName>`: a raw string token; used to resolve a `$label` relative to the current function.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If the label exists, jumps to the `$label` marker; execution continues at the line after the `$label`.
@@ -5229,14 +6560,14 @@ ENDNOSKIP
 **Summary**
 - Like `GOTO`, but if the target `$label` does not exist the instruction **does not error** and simply falls through.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYGOTO <labelName>`
 
 **Arguments**
 - Same as `GOTO`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If the `$label` exists: behaves like `GOTO`.
@@ -5253,14 +6584,14 @@ ENDNOSKIP
 **Summary**
 - Like `GOTO`, but the label name is a formatted (FORM) string expression evaluated at runtime.
 
+**Tags**
+- calls
+
 **Syntax**
 - `GOTOFORM <formString>`
 
 **Arguments**
 - `<formString>`: FORM/formatted string; the evaluated result is used as the `$label` name.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Evaluates the label name and jumps if it resolves to a `$label` in the current function.
@@ -5276,14 +6607,14 @@ ENDNOSKIP
 **Summary**
 - Like `GOTOFORM`, but if the evaluated `$label` name does not exist the instruction **does not error** and simply falls through.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYGOTOFORM <formString>`
 
 **Arguments**
 - Same as `GOTOFORM`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If the `$label` exists: behaves like `GOTOFORM`.
@@ -5300,6 +6631,9 @@ ENDNOSKIP
 **Summary**
 - Like `TRYGOTO`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCGOTO <labelName>`
 - `CATCH`
@@ -5308,9 +6642,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `GOTO`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If the `$label` exists: behaves like `GOTO` (jumps to the label). Whether the `CATCH` line is ever reached depends on subsequent control flow.
@@ -5330,6 +6661,9 @@ ENDNOSKIP
 **Summary**
 - Like `TRYGOTOFORM`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCGOTOFORM <formString>`
 - `CATCH`
@@ -5338,9 +6672,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `GOTOFORM`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Same as `TRYCGOTO`, but with a runtime-evaluated label name.
@@ -5359,15 +6690,15 @@ ENDNOSKIP
 **Summary**
 - Begins the catch-body of a `TRYC* ... CATCH ... ENDCATCH` construct.
 
+**Tags**
+- error-handling
+
 **Syntax**
 - `CATCH`
   - `<catch body>`
   - `ENDCATCH`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -5387,13 +6718,13 @@ ENDNOSKIP
 **Summary**
 - Ends a `CATCH ... ENDCATCH` block.
 
+**Tags**
+- error-handling
+
 **Syntax**
 - `ENDCATCH`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -5410,6 +6741,9 @@ ENDNOSKIP
 **Summary**
 - Tries a list of candidate non-event functions and `CALL`s the first one that exists; otherwise skips the block.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCALLLIST`
   - `FUNC <formString> [, <arg1>, <arg2>, ... ]`
@@ -5423,9 +6757,6 @@ ENDNOSKIP
   - a candidate function name as a **FORM/formatted string expression** (evaluated to a string at runtime)
   - optional call arguments (expressions)
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Structural notes:
   - The lines between `TRYCALLLIST` and `ENDFUNC` are **list items**, not a normal executable block body.
@@ -5437,7 +6768,7 @@ ENDNOSKIP
     - Otherwise, bind arguments and enter that function (like `CALL`).
       - When the callee returns, execution resumes at the `ENDFUNC` line (then continues after it).
   - If no candidate matches, jump directly to the `ENDFUNC` line (then continue after it).
-- Implementation detail: `FUNC` syntax is parsed using the same argument builder as `CALLFORM` (candidate name is a FORM string; arguments are normal expressions).
+- `FUNC` syntax matches `CALLFORM`: candidate name is a FORM string; arguments are normal expressions.
 
 **Errors & validation**
 - Load-time structure errors (the line is marked as error):
@@ -5460,6 +6791,9 @@ ENDNOSKIP
 **Summary**
 - Like `TRYCALLLIST`, but performs a `JUMP` into the first existing candidate.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYJUMPLIST`
   - `FUNC <formString> [, <arg1>, ... ]`
@@ -5468,9 +6802,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `TRYCALLLIST`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Same selection rules as `TRYCALLLIST`.
@@ -5493,6 +6824,9 @@ ENDNOSKIP
 **Summary**
 - Tries a list of candidate `$label` targets and jumps to the first one that exists; otherwise jumps to `ENDFUNC` (end of the list).
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYGOTOLIST`
   - `FUNC <formString>`
@@ -5502,9 +6836,6 @@ ENDNOSKIP
 
 **Arguments**
 - Each `FUNC` item provides a label name as a **FORM/formatted string expression** (evaluated to a string at runtime).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Structural notes:
@@ -5533,6 +6864,9 @@ ENDNOSKIP
 **Summary**
 - List-item line inside `TRYCALLLIST` / `TRYJUMPLIST` / `TRYGOTOLIST` blocks.
 
+**Tags**
+- functions
+
 **Syntax**
 - Inside `TRYCALLLIST` / `TRYJUMPLIST`:
   - `FUNC <formString> [, <arg1>, <arg2>, ... ]`
@@ -5544,15 +6878,12 @@ ENDNOSKIP
 - `<formString>`: a FORM/formatted string expression evaluated to a function name or label name.
 - `<argN>`: optional call arguments (not allowed for `TRYGOTOLIST`).
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Not executed as a standalone statement.
 - During load, Emuera collects `FUNC` lines into the surrounding `TRY*LIST` instruction’s internal `callList`.
 - At runtime, the surrounding `TRY*LIST` evaluates these items in order (see `TRYCALLLIST` / `TRYJUMPLIST` / `TRYGOTOLIST`).
-- Implementation detail: `FUNC` is parsed using the same argument builder as `CALLFORM`.
-- Implementation detail: in `TRYCALLLIST` / `TRYJUMPLIST`, the optional `[...]` subname segment is parsed and stored, but the current runtime implementation does not use it when selecting/calling the function.
+- Argument parsing is the same as `CALLFORM`: candidate name is a FORM string; call arguments are normal expressions.
+- In `TRYCALLLIST` / `TRYJUMPLIST`, the optional `[...]` subname segment is parsed and stored, but it is not used when selecting/calling the function.
 
 **Errors & validation**
 - `FUNC` must appear only inside `TRY*LIST ... ENDFUNC`; otherwise it is a load-time error (the line is marked as error).
@@ -5565,13 +6896,13 @@ ENDNOSKIP
 **Summary**
 - Ends a `TRY*LIST ... ENDFUNC` block.
 
+**Tags**
+- functions
+
 **Syntax**
 - `ENDFUNC`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -5616,6 +6947,9 @@ ENDNOSKIP
 **Summary**
 - Declared but **not implemented** in this engine build (always errors).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `SAVEVAR <name>, <saveText>, <var1> [, <var2> ...]`
 
@@ -5623,9 +6957,6 @@ ENDNOSKIP
 - `<name>`: string expression; intended file name component.
 - `<saveText>`: string expression; intended description text.
 - `<var*>`: one or more changeable non-character variable terms (arrays are allowed; several variable categories are rejected).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
@@ -5643,14 +6974,14 @@ ENDNOSKIP
 **Summary**
 - Declared but **not implemented** in this engine build (always errors).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `LOADVAR <name>`
 
 **Arguments**
 - `<name>`: string expression; intended file name component.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
@@ -5667,6 +6998,10 @@ ENDNOSKIP
 **Summary**
 - Saves one or more characters into a `dat/chara_<name>.dat` file (binary only).
 
+**Tags**
+- characters
+- save-system
+
 **Syntax**
 - `SAVECHARA <name>, <saveText>, <charaNo1> [, <charaNo2> ...]`
 
@@ -5675,13 +7010,10 @@ ENDNOSKIP
 - `<saveText>`: string expression stored in the file as a description.
 - `<charaNo*>`: one or more integer expressions; character indices to save (0-based).
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Writes a binary file under `Program.DatDir`:
   - Path is `chara_<name>.dat`.
-- File format (implementation detail):
+- File format:
   - Binary save format with file type `CharVar`.
   - Includes game unique code and script version checks, `<saveText>`, and the serialized character data.
 - Validates the character list:
@@ -5702,14 +7034,15 @@ ENDNOSKIP
 **Summary**
 - Loads characters from `dat/chara_<name>.dat` and appends them to the current character list.
 
+**Tags**
+- characters
+- save-system
+
 **Syntax**
 - `LOADCHARA <name>`
 
 **Arguments**
 - `<name>`: string expression; the file name component.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Reads `Program.DatDir/chara_<name>.dat`.
@@ -5735,12 +7068,100 @@ ENDNOSKIP
 - (TODO: not yet documented)
 
 ## HTML_PRINT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints an HTML string (Emuera’s HTML-like mini language) as console output.
+
+**Tags**
+- io
+
+**Syntax**
+- `HTML_PRINT <html>(, <toBuffer>)`
+
+**Arguments**
+- `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
+- `<toBuffer>` (optional): integer expression.
+  - `0` (default): print as a complete logical output line (implicit line end).
+  - non-zero: append the HTML output into the current print buffer (no implicit line end).
+
+- Omitted arguments / defaults:
+  - `<toBuffer>` defaults to `0`.
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output and no evaluation).
+- Evaluates `<html>` to a string.
+  - If it is null/empty, no output is produced.
+- Interprets the string as an HTML string and renders it according to `html-output.md` (tags, entities, comments, wrapping rules).
+- If `<toBuffer> = 0` (or omitted):
+  - Any pending print buffer content is flushed first (as with other “line-ending” print operations).
+  - The HTML is rendered into one logical output line (it may still occupy multiple display lines due to `<br>` or wrapping).
+- If `<toBuffer> != 0`:
+  - The HTML is converted to output segments and appended into the current print buffer.
+  - `<br>` (and literal `'\n'` inside the HTML string) insert display line breaks, but no final line end is implied.
+- The output is not affected by non-HTML text style commands like `ALIGNMENT`, `SETFONT`, `SETCOLOR`, or `FONTSTYLE`; use HTML tags (`<p>`, `<font>`, `<b>`, etc.) instead.
+
+**Errors & validation**
+- Argument type/count errors follow the normal expression argument rules.
+- Invalid HTML strings raise runtime errors (unsupported tags, invalid attributes, invalid character references, tag structure violations), except where a tag explicitly specifies a fallback-to-text behavior (e.g. unresolved `<img>` resources).
+
+**Examples**
+```erabasic
+; Prints one logical line (with HTML styling)
+HTML_PRINT "<p align='center'><b>Hello</b> <font color='red'>world</font></p>"
+```
+
+```erabasic
+; Appends into the current print buffer (no implicit newline)
+HTML_PRINT "<b>HP:</b> 10", 1
+PRINTL ""
+```
 
 ## HTML_TAGSPLIT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Splits an HTML string into a sequence of raw tags and raw text segments.
+
+**Tags**
+- string
+
+**Syntax**
+- `HTML_TAGSPLIT <html>(, <outParts>, <outCount>)`
+
+**Arguments**
+- `<html>`: string expression.
+- `<outParts>` (optional): a changeable 1D **non-character** string array variable.
+  - Default: `RESULTS`.
+- `<outCount>` (optional): a changeable integer variable.
+  - Default: `RESULT`.
+
+- Omitted arguments / defaults:
+  - If `<outParts>` is omitted, the split parts are written to `RESULTS`.
+  - If `<outCount>` is omitted, the split count is written to `RESULT`.
+
+**Semantics**
+- Interprets `<html>` as an HTML string and splits it by scanning for `<...>` regions:
+  - Each tag-like region from `<` through the next `>` (inclusive) is emitted as a single part.
+  - Text between such regions is emitted as-is as a single part.
+- The splitter does **not** validate tag relationships or supported tag names; it only performs lexical splitting.
+  - For example, it will emit `</font>` as a tag part even if no `<font>` was previously seen.
+- On success:
+  - Writes the total part count to `<outCount>`.
+  - Writes parts to `<outParts>:i` for `0 <= i < min(partCount, len(<outParts>))`.
+  - If `partCount` exceeds the destination array length, excess parts are not written.
+- On failure (e.g. a `<` is found but no matching `>` exists later in the string):
+  - Writes `-1` to `<outCount>`.
+  - Does not modify `<outParts>`.
+
+**Errors & validation**
+- Argument type/count errors follow the normal expression argument rules.
+
+**Examples**
+```erabasic
+HTML_TAGSPLIT "<p align='right'>A<!--c-->B</p>"
+PRINTFORML RESULT = {RESULT}
+PRINTFORML RESULTS:0 = %RESULTS:0%
+PRINTFORML RESULTS:1 = %RESULTS:1%
+```
 
 ## PRINT_IMG (instruction)
 **Summary**
@@ -5783,13 +7204,13 @@ ENDNOSKIP
 **Summary**
 - Writes the current local date/time into `RESULT` (as a packed integer) and `RESULTS` (as a formatted string).
 
+**Tags**
+- time
+
 **Syntax**
 - `GETTIME`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**
@@ -5809,6 +7230,9 @@ ENDNOSKIP
 **Summary**
 - Computes an integer power using `Math.Pow` and stores the result into a destination integer variable.
 
+**Tags**
+- math
+
 **Syntax**
 - `POWER <dest>, <x>, <y>`
 
@@ -5816,9 +7240,6 @@ ENDNOSKIP
 - `<dest>`: changeable integer variable term (destination).
 - `<x>`: integer expression (base).
 - `<y>`: integer expression (exponent).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Evaluates `<x>` and `<y>` as integers, converts them to `double`, then computes `pow = Math.Pow(x, y)`.
@@ -5901,14 +7322,14 @@ ENDNOSKIP
 **Summary**
 - A “forced” variant of `BEGIN`.
 
+**Tags**
+- system
+
 **Syntax**
 - `FORCE_BEGIN <keyword>`
 
 **Arguments**
 - Same as `BEGIN`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Same as `BEGIN` in the current engine implementation.
@@ -5972,18 +7393,73 @@ ENDNOSKIP
 - (TODO: not yet documented)
 
 ## HTML_PRINT_ISLAND (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Prints an HTML string into the “HTML island” layer, which is not tied to the normal scrollback/logical line list.
+
+**Tags**
+- io
+
+**Syntax**
+- `HTML_PRINT_ISLAND <html>(, <ignored>)`
+
+**Arguments**
+- `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
+- `<ignored>` (optional): integer expression. Accepted by the argument parser but ignored by this instruction.
+
+**Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output and no evaluation).
+- Evaluates `<html>` to a string and appends the rendered HTML output into a separate “island” layer.
+- The island layer is not counted by `LINECOUNT` and is not removed by `CLEARLINE`.
+- The island layer is drawn independently of the normal log:
+  - It does not scroll with the log.
+  - It is drawn from the top of the window, with each appended “logical line” placed on successive rows.
+- Note: `<div ...>...</div>` sub-areas are not rendered in the island layer.
+- Use `HTML_PRINT_ISLAND_CLEAR` to clear the island layer.
+
+**Errors & validation**
+- Argument type/count errors follow the normal expression argument rules.
+- Invalid HTML strings raise runtime errors (same HTML mini-language as `HTML_PRINT`).
+
+**Examples**
+```erabasic
+HTML_PRINT_ISLAND "<div width='300px' height='30px' color='#202020'><font color='white'>Status</font></div>"
+```
 
 ## HTML_PRINT_ISLAND_CLEAR (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Clears all content previously added by `HTML_PRINT_ISLAND`.
+
+**Tags**
+- io
+
+**Syntax**
+- `HTML_PRINT_ISLAND_CLEAR`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Clears the “HTML island” layer immediately.
+- This instruction is not skipped by output skipping; it always clears the island layer.
+
+**Errors & validation**
+- None.
+
+**Examples**
+```erabasic
+HTML_PRINT_ISLAND_CLEAR
+```
 
 ## PRINTN (instruction)
 
 **Summary**
 - `PRINTN` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
+
+**Tags**
+- io
 
 **Syntax**
 - `PRINTN [<raw text>]`
@@ -5992,8 +7468,8 @@ ENDNOSKIP
 **Arguments**
 - Optional raw literal text (not an expression).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -6011,6 +7487,9 @@ ENDNOSKIP
 - `PRINTVN` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTVN <expr1> [, <expr2> ...]`
 
@@ -6018,8 +7497,8 @@ ENDNOSKIP
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- None (missing arguments are an error).
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -6038,14 +7517,17 @@ ENDNOSKIP
 - `PRINTSN` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTSN <string expr>`
 
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -6064,6 +7546,9 @@ ENDNOSKIP
 - `PRINTFORMN` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMN [<FORM string>]`
 
@@ -6071,8 +7556,8 @@ ENDNOSKIP
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -6091,6 +7576,9 @@ ENDNOSKIP
 - `PRINTFORMSN` is a PRINT-family variant.
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 
+**Tags**
+- io
+
 **Syntax**
 - `PRINTFORMSN <string expr>`
 
@@ -6098,8 +7586,8 @@ ENDNOSKIP
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- None (missing argument is an error).
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -6182,11 +7670,13 @@ ENDNOSKIP
 ## FINDCHARA (expression function)
 
 **Summary**
-- Returns the first character index in the current character list whose character-variable cell equals a target value.
+- Returns the first chara index (role index) in the current character list whose character-data cell equals a target value.
+
+**Tags**
+- characters
 
 **Syntax**
 - `FINDCHARA(charaVarTerm, value [, startIndex [, lastIndex]])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `FINDCHARA(NAME, "A", , 10)`).
 
 **Signatures / argument rules**
 - `FINDCHARA(charaVarTerm, value)` → `long`
@@ -6194,20 +7684,17 @@ ENDNOSKIP
 - `FINDCHARA(charaVarTerm, value, startIndex, lastIndex)` → `long`
 
 **Arguments**
-- `charaVarTerm`: character-data variable term.
-  - Must evaluate to a variable term whose identifier is marked as “character data”.
-  - If the variable is a 1D/2D array, the array subscripts on `charaVarTerm` select which per-character cell is compared.
-- `value`: scalar value to match; must be the same scalar type as the selected cell (string vs int).
-- `startIndex` (optional): int expression; inclusive start character index.
-- `lastIndex` (optional): int expression; exclusive end character index.
-
-**Defaults / optional arguments**
-- If `startIndex` is omitted (or omitted as an empty slot): defaults to `0`.
-- If `lastIndex` is omitted (or omitted as an empty slot): defaults to `CHARANUM` (the current total number of characters).
+- `charaVarTerm` (character-data variable term): selects a character-data variable (scalar or array).
+  - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
+  - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
+- The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+- `value` (int|string; must match the selected cell type): scalar value to match.
+- `startIndex` (optional, int; default `0`): inclusive start chara index.
+- `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
 
 **Semantics**
 - Reads the current `CHARANUM` and searches forward in the half-open range `[startIndex, lastIndex)`.
-- For each character index `i` in the range, compares `charaVarTerm(i)` against `value` using direct equality:
+- For each chara index `i` in the range, compares the selected per-chara cell against `value` using direct equality:
   - string cell: `==` (ordinal string equality in .NET)
   - int cell: `==`
 - Returns the first matching index `i`, or `-1` if:
@@ -6228,11 +7715,13 @@ ENDNOSKIP
 ## FINDLASTCHARA (expression function)
 
 **Summary**
-- Like `FINDCHARA`, but searches backward and returns the last matching character index in the range.
+- Like `FINDCHARA`, but searches backward and returns the last matching chara index (role index) in the range.
+
+**Tags**
+- characters
 
 **Syntax**
 - `FINDLASTCHARA(charaVarTerm, value [, startIndex [, lastIndex]])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `FINDLASTCHARA(NAME, "A", , 10)`).
 
 **Signatures / argument rules**
 - `FINDLASTCHARA(charaVarTerm, value)` → `long`
@@ -6240,21 +7729,18 @@ ENDNOSKIP
 - `FINDLASTCHARA(charaVarTerm, value, startIndex, lastIndex)` → `long`
 
 **Arguments**
-- `charaVarTerm`: character-data variable term.
-  - Must evaluate to a variable term whose identifier is marked as “character data”.
-  - If the variable is a 1D/2D array, the array subscripts on `charaVarTerm` select which per-character cell is compared.
-- `value`: scalar value to match; must be the same scalar type as the selected cell (string vs int).
-- `startIndex` (optional): int expression; inclusive start character index.
-- `lastIndex` (optional): int expression; exclusive end character index.
-
-**Defaults / optional arguments**
-- If `startIndex` is omitted (or omitted as an empty slot): defaults to `0`.
-- If `lastIndex` is omitted (or omitted as an empty slot): defaults to `CHARANUM` (the current total number of characters).
+- `charaVarTerm` (character-data variable term): selects a character-data variable (scalar or array).
+  - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
+  - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
+- The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+- `value` (int|string; must match the selected cell type): scalar value to match.
+- `startIndex` (optional, int; default `0`): inclusive start chara index.
+- `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
 
 **Semantics**
 - Reads the current `CHARANUM` and searches backward in the half-open range `[startIndex, lastIndex)`.
 - The search order is: `lastIndex - 1`, `lastIndex - 2`, ..., down to `startIndex`.
-- For each character index `i` in the range, compares `charaVarTerm(i)` against `value` using direct equality:
+- For each chara index `i` in the range, compares the selected per-chara cell against `value` using direct equality:
   - string cell: `==` (ordinal string equality in .NET)
   - int cell: `==`
 - Returns the first match encountered in that reverse scan (i.e. the “last” match in the range), or `-1` if:
@@ -6329,8 +7815,42 @@ ENDNOSKIP
 - (TODO: not yet documented)
 
 ## BARSTR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the same bar string that `BAR`/`BARL` would print with the same arguments.
+
+**Tags**
+- io
+
+**Syntax**
+- `BARSTR(value, maxValue, length)`
+
+**Signatures / argument rules**
+- `BARSTR(value, maxValue, length)` → `string`
+
+**Arguments**
+- `value`: int expression (numerator).
+- `maxValue`: int expression (denominator); must evaluate to `> 0`.
+- `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
+
+**Semantics**
+- Produces:
+  - `[` + (`BarChar1` repeated `filled`) + (`BarChar2` repeated `length - filled`) + `]`
+  - where `filled = clamp(value * length / maxValue, 0, length)`.
+- `BarChar1` / `BarChar2` are configurable (defaults: `*` and `.`).
+- As a standalone statement (method-as-statement form), the returned string is written to `RESULTS`.
+
+**Errors & validation**
+- Runtime errors if:
+  - `maxValue <= 0`
+  - `length <= 0`
+  - `length >= 100`
+
+**Examples**
+```erabasic
+S '= BARSTR(HP, MAXHP, 20)
+PRINTFORML %S%
+```
 
 ## CURRENTALIGN (expression function)
 **Summary**
@@ -6535,11 +8055,13 @@ ENDNOSKIP
 ## SUBSTRING (expression function)
 
 **Summary**
-- Returns a substring where `start`/`length` are measured in the engine’s current language-encoding byte count (not Unicode code units).
+- Returns a substring where `start`/`length` are measured in the engine’s “language length” units (the same unit returned by `STRLEN`).
+
+**Tags**
+- text
 
 **Syntax**
 - `SUBSTRING(str [, start [, length]])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `SUBSTRING(str, , 10)`).
 
 **Signatures / argument rules**
 - `SUBSTRING(str)` → `string`
@@ -6547,28 +8069,23 @@ ENDNOSKIP
 - `SUBSTRING(str, start, length)` → `string`
 
 **Arguments**
-- `str`: string.
-- `start` (optional): int (language-length offset; see Semantics).
-- `length` (optional): int (language-length count; `<0` means “to end”).
-
-**Defaults / optional arguments**
-- If `start` is omitted (or omitted as an empty slot): defaults to `0`.
-- If `length` is omitted (or omitted as an empty slot): defaults to `-1` (meaning “to end”).
+- `str` (string): input string.
+- `start` (optional, int; default `0`): language-length offset; see Semantics.
+- `length` (optional, int; default `-1`): language-length count (`<0` means “to end”).
 
 **Semantics**
-- The engine defines a “language length” for strings:
-  - If `str` is ASCII-only: `total = str.Length`.
-  - Otherwise: `total = ByteCount(str)` under the engine’s configured language encoding (see `useLanguage` / `Config.Language`).
+- Let `total = STRLEN(str)` (the engine’s “language length” of `str`).
+- `start` and `length` are measured in this same unit.
 - Special cases:
   - If `start >= total` or `length == 0`: returns `""`.
   - If `length < 0` or `length > total`: `length` is treated as `total` (effectively “to end”).
   - If `start <= 0` and `length == total`: returns `str` unchanged.
 - Start position selection (character-boundary rounding):
   - If `start <= 0`, the substring starts at the first character.
-  - If `start > 0`, the engine advances from the beginning, accumulating `ByteCount(char)` until the accumulated count becomes `>= start`; the substring then starts at the *next* character position reached by that scan.
+  - If `start > 0`, the engine advances from the beginning, accumulating the per-character byte count under the current language encoding until the accumulated count becomes `>= start`; the substring then starts at the *next* character position reached by that scan.
   - This means `start` values that fall “inside” a multi-byte character effectively round up to the next character boundary (the multi-byte character is skipped).
 - Length selection (character-boundary rounding):
-  - Starting from the chosen start character, the engine appends characters while accumulating `ByteCount(char)` until the accumulated count becomes `>= length`, or until end-of-string.
+  - Starting from the chosen start character, the engine appends characters while accumulating the per-character byte count under the current language encoding until the accumulated count becomes `>= length`, or until end-of-string.
   - This means the returned substring may exceed `length` in bytes if the last included character is multi-byte.
 
 **Errors & validation**
@@ -6598,9 +8115,11 @@ ENDNOSKIP
 **Summary**
 - Converts an integer to a string, optionally using a .NET numeric format string.
 
+**Tags**
+- text
+
 **Syntax**
 - `TOSTR(i [, format])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `TOSTR(42, )`).
 
 **Signatures / argument rules**
 - `TOSTR(i)` → `string`
@@ -6610,8 +8129,8 @@ ENDNOSKIP
 - `i`: int expression.
 - `format` (optional): string expression passed to `Int64.ToString(format)`.
 
-**Defaults / optional arguments**
-- If `format` is omitted or `null`: uses the default `i.ToString()` formatting.
+- Omitted arguments / defaults:
+  - If `format` is omitted or `null`: uses the default `i.ToString()` formatting.
 
 **Semantics**
 - If `format` is omitted or null: returns `i.ToString()`.
@@ -6631,6 +8150,9 @@ ENDNOSKIP
 - Parses a string into an integer using the engine’s numeric-literal reader.
 - Returns `0` for many invalid inputs, but some invalid numeric-literal forms raise an error (see Errors & validation).
 
+**Tags**
+- text
+
 **Syntax**
 - `TOINT(str)`
 
@@ -6639,9 +8161,6 @@ ENDNOSKIP
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Returns `0` if `str` is `null` or `""`.
@@ -6653,7 +8172,7 @@ ENDNOSKIP
 - Parses the leading integer literal using the engine’s integer-literal reader (the same routine used by the lexer/parser):
   - recognizes `0x...` / `0X...` (hex) and `0b...` / `0B...` (binary)
   - recognizes exponent suffixes `e`/`E` (base-10) and `p`/`P` (base-2) with a (signed) integer exponent
-    - Implementation detail: exponent digits are parsed by the same digit-reader used for the main literal (so the accepted exponent digit set depends on the literal’s base).
+    - Exponent digits are parsed using the same digit set as the main literal (so the accepted exponent digit set depends on the literal’s base).
 - After the integer literal:
   - If end-of-string: return the parsed value.
   - If the next character is `.`: the remainder must be digits only; this fractional part is validated but ignored.
@@ -6677,6 +8196,9 @@ ENDNOSKIP
 **Summary**
 - Converts a string to uppercase.
 
+**Tags**
+- text
+
 **Syntax**
 - `TOUPPER(str)`
 
@@ -6685,9 +8207,6 @@ ENDNOSKIP
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -6705,6 +8224,9 @@ ENDNOSKIP
 **Summary**
 - Converts a string to lowercase.
 
+**Tags**
+- text
+
 **Syntax**
 - `TOLOWER(str)`
 
@@ -6713,9 +8235,6 @@ ENDNOSKIP
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -6733,6 +8252,9 @@ ENDNOSKIP
 **Summary**
 - Converts full-width characters to half-width (narrow) form using the engine’s configured language setting.
 
+**Tags**
+- text
+
 **Syntax**
 - `TOHALF(str)`
 
@@ -6741,9 +8263,6 @@ ENDNOSKIP
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -6761,6 +8280,9 @@ ENDNOSKIP
 **Summary**
 - Converts half-width characters to full-width (wide) form using the engine’s configured language setting.
 
+**Tags**
+- text
+
 **Syntax**
 - `TOFULL(str)`
 
@@ -6769,9 +8291,6 @@ ENDNOSKIP
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -6841,20 +8360,157 @@ ENDNOSKIP
 - (TODO: not yet documented)
 
 ## HTML_GETPRINTEDSTR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the HTML-formatted representation of a previously displayed **logical output line**.
+
+**Tags**
+- io
+
+**Syntax**
+- `HTML_GETPRINTEDSTR(<lineNo>)`
+
+**Signatures / argument rules**
+- Signature: `string HTML_GETPRINTEDSTR(int lineNo = 0)`.
+- `<lineNo>` is evaluated as an integer expression.
+
+**Arguments**
+- `<lineNo>` (optional): integer expression. Defaults to `0`.
+  - `0` = the most recent logical output line.
+  - `1` = the second most recent logical output line.
+  - And so on.
+
+- Omitted arguments / defaults:
+  - `<lineNo>` defaults to `0`.
+
+**Semantics**
+- Interprets `<lineNo>` as a non-negative index into the current display log’s **logical lines**, counted from the end:
+  - `HTML_GETPRINTEDSTR(0)` returns the most recently produced logical output line.
+- Returns `""` if the requested line does not exist.
+- The returned HTML is a normalized representation of the displayed line:
+  - It always wraps the line in `<p align='...'><nobr> ... </nobr></p>`.
+  - It uses `<br>` between display-wrapped lines within the same logical line.
+  - Button segments are represented with `<button ...>` / `<nonbutton ...>` tags (including `title` and `pos` when present).
+  - Inline images and shapes are represented by their tag-like alt text (e.g. `<img ...>` / `<shape ...>`).
+  - `<div ...>` sub-area elements are omitted.
+- This function does not modify the display.
+
+**Errors & validation**
+- If `<lineNo> < 0`, this is a runtime error.
+
+**Examples**
+```erabasic
+PRINTL "Hello"
+PRINTL "World"
+
+; Gets the most recent logical line (the "World" line)
+S = HTML_GETPRINTEDSTR(0)
+```
 
 ## HTML_POPPRINTINGSTR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns (and clears) the current pending print buffer as an HTML string.
+
+**Tags**
+- io
+
+**Syntax**
+- `HTML_POPPRINTINGSTR()`
+
+**Signatures / argument rules**
+- Signature: `string HTML_POPPRINTINGSTR()`.
+
+**Arguments**
+- None.
+
+**Semantics**
+- If the engine output is disabled or the print buffer is empty, returns `""`.
+- Otherwise:
+  - Flushes the current print buffer into display-line structures **without displaying them**.
+  - Clears the print buffer.
+  - Converts the flushed content to an HTML string and returns it.
+- The returned HTML:
+  - uses `<br>` between display-wrapped lines within the flushed buffer
+  - does **not** include `<p ...>` or `<nobr>` wrappers (so it does not reflect `ALIGNMENT`).
+  - omits `<div ...>` sub-area elements
+
+**Errors & validation**
+- None.
+
+**Examples**
+```erabasic
+PRINT "A"
+PRINT "B"
+S = HTML_POPPRINTINGSTR()
+; At this point, the pending buffer is cleared and nothing was displayed.
+```
 
 ## HTML_TOPLAINTEXT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Converts an HTML string to plain text by removing tags and expanding character references.
+
+**Tags**
+- string
+
+**Syntax**
+- `HTML_TOPLAINTEXT(html)`
+
+**Signatures / argument rules**
+- Signature: `string HTML_TOPLAINTEXT(string html)`.
+
+**Arguments**
+- `html`: string expression interpreted as an HTML string.
+
+**Semantics**
+- Removes all tag-like regions of the form `<...>` (including button tags and comments).
+- Then expands character references in the remaining text (e.g. `&amp;` → `&`, `&#x41;` → `A`).
+
+**Errors & validation**
+- Malformed character references in the remaining text are runtime errors (e.g. an `&...` sequence missing a terminating `;`).
+- Unsupported numeric character reference values (outside `0 <= codePoint <= 0xFFFF`) are runtime errors.
+
+**Examples**
+```erabasic
+PRINTFORMW %HTML_TOPLAINTEXT("<b>AAA</b><i><b>BBB</b></i><s>CCC</s>")%
+; prints: AAABBBCCC
+```
 
 ## HTML_ESCAPE (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Escapes a plain-text string for use in HTML strings.
+
+**Tags**
+- string
+
+**Syntax**
+- `HTML_ESCAPE(text)`
+
+**Signatures / argument rules**
+- Signature: `string HTML_ESCAPE(string text)`.
+
+**Arguments**
+- `text`: string expression.
+
+**Semantics**
+- Replaces:
+  - `&` → `&amp;`
+  - `>` → `&gt;`
+  - `<` → `&lt;`
+  - `"` → `&quot;`
+  - `'` → `&apos;`
+- All other characters are unchanged.
+
+**Errors & validation**
+- None.
+
+**Examples**
+```erabasic
+PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
+; prints: A&amp;B&lt;C&gt;D&apos;E
+```
 
 ## SPRITECREATED (expression function)
 **Summary**
@@ -7057,16 +8713,131 @@ ENDNOSKIP
 - (TODO: not yet documented)
 
 ## HTML_STRINGLEN (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Measures the display width of an HTML string (using the same layout rules as `HTML_PRINT`).
+
+**Tags**
+- io
+
+**Syntax**
+- `HTML_STRINGLEN(html(, returnPixel))`
+
+**Signatures / argument rules**
+- Signature: `int HTML_STRINGLEN(string html, int returnPixel = 0)`.
+- `returnPixel` is treated as “false” only when it is exactly `0`; any non-zero value selects pixel return.
+
+**Arguments**
+- `html`: string expression interpreted as an HTML string.
+- `returnPixel` (optional): integer expression.
+  - `0` (default): return in half-width character units.
+  - non-zero: return in pixels.
+
+- Omitted arguments / defaults:
+  - `returnPixel` defaults to `0`.
+
+**Semantics**
+- Computes the rendered output for `html` using the same rules as `HTML_PRINT`.
+- Measures the width of the **first display line** only (if `html` contains `<br>` or wraps, later lines do not affect the return value).
+- If `returnPixel != 0`, returns the width in pixels.
+- If `returnPixel = 0` (or omitted), converts pixel width to half-width character units using the configured font size:
+  - Let `fontSizePx = FontSize` (see `config-items.md`).
+  - Let `widthPx` be the measured pixel width (non-negative).
+  - Returns the smallest integer `n` such that `n * fontSizePx / 2 >= widthPx`.
+- Unless the HTML string is wrapped in `<nobr>...</nobr>`, the measured width does not exceed the drawable width (content is wrapped).
+
+**Errors & validation**
+- Invalid HTML strings raise runtime errors (same HTML mini-language as `HTML_PRINT`).
+
+**Examples**
+```erabasic
+PRINTFORML {HTML_STRINGLEN("<b>B</b>")}
+PRINTFORML {HTML_STRINGLEN("<b>B</b>", 1)}
+```
 
 ## HTML_SUBSTRING (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Splits an HTML string into a prefix that fits within a given display width and the remaining suffix.
+
+**Tags**
+- io
+
+**Syntax**
+- `HTML_SUBSTRING(html, width)`
+
+**Signatures / argument rules**
+- Signature: `string HTML_SUBSTRING(string html, int width)`.
+- Also writes results into `RESULTS` (see semantics).
+
+**Arguments**
+- `html`: string expression interpreted as an HTML string.
+- `width`: integer expression, in half-width character units.
+
+**Semantics**
+- Returns the first part (the prefix) as an HTML string.
+- Writes the split results into `RESULTS`:
+  - `RESULTS:0` = returned prefix
+  - `RESULTS:1` = remaining suffix (may be `""`)
+  - Other `RESULTS:*` entries are not cleared.
+- Interprets `width` in “half-width character units”. One unit corresponds to half the configured font size in pixels:
+  - `pixelBudget = width * FontSize / 2`
+- Expands character references in `html` first, then performs the split.
+  - This means that sequences like `&lt;b&gt;` may become `<b>` tags after expansion and affect the split.
+- If the expanded HTML contains a `<br>` tag, it forces the split at that point:
+  - The prefix ends before the `<br>`.
+  - The suffix starts after the `<br>`.
+  - The `<br>` tag itself is not included in either result.
+- Compatibility notes:
+  - The special handling of `<br>`, `<img ...>`, and `<shape ...>` is case-sensitive (`br`/`img`/`shape` in lowercase). For example, `<BR>` is not treated as a forced split point.
+  - Literal newline characters (`'\n'`) are not treated as forced split points by this function (unlike `HTML_PRINT` rendering).
+- Treats `<img ...>` and `<shape ...>` as indivisible units when splitting:
+  - If the current line already has content and the next figure would exceed the width budget, the figure is left for the suffix.
+- Produces output HTML that keeps basic style tag balance across the split boundary (so the prefix and suffix remain renderable HTML strings in this mini language).
+
+**Errors & validation**
+- Invalid HTML strings (including invalid character references) may raise runtime errors.
+
+**Examples**
+```erabasic
+PRINTSL HTML_SUBSTRING("AB<b>CD</b>EFG", 4)
+PRINTSL RESULTS:1
+```
 
 ## HTML_STRINGLINES (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns how many lines an HTML string would occupy when repeatedly split by a given width (using `HTML_SUBSTRING`).
+
+**Tags**
+- io
+
+**Syntax**
+- `HTML_STRINGLINES(html, width)`
+
+**Signatures / argument rules**
+- Signature: `int HTML_STRINGLINES(string html, int width)`.
+
+**Arguments**
+- `html`: string expression interpreted as an HTML string.
+- `width`: integer expression, in half-width character units.
+
+**Semantics**
+- If `html` is null/empty, returns `0`.
+- Otherwise, repeatedly applies the same splitting rules as `HTML_SUBSTRING(html, width)`:
+  - Each split consumes the prefix as one line.
+  - The remainder becomes the next input.
+- Returns the number of iterations until the remainder becomes empty.
+- Compatibility notes:
+  - This function inherits all parsing/splitting quirks from `HTML_SUBSTRING`, including case-sensitive special handling of `<br>`, `<img ...>`, and `<shape ...>`.
+
+**Errors & validation**
+- Invalid HTML strings (including invalid character references) may raise runtime errors.
+
+**Examples**
+```erabasic
+PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
+```
 
 ## EXISTFILE (expression function)
 **Summary**

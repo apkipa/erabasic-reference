@@ -1,14 +1,14 @@
 **Summary**
 - A “forced” variant of `BEGIN`.
 
+**Tags**
+- system
+
 **Syntax**
 - `FORCE_BEGIN <keyword>`
 
 **Arguments**
 - Same as `BEGIN`.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Same as `BEGIN` in the current engine implementation.
@@ -21,4 +21,3 @@
 
 **Progress state**
 - complete
-

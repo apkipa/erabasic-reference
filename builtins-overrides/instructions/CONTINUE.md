@@ -1,13 +1,13 @@
 **Summary**
 - Skips to the next iteration of the nearest enclosing loop (`REPEAT`, `FOR`, `WHILE`, or `DO`).
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `CONTINUE`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

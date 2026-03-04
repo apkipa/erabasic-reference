@@ -2,14 +2,14 @@
 - Enables/disables Emuera’s “skip output” mode (`skipPrint`), which causes most print/wait/input built-ins to be skipped by the script runner.
 - Also sets `RESULT` to indicate whether skip mode is currently enabled.
 
+**Tags**
+- skip-mode
+
 **Syntax**
 - `SKIPDISP <int expr>`
 
 **Arguments**
 - `<int expr>`: `0` disables skip mode; non-zero enables skip mode.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.

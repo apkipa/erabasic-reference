@@ -1,15 +1,15 @@
 **Summary**
 - Swaps the values of two **changeable variables** (integer or string).
 
+**Tags**
+- variables
+
 **Syntax**
 - `SWAP <var1>, <var2>`
 
 **Arguments**
 - `<var1>`: a changeable variable term (must not be `CONST`).
 - `<var2>`: a changeable variable term (same type as `<var1>`).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - The engine first **fixes** both variable terms’ indices (important when indices contain expressions like `RAND`):
@@ -31,4 +31,3 @@
 
 **Progress state**
 - complete
-

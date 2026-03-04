@@ -1,13 +1,13 @@
 **Summary**
 - Ends an `IF ... ENDIF` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `ENDIF`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

@@ -289,6 +289,40 @@ Notable rule:
 - `=` is **not** an operator inside expressions; seeing `=` in a normal expression context is an error.
 - When the caller enables “assignment terminator” mode, the expression parser stops before consuming the `=` token.
 
+## 8) Non-normative: Emuera’s expression parsing and evaluation model
+
+This section is **not** part of EraBasic’s expression *syntax*. It is an Emuera implementation note that helps explain how Emuera realizes the grammar and where certain “expression work” happens (parse time vs runtime).
+
+### 8.1 Parse time: “operator-precedence stack” → `AExpression` tree
+
+Emuera does **not** parse expressions by directly constructing EBNF productions. Instead, the parser reads a `WordCollection` token stream and incrementally reduces it using an internal stack:
+
+- The parser’s main entrypoint (`reduceTerm(...)`) maintains a `TermStack`.
+- `TermStack` contains a `Stack<object>` holding a mix of:
+  - operator markers (`OperatorCode`), and
+  - partially-built expression nodes (`AExpression` and subclasses).
+- When an operator is encountered, the parser compares precedence to the stack top and reduces prior operators first (left-associative behavior for same precedence).
+- Reduction creates new `AExpression` nodes:
+  - unary operator + operand → new expression node
+  - binary operator + left/right → new expression node
+  - ternary `? ... # ...` reduces into a ternary expression node
+
+Conceptually, this is similar to a shunting-yard / operator-precedence reduction approach. The key point is that the “stack” here is a **parsing** data structure used to build an `AExpression` tree.
+
+### 8.2 Runtime: AST evaluation (host call stack), not a stack-bytecode VM
+
+Once parsed, the engine evaluates expressions primarily by recursively calling virtual methods on the expression tree:
+
+- Numeric evaluation calls `AExpression.GetIntValue(exm)`.
+- String evaluation calls `AExpression.GetStrValue(exm)`.
+
+Intermediate results flow through the host language’s call stack and locals; Emuera does **not** run expressions by interpreting a separate “operand stack bytecode” representation.
+
+This matters when comparing execution models:
+
+- a fine-grained stack-bytecode VM must frequently materialize intermediate values into a VM value stack between tiny steps
+- Emuera’s AST model computes many intermediate values directly as local temporaries within C# methods
+
 ## Fact-check cross-refs (optional)
 
 - Lexer/tokenization + macro expansion: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`

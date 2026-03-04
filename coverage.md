@@ -1,11 +1,13 @@
-# Coverage Plan (Reimplementable Core Spec)
+# Coverage Plan (Reimplementable Typical-Game Spec)
 
-Goal: a reader can reimplement a **fully compatible EraBasic parser + core interpreter** for this engine family *using only* `erabasic-reference/*`.
+Goal: a reader can reimplement a **fully compatible EraBasic parser + interpreter**, plus the **minimal host/UI contracts and built-ins** needed to run **typical games** for this engine family, *using only* `erabasic-reference/*`.
 
-Scope (current phase): **core language** only.
+Scope (current phase): **typical-game compatibility**.
 
 - Included: loading order, preprocessing, lexing, parsing, expression evaluation, variables/scopes, user functions, control flow, runtime model for execution.
-- Deferred: full semantics of all built-in commands/functions (UI/graphics/audio/input/save/etc.). We keep a catalog (`builtins*.md`) and will add semantics later in a controlled way.
+- Included (host/runtime contract): the **system phase state machine** (TITLE/SHOP/TRAIN/ABLUP/...) and its script entry points (`@SYSTEM_*`, `@EVENT*`, etc.), to the extent needed to run typical games.
+- Included (UI/runtime contract): the **observable console output + input model** that typical games depend on (text buffering/flush, buttons/choices, and HTML output used by the UI layer).
+- Deferred: niche host features and tooling that are not required by most games (plugins, hotkeys, debug tooling, etc.), tracked explicitly below.
 
 This document tracks what is already specified vs what still needs to be written.
 
@@ -107,6 +109,7 @@ Where described today:
   - loops: `REPEAT/REND`, `FOR/NEXT`, `WHILE/WEND`, `DO/LOOP`
   - `BREAK/CONTINUE`
   - `CALL/JUMP/RETURN/RETURNFORM/RETURNF` interactions with `RESULT/RESULTS`
+- ✅ Line-start dispatch special cases (e.g. `;!;`, `{...}` concatenation blocks, `@/$/#` label/directive lines, and prefix `++/--` parsing).
 - 🟡 Error behavior on malformed blocks, cross-block jumps, and direct-entry via `GOTO/JUMP` into blocks.
   - ✅ Unstructured entry via `GOTO $label` (allowed) and the “advance-first” marker-skipping implications are specified (see `runtime-model.md` and `control-flow.md`).
   - 🟡 Still missing: a fully enumerated matrix of which malformed-nest situations become “error lines” vs warnings, and which ones can still run.
@@ -115,6 +118,7 @@ Where described today:
 
 - `control-flow.md` (behavioral summary for main blocks)
 - `functions.md` (CALL/RETURN family overview)
+- `line-start-special-cases.md` (engine-accurate dispatch edge cases)
 
 ## 6) Expression language (core)
 
@@ -129,6 +133,12 @@ Where described today:
 - ✅ Short-circuit semantics (`&&`, `||`, `!&`, `!|`, ternary; `^^` does not short-circuit).
 - ✅ Ternary operators (numeric `? #` and string `\@ ? # \@`), including parse rules and nesting.
 - ✅ Increment/decrement (`++/--`) as statement and expression operators (variable-only, const rejection, prefix vs postfix result value).
+- 🟡 String comparison semantics in expressions (ordering/equality, case-sensitivity, and config-dependent comparison modes).
+- 🟡 Numeric edge cases and exception behavior:
+  - division/modulo by zero
+  - negative division/modulo semantics
+  - shift-count handling (large/negative shift counts)
+  - integer overflow behavior in arithmetic (wrap vs error) in runtime evaluation (distinct from numeric-literal parsing)
 
 ### 6.3 String expressions and FORM syntax
 
@@ -137,6 +147,7 @@ Where described today:
 - ✅ `@"..."` rules (FORM-in-string-expression literal) and `\@...\@` string-ternary literal form.
 - ✅ Escape rules inside FORM literal segments.
 - 🟡 Where FORM is accepted vs treated as literal text (command-category-dependent).
+- 🟡 Load-time expression normalization/optimization that can affect observable evaluation (constant folding and “restructuring”).
 
 Where described today:
 
@@ -152,6 +163,7 @@ Where described today:
 - ✅ Batch assignment (`A:i = v1,v2,...` / `A:i:j = ...`) including which elements are written and out-of-range behavior.
 - ✅ Bounds checking and prohibited-variable errors (no config knobs observed for relaxing bounds checks).
 - ✅ CSV-name indexing resolution rules and ambiguity rules.
+- 🟡 Built-in variable catalog + lifecycle beyond `RESULT/RESULTS/COUNT` (e.g. `MASTER/TARGET/ASSI`, character list variables, and phase-dependent resets); needed for “run typical games” compatibility.
 
 ### 7.2 User-defined variables
 
@@ -179,6 +191,7 @@ Where described today:
 - ✅ Pass-by-reference via `REF` formal parameters.
 - 🟡 Expression functions (`#FUNCTION/#FUNCTIONS`): call sites, restrictions, side-effect caveats, and disallowed instructions.
 - 🟡 Error behavior on missing functions and labels (including `TRY*`, `TRYC*`, and `TRY*LIST`), calling event functions, and config-dependent relaxations.
+- 🟡 Execution modes that affect call/IO behavior (e.g. output skipping `SKIPDISP` / script-runner skip-print mode, and message-skip `MesSkip`) and which built-ins are treated as “print-like” for skipping.
 
 Where described today:
 
@@ -195,12 +208,128 @@ Where described today:
 - `errors-and-warnings.md` (core mechanics)
 - `source-position-mapping.md` (engine-accurate file/line mapping rules)
 
-## 10) Built-in commands/functions
+## 10) System phases and host flow
 
-- 🔁 Full semantics: deferred.
+This engine family is not “just an interpreter”: it also defines a host-driven **system phase** state machine (TITLE/FIRST/SHOP/TRAIN/ABLUP/AFTERTRAIN/TURNEND/LOADDATAEND, plus save/load flows).
+
+This matters for compatibility because:
+
+- It defines which script entry points are called (e.g. `@SYSTEM_TITLE`, `@EVENTTRAIN`, `@SHOW_SHOP`) and in what order.
+- Some phases require a `BEGIN` to be executed by the end of a system hook (otherwise the engine errors), which is an observable runtime contract.
+- Entering certain phases performs variable initialization/reset that affects save data and gameplay logic (not just UI).
+
+Coverage target (core-compat requirements):
+
+- 🟡 Enumerate phases and legal transitions.
+- 🟡 Specify which labels are called in each phase (including required/optional labels and default fallbacks when labels are missing).
+- 🟡 Specify mandatory “must execute `BEGIN`” contracts (and error behavior when violated), e.g. `@SYSTEM_TITLE`, `@EVENTFIRST`, `@EVENTEND`, `@EVENTTURNEND`, and post-load hooks.
+- 🟡 Specify the key variable initialization/reset performed when entering phases (e.g. TRAIN pre-initialization, whether SHOP skips `@EVENTSHOP` after load).
+- 🟡 Specify which parts are configurable via `_replace.csv` / config (e.g. input ranges) vs fixed.
+- 🟡 Specify the minimal host I/O contract that system flow depends on:
+  - system input request behavior (integer parsing, defaults, and retry behavior on invalid input)
+  - console output buffering concepts referenced by system flow (e.g. “temporary line” affecting re-prompt vs full redraw)
+
+Where described today:
+
+- 🟡 `system-flow.md` (system phases, entry points, and phase-entry resets)
+- Fact-check reference (external to this reference): `emuera.em.doc/docs/Emuera/system_flow.en.md` (and EraMaker comparison pages).
+
+## 11) Built-in commands/functions
+
 - ✅ Signature catalog for lookup: `appendix/tooling/builtins.md` and `appendix/tooling/builtins-signatures.md`.
 
-## Next concrete deliverables (to reach “reimplementable core”)
+Typical-game compatibility requires a subset of “UI-ish” built-ins to be specified as **observable contracts**.
+
+### 11.1 Output model (console)
+
+- 🟡 Output buffers and flush points:
+  - which instructions append to the main buffer vs write a “temporary line” vs “system line”
+  - `PRINTFLUSH` behavior (what is flushed, and whether it forces redraw)
+  - newline behavior (what counts as a line break for display and for later retrieval)
+  - alignment and layout behaviors used by typical scripts (`PRINTC`, right-align flags, fixed-width assumptions if any)
+  - display width and wrapping/clipping rules (half-width vs full-width, combining marks/surrogates, and how line breaks are computed)
+- 🟡 Output skipping contracts:
+  - define “print-like” vs “non-print-like” built-ins for skip modes (e.g. `SKIPDISP` / message-skip)
+  - whether skipped output instructions still evaluate arguments / cause side effects (baseline rule lives in `agents.md`)
+- 🟡 Buttons and choice presentation:
+  - how button labels are rendered (plain vs FORM vs HTML)
+  - mapping from printed “button ids” to what input returns
+  - rules for duplicated ids and ordering when multiple buttons are printed
+- 🟡 Output history / buffer-introspection built-ins:
+  - `GETLINESTR` contract (what it returns, indexing, and whether temporary/system lines are included)
+  - interaction between history retrieval and buffering/flush (when output becomes observable to getters)
+
+### 11.2 Input model (console)
+
+- 🟡 Choice input:
+  - how the engine decides that input is expected (e.g. after printing buttons vs explicit input instructions)
+  - what forms of user input are accepted (button click vs typed number) and their precedence
+- 🟡 Integer input parsing contract:
+  - trimming, sign handling, and rejection conditions
+  - retry/prompt loop behavior on invalid input
+  - default value behavior when the user submits an empty input (if supported by that prompt)
+- 🟡 Time-limited input and “one input” vs “multi input” request kinds (where supported by built-ins)
+- 🟡 Blocking input instructions and their observable effects on output:
+  - `INPUT` / `WAIT` / `TINPUT` family: whether they flush pending output before waiting, and what they return on timeout/cancel
+- 🟡 Keyboard/mouse state built-ins and their interaction with the input loop:
+  - `GETKEY`, `GETKEYTRIGGERED`, `MOUSEX`, `MOUSEY`, `MOUSEB`, `MOUSESKIP` (coordinate system, polling vs event semantics, and when values update)
+- ✅ Mouse input “mapping color” side channel for `<img srcm='...'>`:
+  - how the mapping sprite is selected and sampled
+  - which `RESULT:*` indices it is written to (depends on input wait type)
+
+### 11.3 HTML output and HTML-string helpers
+
+- ✅ HTML parser/renderer contract for `HTML_PRINT*`:
+  - supported tags/attributes set (including which tags are treated as formatting vs structural)
+  - nesting rules and error recovery (invalid/mismatched tags)
+  - entity/escape handling and how raw text is treated
+- ✅ “HTML island” buffering:
+  - `HTML_PRINT_ISLAND*` buffer separation rules and retrieval (`HTML_GETPRINTEDSTR`, `HTML_POPPRINTINGSTR`)
+- ✅ HTML-string helpers (`HTML_ESCAPE`, `HTML_TOPLAINTEXT`, `HTML_TAGSPLIT`, `HTML_STRINGLEN/SUBSTRING/STRINGLINES`):
+  - exact output for edge cases (empty input, invalid markup, unsupported tags)
+
+### 11.4 Images and sound (commonly used resource built-ins)
+
+- 🟡 Resource lookup and path resolution:
+  - how names map to `resources/` (images) and `sound/` (audio) paths
+  - existence checks and error behavior (`EXIST*` built-ins where applicable)
+- ✅ Sprite lookup contract used by `<img src='...'>` / `PRINT_IMG` / sprite built-ins:
+  - sprite names are defined by `resources/**/*.csv` and resolved case-insensitively
+  - missing sprites fall back to literal-tag text in HTML output
+- 🟡 Supported formats (as an observable contract):
+  - image loading supports `.webp` in addition to the platform’s default image formats; requires native `libwebp.dll` / `libwebp_x86.dll`
+  - sound playback supports `.wav` and `.ogg`
+- 🟡 Failure behavior: missing files, decode failures, and out-of-range parameters (what is returned/printed vs what errors)
+
+### 11.5 Save/load UI behaviors beyond on-disk formats
+
+- 🟡 Save/load phase hooks and default fallback behavior when optional hooks are missing.
+- 🟡 Save-slot “sidecar” files written/read by built-ins (often used by games for save/load UIs):
+  - image: `SavDir/img{index:0000}.png` (via `GSAVE/GLOAD`)
+  - text: `SavDir/txt{index:00}.txt` (via `SAVETEXT/LOADTEXT`)
+
+### 11.6 File-IO helper built-ins used by games
+
+- 🟡 `EXISTFILE` / `GET*` / `SAVE*` / `LOAD*` style helpers that touch the filesystem and are commonly relied on by scripts (paths, encoding, newline normalization, error returns).
+
+## 12) Host/UI tooling and extensions (deferred)
+
+These items are **observable engine features** but are deferred because they are not required for typical-game compatibility.
+
+- 🔁 Command-line invocation contract (flags and positional args), including `--ExeDir`, `-Debug`, and `-GenLang`.
+- 🔁 Localization/language pack system under `ExeDir/lang/` (including `-GenLang` template generation and selection/fallback rules).
+  - Files/patterns: `lang/emuera.*.xml` (load), `lang/emuera-default-lang.xml` (generated template).
+- 🔁 Keyboard macro system: `ExeDir/macro.txt` + `UseKeyMacro` (parsing, enabled/disabled behavior, and effect on the input loop).
+- 🔁 In-game debug command mode: `UseDebugCommand` and the console rule “input beginning with `@` is treated as a debug command” (supported syntax subset + restrictions).
+- 🔁 Hotkey scripting extension: `ExeDir/HOTKEY.ERB` + Ctrl+D toggle + its limited grammar, and how it interacts with `HOTKEY_STATE*`.
+  - Optional developer dump file: `ExeDir/HOTKEY.ERB.bytecode.txt`.
+- 🔁 Plugin system: loading `ExeDir/Plugins/*.dll` and the `ExeDir/pluginsAware.txt` gating/security behavior.
+- 🔁 Debug UI aux files under `ExeDir/debug/`: `debug/debug.config`, `debug/watchlist.csv`, `debug/console.log`.
+- 🔁 Rikaichan integration files: `RikaiFilename` (dictionary path) and its sidecar index file `RikaiFilename.ind`.
+- 🔁 Misc host diagnostics/aux files: `ExeDir/patch_versions/*.txt`, `ExeDir/emuera.log`, `ExeDir/Analysis.log`, `ExeDir/time.log`, and `img_err.log`.
+- 🔁 Native OS interop dependencies (host implementation detail): `user32.dll`, `winmm.dll`, `kernel32.dll`.
+
+## Next concrete deliverables (to reach “reimplementable typical-game”)
 
 1) ✅ Write a **phase-ordered pipeline spec**: `pipeline.md`.
 2) ✅ Document **config + CSV formats** that affect parsing/runtime: `data-files.md`.
@@ -209,6 +338,8 @@ Where described today:
  - ✅ Statement-level grammar + block matching: `grammar.md`.
  - ✅ Expression grammar (EBNF + precedence): `expression-grammar.md`.
  - ✅ FORM/formatted-string subgrammar: `formatted-strings.md`.
-4) ⛔ Define the **runtime model** for variables, call stack, and control-flow constructs.
-   - 🟡 Core runtime model (stack, events, scopes): `runtime-model.md`.
-5) ⛔ Add a **conformance test suite plan** (golden tests) that validates parsing + core execution without UI/audio/save.
+4) 🟡 Finish the **runtime model** for variables, call stack, and control-flow constructs.
+   - 🟡 Core runtime model (stack, events, scopes) exists but still has gaps: `runtime-model.md`.
+5) 🟡 Specify the **system phase state machine** (host flow) as a reimplementable contract (TITLE/SHOP/TRAIN/...): `system-flow.md`.
+6) 🟡 Specify **typical-game UI contracts** for output/input/HTML and the commonly used UI built-ins.
+7) ⛔ Add a **conformance test suite plan** (golden tests) that validates parsing + typical-game execution, plus a minimal host-flow harness.

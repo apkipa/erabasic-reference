@@ -1,13 +1,13 @@
 **Summary**
 - Default clause header inside a `SELECTCASE ... ENDSELECT` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `CASEELSE`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

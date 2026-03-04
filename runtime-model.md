@@ -148,7 +148,7 @@ Internally, the engine also tracks an integer boundary `currentMin`.
 Most of the time:
 
 - `currentMin = 0`
-- the active call stack is `functionList[0..]`
+- the active call stack is the entire `functionList`
 
 During user-defined expression function evaluation (`#FUNCTION/#FUNCTIONS`), the engine temporarily sets:
 
@@ -199,7 +199,7 @@ Engine-accurate details:
 
 - `RESULT` is an alias for `RESULT:0`.
 - When `RETURN` has no arguments, it sets only `RESULT:0 = 0`; it does **not** clear `RESULT:1`, `RESULT:2`, etc.
-- When `RETURN` has arguments, it writes `RESULT:i = value_i` for `i = 0..k-1` where `k` is the number of provided values, truncated to the physical `RESULT` array length.
+- When `RETURN` has arguments, it writes `RESULT:i = value_i` for `0 <= i < k` where `k` is the number of provided values, truncated to the physical `RESULT` array length.
   - Values beyond the array length are ignored.
   - Elements beyond `k-1` are left unchanged (not cleared).
 

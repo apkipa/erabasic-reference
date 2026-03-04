@@ -1,5 +1,8 @@
 **Summary**
-- Seeds the engine’s legacy RNG (Mersenne Twister) with a specified integer seed.
+- Seeds the legacy RNG with a specified integer seed.
+
+**Tags**
+- random
 
 **Syntax**
 - `RANDOMIZE`
@@ -8,14 +11,14 @@
 **Arguments**
 - `<seed>` (optional): integer expression. If omitted, the seed defaults to `0`.
 
-**Defaults / optional arguments**
-- `<seed>` defaults to `0`.
+- Omitted arguments / defaults:
+  - `<seed>` defaults to `0`.
 
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
-  - Emits a warning and does nothing (implementation detail).
+  - Emits a warning and does nothing.
 - Otherwise:
-  - Replaces the engine’s legacy RNG instance with `new MTRandom(<seed>)`.
+  - Re-seeds the legacy RNG with `<seed>` truncated to 32 bits (i.e. low 32 bits used as an unsigned seed).
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -27,4 +30,3 @@
 
 **Progress state**
 - complete
-

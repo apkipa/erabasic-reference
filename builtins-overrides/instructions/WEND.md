@@ -1,13 +1,13 @@
 **Summary**
 - Ends a `WHILE ... WEND` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `WEND`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

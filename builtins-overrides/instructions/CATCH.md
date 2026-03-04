@@ -1,15 +1,15 @@
 **Summary**
 - Begins the catch-body of a `TRYC* ... CATCH ... ENDCATCH` construct.
 
+**Tags**
+- error-handling
+
 **Syntax**
 - `CATCH`
   - `<catch body>`
   - `ENDCATCH`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

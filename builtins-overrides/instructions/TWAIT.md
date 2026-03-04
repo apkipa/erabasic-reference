@@ -1,6 +1,9 @@
 **Summary**
 - Timed wait: waits for a limited time (and optionally disallows user input), then continues.
 
+**Tags**
+- io
+
 **Syntax**
 - `TWAIT <timeMs>, <mode>`
 
@@ -10,14 +13,9 @@
   - `0`: wait for Enter/click, but time out after `<timeMs>`.
   - non-zero: disallow input and simply wait `<timeMs>` (or be affected by macro/skip behavior).
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Implementation detail: `TWAIT` first calls an Enter-style wait, then replaces it with a timed `WaitInput` request.
-- Creates an `InputRequest` with:
-  - `InputType = EnterKey` if `<mode> == 0`, otherwise `Void`
-  - `Timelimit = <timeMs>`
+- If `<mode> == 0`: waits for Enter/click, but times out after `<timeMs>`.
+- If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).

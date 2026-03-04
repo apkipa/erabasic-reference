@@ -1,6 +1,9 @@
 **Summary**
 - Sorts a mutable 1D array in ascending or descending order, optionally within a subrange.
 
+**Tags**
+- arrays
+
 **Syntax**
 - Minimal form:
   - `ARRAYSORT <arrayVar>`
@@ -15,16 +18,16 @@
 - `<start>` (optional): integer expression; default `0`.
 - `<count>` (optional): integer expression; if omitted, sorts to end.
 
-**Defaults / optional arguments**
-- If `FORWARD|BACK` is omitted, order defaults to ascending and the engine does not accept `<start>/<count>` (parsing quirk).
-- `<start>` defaults to `0` when `FORWARD|BACK` is present but no subrange is provided.
-- `<count>` omitted means “to the end”.
+- Omitted arguments / defaults:
+  - If `FORWARD|BACK` is omitted, order defaults to ascending and the engine does not accept `<start>/<count>` (parsing quirk).
+  - `<start>` defaults to `0` when `FORWARD|BACK` is present but no subrange is provided.
+  - `<count>` omitted means “to the end”.
 
 **Semantics**
 - Sorts the specified region of the array:
   - The runtime treats `count <= 0` as “to the end” (but an explicitly provided `count == 0` is handled as a no-op in the instruction dispatcher).
-- Implementation detail / parsing quirk:
-  - The argument builder only parses `<start>` and `<count>` if the `FORWARD|BACK` token is present.
+- Parsing rule:
+  - `<start>` and `<count>` are only accepted when the `FORWARD|BACK` token is present.
 
 **Errors & validation**
 - Parse-time errors if:

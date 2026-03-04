@@ -1,6 +1,9 @@
 **Summary**
 - Converts half-width characters to full-width (wide) form using the engine’s configured language setting.
 
+**Tags**
+- text
+
 **Syntax**
 - `TOFULL(str)`
 
@@ -9,9 +12,6 @@
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.

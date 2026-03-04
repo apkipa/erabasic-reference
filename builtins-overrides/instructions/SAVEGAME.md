@@ -1,20 +1,20 @@
 **Summary**
 - Opens the engine’s interactive **save UI** (system-driven save).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `SAVEGAME`
 
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
-- Requires that the current system state allows saving (implementation detail: `SystemStateCode.__CAN_SAVE__`), otherwise raises an error.
+- Requires that the current system state allows saving; otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system save flow.
 - The system save flow (high-level behavior):
-  - Displays save slots `0..Config.SaveDataNos-1` in pages of 20.
+  - Displays save slots with indices `0 <= slot < Config.SaveDataNos` in pages of 20.
   - Uses `100` as the “back/cancel” input.
   - After selecting a slot:
     - If it already contains data, prompts for overwrite confirmation.

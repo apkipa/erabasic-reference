@@ -1,6 +1,9 @@
 **Summary**
 - Clause header inside a `SELECTCASE ... ENDSELECT` block.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `CASE <caseExpr> (, <caseExpr> ... )`
 
@@ -9,9 +12,6 @@
   - Normal: `<expr>` (matches by equality against the selector).
   - Range: `<expr> TO <expr>` (inclusive range).
   - “IS form”: `IS <binaryOp> <expr>` (e.g. `IS >= 10`), using the engine’s binary-operator semantics.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - When reached **sequentially** (fall-through after another case body), `CASE` unconditionally jumps to the matching `ENDSELECT` marker, skipping the rest of the block.

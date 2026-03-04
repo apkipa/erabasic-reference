@@ -1,13 +1,13 @@
 **Summary**
 - Ends a `TRY*LIST ... ENDFUNC` block.
 
+**Tags**
+- functions
+
 **Syntax**
 - `ENDFUNC`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

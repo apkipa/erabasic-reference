@@ -145,7 +145,7 @@ Batch assignment always writes along the **last** dimension, starting from the l
 
 For **character data** arrays, the first index is the character selector, but the “write along the last dimension” rule is the same:
 
-    CFLAG:TARGET:0 = 1,2,3    ; writes CFLAG[TARGET,0..2]
+    CFLAG:TARGET:0 = 1,2,3    ; writes CFLAG[TARGET,0], CFLAG[TARGET,1], CFLAG[TARGET,2]
 
 ### Evaluation order and partial writes
 
@@ -354,7 +354,7 @@ If you omit all sizes:
 
 If you provide sizes, they must satisfy:
 
-- Each provided `sizeN` must be a compile-time constant integer (`SingleLongTerm`) in `1..1000000`.
+- Each provided `sizeN` must be a compile-time constant integer (`SingleLongTerm`) and must satisfy `1 <= sizeN <= 1000000`.
 - You may specify up to **3** sizes (1D/2D/3D).
 - The product `size1 * size2 * size3` must be `<= 1000000` (missing sizes are not part of the product).
 

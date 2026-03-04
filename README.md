@@ -26,11 +26,13 @@ This reference has two “layers”:
 - [`expressions.md`](expressions.md) — numeric vs string expressions, operators, FORM/format strings
 - [`expression-grammar.md`](expression-grammar.md) — formal expression grammar (EBNF, precedence, tokenization quirks)
 - [`formatted-strings.md`](formatted-strings.md) — FORM scanner + `%...%`/`{...}` placeholders, `@"..."`, triple symbols, `\@...\@`
+- [`html-output.md`](html-output.md) — HTML-like output mini language (`HTML_PRINT`, HTML string helpers)
 
 ### Spec-facing (statements, flow, and functions)
 
 - [`grammar.md`](grammar.md) — statement-level grammar (EBNF + matching rules)
 - [`control-flow.md`](control-flow.md) — `IF/SIF`, loops, `SELECTCASE`, notes and links
+- [`system-flow.md`](system-flow.md) — system phase state machine (TITLE/SHOP/TRAIN/ABLUP/…) and required `BEGIN` contracts
 - [`functions.md`](functions.md) — `CALL/RETURN`, arguments (`ARG/ARGS`), expression functions (`#FUNCTION/#FUNCTIONS`)
 - [`argument-parsing-modes.md`](argument-parsing-modes.md) — how built-ins parse arguments (raw vs expression vs FORM) and how `;` behaves
 - [`line-start-special-cases.md`](line-start-special-cases.md) — engine line-start dispatch rules (`;!;`, `{...}`, `[...]`, `@/$/#`, prefix `++/--`)
@@ -64,12 +66,14 @@ This reference has two “layers”:
 - [`data-files.md`](data-files.md) — config/CSV/rename/ERD formats tied to the language
 - [`config-items.md`](config-items.md) — config key catalog (types, defaults, key spellings)
 - [`save-files.md`](save-files.md) — save directories, persistence partitions, and on-disk save formats (binary + legacy text)
+- [`resources-and-sprites.md`](resources-and-sprites.md) — `resources/**/*.csv` sprite loading and sprite-name resolution used by UI/HTML output
 
 ### Project meta
 
 - [`errors-and-warnings.md`](errors-and-warnings.md) — warning levels, filtering, and error vs warning mechanics
-- [`coverage.md`](coverage.md) — coverage plan for a reimplementable core spec
+- [`coverage.md`](coverage.md) — coverage plan for a reimplementable typical-game spec
 - [`sources.md`](sources.md) — where this reference was derived from (optional)
+- [`agents.md`](agents.md) — default authoring rules for this reference
 
 ## Terminology
 

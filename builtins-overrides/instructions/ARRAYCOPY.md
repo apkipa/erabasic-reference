@@ -1,15 +1,15 @@
 **Summary**
 - Copies elements from one array variable to another array variable of the same element type and dimension.
 
+**Tags**
+- arrays
+
 **Syntax**
 - `ARRAYCOPY <srcVarNameExpr>, <dstVarNameExpr>`
 
 **Arguments**
 - `<srcVarNameExpr>`: string expression whose value is a variable name.
 - `<dstVarNameExpr>`: string expression whose value is a variable name.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Resolves both variable names to variable tokens (early when literal, otherwise at runtime).

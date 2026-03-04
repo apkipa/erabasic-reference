@@ -1,14 +1,15 @@
 **Summary**
 - Loads characters from `dat/chara_<name>.dat` and appends them to the current character list.
 
+**Tags**
+- characters
+- save-system
+
 **Syntax**
 - `LOADCHARA <name>`
 
 **Arguments**
 - `<name>`: string expression; the file name component.
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - Reads `Program.DatDir/chara_<name>.dat`.

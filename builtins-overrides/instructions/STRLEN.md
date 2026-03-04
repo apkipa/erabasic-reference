@@ -1,14 +1,17 @@
 **Summary**
 - Sets `RESULT` to the engine’s **language/encoding length** of a raw string argument.
 
+**Tags**
+- text
+
 **Syntax**
 - `STRLEN <rawString>`
 
 **Arguments**
 - `<rawString>`: the literal remainder of the line (not a normal string expression).
 
-**Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Computes length via the engine’s language-aware length counter and assigns it to `RESULT`:

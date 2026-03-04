@@ -53,7 +53,6 @@ USER_INSTRUCTION_SECTIONS = [
     "Tags",
     "Syntax",
     "Arguments",
-    "Defaults / optional arguments",
     "Semantics",
     "Errors & validation",
     "Examples",
@@ -65,7 +64,6 @@ USER_METHOD_SECTIONS = [
     "Syntax",
     "Signatures / argument rules",
     "Arguments",
-    "Defaults / optional arguments",
     "Semantics",
     "Errors & validation",
     "Examples",
@@ -166,168 +164,6 @@ def _contains_japanese(s: str) -> bool:
         or ("\u4e00" <= ch <= "\u9fff")  # kanji
         for ch in s
     )
-
-
-# Legacy in-script overrides. Prefer `erabasic-reference/builtins-overrides/**/<NAME>.md`.
-# Manual overrides for entries where we have already done a deeper read.
-# This is how we gradually upgrade entries to the SORTCHARA/FINDCHARA level
-# without pretending that everything can be inferred automatically.
-INSTRUCTION_OVERRIDES: dict[str, dict[str, list[str]]] = {
-    "ARRAYCOPY": {
-        "Summary": [
-            "- Copies elements from one array variable to another array variable of the same element type and dimension.",
-        ],
-        "Syntax": [
-            "- `ARRAYCOPY <srcVarNameExpr>, <dstVarNameExpr>`",
-        ],
-        "Arguments": [
-            "- `<srcVarNameExpr>`: string expression whose value is a variable name.",
-            "- `<dstVarNameExpr>`: string expression whose value is a variable name.",
-        ],
-        "Defaults / optional arguments": [
-            "- None.",
-        ],
-        "Semantics": [
-            "- Resolves both variable names to variable tokens (early when literal, otherwise at runtime).",
-            "- Requires both to be arrays (1D/2D/3D), non-character-data; destination must be non-const.",
-            "- Copies element-wise, clamped by destination sizes per dimension; does not clear the rest.",
-        ],
-        "Errors & validation": [
-            "- Errors if a name does not resolve to a variable, if either is not an array, if either is character-data, if destination is const, or if dimension/type mismatch.",
-        ],
-        "Examples": [
-            "- `ARRAYCOPY \"ABL\", \"ABL_BAK\"`",
-            "- `ARRAYCOPY \"ITEM\", SAVETO`",
-        ],
-    },
-    "ARRAYSHIFT": {
-        "Summary": [
-            "- Shifts elements in a mutable 1D array variable by a signed offset and fills new slots with a default value.",
-        ],
-        "Syntax": [
-            "- `ARRAYSHIFT <arrayVar>, <shift>, <default> [, <start> [, <count>]]`",
-        ],
-        "Arguments": [
-            "- `<arrayVar>`: changeable 1D array variable term.",
-            "- `<shift>`: int expression.",
-            "- `<default>`: expression of the same value type as the array element type.",
-            "- `<start>`: int expression (default `0`).",
-            "- `<count>`: int expression (default “to end”; runtime uses `-1` sentinel).",
-        ],
-        "Defaults / optional arguments": [
-            "- `<start>` defaults to `0`.",
-            "- `<count>` omitted means “to the end” (engine passes `-1`).",
-        ],
-        "Semantics": [
-            "- Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).",
-            "- If `shift == 0`, does nothing.",
-            "- If shifting removes all overlap, fills the whole segment with `<default>`.",
-            "- If `start + count` exceeds array length, the engine clamps `count` to fit.",
-        ],
-        "Errors & validation": [
-            "- Errors if `<arrayVar>` is not 1D, if `start < 0`, if `count < 0` (when provided), or if `start >= arrayLength`.",
-        ],
-        "Examples": [
-            "- `ARRAYSHIFT SOME_INT_ARRAY, 1, 0`",
-            "- `ARRAYSHIFT SOME_STR_ARRAY, -2, \"\", 10`",
-        ],
-    },
-    "SORTCHARA": {
-        "Summary": [
-            "- Reorders the engine’s character list (`0 .. CHARANUM-1`) by a key taken from a character-data variable.",
-            "- Observable engine behavior: keeps `MASTER` fixed at its numeric position for this instruction (`fixMaster=true`).",
-        ],
-        "Syntax": [
-            "- `SORTCHARA`",
-            "- `SORTCHARA FORWARD | BACK`",
-            "- `SORTCHARA <charaVarTerm> [ , FORWARD | BACK ]`",
-        ],
-        "Arguments": [
-            "- `<charaVarTerm>`: a variable term whose identifier is a character-data variable.",
-            "- Order: `FORWARD` = ascending, `BACK` = descending.",
-            "- If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.",
-        ],
-        "Defaults / optional arguments": [
-            "- If no args: defaults to `NO` ascending.",
-        ],
-        "Semantics": [
-            "- Computes a sort key for each character via `CharacterData.SetSortKey(sortkey, elem)`; null strings are treated as empty string.",
-            "- Stable sort: ties broken by original order.",
-            "- After sorting, `TARGET`/`ASSI` are updated to keep pointing at the same character objects; `MASTER` is fixed at its index for this instruction.",
-        ],
-        "Errors & validation": [
-            "- Parse-time error if `<charaVarTerm>` is not a character-data variable term.",
-            "- Runtime error if the selected element indices are out of range for the variable.",
-        ],
-        "Examples": [
-            "- `SORTCHARA NO`",
-            "- `SORTCHARA CFLAG:3, BACK`",
-            "- `SORTCHARA NAME, FORWARD`",
-        ],
-    },
-}
-
-METHOD_OVERRIDES: dict[str, dict[str, list[str]]] = {
-    "SUBSTRING": {
-        "Summary": [
-            "- Returns a substring where `start`/`length` are measured in the engine’s current language-encoding byte count (not Unicode code units).",
-        ],
-        "Signatures / argument rules": [
-            "- `SUBSTRING(str)` → `string`",
-            "- `SUBSTRING(str, start)` → `string`",
-            "- `SUBSTRING(str, start, length)` → `string`",
-        ],
-        "Arguments": [
-            "- `str`: string.",
-            "- `start` (optional): int (byte offset, 0-based).",
-            "- `length` (optional): int (byte length; `<0` means “to end”).",
-        ],
-        "Semantics": [
-            "- Uses `LangManager.GetSubStringLang(str, start, length)` (encoding-aware).",
-            "- If `start >= totalByte` or `length == 0`: returns `\"\"`.",
-            "- If `length < 0` or `length > totalByte`: treated as `totalByte`.",
-            "- Does not split characters: advances by character while tracking encoded byte counts.",
-        ],
-        "Errors & validation": [
-            "- Argument type/count errors are rejected by `FunctionMethod.CheckArgumentType`.",
-        ],
-        "Examples": [
-            "- `SUBSTRING(\"ABCDE\", 1, 2)` → `\"BC\"` (ASCII)",
-        ],
-    },
-    "FINDCHARA": {
-        "Summary": [
-            "- Returns the first character index in the current character list whose chara-variable cell equals a target value.",
-        ],
-        "Signatures / argument rules": [
-            "- `FINDCHARA(charaVarTerm, value)` → `long`",
-            "- `FINDCHARA(charaVarTerm, value, startIndex)` → `long`",
-            "- `FINDCHARA(charaVarTerm, value, startIndex, lastIndex)` → `long`",
-        ],
-        "Arguments": [
-            "- `charaVarTerm`: character-data variable term (may be array; element indices taken from subscripts after the character selector).",
-            "- `value`: same scalar type as the variable (string or int).",
-            "- `startIndex` (optional, default `0`): inclusive start.",
-            "- `lastIndex` (optional, default `CHARANUM`): exclusive end.",
-        ],
-        "Semantics": [
-            "- Searches forward in `[startIndex, lastIndex)`; returns matching index or `-1` if not found or if `startIndex >= lastIndex`.",
-            "- Equality check is direct (`==`) on the per-character cell value.",
-        ],
-        "Errors & validation": [
-            "- Errors if `startIndex`/`lastIndex` are out of range; errors if `charaVarTerm` is not a character-data variable term.",
-        ],
-        "Examples": [
-            "- `idx = FINDCHARA(NAME, \"Alice\")`",
-            "- `idx = FINDCHARA(CFLAG:3, 1, 10)`",
-        ],
-    },
-    "FINDLASTCHARA": {
-        "Summary": [
-            "- Like `FINDCHARA`, but searches backward and returns the last matching character index in the range.",
-        ],
-    },
-}
 
 
 @dataclass(frozen=True)
@@ -1183,20 +1019,19 @@ def _load_override_sections(kind: str, name: str) -> dict[str, list[str]]:
       - "instruction"
       - "method"
 
-    Search order:
-      1) Markdown override file in `erabasic-reference/builtins-overrides/`
-      2) Legacy in-script override dict
+    Source of truth:
+      - Markdown override files in `erabasic-reference/builtins-overrides/`
     """
     if kind == "instruction":
         p = INSTRUCTION_OVERRIDES_DIR / f"{name}.md"
         if p.exists():
             return _parse_override_sections(_read_text(p))
-        return INSTRUCTION_OVERRIDES.get(name, {})
+        return {}
     if kind == "method":
         p = METHOD_OVERRIDES_DIR / f"{name}.md"
         if p.exists():
             return _parse_override_sections(_read_text(p))
-        return METHOD_OVERRIDES.get(name, {})
+        return {}
     return {}
 
 
@@ -1293,9 +1128,13 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
 
     engine_instr = {r.name for r in instr_regs}
     engine_meth = {r.name for r in method_regs}
+    is_input_instr: dict[str, bool] = {}
+    for r in instr_regs:
+        flags = (r.flags_expr or "") + " " + (r.additional_flags_expr or "")
+        is_input_instr[r.name] = "IS_INPUT" in flags
 
-    allowed_instruction = set(USER_INSTRUCTION_SECTIONS) | {"Documentation depth", "Progress state", "Progress"}
-    allowed_method = set(USER_METHOD_SECTIONS) | {"Documentation depth", "Progress state", "Progress"}
+    allowed_instruction = set(USER_INSTRUCTION_SECTIONS) | {"Progress state", "Progress"}
+    allowed_method = set(USER_METHOD_SECTIONS) | {"Progress state", "Progress"}
 
     def check_override_file(kind: str, name: str, secs: dict[str, list[str]]) -> None:
         allowed = allowed_instruction if kind == "instruction" else allowed_method
@@ -1336,6 +1175,26 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
                     message="Marked complete but missing user-facing sections: " + ", ".join(f"`{t}`" for t in missing_sections),
                 )
             )
+
+        # Generic completeness lint: input instructions are high-risk for "silent spec holes".
+        #
+        # If an instruction is engine-flagged `IS_INPUT` and is marked complete, require the semantics text to
+        # explicitly mention empty/invalid input handling unless it defers to another built-in ("Same as ...", "Like ...").
+        if ps == "complete" and kind == "instruction" and is_input_instr.get(name, False):
+            sem = "\n".join(secs.get("Semantics", []))
+            sem_l = sem.lower()
+            if re.search(r"\\b(same as|like)\\s+`[a-z0-9_]+`", sem_l):
+                return
+            if "empty" not in sem_l or "invalid" not in sem_l:
+                issues.append(
+                    ValidationIssue(
+                        severity="WARN",
+                        code="complete-missing-input-handling",
+                        kind=kind,
+                        name=name,
+                        message="Marked complete but missing explicit empty/invalid input handling in `Semantics`.",
+                    )
+                )
 
     # Stale override files (exist on disk but not in engine lists).
     for p in sorted(INSTRUCTION_OVERRIDES_DIR.glob("*.md")):
@@ -1499,49 +1358,6 @@ def generate_builtins_index_md(
         out.append("")
 
     return "\n".join(out).rstrip() + "\n"
-
-
-def _estimate_doc_depth(override: dict[str, list[str]]) -> tuple[str, str]:
-    """
-    Best-effort doc-depth indicator for per-entry visibility.
-
-    Returns:
-      (depth_label, note)
-
-    depth_label is one of: "Skeleton", "Low", "Medium", "High", "Manual".
-    """
-    if not override:
-        return ("Skeleton", "Engine-extracted hooks only; semantics mostly TODO.")
-
-    manual = override.get("Documentation depth")
-    if manual:
-        for line in manual:
-            t = line.strip()
-            if t:
-                return ("Manual", t.lstrip("- ").strip())
-        return ("Manual", "Manual override present (depth not specified).")
-
-    score_sections = [
-        "Summary",
-        "Syntax",
-        "Arguments",
-        "Defaults / optional arguments",
-        "Signatures / argument rules",
-        "Semantics",
-        "Errors & validation",
-        "Examples",
-    ]
-    non_empty = 0
-    for k in score_sections:
-        for line in override.get(k, []):
-            if line.strip():
-                non_empty += 1
-
-    if non_empty >= 60:
-        return ("High", "Heuristic: substantial manual semantics present; still verify edge cases.")
-    if non_empty >= 25:
-        return ("Medium", "Heuristic: main behavior described; some edge cases may be missing.")
-    return ("Low", "Heuristic: minimal manual semantics; use engine refs for strict behavior.")
 
 
 def _progress_state(override: dict[str, list[str]]) -> str:
@@ -1899,6 +1715,39 @@ def main(argv: list[str] | None = None) -> int:
     md_user.append("")
     md_user.append("For engine-extracted skeletons, validation structures, and file/line references, see:")
     md_user.append(f"- `{OUTPUT_ENGINE_MD.relative_to(REPO_ROOT)}` (writer/debug dump; not user-facing)")
+    md_user.append("")
+    md_user.append("# Conventions used by this reference")
+    md_user.append("")
+    md_user.append("Unless an entry explicitly says otherwise, interpret this reference using the conventions below.")
+    md_user.append("")
+    md_user.append("## Evaluation order (default)")
+    md_user.append("")
+    md_user.append("- Arguments are evaluated left-to-right.")
+    md_user.append("- Each argument (and any subscripts inside it) is evaluated once.")
+    md_user.append("- If an entry describes a different evaluation rule, that entry overrides this default.")
+    md_user.append("")
+    md_user.append("## Optional arguments and defaults")
+    md_user.append("")
+    md_user.append("- Whether an argument can be omitted is defined by an entry’s `Syntax` (instructions) or `Signatures` (methods).")
+    md_user.append("- Optional arguments can be omitted by leaving an empty argument slot (e.g. `FUNC(a, , c)`); in that case the argument value is treated as “omitted” for the purpose of default substitution.")
+    md_user.append("- Default values/behaviors for omitted arguments are documented inline under that entry’s `Arguments` (e.g. “optional, default `0`”).")
+    md_user.append("- Omitted arguments are not the same as passing an empty string; if empty-string behavior matters for compatibility, the entry documents it explicitly.")
+    md_user.append("")
+    md_user.append("## Output skipping / skipped execution")
+    md_user.append("")
+    md_user.append("- Some instructions are skipped entirely when output skipping is active (e.g. `SKIPDISP` / skip-print mode).")
+    md_user.append("- When an instruction is **skipped**, it is not executed: arguments are not evaluated and there are no side effects.")
+    md_user.append("- Note: the engine may still parse/compile the line’s arguments before the skip check; skips only suppress execution-time evaluation and side effects.")
+    md_user.append("")
+    md_user.append("## Range notation")
+    md_user.append("")
+    md_user.append("- This reference avoids `a..b` range notation, because inclusive/exclusive bounds are easy to misread.")
+    md_user.append("- Ranges are written using explicit inequalities (e.g. `0 <= i < n`) or half-open interval notation (e.g. `[startIndex, lastIndex)`).")
+    md_user.append("")
+    md_user.append("## Terminology: errors vs rejection")
+    md_user.append("")
+    md_user.append("- **Error**: the engine reports an error (typically aborting the current execution).")
+    md_user.append("- **Reject** (input/choice contexts): the engine ignores the input and continues waiting; side effects such as `RESULT*` writes happen only as documented for the accepting path.")
     md_user.append("")
     md_user.append("# Expression functions as statements")
     md_user.append("")

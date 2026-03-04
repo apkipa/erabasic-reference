@@ -1,25 +1,27 @@
 **Summary**
 - Deletes the last *N logical output lines* from the console display/log.
 
+**Tags**
+- io
+
 **Syntax**
 - `CLEARLINE <n>`
 
 **Arguments**
-- `<n>`: integer expression (cast to a 32-bit signed integer before use; out-of-range values are implementation-defined).
-
-**Defaults / optional arguments**
-- None.
+- `<n>`: integer expression.
+  - The evaluated value is converted to a 32-bit signed integer by truncation (i.e. low 32 bits interpreted as signed).
 
 **Semantics**
-- Evaluates `<n>` and calls the console’s internal `deleteLine(<n>)`.
+- Evaluates `<n>` and deletes the last `n` logical output lines from the console display/log.
 - The deletion count is in **logical lines**, not raw display lines:
   - One logical line can occupy multiple display lines (e.g. word wrapping).
   - Deletion walks backward from the end of the display list and counts only entries marked as “logical line” boundaries; all associated display lines are removed.
-- After deleting, the console is refreshed (`RefreshStrings(false)`).
+- If `n <= 0`, nothing is deleted.
+- After deleting, the display is refreshed.
 
 **Errors & validation**
 - No explicit validation in the instruction.
-- Engine behavior is only well-defined for small non-negative `<n>`; negative or overflowed values can lead to implementation-specific results.
+- No error is raised for negative or overflowed values (after the 32-bit conversion).
 
 **Examples**
 - `CLEARLINE 1`
@@ -27,4 +29,3 @@
 
 **Progress state**
 - complete
-

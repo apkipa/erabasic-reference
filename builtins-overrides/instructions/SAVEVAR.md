@@ -1,6 +1,9 @@
 **Summary**
 - Declared but **not implemented** in this engine build (always errors).
 
+**Tags**
+- save-system
+
 **Syntax**
 - `SAVEVAR <name>, <saveText>, <var1> [, <var2> ...]`
 
@@ -8,9 +11,6 @@
 - `<name>`: string expression; intended file name component.
 - `<saveText>`: string expression; intended description text.
 - `<var*>`: one or more changeable non-character variable terms (arrays are allowed; several variable categories are rejected).
-
-**Defaults / optional arguments**
-- None.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.

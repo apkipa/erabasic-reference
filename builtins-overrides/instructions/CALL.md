@@ -1,6 +1,9 @@
 **Summary**
 - Calls a non-event script function (`@NAME`) and returns to the next line after the `CALL` when the callee returns.
 
+**Tags**
+- calls
+
 **Syntax**
 - `CALL <functionName> [, <arg1>, <arg2>, ... ]`
 - `CALL <functionName>(<arg1>, <arg2>, ... )`
@@ -13,15 +16,15 @@
 - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
 - `<argN>`: expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
 
-**Defaults / optional arguments**
-- If the callee declares more parameters than provided arguments, omitted arguments are handled by the engine’s user-function argument binder (defaults and config gates apply).
+- Omitted arguments / defaults:
+  - If the callee declares more parameters than provided arguments, omitted arguments are handled by the engine’s user-function argument binder (defaults and config gates apply).
 
 **Semantics**
 - Resolves the target label to a non-event function.
   - If `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
 - Evaluates arguments, binds them to the callee’s declared formals (including `REF` behavior), then enters the callee.
 - When the callee executes `RETURN` (or reaches end-of-function), control returns to the statement after the `CALL`.
-- Engine implementation detail: if `<functionName>` is a compile-time constant, the loader tries to resolve the callee and pre-check argument binding during the load phase.
+- Load-time behavior: if `<functionName>` is a compile-time constant, the loader tries to resolve the callee and may emit early diagnostics (e.g. unknown function, argument binding issues).
 
 **Errors & validation**
 - If `<functionName>` is a constant string:

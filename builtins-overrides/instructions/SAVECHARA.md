@@ -1,6 +1,10 @@
 **Summary**
 - Saves one or more characters into a `dat/chara_<name>.dat` file (binary only).
 
+**Tags**
+- characters
+- save-system
+
 **Syntax**
 - `SAVECHARA <name>, <saveText>, <charaNo1> [, <charaNo2> ...]`
 
@@ -9,13 +13,10 @@
 - `<saveText>`: string expression stored in the file as a description.
 - `<charaNo*>`: one or more integer expressions; character indices to save (0-based).
 
-**Defaults / optional arguments**
-- None.
-
 **Semantics**
 - Writes a binary file under `Program.DatDir`:
   - Path is `chara_<name>.dat`.
-- File format (implementation detail):
+- File format:
   - Binary save format with file type `CharVar`.
   - Includes game unique code and script version checks, `<saveText>`, and the serialized character data.
 - Validates the character list:

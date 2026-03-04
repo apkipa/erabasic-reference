@@ -1,14 +1,17 @@
 **Summary**
 - Ends a `DO ... LOOP` loop and provides the loop condition.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `LOOP <int expr>`
 
 **Arguments**
 - `<int expr>`: loop condition (0 = false, non-zero = true).
 
-**Defaults / optional arguments**
-- If omitted, the condition defaults to `0` (false) and emits a load-time warning.
+- Omitted arguments / defaults:
+  - If omitted, the condition defaults to `0` (false) and emits a load-time warning.
 
 **Semantics**
 - Evaluates the condition:

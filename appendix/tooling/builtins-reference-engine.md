@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)
 
-Generated from engine source on `2026-03-03`.
+Generated from engine source on `2026-03-05`.
 
 This file is **not user-facing**.
 It exists for doc authors and fact-checking, and includes engine-extracted skeletons, validation structures, and file/line references.
@@ -454,8 +454,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 ## SET (instruction)
 **Summary**
-- Internal pseudo-instruction used by the engine to represent **assignment statements** (produced by parsing assignment syntax).
-- Implements scalar assignment, compound assignment (`+=`, `-=`, etc.), `++/--`, and comma-list assignment into arrays.
+- Describes **assignment statements** (`=`, `'=` and compound forms) and their observable behavior.
+- Covers scalar assignment, compound assignment (`+=`, `-=`, etc.), `++/--`, and comma-list assignment into arrays.
 
 **Metadata**
 - Arg spec: (instruction-defined)
@@ -480,33 +480,31 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - string LHS with `=`: RHS is scanned as a formatted string until end-of-line.
   - string LHS with `'=` / `+=` / `*=`: RHS is parsed as normal expressions.
 
+- Omitted arguments / defaults:
+  - For `++/--`, the implicit delta is `+1` / `-1`.
+
 **Defaults / optional arguments**
-- For `++/--`, the implicit delta is `+1` / `-1`.
+- (TODO)
 
 **Semantics**
-- How “SET” appears:
-  - This is not a script-level keyword; an assignment line is parsed into an `InstructionLine` whose function is internally `SET` and whose `AssignOperator` encodes the operator.
-  - If a script tries to write a literal `SET ...` instruction, it is not parsed as an assignment line and will fail argument parsing (implementation detail).
-- Assignment operator recognition (parser-level):
+- There is no `SET` keyword in EraBasic source; this entry documents the language’s assignment syntax.
+- Assignment operator recognition:
   - The engine recognizes: `=`, `'=`; `++`, `--`; and compound forms `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `|=`, `&=`, `^=`.
 - Allowed operators depend on LHS type:
   - int LHS: all the above operators are accepted by the assignment builder.
   - string LHS: only `=`, `'=` (string-expression assignment), `+=`, `*=` are accepted; other compound operators are rejected as invalid.
 - If the RHS is a single value:
   - `=` assigns that value.
-  - For compound assignment operators, the builder lowers the statement into either:
-    - an in-place delta update (`ChangeValue`) only for the `+= <const>` / `-= <const>` / `++` / `--` cases, or
-    - a read-then-write expression of the form `LHS = (LHS <op> RHS)` for all other cases (via the engine’s operator reducers).
+  - For compound assignment operators, the resulting value is the same as `LHS = (LHS <op> RHS)` (using the operator implied by the compound form).
 - Index evaluation and side effects (important compatibility detail):
-  - In the `ChangeValue` path (`+= <const>`, `-= <const>`, `++`, `--`), the variable term’s indices are evaluated once.
-  - In the general read-then-write path (`LHS = (LHS <op> RHS)`), the variable term is evaluated once for the read and again for the write; if indices contain expressions with side effects, they may run twice (engine behavior).
+  - For `++`, `--`, `+= <const int>`, `-= <const int>`: the LHS variable term (including indices/subscripts) is evaluated once.
+  - For other compound assignments: the LHS variable term is evaluated twice (once to read the old value, and once to write the new value), so any side effects in indices can run twice.
 - If the RHS is a comma list:
   - This is only allowed for `=` on integer variables, and only allowed for `'=` on string variables.
-  - Evaluates each element and writes a batch of consecutive elements via the variable term’s `SetValue(long[]/string[])` overload (for multidimensional arrays, the list advances the last dimension).
+  - Evaluates each element and writes a batch of consecutive elements starting at the LHS element (for multidimensional arrays, the list advances the last dimension only).
   - If any RHS element is omitted, it is an error.
 - For string `=` assignment, the RHS is treated as FORM/formatted text (not a normal expression) and then compiled to a string expression internally.
-  - Implementation detail: after the operator, the engine skips **ASCII spaces only** (not tabs) before scanning the FORM string.
-  - Implementation detail: the FORM scanner is invoked in a “trimmed” mode to approximate EraMaker behavior.
+  - After the operator, the parser skips **ASCII spaces only** (not tabs) before scanning the FORM string.
 
 **Errors & validation**
 - Parse-time errors:
@@ -532,7 +530,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 ## PRINT (instruction)
 **Summary**
 - Prints a **raw literal string** (the remainder of the source line) into the console output buffer.
-- See also: `PRINTV` (variadic expressions), `PRINTS` (string expression), `PRINTFORM` (FORM scanned at load-time), `PRINTFORMS` (FORM scanned at runtime).
 - This entry also documents **common PRINT-family semantics** (suffix letters, buffering, `K`/`D`, `C`/`LC`).
 
 **Metadata**
@@ -545,7 +542,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - `PRINT;<raw text>`
 
 **Arguments**
-- `<raw text>` is **not an expression**. It is taken as the raw character sequence after the instruction delimiter.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` is taken as the raw character sequence after the instruction delimiter.
 - The parser consumes exactly one delimiter character after the keyword:
   - a single space / tab
   - or a full-width space if `SystemAllowFullSpace` is enabled
@@ -556,21 +554,38 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - `PRINT;X` prints `X` (no leading whitespace in the argument).
 
 **Defaults / optional arguments**
-- If omitted, the argument is treated as the empty string.
+- (TODO)
 
 **Semantics**
 - Output is appended to the engine’s **print buffer** (it is not necessarily flushed to the UI immediately).
-- Implementation detail: if `SkipPrint` is enabled, `PRINT*` does nothing (no output, no newline, no wait).
-- Common behavior across the PRINT family:
-  - `...L` variants: after output, flush and append a newline (`Console.NewLine()`).
-  - `...W` variants: like `...L`, then wait for a key (`Console.ReadAnyKey()`).
-  - `...N` variants: wait for a key **without ending the logical output line** (implementation detail: prints with `lineEnd=false` before flushing).
-  - `...K` variants: apply kana conversion to the produced string, as configured by `FORCEKANA` (`ConvertStringType`).
-  - `...D` variants: ignore `SETCOLOR`’s *color* for this output (still respects font style and font name).
-  - `...C` / `...LC` variants: output a fixed-width *cell* using `Config.PrintCLength`; width is measured in **Shift-JIS byte count** (implementation detail; current console implementation hardcodes Shift-JIS for this measurement).
+- If output skipping is active (`SKIPDISP`):
+  - These instructions are skipped before execution by the interpreter.
+  - Arguments are not evaluated and there are no side effects.
+- Argument/evaluation modes by base variant (before suffix letters):
+  - `PRINT*` (raw): uses the raw literal remainder-of-line (not an expression).
+  - `PRINTS*`: evaluates one string expression.
+  - `PRINTV*`: evaluates a comma-separated list of expressions; each element must be either integer or string; results are concatenated with no separator (left-to-right).
+  - `PRINTFORM*`: parses its argument as a FORM/formatted string at load/parse time, then evaluates it at runtime.
+  - `PRINTFORMS*`: evaluates one string expression to obtain a format-string source, then parses and evaluates it as a FORM string at runtime (see below).
+- Suffix letters and their meaning (parser order is important):
+  - `C` / `LC` (cell output): after building the output string, outputs a fixed-width cell:
+    - `...C` uses right alignment, `...LC` uses left alignment.
+    - This is **not** the same as the newline suffix `L`; for example, `PRINTLC` means “left-aligned cell”, not “PRINTL + C”.
+    - Cell formatting rules are defined by the console implementation; see `PRINTC` / `PRINTLC`.
+    - Cell variants do not use the `...L / ...W / ...N` newline/wait handling; they only append a cell to the buffer.
+  - `K` (kana conversion): applies kana conversion as configured by `FORCEKANA`.
+  - `D` (ignore SETCOLOR color): ignores `SETCOLOR`’s *color* for this output (font name/style still apply).
+  - `L` (newline): after printing, flushes the current buffer and appends a newline.
+  - `W` (wait): like `L`, then waits for a key.
+  - `N` (wait without ending the logical line): prints without ending the logical line, then flushes and waits like `W`.
+    - The *next* flushed output will be merged onto the same logical line.
+- FORM-at-runtime behavior (`PRINTFORMS*`):
+  - Evaluates the string expression to `src`.
+  - Normalizes escapes (the same escape-handling used by FORM strings).
+  - Parses `src` as a FORM string up to end-of-line, then evaluates it and prints the result.
 - `PRINT` itself:
   - Uses the raw literal argument as the output string.
-  - Treats the output as ending a logical line (`lineEnd=true`) even though it does not insert a newline by itself.
+  - Treats the output as ending a logical line (even though it does not insert a newline by itself).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -610,8 +625,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -653,8 +671,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -696,8 +717,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -739,8 +763,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -783,8 +810,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -826,8 +856,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -868,8 +901,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -911,8 +947,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -955,8 +994,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -998,8 +1040,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1042,8 +1087,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1086,8 +1134,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1130,8 +1181,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1175,8 +1229,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1220,8 +1277,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1263,8 +1323,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1307,8 +1370,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1351,8 +1417,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1395,8 +1464,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1440,8 +1512,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1484,8 +1559,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1527,8 +1605,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1571,8 +1652,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1616,8 +1700,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1660,8 +1747,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1705,8 +1795,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1750,8 +1843,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1795,8 +1891,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1841,8 +1940,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1887,8 +1989,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1930,8 +2035,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1974,8 +2082,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2018,8 +2129,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2062,8 +2176,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2107,8 +2224,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2151,8 +2271,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2194,8 +2317,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2238,8 +2364,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2283,8 +2412,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2327,8 +2459,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2372,8 +2507,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2417,8 +2555,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2462,8 +2603,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2508,8 +2652,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2554,12 +2701,16 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -2598,13 +2749,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -2642,13 +2797,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -2687,13 +2846,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -2732,14 +2895,18 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -2778,12 +2945,16 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - Engine-extracted notes (base flags from class):
@@ -2823,13 +2994,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - Engine-extracted notes (base flags from class):
@@ -2868,13 +3043,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - Engine-extracted notes (base flags from class):
@@ -2914,13 +3093,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - Engine-extracted notes (base flags from class):
@@ -2960,14 +3143,18 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - Engine-extracted notes (base flags from class):
@@ -3007,12 +3194,16 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
@@ -3052,13 +3243,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
@@ -3097,13 +3292,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
@@ -3143,13 +3342,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
@@ -3189,14 +3392,18 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
-- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).
+- If the produced output string is empty, this instruction does nothing.
+- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
@@ -3235,15 +3442,26 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is converted to a fixed-width “cell” string (see below).
+
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string, and therefore produces no output.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Writes one fixed-width cell; does not append a newline and does not flush immediately.
+- Cell formatting (right-aligned cell; observable behavior):
+  - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
+  - Let `n = Config.PrintCLength`.
+  - Computes a target pixel width by measuring `n` spaces using the default font.
+  - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
+    - If font creation fails, returns `str` unchanged.
+  - If `len < n`, left-pads spaces to reach exactly `n` bytes.
+  - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
+  - If `len >= n`, it does not add padding and does not truncate (overlong strings are kept as-is).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -3280,15 +3498,26 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is converted to a fixed-width “cell” string (see below).
+
+- Omitted arguments / defaults:
+  - Omitted argument is treated as the empty string, and therefore produces no output.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Writes one fixed-width cell; does not append a newline and does not flush immediately.
+- Cell formatting (left-aligned cell; observable behavior):
+  - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
+  - Let `n = Config.PrintCLength`.
+  - Computes a target pixel width by measuring `n` spaces using the default font.
+  - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
+    - If font creation fails, returns `str` unchanged.
+  - If `len < n + 1`, right-pads spaces to reach exactly `n + 1` bytes.
+  - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the last character is a space, it removes one trailing space and re-measures.
+  - If `len >= n + 1`, it does not add padding and does not truncate (overlong strings are kept as-is).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -3325,16 +3554,19 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -3371,16 +3603,19 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -3417,15 +3652,18 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -3463,15 +3701,18 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -3509,16 +3750,19 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -3556,16 +3800,19 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -3603,15 +3850,18 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -3649,15 +3899,18 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -3695,16 +3948,19 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -3742,16 +3998,19 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).
+- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
 
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
+- Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
@@ -3795,8 +4054,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional `<intVarTerm>`: a changeable int variable term that receives the 0-based chosen index.
 
+- Omitted arguments / defaults:
+  - If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.
+
 **Defaults / optional arguments**
-- If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Load-time structure rules (enforced by the loader):
@@ -3806,10 +4068,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (load-time error).
   - The block body only permits `DATA` / `DATAFORM` / `DATALIST` / `ENDLIST` / `ENDDATA`; any other instruction (and any label definition) inside is a load-time error.
 - Runtime behavior:
-  - Implementation detail: if `SkipPrint` is enabled, `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
+  - If output skipping is active (script runner `skipPrint`), `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
   - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.
   - Otherwise:
-    - Choose `choice = RAND(0..count-1)` using the engine RNG.
+    - Choose `choice` uniformly such that `0 <= choice < count` (using the engine RNG).
     - If `<intVarTerm>` is present, assign it the chosen index.
     - Print the selected `DATA` entry:
       - A single `DATA`/`DATAFORM` line prints as one line.
@@ -3873,8 +4135,11 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
+
 **Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -3923,8 +4188,11 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
+
 **Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -3973,8 +4241,11 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
+
 **Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -4023,8 +4294,11 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
+
 **Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -4073,8 +4347,11 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
+
 **Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -4123,8 +4400,11 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
+
 **Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -4173,8 +4453,11 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
+
 **Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -4223,8 +4506,11 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
+- Omitted arguments / defaults:
+  - Same as `PRINTDATA`.
+
 **Defaults / optional arguments**
-- Same as `PRINTDATA`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -4259,25 +4545,34 @@ ENDDATA
 
 ## PRINTBUTTON (instruction)
 **Summary**
-- (TODO)
+- Prints a clickable button with a script-provided input value.
+- Unlike automatic button conversion (e.g. `[0] ...` inside normal `PRINT` output), this instruction forces the output segment to be a button.
 
 **Metadata**
 - Arg spec: `SP_BUTTON` (see #argument-spec-sp_button)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): <string expr>,<int expr>
-- Hint (raw comment): `<文字列式>,<数式>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINTBUTTON <text>, <buttonValue>`
 
 **Arguments**
-- Builder: `SP_BUTTON_ArgumentBuilder()`
-- Type pattern: `[typeof(string), typeof(void)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
+- `<text>`: string expression (button label).
+- `<buttonValue>`: expression whose runtime type is either:
+  - integer (button produces that integer as input), or
+  - string (button produces that string as input; useful with `INPUTS`).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Uses the current text style for output (and honors `SETCOLOR` color).
+- Evaluates `<text>` to a string, then removes any newline characters (`'\n'`) from it.
+- If the resulting label is empty, this instruction produces no output segment (no button is created).
+- Appends one button segment to the print buffer:
+  - If `<buttonValue>` is an integer, the button produces that integer when clicked.
+  - If `<buttonValue>` is a string, the button produces that string when clicked.
+- This instruction does **not** add a newline and does not flush by itself (it behaves like other non-`...L` print-family commands).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = true`
@@ -4285,10 +4580,23 @@ ENDDATA
   - `exm.Console.PrintButton(str, bArg.ButtonWord.GetStrValue(exm))`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors follow the normal expression argument rules.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTS "Are you sure? "
+PRINTBUTTON "[0] Yes", 0
+PRINTS "  "
+PRINTBUTTON "[1] No", 1
+INPUT
+```
+
+```erabasic
+PRINTL Enter your name:
+PRINTBUTTON "[Alice]", "Alice"
+PRINTBUTTON " [Bob]", "Bob"
+INPUTS
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4297,25 +4605,25 @@ ENDDATA
 
 ## PRINTBUTTONC (instruction)
 **Summary**
-- (TODO)
+- Like `PRINTBUTTON`, but formats the label as a fixed-width `PRINTC`-style cell aligned to the right.
 
 **Metadata**
 - Arg spec: `SP_BUTTON` (see #argument-spec-sp_button)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): <string expr>,<int expr>
-- Hint (raw comment): `<文字列式>,<数式>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINTBUTTONC <text>, <buttonValue>`
 
 **Arguments**
-- Builder: `SP_BUTTON_ArgumentBuilder()`
-- Type pattern: `[typeof(string), typeof(void)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
+- Same as `PRINTBUTTON`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Same as `PRINTBUTTON`, with these differences:
+  - The label still has all `'\n'` characters removed (same as `PRINTBUTTON`).
+  - Before creating the button segment, the label is formatted as a `PRINTC`-style fixed-width cell, aligned to the right (same cell formatting rules as `PRINTC`).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = true`
@@ -4323,10 +4631,14 @@ ENDDATA
   - `exm.Console.PrintButtonC(str, bArg.ButtonWord.GetStrValue(exm), isRight)`
 
 **Errors & validation**
-- (TODO)
+- Same as `PRINTBUTTON`.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTBUTTONC "[0] OK", 0
+PRINTBUTTONC "[1] Cancel", 1
+INPUT
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4335,25 +4647,24 @@ ENDDATA
 
 ## PRINTBUTTONLC (instruction)
 **Summary**
-- (TODO)
+- Like `PRINTBUTTON`, but formats the label as a fixed-width `PRINTC`-style cell aligned to the left.
 
 **Metadata**
 - Arg spec: `SP_BUTTON` (see #argument-spec-sp_button)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): <string expr>,<int expr>
-- Hint (raw comment): `<文字列式>,<数式>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINTBUTTONLC <text>, <buttonValue>`
 
 **Arguments**
-- Builder: `SP_BUTTON_ArgumentBuilder()`
-- Type pattern: `[typeof(string), typeof(void)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
+- Same as `PRINTBUTTON`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Same as `PRINTBUTTONC`, except the label cell is aligned to the left:
+  - Uses the same fixed-width cell formatting rules as `PRINTLC`.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = true`
@@ -4361,10 +4672,14 @@ ENDDATA
   - `exm.Console.PrintButtonC(str, bArg.ButtonWord.GetStrValue(exm), isRight)`
 
 **Errors & validation**
-- (TODO)
+- Same as `PRINTBUTTON`.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTBUTTONLC "[0] OK", 0
+PRINTBUTTONLC "[1] Cancel", 1
+INPUT
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4373,34 +4688,45 @@ ENDDATA
 
 ## PRINTPLAIN (instruction)
 **Summary**
-- (TODO)
+- Outputs a raw string argument as plain text, without automatic button conversion.
 
 **Metadata**
 - Arg spec: `STR_NULLABLE` (see #argument-spec-str_nullable)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): raw string, optional
-- Hint (raw comment): `単純文字列型、省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINTPLAIN`
+- `PRINTPLAIN <raw text>`
 
 **Arguments**
-- Builder: `STR_ArgumentBuilder(true)`
+- `<raw text>`: the literal remainder of the line (not a string expression).
+
+- Omitted arguments / defaults:
+  - If omitted, the argument is treated as the empty string; empty output produces no output segment.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Appends the raw string to the print buffer as a “plain” segment:
+  - It is **not** scanned for numeric button patterns like `[0]`.
+  - It still uses the current style (`SETCOLOR`, font style, etc.).
+- Does not add a newline and does not flush by itself.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = true`
   - `exm.Console.PrintPlain(term.GetStrValue(exm))`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+```erabasic
+; This will NOT become a clickable button:
+PRINTPLAIN [0] Save
+PRINTL
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4409,34 +4735,42 @@ ENDDATA
 
 ## PRINTPLAINFORM (instruction)
 **Summary**
-- (TODO)
+- Like `PRINTPLAIN`, but reads its argument as a FORM/formatted string.
 
 **Metadata**
 - Arg spec: `FORM_STR_NULLABLE` (see #argument-spec-form_str_nullable)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): FORM string型。optional
-- Hint (raw comment): `書式付文字列型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINTPLAINFORM`
+- `PRINTPLAINFORM <FORM string>`
 
 **Arguments**
-- Builder: `FORM_STR_ArgumentBuilder(true)`
+- `<FORM string>`: a FORM argument scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
+
+- Omitted arguments / defaults:
+  - If omitted, the argument is treated as the empty string; empty output produces no output segment.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Evaluates the FORM argument to a string, then appends it as a “plain” segment (no automatic button conversion).
+- Does not add a newline and does not flush by itself.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = true`
   - `exm.Console.PrintPlain(term.GetStrValue(exm))`
 
 **Errors & validation**
-- (TODO)
+- FORM parsing errors follow the engine’s normal FORM rules.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTPLAINFORM HP: {HP}/{MAXHP}  [0] Not a button
+PRINTL
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4445,35 +4779,51 @@ ENDDATA
 
 ## PRINT_ABL (instruction)
 **Summary**
-- (TODO)
+- Prints a one-line summary of a character’s non-zero abilities (`ABL`), then ends the line.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_ABL`
+- `PRINT_ABL <charaIndex>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- Builds a summary string `s` as follows:
+  - Let `abl[]` be the target character’s `ABL` 1D array.
+  - Let `names[]` be the constant CSV name list `ABLNAME`.
+  - For `i` such that `0 <= i < abl.Length`:
+    - If `i >= names.Length`: stop the loop (`break`).
+    - If `abl[i] == 0`: continue.
+    - If `names[i]` is null/empty: continue (engine uses `string.IsNullOrEmpty`).
+    - Append: `names[i] + "LV" + abl[i] + " "` (note the trailing space).
+  - `s` is the concatenation of all appended parts; it may be the empty string.
+- Prints `s`, then ends the line.
+  - If `s` is empty, this still outputs a blank line.
 - Engine-extracted notes (key operations):
   - `exm.Console.Print(vEvaluator.GetCharacterDataString(target, func.FunctionCode))`
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `charaIndex` is out of range (`charaIndex < 0` or `charaIndex >= CHARANUM`).
 
 **Examples**
-- (TODO)
+```erabasic
+PRINT_ABL TARGET
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4482,35 +4832,51 @@ ENDDATA
 
 ## PRINT_TALENT (instruction)
 **Summary**
-- (TODO)
+- Prints a one-line summary of a character’s enabled talents (`TALENT`), then ends the line.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_TALENT`
+- `PRINT_TALENT <charaIndex>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- Builds a summary string `s` as follows:
+  - Let `talent[]` be the target character’s `TALENT` 1D array.
+  - Let `names[]` be the constant CSV name list `TALENTNAME`.
+  - For `i` such that `0 <= i < talent.Length`:
+    - If `i >= names.Length`: stop the loop (`break`).
+    - If `talent[i] == 0`: continue.
+    - If `names[i]` is null/empty: continue (engine uses `string.IsNullOrEmpty`).
+    - Append: `"[" + names[i] + "]"` (no spaces are added by the engine).
+  - `s` is the concatenation of all appended parts; it may be the empty string.
+- Prints `s`, then ends the line.
+  - If `s` is empty, this still outputs a blank line.
 - Engine-extracted notes (key operations):
   - `exm.Console.Print(vEvaluator.GetCharacterDataString(target, func.FunctionCode))`
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `charaIndex` is out of range.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINT_TALENT TARGET
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4519,35 +4885,51 @@ ENDDATA
 
 ## PRINT_MARK (instruction)
 **Summary**
-- (TODO)
+- Prints a one-line summary of a character’s non-zero marks (`MARK`), then ends the line.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_MARK`
+- `PRINT_MARK <charaIndex>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- Builds a summary string `s` as follows:
+  - Let `mark[]` be the target character’s `MARK` 1D array.
+  - Let `names[]` be the constant CSV name list `MARKNAME`.
+  - For `i` such that `0 <= i < mark.Length`:
+    - If `i >= names.Length`: stop the loop (`break`).
+    - If `mark[i] == 0`: continue.
+    - If `names[i]` is null/empty: continue (engine uses `string.IsNullOrEmpty`).
+    - Append: `names[i] + "LV" + mark[i] + " "` (note the trailing space).
+  - `s` is the concatenation of all appended parts; it may be the empty string.
+- Prints `s`, then ends the line.
+  - If `s` is empty, this still outputs a blank line.
 - Engine-extracted notes (key operations):
   - `exm.Console.Print(vEvaluator.GetCharacterDataString(target, func.FunctionCode))`
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `charaIndex` is out of range.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINT_MARK TARGET
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4556,35 +4938,51 @@ ENDDATA
 
 ## PRINT_EXP (instruction)
 **Summary**
-- (TODO)
+- Prints a one-line summary of a character’s non-zero experiences (`EXP`), then ends the line.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_EXP`
+- `PRINT_EXP <charaIndex>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- Builds a summary string `s` as follows:
+  - Let `exp[]` be the target character’s `EXP` 1D array.
+  - Let `names[]` be the constant CSV name list `EXPNAME`.
+  - For `i` such that `0 <= i < exp.Length`:
+    - If `i >= names.Length`: stop the loop (`break`).
+    - If `exp[i] == 0`: continue.
+    - If `names[i]` is null/empty: continue (engine uses `string.IsNullOrEmpty`).
+    - Append: `names[i] + exp[i] + " "` (note the trailing space).
+  - `s` is the concatenation of all appended parts; it may be the empty string.
+- Prints `s`, then ends the line.
+  - If `s` is empty, this still outputs a blank line.
 - Engine-extracted notes (key operations):
   - `exm.Console.Print(vEvaluator.GetCharacterDataString(target, func.FunctionCode))`
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `charaIndex` is out of range.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINT_EXP TARGET
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4593,26 +4991,55 @@ ENDDATA
 
 ## PRINT_PALAM (instruction)
 **Summary**
-- (TODO)
+- Prints a multi-column view of a character’s parameters (`PALAM`) using `PRINTC`-style cells.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_PALAM`
+- `PRINT_PALAM <charaIndex>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `charaIndex` (optional): int expression; index into the current character list.
+  - If omitted, defaults to `0` and emits a warning.
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Validates `charaIndex` at runtime; out-of-range raises an error.
+- For each parameter code `i` such that `0 <= i < 100`, it computes a cell string `s` and prints it if present:
+  - Let `param = PALAM[charaIndex, i]`.
+  - Let `name = PALAMNAME[i]` (treat `null` as `""`).
+  - If `param == 0` and `name == ""`: omit this cell (no output).
+  - Otherwise:
+    - Let `paramlv = PALAMLV` (global array).
+    - Choose the bar fill character `c` and its threshold `border`:
+      - Start with `c = '-'` and `border = paramlv[1]`.
+      - If `param >= border`: set `c = '='`, `border = paramlv[2]`.
+      - If `param >= border`: set `c = '>'`, `border = paramlv[3]`.
+      - If `param >= border`: set `c = '*'`, `border = paramlv[4]`.
+    - Build a 10-character bar string `bar`:
+      - If `border <= 0` or `border <= param`: bar fill is 10 copies of `c`.
+      - Else if `param <= 0`: bar fill is 10 copies of `'.'`.
+      - Else:
+        - Compute `filled = floor(param * 10 / border)` using integer division (integer overflow wraps).
+        - Bar fill is `filled` copies of `c` followed by `10 - filled` copies of `'.'`.
+    - Build the final cell string:
+      - `name + "[" + barFill + "]" + paramText`
+      - where `paramText` is `param` formatted as a decimal integer right-aligned in width 6 (equivalent to C# interpolated `{param,6}` under `CultureInfo.InvariantCulture`).
+- Each produced cell string is printed via `PRINTC`-style output with right alignment.
+- Keeps a per-line cell counter:
+  - After each printed cell, `count += 1`.
+  - If `Config.PrintCPerLine > 0` and `count % Config.PrintCPerLine == 0`, it flushes pending output.
+- After finishing the loop, it flushes pending output and refreshes the display.
+- This instruction does not automatically append a trailing newline.
 - Engine-extracted notes (key operations):
   - `string printStr = vEvaluator.GetCharacterParamString(target, i)`
   - `exm.Console.PrintC(printStr, true)`
@@ -4620,10 +5047,12 @@ ENDDATA
   - `exm.Console.RefreshStrings(false)`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `charaIndex` is out of range.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINT_PALAM TARGET
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4632,33 +5061,43 @@ ENDDATA
 
 ## PRINT_ITEM (instruction)
 **Summary**
-- (TODO)
+- Prints a one-line summary of currently owned items (`ITEM`), then ends the line.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_ITEM`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Builds a Japanese summary string `s` as follows:
+  - Let `count[]` be the integer array `ITEM`.
+  - Let `names[]` be the string array `ITEMNAME`.
+  - Let `length = min(count.Length, names.Length)`.
+  - Start with `s = "所持アイテム："`.
+  - For each `i` such that `0 <= i < length`:
+    - If `count[i] == 0`: continue.
+    - If `names[i] != null`: append `names[i]` (note: unlike some other lists, empty string is not filtered out here).
+    - Append: `"(" + count[i] + ") "` (note the trailing space).
+  - If no `i` satisfied `count[i] != 0`, append `"なし"`.
+- Prints `s`, then ends the line.
 - Engine-extracted notes (key operations):
   - `exm.Console.Print(vEvaluator.GetHavingItemsString())`
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- None specific to this instruction.
 
 **Examples**
-- (TODO)
+- `PRINT_ITEM`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4667,24 +5106,43 @@ ENDDATA
 
 ## PRINT_SHOPITEM (instruction)
 **Summary**
-- (TODO)
+- Prints a grid of items currently for sale in the shop (based on `ITEMSALES`), including their indices and prices.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_SHOPITEM`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- Let:
+  - `sales = ITEMSALES` (numeric array)
+  - `names = ITEMNAME` (CSV name list; string array)
+  - `prices = ITEMPRICE` (numeric array)
+- Iterates `i` such that `0 <= i < length`, where:
+  - `length = min(sales.Length, names.Length)`, then
+  - if `length > prices.Length`, `length = prices.Length`.
+- An item is considered “for sale” iff:
+  - `sales[i] != 0`, and
+  - `names[i] != null`.
+- For each `i` that is for sale:
+  - Let `name = names[i]` (engine also guards against null by treating it as `""`, but the sale predicate rejects null names).
+  - Let `price = prices[i]`.
+  - Format the cell text as:
+    - If `Config.MoneyFirst` is true: `[{i}] {name}({Config.MoneyLabel}{price})`
+    - Otherwise: `[{i}] {name}({price}{Config.MoneyLabel})`
+  - Prints the cell using `PRINTC`-style formatting with left alignment.
+  - Increments a per-line cell counter and flushes every `Config.PrintCPerLine` cells when `Config.PrintCPerLine > 0`.
+- After finishing the loop, it flushes pending output and refreshes the display.
+- This instruction does not automatically append a trailing newline.
 - Engine-extracted notes (key operations):
   - `int length = Math.Min(vEvaluator.ITEMSALES.Length, vEvaluator.ITEMNAME.Length)`
   - `if (length > vEvaluator.ITEMPRICE.Length)`
@@ -4698,10 +5156,10 @@ ENDDATA
   - `exm.Console.RefreshStrings(false)`
 
 **Errors & validation**
-- (TODO)
+- None specific to this instruction.
 
 **Examples**
-- (TODO)
+- `PRINT_SHOPITEM`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4710,33 +5168,49 @@ ENDDATA
 
 ## DRAWLINE (instruction)
 **Summary**
-- (TODO)
+- Draws a horizontal line across the console using the configured `DRAWLINE` pattern.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `DRAWLINE`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- The engine prints a precomputed “draw line” string and then ends the line.
+- Pattern source:
+  - The base pattern comes from replace config `DrawLineString` (default `"-"`).
+-  The engine precomputes an expanded line string from `DrawLineString` on initialization.
+- Expansion algorithm:
+  - Uses `Config.DrawableWidth` as the target width in pixels and `Config.DefaultFont` for width measurement.
+  - Builds a string by repeating the pattern string until its measured display width is at least `DrawableWidth`.
+  - Then trims one character at a time from the end until the measured width is at most `DrawableWidth`.
+  - Returns the resulting string.
+- Rendering:
+  - The line is printed using `FontStyle.Regular` regardless of the current font style (engine temporarily forces regular for this print).
+  - The engine then ends the line (flushes the buffer and refreshes the display).
+- Important: `DRAWLINE` does not automatically flush existing buffered output *before* printing the line. If you need the line to start at the left edge, end the current logical line first (e.g. `PRINTL`) before calling `DRAWLINE`.
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintBar()`
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- None (arguments are not accepted).
 
 **Examples**
-- (TODO)
+```erabasic
+DRAWLINE
+PRINTL Header
+DRAWLINE
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4745,25 +5219,32 @@ ENDDATA
 
 ## BAR (instruction)
 **Summary**
-- (TODO)
+- Prints a bracketed bar-graph string representing the ratio `value / maxValue`.
 
 **Metadata**
 - Arg spec: `SP_BAR` (see #argument-spec-sp_bar) (inferred from `BAR_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new BAR_Instruction(false)`
 
 **Syntax**
-- Hint (translated, best-effort): <int>,<int>,<int>
-- Hint (raw comment): `<数値>,<数値>,<数値>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `BAR value, maxValue, length`
 
 **Arguments**
-- Builder: `SP_BAR_ArgumentBuilder()`
-- Type pattern: `[typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
+- `value`: int expression (numerator).
+- `maxValue`: int expression (denominator); must evaluate to `> 0`.
+- `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Computes `filled = clamp(value * length / maxValue, 0, length)` using 64-bit integer arithmetic (integer overflow wraps).
+- Produces and prints:
+  - `[` + (`BarChar1` repeated `filled`) + (`BarChar2` repeated `length - filled`) + `]`
+- `BarChar1` / `BarChar2` are configurable:
+  - `BarChar1` default `*`
+  - `BarChar2` default `.`
+- Does **not** append a newline; use `BARL` if you want a newline.
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped like other print-family instructions.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -4771,10 +5252,16 @@ ENDDATA
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- Runtime errors if:
+  - `maxValue <= 0`
+  - `length <= 0`
+  - `length >= 100`
 
 **Examples**
-- (TODO)
+```erabasic
+BAR 2, 10, 20
+PRINTL (2/10)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4783,25 +5270,25 @@ ENDDATA
 
 ## BARL (instruction)
 **Summary**
-- (TODO)
+- Like `BAR`, but appends a newline after printing the bar.
 
 **Metadata**
 - Arg spec: `SP_BAR` (see #argument-spec-sp_bar) (inferred from `BAR_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new BAR_Instruction(true)`
 
 **Syntax**
-- Hint (translated, best-effort): <int>,<int>,<int>
-- Hint (raw comment): `<数値>,<数値>,<数値>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `BARL value, maxValue, length`
 
 **Arguments**
-- Builder: `SP_BAR_ArgumentBuilder()`
-- Type pattern: `[typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
+- Same as `BAR`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Prints the same bar string as `BAR value, maxValue, length`.
+- Appends a newline after printing.
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped like other print-family instructions.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -4809,10 +5296,12 @@ ENDDATA
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- Same as `BAR`.
 
 **Examples**
-- (TODO)
+```erabasic
+BARL 114, 514, 81
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4821,32 +5310,46 @@ ENDDATA
 
 ## TIMES (instruction)
 **Summary**
-- (TODO)
+- Multiplies a changeable integer variable by a real-number literal and stores the truncated result back.
 
 **Metadata**
 - Arg spec: `SP_TIMES` (see #argument-spec-sp_times) (inferred from `TIMES_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TIMES_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): <int variable term>,<実数定数>
-- Hint (raw comment): `<数値型変数>,<実数定数>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TIMES intVarTerm, realLiteral`
 
 **Arguments**
-- Builder: `SP_TIMES_ArgumentBuilder()`
+- `intVarTerm`: a changeable integer variable term (must not be `CONST`).
+- `realLiteral`: a real-number **literal** parsed as `double` (not an expression).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Reads `intVarTerm`’s current value, multiplies it by `realLiteral`, then stores `(long)product` back into `intVarTerm`.
+  - The cast truncates toward zero (`125.9` → `125`, `-1.9` → `-1`).
+- Calculation mode depends on config `TimesNotRigorousCalculation`:
+  - If enabled: uses `double` math.
+  - Otherwise: uses `decimal` math (with a fallback conversion path for overflow) to reduce rounding differences.
+- The assignment is performed in an `unchecked` context (overflow does not raise an error).
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE`
 
 **Errors & validation**
-- (TODO)
+- Load/parse-time validation rejects:
+  - non-variable first argument
+  - string variables
+  - `CONST` variables
+- If `realLiteral` is not a valid real number literal, the engine warns and treats it as `0.0`.
 
 **Examples**
-- (TODO)
+```erabasic
+#DIM X
+X = 100
+TIMES X, 1.25
+PRINTFORML {X}  ; 125
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4868,7 +5371,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Enters a UI wait state for an Enter-style key/click (`InputType.EnterKey`).
@@ -4900,37 +5403,69 @@ ENDDATA
 - Implementor (registration): `new INPUT_Instruction()`
 
 **Syntax**
-- `INPUT`
-- `INPUT <default>`
-- `INPUT <default>, <mouse>, <canSkip> [, <extra>]`
+- `INPUT [<default> [, <mouse> [, <canSkip> [, <extra>]]]]`
 
 **Arguments**
-- `<default>` (optional): integer expression for the default value.
-- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input (implementation detail: selecting buttons can fill the input).
-- `<canSkip>` (optional): integer expression; if present and non-zero, allows “message skip” (`MesSkip`) to auto-accept the default value without waiting.
-- `<extra>` (optional): accepted by the current argument builder but ignored by the runtime implementation (implementation detail).
+- `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
+- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input (e.g. selecting buttons can fill the input).
+  - `0`: accepted value is written to `RESULT`.
+  - Note: mouse mode does not change where the accepted integer is stored on the normal wait path (it is still stored into `RESULT`).
+- `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
+- `<extra>` (optional, int): accepted by the argument parser but ignored by the runtime (not read/evaluated).
 
 **Defaults / optional arguments**
-- If `<default>` is omitted, there is no default value.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Enters an integer-input UI wait (`InputType.IntValue`).
-- If `<default>` is provided, it becomes the default used when the input is empty and the request is not running a timer.
+- Enters an integer-input UI wait.
+- Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
 - On successful completion:
-  - Stores the integer value into `RESULT`.
-  - Echoes the entered text to output (UI behavior).
-- `MesSkip` integration (implementation detail):
+  - Writes the accepted integer to `RESULT`.
+  - Echoes the accepted input text to output.
+    - If the user submits an empty input and a default is used, the echoed text is the default’s decimal string form (e.g. `10`).
+- Empty / invalid input handling:
+  - If there is no default and the user submits an empty input, the input is rejected and the engine stays in the wait state.
+  - If the submitted text is not a valid integer, the input is rejected and the engine stays in the wait state.
+  - On a rejected input, no `RESULT*` variables are assigned and the rejected text is not echoed.
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
-  - In that no-wait path, the engine assigns the default to:
-    - `RESULT` if `<mouse> == 0`
-    - `RESULT_ARRAY[1]` if `<mouse> != 0`
-  - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
-- Mouse-enabled input side channels (implementation detail; WinForms UI behavior):
-  - If mouse input is enabled and the user completes input via a mouse interaction, the UI may also write metadata into:
-    - `RESULT_ARRAY[1]`: mouse button (`1`=left, `2`=right, `3`=middle) in some click paths.
-    - `RESULT_ARRAY[2]`: a modifier-key bitfield in some click paths (Shift=`2^16`, Ctrl=`2^17`, Alt=`2^18`).
-    - `RESULTS_ARRAY[1]`: the clicked button’s string (if any) in some click paths.
-    - `RESULT_ARRAY[3]`: a mapped “button color” value in some click paths.
+  - In that no-wait path:
+    - `<mouse>` must be present (it is read to choose the output slot).
+    - `<default>` must be present; otherwise the engine throws a runtime error.
+    - The accepted value is written to:
+      - `RESULT` if `<mouse> == 0`
+      - `RESULT_ARRAY[1]` if `<mouse> != 0`
+    - The input string is not echoed (because the UI wait is skipped entirely).
+- Mouse-enabled input side channels (UI behavior):
+  - If mouse input is enabled and the user completes input via a mouse click, the UI also writes metadata into:
+    - `RESULT_ARRAY[1]`: mouse button (`1`=left, `2`=right, `3`=middle).
+    - `RESULT_ARRAY[2]`: a modifier-key bitfield (Shift=`2^16`, Ctrl=`2^17`, Alt=`2^18`).
+    - `RESULTS_ARRAY[1]`: the clicked button’s string (if any).
+    - `RESULT_ARRAY[3]`: mapped “button color” (see below).
+  - These side channels are only written on the UI click completion path (not on keyboard-only completion, and not in the `MesSkip` no-wait path).
+
+#### Mapped “button color” (`RESULT:3`) from `<img srcm='...'>`
+
+When a click completes mouse-enabled input, the UI computes `RESULT:3` as follows:
+
+- If the clicked button contains at least one HTML `<img ...>` segment, take the **last** `<img ...>` in that button.
+- If that `<img>` has a `srcm` mapping sprite that exists and is loaded:
+  - Convert the click position to a pixel coordinate in the mapping sprite by scaling within the rendered image rectangle:
+    - Let `drawnWidthPx` / `drawnHeightPx` be the (positive) rendered size of that `<img>` segment.
+    - Let `localX` / `localY` be the click position inside that rendered rectangle, in pixels.
+    - Let `mapWidthPx` / `mapHeightPx` be the mapping sprite’s base size, in pixels.
+    - The sampled mapping coordinate uses integer division (floor):
+      - `mapX = localX * mapWidthPx / drawnWidthPx`
+      - `mapY = localY * mapHeightPx / drawnHeightPx`
+  - Sample the mapping sprite pixel color at `(mapX, mapY)`.
+  - Store `RESULT:3 = (color.ToArgb() & 0x00FFFFFF)` (24-bit RGB).
+- Otherwise, store `RESULT:3 = 0`.
+
+Compatibility notes:
+
+- The mapping color uses the mapping sprite’s base size (the size defined by `resources/**/*.csv`), not the drawn size.
+- If the click is exactly on the image rectangle boundary, the mapping color is treated as `0` (the hit-test uses strict `>`/`<`).
+- Some other UI wait types (not `INPUT` itself) may write a mapping color to `RESULT:6` instead of `RESULT:3` (e.g. the “primitive mouse/key” wait used by `INPUTMOUSEKEY`).
 - If the script runner’s `skipPrint` mode is active (e.g. via `SKIPDISP`), `INPUT` is treated as a print-family instruction:
   - In internal skip modes, it is skipped.
   - If skip was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
@@ -4941,8 +5476,9 @@ ENDDATA
   - `exm.Console.WaitInput(req)`
 
 **Errors & validation**
-- Argument-type errors are raised if a non-integer argument is provided.
-- If input cannot be parsed as an integer, the engine stays in the wait state (no value is stored).
+- Argument-type errors are raised if a provided argument is not an `int` expression (including `<canSkip>` and `<extra>`).
+- Integer parsing is equivalent to `.NET` `Int64.TryParse` on the submitted text.
+  - If parsing fails, the engine stays in the wait state.
 
 **Examples**
 - `INPUT`
@@ -4969,24 +5505,33 @@ ENDDATA
 
 **Arguments**
 - `<defaultFormString>` (optional): a FORM/formatted string expression used as the default string.
-- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input (implementation detail).
+- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
 
+- Omitted arguments / defaults:
+  - If `<defaultFormString>` is omitted, there is no default value.
+
 **Defaults / optional arguments**
-- If `<defaultFormString>` is omitted, there is no default value.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Enters a string-input UI wait (`InputType.StrValue`).
+- Enters a string-input UI wait.
 - If `<defaultFormString>` is provided, it is evaluated to a string and used as the default when the input is empty and the request is not running a timer.
 - On successful completion:
   - Stores the string into `RESULTS`.
-  - Echoes the entered text to output (UI behavior).
-- `MesSkip` integration (implementation detail):
+  - Echoes the accepted input text to output (UI behavior).
+    - If the user submits an empty input and a default is used, the echoed text is that default string.
+- Empty input handling:
+  - If there is no default and the user submits an empty input, the accepted value is `""` (empty string).
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:
     - `RESULTS` if `<mouse> == 0`
     - `RESULTS_ARRAY[1]` if `<mouse> != 0`
   - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
+- Note: if `<canSkip>` is present, `<mouse>` must also be present (it is read in the `MesSkip` no-wait path).
+- Note: if `<canSkip>` is present and `MesSkip` is true at runtime, `<defaultFormString>` must be present.
+  - If it is omitted, the engine throws a runtime error when taking the `MesSkip` no-wait path.
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 - Skip-print interaction is the same as `INPUT` (print-family skip rule + `SKIPDISP` input error case).
 - Engine-extracted notes (base flags from class):
@@ -4997,7 +5542,7 @@ ENDDATA
 
 **Errors & validation**
 - Argument parsing errors follow the underlying builder rules for `INPUTS`.
-- Implementation detail (current argument builder quirks):
+- Argument parsing quirks:
   - After the first comma, non-integer expressions are ignored with a warning.
   - Supplying `<canSkip>` may still emit a “too many arguments” warning, but the value is accepted and used by the runtime.
 
@@ -5027,12 +5572,15 @@ ENDDATA
 - `<default>`: integer expression; default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional): integer expression; if non-zero, displays remaining time (UI behavior). Default `1`.
 - `<timeoutMessage>` (optional): string expression; message used on timeout. Default `Config.TimeupLabel`.
-- `<mouse>` (optional): integer expression; enables mouse input when equal to `1` (implementation detail).
+- `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
 
+- Omitted arguments / defaults:
+  - `<displayTime>` defaults to `1`.
+  - `<timeoutMessage>` defaults to `Config.TimeupLabel`.
+
 **Defaults / optional arguments**
-- `<displayTime>` defaults to `1`.
-- `<timeoutMessage>` defaults to `Config.TimeupLabel`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Enters an integer-input UI wait with a timer:
@@ -5042,7 +5590,7 @@ ENDDATA
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
   - A timeout message is displayed (either by updating the last “remaining time” line, or by printing a single line, depending on `<displayTime>`).
-- `MesSkip` integration (implementation detail):
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:
     - `RESULT` if `<mouse> == 0`
@@ -5083,16 +5631,19 @@ ENDDATA
 - `<default>`: string expression; default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional): integer expression; if non-zero, displays remaining time. Default `1`.
 - `<timeoutMessage>` (optional): string expression; timeout message. Default `Config.TimeupLabel`.
-- `<mouse>` (optional): integer expression; enables mouse input when equal to `1` (implementation detail).
+- `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
 
+- Omitted arguments / defaults:
+  - `<displayTime>` defaults to `1`.
+  - `<timeoutMessage>` defaults to `Config.TimeupLabel`.
+
 **Defaults / optional arguments**
-- `<displayTime>` defaults to `1`.
-- `<timeoutMessage>` defaults to `Config.TimeupLabel`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same model as `TINPUT`, but stores into `RESULTS` (string) rather than `RESULT` (int).
-- `MesSkip` integration (implementation detail):
+- `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:
     - `RESULTS` if `<mouse> == 0`
@@ -5130,11 +5681,16 @@ ENDDATA
 **Arguments**
 - Same as `TINPUT`.
 
+- Omitted arguments / defaults:
+  - Same as `TINPUT`.
+
 **Defaults / optional arguments**
-- Same as `TINPUT`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Same as `TINPUT`, but the UI may truncate the entered text to at most one character (implementation detail).
+- Same as `TINPUT`, but with “one input” mode enabled:
+  - If the entered text has length > 1, it is truncated to the first character.
+  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -5165,11 +5721,16 @@ ENDDATA
 **Arguments**
 - Same as `TINPUTS`.
 
+- Omitted arguments / defaults:
+  - Same as `TINPUTS`.
+
 **Defaults / optional arguments**
-- Same as `TINPUTS`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Same as `TINPUTS`, but the UI may truncate the entered text to at most one character (implementation detail).
+- Same as `TINPUTS`, but with “one input” mode enabled:
+  - If the entered text has length > 1, it is truncated to the first character.
+  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -5204,13 +5765,11 @@ ENDDATA
   - non-zero: disallow input and simply wait `<timeMs>` (or be affected by macro/skip behavior).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Implementation detail: `TWAIT` first calls an Enter-style wait, then replaces it with a timed `WaitInput` request.
-- Creates an `InputRequest` with:
-  - `InputType = EnterKey` if `<mode> == 0`, otherwise `Void`
-  - `Timelimit = <timeMs>`
+- If `<mode> == 0`: waits for Enter/click, but times out after `<timeMs>`.
+- If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
@@ -5247,7 +5806,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Enters a UI wait state for any-key input (`InputType.AnyKey`).
@@ -5284,11 +5843,10 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Enters an Enter-style UI wait (`InputType.EnterKey`) with `StopMesskip = true`.
-  - Implementation detail: this prevents `MesSkip`-driven macro/skip logic from treating the wait as a no-op.
+- Waits for Enter/click, and stops “message skip” from auto-advancing past the wait.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
 - Engine-extracted notes (base flags from class):
@@ -5324,8 +5882,11 @@ ENDDATA
 **Arguments**
 - Same as `INPUT`.
 
+- Omitted arguments / defaults:
+  - Same as `INPUT`.
+
 **Defaults / optional arguments**
-- Same as `INPUT`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Like `INPUT` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
@@ -5365,12 +5926,16 @@ ENDDATA
 **Arguments**
 - Same as `INPUTS`.
 
+- Omitted arguments / defaults:
+  - Same as `INPUTS`.
+
 **Defaults / optional arguments**
-- Same as `INPUTS`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
-- Implementation detail: the UI input handler may truncate the entered string to at most one character.
+- Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
+  - If the entered text has length > 1, it is truncated to the first character.
+  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -5400,17 +5965,19 @@ ENDDATA
 - `CLEARLINE <n>`
 
 **Arguments**
-- `<n>`: integer expression (cast to a 32-bit signed integer before use; out-of-range values are implementation-defined).
+- `<n>`: integer expression.
+  - The evaluated value is converted to a 32-bit signed integer by truncation (i.e. low 32 bits interpreted as signed).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Evaluates `<n>` and calls the console’s internal `deleteLine(<n>)`.
+- Evaluates `<n>` and deletes the last `n` logical output lines from the console display/log.
 - The deletion count is in **logical lines**, not raw display lines:
   - One logical line can occupy multiple display lines (e.g. word wrapping).
   - Deletion walks backward from the end of the display list and counts only entries marked as “logical line” boundaries; all associated display lines are removed.
-- After deleting, the console is refreshed (`RefreshStrings(false)`).
+- If `n <= 0`, nothing is deleted.
+- After deleting, the display is refreshed.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED | IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -5419,7 +5986,7 @@ ENDDATA
 
 **Errors & validation**
 - No explicit validation in the instruction.
-- Engine behavior is only well-defined for small non-negative `<n>`; negative or overflowed values can lead to implementation-specific results.
+- No error is raised for negative or overflowed values (after the 32-bit conversion).
 
 **Examples**
 - `CLEARLINE 1`
@@ -5445,11 +6012,14 @@ ENDDATA
 **Arguments**
 - `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
 
+- Omitted arguments / defaults:
+  - If omitted, the argument is treated as the empty string.
+
 **Defaults / optional arguments**
-- If omitted, the argument is treated as the empty string.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Evaluates `<formString>` to a string and calls `Console.PrintTemporaryLine(str)`.
+- Evaluates `<formString>` to a string and prints it as a temporary line.
 - A “temporary line” has a special overwrite behavior:
   - When the engine later adds a new display line, if the current last display line is temporary, it is deleted first; the new line then takes its place.
   - As a result, repeated `REUSELASTLINE` calls typically “update” a single line (useful for progress/timer displays).
@@ -5473,32 +6043,59 @@ ENDDATA
 
 ## UPCHECK (instruction)
 **Summary**
-- (TODO)
+- Applies the `UP`/`DOWN` delta arrays to `PALAM` for the current `TARGET` character, and prints each applied change.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 - Flags (registration): `METHOD_SAFE`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `UPCHECK`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Reads:
+  - global arrays `UP` and `DOWN`
+  - the current `TARGET` character index
+  - the target character’s `PALAM` array
+  - parameter names from `PALAMNAME`
+- If `TARGET` is out of range (`TARGET < 0` or `TARGET >= CHARANUM`):
+  - no parameter changes are applied, and nothing is printed
+  - it still clears `UP` and `DOWN` to `0` (see below).
+- Otherwise, it computes the loop bound `length` as follows (note the ordering):
+  - Start with `length = PALAM.Length`.
+  - If `PALAM.Length > UP.Length`, set `length = UP.Length`.
+  - If `PALAM.Length > DOWN.Length`, set `length = DOWN.Length`.
+- For each parameter index `i` such that `0 <= i < length`:
+  - Negative and zero deltas are ignored: if `UP[i] <= 0` and `DOWN[i] <= 0`, this index is skipped (no change, no output).
+  - Otherwise:
+    - Let `old = PALAM[i]`.
+    - Apply the change in an `unchecked` context: `PALAM[i] = old + UP[i] - DOWN[i]`.
+    - If output is not being skipped, prints one line (and ends the line) in this exact format:
+      - `PALAMNAME[i] + " " + old + ("+" + UP[i] if UP[i] > 0) + ("-" + DOWN[i] if DOWN[i] > 0) + "=" + PALAM[i]`
+      - Notes:
+        - There are no parentheses around `+...` / `-...`.
+        - If `PALAMNAME[i]` is `null`, it is treated as `""` (so the line starts with a space).
+        - Each printed change ends the line immediately (i.e. it is printed as its own line).
+- After finishing, clears **all elements** of `UP` and `DOWN` to `0`.
+- If output skipping is active (`SKIPDISP` / `skipPrint`), changes are still applied and `UP`/`DOWN` are still cleared, but nothing is printed.
 - Engine-extracted notes (key operations):
   - `vEvaluator.UpdateInUpcheck(exm.Console, skipPrint)`
 
 **Errors & validation**
-- (TODO)
+- None specific to this instruction.
 
 **Examples**
-- (TODO)
+```erabasic
+UP:0 = 123
+UP:1 = 456
+UPCHECK
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -5507,34 +6104,57 @@ ENDDATA
 
 ## CUPCHECK (instruction)
 **Summary**
-- (TODO)
+- Like `UPCHECK`, but applies `CUP`/`CDOWN` to `PALAM` for a specified character index.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `CUPCHECK [charaIndex]`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `charaIndex` (optional): int expression; the character index to apply changes to.
+  - If omitted, defaults to `0` and emits a warning.
+
+- Omitted arguments / defaults:
+  - Omitted `charaIndex` defaults to `0` (with a warning).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Reads the target character’s per-character arrays:
+  - `CUP` and `CDOWN`
+  - and that character’s `PALAM`
+- If `charaIndex` is out of range, returns immediately:
+  - no changes are applied, nothing is printed
+  - `CUP`/`CDOWN` are **not** cleared.
+- Otherwise, it computes the loop bound `length` as follows (note the ordering):
+  - Start with `length = PALAM.Length`.
+  - If `PALAM.Length > CUP.Length`, set `length = CUP.Length`.
+  - If `PALAM.Length > CDOWN.Length`, set `length = CDOWN.Length`.
+- For each parameter index `i` such that `0 <= i < length`:
+  - Negative and zero deltas are ignored: if `CUP[i] <= 0` and `CDOWN[i] <= 0`, this index is skipped.
+  - Otherwise:
+    - Let `old = PALAM[i]`.
+    - Apply the change in an `unchecked` context: `PALAM[i] = old + CUP[i] - CDOWN[i]`.
+    - If output is not being skipped, prints one line (and ends the line) in the same format as `UPCHECK`, but using `CUP`/`CDOWN`:
+      - `PALAMNAME[i] + " " + old + ("+" + CUP[i] if CUP[i] > 0) + ("-" + CDOWN[i] if CDOWN[i] > 0) + "=" + PALAM[i]`
+      - Each printed change ends the line immediately (i.e. it is printed as its own line).
+- After finishing, clears **all elements** of that character’s `CUP` and `CDOWN` arrays to `0`.
+- If output skipping is active (`SKIPDISP` / `skipPrint`), changes are still applied and `CUP`/`CDOWN` are still cleared, but nothing is printed.
 - Engine-extracted notes (key operations):
   - `vEvaluator.CUpdateInUpcheck(exm.Console, target, skipPrint)`
 
 **Errors & validation**
-- (TODO)
+- None specific to this instruction (out-of-range just returns).
 
 **Examples**
-- (TODO)
+```erabasic
+CUP:TARGET:0 = 10
+CUPCHECK TARGET
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -5543,27 +6163,30 @@ ENDDATA
 
 ## ADDCHARA (instruction)
 **Summary**
-- (TODO)
+- Adds one or more characters to the current character list using character templates loaded from CSV.
 
 **Metadata**
 - Arg spec: `INT_ANY` (see #argument-spec-int_any) (inferred from `ADDCHARA_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new ADDCHARA_Instruction(false, false)`
 
 **Syntax**
-- Hint (translated, best-effort): 1つ以上のintをvariadic
-- Hint (raw comment): `1つ以上の数値を任意数`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `ADDCHARA charaNo`
+- `ADDCHARA charaNo1, charaNo2, ...`
 
 **Arguments**
-- Builder: `INT_ANY_ArgumentBuilder()`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
-- Variadic (`argAny`): `true`.
+- Each `charaNo`: int expression selecting a character template.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
+- For each `charaNo` (evaluated left-to-right), the engine immediately appends one character to the current character list:
+  - If `Config.CompatiSPChara` is enabled: calls `AddCharacter_UseSp(charaNo, isSp=false)`.
+  - Otherwise: calls `AddCharacter(charaNo)`.
+- `CHARANUM` increases by 1 for each successfully added character.
+- If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
+- This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE`
 - Engine-extracted notes (key operations):
@@ -5573,11 +6196,15 @@ ENDDATA
   - `exm.VEvaluator.DelCharacter(charaNoList)`
 
 **Errors & validation**
+- Runtime error if any `charaNo` does not resolve to a known character template.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharaConfigIsOff.Text)`
 
 **Examples**
-- (TODO)
+```erabasic
+ADDCHARA 3, 5, 6
+PRINTFORML {CHARANUM}
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -5586,27 +6213,29 @@ ENDDATA
 
 ## ADDSPCHARA (instruction)
 **Summary**
-- (TODO)
+- Adds one or more “SP characters” using the SP-character template path.
 
 **Metadata**
 - Arg spec: `INT_ANY` (see #argument-spec-int_any) (inferred from `ADDCHARA_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new ADDCHARA_Instruction(true, false)`
 
 **Syntax**
-- Hint (translated, best-effort): 1つ以上のintをvariadic
-- Hint (raw comment): `1つ以上の数値を任意数`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `ADDSPCHARA charaNo`
+- `ADDSPCHARA charaNo1, charaNo2, ...`
 
 **Arguments**
-- Builder: `INT_ANY_ArgumentBuilder()`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
-- Variadic (`argAny`): `true`.
+- Each `charaNo`: int expression selecting a character template.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Requires `Config.CompatiSPChara` to be enabled; otherwise this instruction errors before evaluating any arguments.
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
+- For each `charaNo` (evaluated left-to-right), immediately appends one character using the SP template lookup path.
+- `CHARANUM` increases by 1 for each successfully added character.
+- If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
+- This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE`
 - Engine-extracted notes (key operations):
@@ -5616,11 +6245,15 @@ ENDDATA
   - `exm.VEvaluator.DelCharacter(charaNoList)`
 
 **Errors & validation**
+- Runtime error if `CompatiSPChara` is disabled.
+- Runtime error if any `charaNo` does not resolve to a known character template.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharaConfigIsOff.Text)`
 
 **Examples**
-- (TODO)
+```erabasic
+ADDSPCHARA 10
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -5629,34 +6262,42 @@ ENDDATA
 
 ## ADDDEFCHARA (instruction)
 **Summary**
-- (TODO)
+- Performs the engine’s “default character initialization” step used at game start.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `ADDDEFCHARA`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Intended for use in `@SYSTEM_TITLE`.
+- When executed, the engine adds:
+  - the character template for CSV number `0`, and then
+  - the initial character specified by `gamebase.csv` (`GameBaseData.DefaultCharacter`) if it is `> 0`.
+- This uses “CSV number” lookup (engine template lookup by CSV slot), which is distinct from `ADDCHARA 0` (template lookup by character `NO`).
+- If a referenced CSV template does not exist, the engine falls back to adding a “pseudo character” (like `ADDVOIDCHARA`).
 - Engine-extracted notes (key operations):
   - `vEvaluator.AddCharacterFromCsvNo(0)`
   - `vEvaluator.AddCharacterFromCsvNo(GlobalStatic.GameBaseData.DefaultCharacter)`
 
 **Errors & validation**
+- Runtime error if executed outside `@SYSTEM_TITLE` (unless executed in a debug-only context where no parent label is attached).
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.CanNotUseOutsideSystemtitle.Text)`
 
 **Examples**
-- (TODO)
+```erabasic
+@SYSTEM_TITLE
+ADDDEFCHARA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -5665,34 +6306,38 @@ ENDDATA
 
 ## ADDVOIDCHARA (instruction)
 **Summary**
-- (TODO)
+- Adds a “pseudo character” that is not loaded from CSV.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `ADDVOIDCHARA_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new ADDVOIDCHARA_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `ADDVOIDCHARA`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Appends a new character record created from the engine’s pseudo-character template.
+- The new character’s variables start from the language defaults (`0` for numeric cells, `""` for string reads).
+- This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.AddPseudoCharacter()`
 
 **Errors & validation**
-- (TODO)
+- None specific to this instruction.
 
 **Examples**
-- (TODO)
+```erabasic
+ADDVOIDCHARA
+TARGET = CHARANUM - 1
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -5701,27 +6346,33 @@ ENDDATA
 
 ## DELCHARA (instruction)
 **Summary**
-- (TODO)
+- Deletes one or more characters from the current character list by character index.
 
 **Metadata**
 - Arg spec: `INT_ANY` (see #argument-spec-int_any) (inferred from `ADDCHARA_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new ADDCHARA_Instruction(false, true)`
 
 **Syntax**
-- Hint (translated, best-effort): 1つ以上のintをvariadic
-- Hint (raw comment): `1つ以上の数値を任意数`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `DELCHARA charaIndex`
+- `DELCHARA charaIndex1, charaIndex2, ...`
 
 **Arguments**
-- Builder: `INT_ANY_ArgumentBuilder()`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
-- Variadic (`argAny`): `true`.
+- Each `charaIndex`: int expression selecting an existing character index.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Requires at least one argument; multiple arguments are accepted but a parse-time warning is emitted for multi-argument uses.
+- Evaluates all `charaIndex` arguments first (left-to-right), storing the integer results in an array.
+- Deletion behavior depends on argument count:
+  - If exactly one index was provided: deletes that character immediately by index.
+  - If multiple indices were provided: deletes all referenced characters as a set.
+    - Each index is resolved against the character list as it existed before any removals in this call.
+    - The engine rejects duplicate deletions by identity (two indices that resolve to the same character object cause an error).
+    - If an error occurs while processing a multi-delete list, some earlier listed characters may already have been deleted (no rollback).
+- Deleting characters shifts indices of later characters; after deletion, valid indices are always a dense range `0 <= i < CHARANUM`.
+- The engine does not automatically rebind `TARGET`/`MASTER`/`ASSI` after deletion.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE`
 - Engine-extracted notes (key operations):
@@ -5731,11 +6382,16 @@ ENDDATA
   - `exm.VEvaluator.DelCharacter(charaNoList)`
 
 **Errors & validation**
+- Runtime error if any `charaIndex` is out of range.
+- When deleting multiple characters, runtime error if the same character is specified more than once (duplicate deletion).
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharaConfigIsOff.Text)`
 
 **Examples**
-- (TODO)
+```erabasic
+DELCHARA 2
+DELCHARA 1, 3
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -5757,8 +6413,11 @@ ENDDATA
 **Arguments**
 - `<formString>` (optional): FORM/formatted string.
 
+- Omitted arguments / defaults:
+  - If omitted, the argument is treated as the empty string.
+
 **Defaults / optional arguments**
-- If omitted, the argument is treated as the empty string.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates `<formString>` to a string.
@@ -5766,7 +6425,7 @@ ENDDATA
   - If `SAVEDATA_TEXT` is non-null, `SAVEDATA_TEXT += <string>`.
   - Otherwise, `SAVEDATA_TEXT = <string>`.
 - Does not print to the console.
-- Intended for use by the save-info generation path (implementation detail).
+- Typically used by the save-info generation path (e.g. `@SAVEINFO`) to build `SAVEDATA_TEXT`.
 - Engine-extracted notes (key operations):
   - `if (vEvaluator.SAVEDATA_TEXT != null)`
   - `vEvaluator.SAVEDATA_TEXT += str`
@@ -5797,12 +6456,12 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Calls `Console.Quit()`, which sets the console state to `Quit`.
-- Script execution stops because `Console.IsRunning` becomes false.
-- UI shutdown is handled by the console’s event loop (implementation detail).
+- Requests the engine to quit the game.
+- Script execution stops immediately.
+- UI shutdown is performed by the console/UI host after the quit request is posted.
 - Engine-extracted notes (key operations):
   - `exm.Console.Quit()`
 
@@ -5834,20 +6493,19 @@ ENDDATA
   - The current engine compares this string literally (no automatic trim or case-folding).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Recognized keywords (engine-defined):
   - `SHOP`, `TRAIN`, `AFTERTRAIN`, `ABLUP`, `TURNEND`, `FIRST`, `TITLE`
 - On execution:
   - Validates `<keyword>` by matching it against the list above; otherwise raises an error.
-  - Sets an internal “begin type” on the process state.
+  - Requests a transition into that system phase after the current call stack unwinds.
   - Immediately performs some keyword-specific side effects:
-    - `SHOP` and `FIRST` unload temporary loaded image resources (implementation detail).
-  - Calls `state.Return(0)`:
-    - This starts unwinding the current EraBasic call stack.
-    - When unwinding reaches the top-level (no return address), the engine performs the actual system-phase transition (`state.Begin()`), clears the function stack, and continues execution in the new system state.
-  - Resets console style (`Console.ResetStyle()`).
+    - `SHOP` and `FIRST` unload temporary loaded image resources.
+  - Ends the current function immediately (as if returning) and continues unwinding until reaching the top-level.
+  - After reaching the top-level, enters the requested system phase, clears the call stack, and continues execution in that phase.
+  - Resets output style to defaults.
 - Engine-extracted notes (base flags from class):
   - `flag = FLOW_CONTROL`
 - Engine-extracted notes (key operations):
@@ -5882,13 +6540,13 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Requires that the current system state allows saving (implementation detail: `SystemStateCode.__CAN_SAVE__`), otherwise raises an error.
+- Requires that the current system state allows saving; otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system save flow.
 - The system save flow (high-level behavior):
-  - Displays save slots `0..Config.SaveDataNos-1` in pages of 20.
+  - Displays save slots with indices `0 <= slot < Config.SaveDataNos` in pages of 20.
   - Uses `100` as the “back/cancel” input.
   - After selecting a slot:
     - If it already contains data, prompts for overwrite confirmation.
@@ -5932,14 +6590,14 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Requires that the current system state allows saving/loading (same gate as `SAVEGAME`), otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system load flow.
 - The system load flow (high-level behavior):
-  - Displays save slots `0..Config.SaveDataNos-1` in pages of 20.
-  - Includes a special autosave entry `99` when applicable (implementation detail).
+  - Displays save slots with indices `0 <= slot < Config.SaveDataNos` in pages of 20.
+  - Includes a special autosave entry `99` when applicable.
   - Uses `100` as the “back/cancel” input.
   - After selecting a valid slot:
     - Loads the slot file (as `save{slot:00}.sav` under `Config.SavDir`).
@@ -5987,13 +6645,13 @@ ENDDATA
   - Must not contain a newline (`'\n'`).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates `<slot>` and `<saveText>`.
 - Writes a save file under `Config.SavDir`:
   - Path is `save{slot:00}.sav` (e.g. slot `0` -> `save00.sav`).
-- Save format (implementation detail):
+- Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.
   - Otherwise, writes the legacy text save format.
   - The save always includes:
@@ -6039,25 +6697,25 @@ ENDDATA
 - `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
   - If omitted, the argument parser supplies `0` (with a warning); this effectively loads slot `0`.
 
+- Omitted arguments / defaults:
+  - None (but see omitted-argument behavior above).
+
 **Defaults / optional arguments**
-- None (but see omitted-argument behavior above).
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Validates the target save file via `CheckData(slot, Normal)`; if the file is missing/corrupt/mismatched, raises an error.
-- Loads the save file:
-  - Resets variable state and reloads characters/variables from the file (implementation detail).
-  - Sets the pseudo variables:
-    - `LASTLOAD_NO` to the loaded slot number
-    - `LASTLOAD_TEXT` to the saved `<saveText>`
-    - `LASTLOAD_VERSION` to the save file’s recorded script version
-- Clears the EraBasic function stack (`state.ClearFunctionList()`), discarding the current call context.
-- Transfers control into the system “data loaded” phase:
-  - Sets `SystemState = LoadData_DataLoaded`.
-  - System processing then calls (if they exist):
-    - `SYSTEM_LOADEND`
-    - `EVENTLOAD`
-  - If `EVENTLOAD` returns normally without performing a `BEGIN`, the engine proceeds as if `BEGIN SHOP` occurred (implementation detail).
-- See also: `save-files.md` (directories, partitions, and on-disk formats)
+- Validates the target save file; if the file is missing/corrupt/mismatched, raises a runtime error.
+- Loads the save slot and replaces the current saveable state (characters and variables) with the loaded contents.
+- Sets the pseudo variables:
+  - `LASTLOAD_NO` to the loaded slot number
+  - `LASTLOAD_TEXT` to the saved `<saveText>`
+  - `LASTLOAD_VERSION` to the save file’s recorded script version
+- Clears the EraBasic call stack, discarding the current call context.
+- Runs post-load system hooks (if they exist), in this order:
+  - `SYSTEM_LOADEND`
+  - `EVENTLOAD`
+- If `EVENTLOAD` returns normally without performing a `BEGIN`, execution proceeds as if `BEGIN SHOP` occurred.
+- See also: `save-files.md` (directories, partitions, and on-disk formats).
 - Engine-extracted notes (key operations):
   - `EraDataResult result = vEvaluator.CheckData((int)target, EraSaveFileType.Normal)`
   - `if (!vEvaluator.LoadFrom((int)target))`
@@ -6066,8 +6724,8 @@ ENDDATA
 
 **Errors & validation**
 - Errors if `<slot>` is negative or larger than `int.MaxValue`.
-- Error if the file is not considered valid by `CheckData(..., Normal)` (“corrupted save data” path).
-- If loading fails after validation, the engine throws an internal execution error.
+- Error if the target save file is missing/corrupt/mismatched.
+- If loading fails unexpectedly after validation, a runtime error is raised.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.LoaddataArgIsNegative.Text, target.ToString()))`
   - `throw new CodeEE(string.Format(trerror.TooLargeLoaddataArg.Text, target.ToString()))`
@@ -6097,8 +6755,11 @@ ENDDATA
 - `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
   - If omitted, the argument parser supplies `0` (with a warning); this deletes slot `0`.
 
+- Omitted arguments / defaults:
+  - None (but see omitted-argument behavior above).
+
 **Defaults / optional arguments**
-- None (but see omitted-argument behavior above).
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Computes the save file path under `Config.SavDir` as `save{slot:00}.sav`.
@@ -6139,12 +6800,12 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Writes the global save file under `Config.SavDir`:
   - Path is `global.sav`.
-- Save format (implementation detail):
+- Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Global`.
   - Otherwise, writes the legacy text save format.
   - Emuera-private global extension blocks may also be written.
@@ -6181,7 +6842,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Attempts to load `global.sav` under `Config.SavDir`.
@@ -6190,7 +6851,7 @@ ENDDATA
   - Sets `RESULT = 1`.
 - On failure:
   - Sets `RESULT = 0`.
-- Implementation detail: before attempting to read, the loader removes certain Emuera-private global extension data; if loading then fails, this removal may still have occurred.
+- Before attempting to read, the loader removes certain Emuera-private global extension data; if loading then fails, this removal may still have occurred.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED`
@@ -6225,15 +6886,13 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Calls `VEvaluator.ResetData()`, which (high-level):
-  - Clears local/default variable state.
-  - Disposes and clears the character list.
-  - Removes certain Emuera-private save-related data structures (implementation detail; e.g. XML/maps/DT savedata extensions).
-  - Does **not** reset global variables.
-- Resets console style (`Console.ResetStyle()`).
+- Resets non-global variables to their default values (global variables are not reset).
+- Disposes and clears the character list.
+- Removes Emuera-private save-related extension data (e.g. XML/maps/data-table extensions).
+- Resets output style to defaults.
 - Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED`
@@ -6267,12 +6926,11 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Calls `VEvaluator.ResetGlobalData()`, which (high-level):
-  - Resets global variables to default values.
-  - Removes certain Emuera-private global/static data structures (implementation detail; e.g. XML/maps global/static extensions).
+- Resets global variables to their default values.
+- Removes Emuera-private global/static extension data (e.g. XML/maps global/static extensions).
 - Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED`
@@ -6305,8 +6963,11 @@ ENDDATA
 **Arguments**
 - `<int expr>`: evaluated as integer; zero = false, non-zero = true.
 
+- Omitted arguments / defaults:
+  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+
 **Defaults / optional arguments**
-- If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.
@@ -6315,7 +6976,7 @@ ENDDATA
   - If the following line is a **partial instruction** (structural marker / block delimiter; e.g. `IF`, `ELSE`, `CASE`, loop markers), the engine warns because skipping marker lines breaks block structure.
   - If the following line is a `$label` line, the engine warns.
   - If there is no following executable line (EOF / next `@label`), the engine warns.
-  - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns (implementation detail: it compares source line numbers and reports “empty line(s) after SIF”).
+  - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
@@ -6327,7 +6988,7 @@ ENDDATA
   - following line is a function label line (`@...`) or a null terminator line
   - following instruction line is a **partial instruction** (structural marker / block delimiter)
   - following line is a `$label` line
-- The engine may also warn if there are physically empty line(s) between `SIF` and the next logical line (implementation detail).
+- The engine may also warn if there are physically empty line(s) between `SIF` and the next logical line.
 
 **Examples**
 - `SIF A == 0`
@@ -6360,17 +7021,20 @@ ENDDATA
 **Arguments**
 - `<int expr>`: evaluated as integer; zero = false, non-zero = true.
 
+- Omitted arguments / defaults:
+  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+
 **Defaults / optional arguments**
-- If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- The loader builds an ordered clause list (`IF` header, then each `ELSEIF`, and optional `ELSE`) and links every clause header to the matching `ENDIF`.
-- At runtime, the `IF` header evaluates its own condition and then each `ELSEIF` in order:
-  - If a condition is true, the engine jumps to that clause header as a **marker**.
-  - Because Emuera’s execution loop advances to `NextLine` before executing, jumping to a clause header causes the next executed line to be the **first line of that clause body**, not the header itself.
+- Evaluates its own condition and then each `ELSEIF` condition in order.
+- If a condition is true, that clause’s body is selected and executed.
 - If no condition matches:
-  - If there is an `ELSE`, the engine jumps to the `ELSE` header marker (and thus executes the `ELSE` body).
-  - Otherwise it jumps to the `ENDIF` marker (skipping the whole block).
+  - If there is an `ELSE`, the `ELSE` body is executed.
+  - Otherwise, the whole block is skipped.
+- After any selected clause body finishes, the rest of the `IF` block is skipped and execution continues after the matching `ENDIF`.
+- Jump behavior note (affects unstructured entry such as `GOTO` into blocks): when control transfers to an `IF`/`ELSEIF`/`ELSE` line as a jump target, execution begins at the **next** logical line (the clause body), not on the marker line itself. See `control-flow.md`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
@@ -6408,7 +7072,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - When reached **sequentially**, `ELSE` unconditionally jumps to the matching `ENDIF` marker, skipping the rest of the block.
@@ -6444,7 +7108,7 @@ ENDDATA
 - `<int expr>` is evaluated by the `IF` header’s clause-selection logic (not by the `ELSEIF` instruction itself).
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - When reached **sequentially** (i.e., a previous clause already executed and control fell through), `ELSEIF` unconditionally jumps to the matching `ENDIF` marker, skipping the rest of the block.
@@ -6480,7 +7144,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Marker-only instruction (no runtime effect). The loader uses it to close the `IF` nesting and to set jump targets for `IF`/`ELSEIF`/`ELSE`.
@@ -6519,7 +7183,7 @@ ENDDATA
 - `<expr>`: selector expression; may be int or string.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - The loader gathers all `CASE` / `CASEELSE` headers into an ordered list and links them to the matching `ENDSELECT`.
@@ -6574,7 +7238,7 @@ ENDDATA
   - “IS form”: `IS <binaryOp> <expr>` (e.g. `IS >= 10`), using the engine’s binary-operator semantics.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - When reached **sequentially** (fall-through after another case body), `CASE` unconditionally jumps to the matching `ENDSELECT` marker, skipping the rest of the block.
@@ -6620,7 +7284,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - Chosen only if no earlier `CASE` matches.
@@ -6658,7 +7322,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Marker-only instruction (no runtime effect). The loader uses it to close `SELECTCASE` nesting and to set jump targets for `SELECTCASE`/`CASE`/`CASEELSE`.
@@ -6693,8 +7357,11 @@ ENDDATA
 **Arguments**
 - `<countExpr>`: int expression giving the number of iterations.
 
+- Omitted arguments / defaults:
+  - If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
+
 **Defaults / optional arguments**
-- If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
+- (TODO)
 
 **Semantics**
 - `REPEAT` is implemented as a FOR-like loop over `COUNT:0`:
@@ -6702,7 +7369,7 @@ ENDDATA
   - Uses `end = <countExpr>` and `step = 1`.
   - The loop continues while `COUNT:0 < end`.
 - `COUNT:0` is incremented by `1` at `REND` time (and also by `BREAK`/`CONTINUE` for era-maker compatibility).
-- Because the engine advances to `NextLine` before executing, jumps between `REPEAT` and `REND` are done via marker lines:
+- Jump behavior note: control transfers between `REPEAT` and `REND` are done via their marker lines, and entering a marker line as a jump target begins execution at the following logical line:
   - Jumping to `REPEAT` re-enters at the first line of the body.
   - Jumping to `REND` exits to the first line after `REND`.
 - Engine-extracted notes (base flags from class):
@@ -6740,7 +7407,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Increments the loop counter and decides whether to continue:
@@ -6786,9 +7453,12 @@ ENDDATA
 - `<end>`: int expression.
 - `<step>`: int expression (defaults to `1` if omitted).
 
+- Omitted arguments / defaults:
+  - `<start>` defaults to `0` when omitted as an empty argument.
+  - `<step>` defaults to `1` when omitted.
+
 **Defaults / optional arguments**
-- `<start>` defaults to `0` when omitted as an empty argument.
-- `<step>` defaults to `1` when omitted.
+- (TODO)
 
 **Semantics**
 - Initializes the counter variable to `<start>`, then loops while:
@@ -6830,7 +7500,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Like `REND`, but paired with `FOR`.
@@ -6871,8 +7541,11 @@ ENDDATA
 **Arguments**
 - `<int expr>`: loop condition (0 = false, non-zero = true).
 
+- Omitted arguments / defaults:
+  - If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
+
 **Defaults / optional arguments**
-- If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - At `WHILE`, evaluates the condition:
@@ -6913,7 +7586,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Re-evaluates the matching `WHILE` condition:
@@ -6954,7 +7627,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Marker-only instruction (no runtime effect).
@@ -6990,8 +7663,11 @@ ENDDATA
 **Arguments**
 - `<int expr>`: loop condition (0 = false, non-zero = true).
 
+- Omitted arguments / defaults:
+  - If omitted, the condition defaults to `0` (false) and emits a load-time warning.
+
 **Defaults / optional arguments**
-- If omitted, the condition defaults to `0` (false) and emits a load-time warning.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates the condition:
@@ -7028,7 +7704,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - The loader links `CONTINUE` to the nearest enclosing loop start marker.
@@ -7074,7 +7750,7 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - The loader links `BREAK` to the nearest enclosing loop start marker.
@@ -7111,8 +7787,11 @@ ENDDATA
 **Arguments**
 - Each argument is evaluated as an integer and stored into `RESULT:<index>`.
 
+- Omitted arguments / defaults:
+  - With no arguments: sets `RESULT:0` to `0` and returns `0`.
+
 **Defaults / optional arguments**
-- With no arguments: sets `RESULT:0` to `0` and returns `0`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates all provided integer expressions (left-to-right), stores them into the `RESULT` integer array starting at index 0, then returns from the function.
@@ -7154,14 +7833,17 @@ ENDDATA
 **Arguments**
 - `<formString>` is evaluated to a string `s`, then `s` is re-lexed as one or more **comma-separated integer expressions**.
 
+- Omitted arguments / defaults:
+  - If `s` is empty, the engine behaves like `RETURN 0`.
+
 **Defaults / optional arguments**
-- If `s` is empty, the engine behaves like `RETURN 0`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates the formatted string to a string `s`.
 - Parses `s` as `expr1, expr2, ...` using the engine’s expression lexer/parser.
 - Parsing detail: after each comma, the engine skips ASCII spaces (not tabs) before reading the next expression.
-- Stores the resulting integer values into `RESULT:0..` and returns.
+- Stores the resulting integer values into `RESULT:0`, `RESULT:1`, ... and returns.
 - Engine-extracted notes (base flags from class):
   - `flag = EXTENDED | FLOW_CONTROL`
 - Engine-extracted notes (key operations):
@@ -7195,8 +7877,11 @@ ENDDATA
 **Arguments**
 - `<expr>` may be int or string, but should match the function’s declared return type.
 
+- Omitted arguments / defaults:
+  - With no argument: returns the engine’s “null” method value (a null internal return term; typically treated as `0` / empty depending on context).
+
 **Defaults / optional arguments**
-- With no argument: returns the engine’s “null” method value (a null internal return term; typically treated as `0` / empty depending on context).
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Sets the method return value for the current expression-function call and exits the method body.
@@ -7234,8 +7919,11 @@ ENDDATA
 **Arguments**
 - `<rawString>`: the literal remainder of the line (not a normal string expression).
 
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
+
 **Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- (TODO)
 
 **Semantics**
 - Computes length via the engine’s language-aware length counter and assigns it to `RESULT`:
@@ -7272,8 +7960,11 @@ ENDDATA
 **Arguments**
 - `<formString>`: FORM/formatted string expression (supports `%...%` and `{...}`).
 
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
+
 **Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- (TODO)
 
 **Semantics**
 - Evaluates the formatted string to a string value, then computes its language/encoding length (see `STRLEN` for details).
@@ -7308,8 +7999,11 @@ ENDDATA
 **Arguments**
 - `<rawString>`: the literal remainder of the line (not a normal string expression).
 
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
+
 **Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- (TODO)
 
 **Semantics**
 - Computes length as `str.Length` and assigns it to `RESULT`.
@@ -7343,8 +8037,11 @@ ENDDATA
 **Arguments**
 - `<formString>`: FORM/formatted string expression.
 
+- Omitted arguments / defaults:
+  - If omitted, the string defaults to `""`.
+
 **Defaults / optional arguments**
-- If omitted, the string defaults to `""`.
+- (TODO)
 
 **Semantics**
 - Evaluates the formatted string to a string value, then assigns `str.Length` to `RESULT`.
@@ -7442,37 +8139,42 @@ ENDDATA
 
 ## ADDCOPYCHARA (instruction)
 **Summary**
-- (TODO)
+- Adds one or more new characters by copying an existing character’s data.
 
 **Metadata**
 - Arg spec: `INT_ANY` (see #argument-spec-int_any) (inferred from `ADDCOPYCHARA_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new ADDCOPYCHARA_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): 1つ以上のintをvariadic
-- Hint (raw comment): `1つ以上の数値を任意数`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `ADDCOPYCHARA charaIndex`
+- `ADDCOPYCHARA charaIndex1, charaIndex2, ...`
 
 **Arguments**
-- Builder: `INT_ANY_ArgumentBuilder()`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
-- Variadic (`argAny`): `true`.
+- Each `charaIndex`: int expression selecting an existing character index to copy from.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
+- For each `charaIndex` (evaluated and executed left-to-right), the engine:
+  - Validates the source index is in range; otherwise errors.
+  - Appends a new pseudo character.
+  - Copies all character data from the source character into the newly appended last character.
+- `CHARANUM` increases by 1 for each successfully created copy.
+- This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.AddCopyChara(int64Term.GetIntValue(exm))`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if any `charaIndex` is out of range.
 
 **Examples**
-- (TODO)
+```erabasic
+ADDCOPYCHARA 0
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7949,7 +8651,7 @@ ENDDATA
 ## SORTCHARA (instruction)
 **Summary**
 - Reorders the engine’s character list (`0 .. CHARANUM-1`) by a key taken from a character-data variable.
-- Observable engine behavior: keeps `MASTER` fixed at its numeric position for this instruction.
+- Observable behavior: keeps `MASTER` fixed at its numeric position for this instruction.
 
 **Metadata**
 - Arg spec: `SP_SORTCHARA` (see #argument-spec-sp_sortchara) (inferred from `SORTCHARA_Instruction` ArgBuilder assignment)
@@ -7965,8 +8667,11 @@ ENDDATA
 - Order: `FORWARD` = ascending, `BACK` = descending.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
 
+- Omitted arguments / defaults:
+  - If no args: uses key `NO` and ascending.
+
 **Defaults / optional arguments**
-- If no args: uses key `NO` and ascending.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.
@@ -8216,7 +8921,7 @@ ENDDATA
 - `<var2>`: a changeable variable term (same type as `<var1>`).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - The engine first **fixes** both variable terms’ indices (important when indices contain expressions like `RAND`):
@@ -8246,7 +8951,7 @@ ENDDATA
 
 ## RANDOMIZE (instruction)
 **Summary**
-- Seeds the engine’s legacy RNG (Mersenne Twister) with a specified integer seed.
+- Seeds the legacy RNG with a specified integer seed.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION_NULLABLE` (see #argument-spec-int_expression_nullable) (inferred from `RANDOMIZE_Instruction` ArgBuilder assignment)
@@ -8259,14 +8964,17 @@ ENDDATA
 **Arguments**
 - `<seed>` (optional): integer expression. If omitted, the seed defaults to `0`.
 
+- Omitted arguments / defaults:
+  - `<seed>` defaults to `0`.
+
 **Defaults / optional arguments**
-- `<seed>` defaults to `0`.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
-  - Emits a warning and does nothing (implementation detail).
+  - Emits a warning and does nothing.
 - Otherwise:
-  - Replaces the engine’s legacy RNG instance with `new MTRandom(<seed>)`.
+  - Re-seeds the legacy RNG with `<seed>` truncated to 32 bits (i.e. low 32 bits used as an unsigned seed).
 - Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED`
@@ -8300,13 +9008,14 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
-  - Emits a warning and does nothing (implementation detail).
+  - Emits a warning and does nothing.
 - Otherwise:
-  - Writes the legacy RNG state into `RANDDATA` (via `MTRandom.GetRand(RANDDATA)`).
+  - Writes the legacy RNG state into `RANDDATA`.
+  - `RANDDATA` must have length 625; otherwise a runtime error is raised.
 - Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED`
@@ -8339,13 +9048,14 @@ ENDDATA
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
-  - Emits a warning and does nothing (implementation detail).
+  - Emits a warning and does nothing.
 - Otherwise:
-  - Loads the legacy RNG state from `RANDDATA` (via `MTRandom.SetRand(RANDDATA)`).
+  - Loads the legacy RNG state from `RANDDATA`.
+  - `RANDDATA` must have length 625; otherwise a runtime error is raised.
 - Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED`
@@ -8525,8 +9235,11 @@ ENDDATA
 - Optional raw literal text (not an expression).
   - Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
 
+- Omitted arguments / defaults:
+  - Omitted argument is treated as empty string.
+
 **Defaults / optional arguments**
-- Omitted argument is treated as empty string.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - At load time, the loader attaches `DATA` lines to the nearest surrounding block (`PRINTDATA*`, `STRDATA`, or `DATALIST`).
@@ -8562,8 +9275,11 @@ ENDDATA
 **Arguments**
 - Optional FORM/formatted string scanned to end-of-line.
 
+- Omitted arguments / defaults:
+  - Omitted argument is treated as empty string.
+
 **Defaults / optional arguments**
-- Omitted argument is treated as empty string.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.
@@ -8599,8 +9315,11 @@ ENDDATA
 **Arguments**
 - None.
 
+- Omitted arguments / defaults:
+  - N/A.
+
 **Defaults / optional arguments**
-- N/A.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
@@ -8638,8 +9357,11 @@ ENDDATA
 **Arguments**
 - None.
 
+- Omitted arguments / defaults:
+  - N/A.
+
 **Defaults / optional arguments**
-- N/A.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.
@@ -8678,8 +9400,11 @@ ENDDATA
 **Arguments**
 - None.
 
+- Omitted arguments / defaults:
+  - N/A.
+
 **Defaults / optional arguments**
-- N/A.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
@@ -8709,10 +9434,13 @@ ENDDATA
 
 **Arguments**
 - Optional `<strVarTerm>`: changeable string variable term to receive the result.
-- If omitted, defaults to `RESULTS` (engine behavior).
+- If omitted, defaults to `RESULTS`.
+
+- Omitted arguments / defaults:
+  - Destination defaults to `RESULTS` when omitted.
 
 **Defaults / optional arguments**
-- Destination defaults to `RESULTS` when omitted.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).
@@ -9099,7 +9827,7 @@ PRINTFORML RESULTS
 - `<int expr>`: `0` disables skip mode; non-zero enables skip mode.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.
@@ -9144,7 +9872,7 @@ PRINTFORML RESULTS
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - This is a structural block (`NOSKIP` pairs with `ENDNOSKIP`).
@@ -9194,7 +9922,7 @@ ENDNOSKIP
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Structural marker paired with `NOSKIP`.
@@ -9231,9 +9959,12 @@ ENDNOSKIP
 - `<start>`: int expression (default `0`).
 - `<count>`: int expression (default “to end”; engine uses a sentinel).
 
+- Omitted arguments / defaults:
+  - `<start>` defaults to `0`.
+  - `<count>` omitted means “to the end”.
+
 **Defaults / optional arguments**
-- `<start>` defaults to `0`.
-- `<count>` omitted means “to the end”.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).
@@ -9277,7 +10008,7 @@ ENDNOSKIP
 - `<count>`: integer expression; number of elements to remove.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Works only on 1D arrays (int or string).
@@ -9331,16 +10062,19 @@ ENDNOSKIP
 - `<start>` (optional): integer expression; default `0`.
 - `<count>` (optional): integer expression; if omitted, sorts to end.
 
+- Omitted arguments / defaults:
+  - If `FORWARD|BACK` is omitted, order defaults to ascending and the engine does not accept `<start>/<count>` (parsing quirk).
+  - `<start>` defaults to `0` when `FORWARD|BACK` is present but no subrange is provided.
+  - `<count>` omitted means “to the end”.
+
 **Defaults / optional arguments**
-- If `FORWARD|BACK` is omitted, order defaults to ascending and the engine does not accept `<start>/<count>` (parsing quirk).
-- `<start>` defaults to `0` when `FORWARD|BACK` is present but no subrange is provided.
-- `<count>` omitted means “to the end”.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Sorts the specified region of the array:
   - The runtime treats `count <= 0` as “to the end” (but an explicitly provided `count == 0` is handled as a no-op in the instruction dispatcher).
-- Implementation detail / parsing quirk:
-  - The argument builder only parses `<start>` and `<count>` if the `FORWARD|BACK` token is present.
+- Parsing rule:
+  - `<start>` and `<count>` are only accepted when the `FORWARD|BACK` token is present.
 - Engine-extracted notes (key operations):
   - `VariableEvaluator.SortArray(p, arrayArg.Order, start, num)`
 
@@ -9384,7 +10118,7 @@ ENDNOSKIP
 - `<dstVarNameExpr>`: string expression whose value is a variable name.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Resolves both variable names to variable tokens (early when literal, otherwise at runtime).
@@ -9433,11 +10167,11 @@ ENDNOSKIP
 - `<int expr>`: `0` clears message-skip; non-zero enables message-skip.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.
-- Sets `Console.MesSkip = (v != 0)`.
+- Sets the message-skip flag `MesSkip` to `(v != 0)`.
 - Implementation-oriented effect (UI-side):
   - When `MesSkip` is true, the input loop may automatically advance through waits that do not require a value, unless the current wait request explicitly stops message skip.
   - Some input instructions (`INPUT*`/`TINPUT*`) have a `canSkip` option that uses `MesSkip` to auto-accept their default value without waiting.
@@ -9471,8 +10205,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
+- Omitted arguments / defaults:
+  - Same as `CALL`.
+
 **Defaults / optional arguments**
-- Same as `CALL`.
+- (TODO)
 
 **Semantics**
 - Enters the target function.
@@ -9516,15 +10253,18 @@ ENDNOSKIP
 - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
 - `<argN>`: expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
 
+- Omitted arguments / defaults:
+  - If the callee declares more parameters than provided arguments, omitted arguments are handled by the engine’s user-function argument binder (defaults and config gates apply).
+
 **Defaults / optional arguments**
-- If the callee declares more parameters than provided arguments, omitted arguments are handled by the engine’s user-function argument binder (defaults and config gates apply).
+- (TODO)
 
 **Semantics**
 - Resolves the target label to a non-event function.
   - If `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
 - Evaluates arguments, binds them to the callee’s declared formals (including `REF` behavior), then enters the callee.
 - When the callee executes `RETURN` (or reaches end-of-function), control returns to the statement after the `CALL`.
-- Engine implementation detail: if `<functionName>` is a compile-time constant, the loader tries to resolve the callee and pre-check argument binding during the load phase.
+- Load-time behavior: if `<functionName>` is a compile-time constant, the loader tries to resolve the callee and may emit early diagnostics (e.g. unknown function, argument binding issues).
 - Engine-extracted notes (base flags from class):
   - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
@@ -9567,8 +10307,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMP`.
 
+- Omitted arguments / defaults:
+  - Same as `JUMP`.
+
 **Defaults / optional arguments**
-- Same as `JUMP`.
+- (TODO)
 
 **Semantics**
 - If the target function exists: behaves like `JUMP`.
@@ -9608,8 +10351,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
+- Omitted arguments / defaults:
+  - Same as `CALL`.
+
 **Defaults / optional arguments**
-- Same as `CALL`.
+- (TODO)
 
 **Semantics**
 - If the target function exists: behaves like `CALL`.
@@ -9649,8 +10395,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
+- Omitted arguments / defaults:
+  - Same as `CALLFORM`.
+
 **Defaults / optional arguments**
-- Same as `CALLFORM`.
+- (TODO)
 
 **Semantics**
 - Same as `JUMP`, with a runtime-evaluated function name.
@@ -9691,8 +10440,11 @@ ENDNOSKIP
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
 - `<argN>`: same as `CALL`.
 
+- Omitted arguments / defaults:
+  - Same as `CALL`.
+
 **Defaults / optional arguments**
-- Same as `CALL`.
+- (TODO)
 
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.
@@ -9731,8 +10483,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMPFORM`.
 
+- Omitted arguments / defaults:
+  - Same as `JUMPFORM`.
+
 **Defaults / optional arguments**
-- Same as `JUMPFORM`.
+- (TODO)
 
 **Semantics**
 - If the target function exists: behaves like `JUMPFORM`.
@@ -9772,8 +10527,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
+- Omitted arguments / defaults:
+  - Same as `CALLFORM`.
+
 **Defaults / optional arguments**
-- Same as `CALLFORM`.
+- (TODO)
 
 **Semantics**
 - If the target function exists: behaves like `CALLFORM`.
@@ -9816,8 +10574,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMP`.
 
+- Omitted arguments / defaults:
+  - Same as `JUMP`.
+
 **Defaults / optional arguments**
-- Same as `JUMP`.
+- (TODO)
 
 **Semantics**
 - If the target function exists: behaves like `JUMP` (tail-call-like); the current function is discarded, so it does not return to reach `CATCH`.
@@ -9863,8 +10624,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
+- Omitted arguments / defaults:
+  - Same as `CALL`.
+
 **Defaults / optional arguments**
-- Same as `CALL`.
+- (TODO)
 
 **Semantics**
 - If the target function exists: behaves like `CALL`, then control returns and reaches `CATCH` sequentially; `CATCH` skips the catch body.
@@ -9911,8 +10675,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMPFORM`.
 
+- Omitted arguments / defaults:
+  - Same as `JUMPFORM`.
+
 **Defaults / optional arguments**
-- Same as `JUMPFORM`.
+- (TODO)
 
 **Semantics**
 - Same as `TRYCJUMP`, but with a runtime-evaluated function name.
@@ -9957,8 +10724,11 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
+- Omitted arguments / defaults:
+  - Same as `CALLFORM`.
+
 **Defaults / optional arguments**
-- Same as `CALLFORM`.
+- (TODO)
 
 **Semantics**
 - Same as `TRYCCALL`, but with a runtime-evaluated function name.
@@ -10036,8 +10806,11 @@ ENDNOSKIP
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
 - `<argN>`: expressions passed to the method.
 
+- Omitted arguments / defaults:
+  - Depends on the called method’s own signature rules (omission/variadics/etc.).
+
 **Defaults / optional arguments**
-- Depends on the called method’s own signature rules (omission/variadics/etc.).
+- (TODO)
 
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.
@@ -10076,8 +10849,11 @@ ENDNOSKIP
 - `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
 - `<argN>`: expressions passed to the method.
 
+- Omitted arguments / defaults:
+  - Depends on the called method’s own signature rules.
+
 **Defaults / optional arguments**
-- Depends on the called method’s own signature rules.
+- (TODO)
 
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.
@@ -10182,7 +10958,7 @@ ENDNOSKIP
 - `<labelName>`: a raw string token; used to resolve a `$label` relative to the current function.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - If the label exists, jumps to the `$label` marker; execution continues at the line after the `$label`.
@@ -10229,7 +11005,7 @@ ENDNOSKIP
 - Same as `GOTO`.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - If the `$label` exists: behaves like `GOTO`.
@@ -10270,7 +11046,7 @@ ENDNOSKIP
 - `<formString>`: FORM/formatted string; the evaluated result is used as the `$label` name.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - Evaluates the label name and jumps if it resolves to a `$label` in the current function.
@@ -10310,7 +11086,7 @@ ENDNOSKIP
 - Same as `GOTOFORM`.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - If the `$label` exists: behaves like `GOTOFORM`.
@@ -10355,7 +11131,7 @@ ENDNOSKIP
 - Same as `GOTO`.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - If the `$label` exists: behaves like `GOTO` (jumps to the label). Whether the `CATCH` line is ever reached depends on subsequent control flow.
@@ -10403,7 +11179,7 @@ ENDNOSKIP
 - Same as `GOTOFORM`.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - Same as `TRYCGOTO`, but with a runtime-evaluated label name.
@@ -10448,7 +11224,7 @@ ENDNOSKIP
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - When reached **sequentially** (i.e. the `TRYC*` succeeded and returned normally), `CATCH` jumps to the matching `ENDCATCH` marker, skipping the catch body.
@@ -10487,7 +11263,7 @@ ENDNOSKIP
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Marker-only instruction (no runtime effect). The loader links it to the matching `CATCH` so that `CATCH` can skip the catch body on the success path.
@@ -10528,7 +11304,7 @@ ENDNOSKIP
   - optional call arguments (expressions)
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Structural notes:
@@ -10541,7 +11317,7 @@ ENDNOSKIP
     - Otherwise, bind arguments and enter that function (like `CALL`).
       - When the callee returns, execution resumes at the `ENDFUNC` line (then continues after it).
   - If no candidate matches, jump directly to the `ENDFUNC` line (then continue after it).
-- Implementation detail: `FUNC` syntax is parsed using the same argument builder as `CALLFORM` (candidate name is a FORM string; arguments are normal expressions).
+- `FUNC` syntax matches `CALLFORM`: candidate name is a FORM string; arguments are normal expressions.
 - Engine-extracted notes (key operations):
   - `state.IntoFunction(callto, args, exm)`
   - `state.JumpTo(func.JumpTo)`
@@ -10588,7 +11364,7 @@ ENDNOSKIP
 - Same as `TRYCALLLIST`.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same selection rules as `TRYCALLLIST`.
@@ -10636,7 +11412,7 @@ ENDNOSKIP
 - Each `FUNC` item provides a label name as a **FORM/formatted string expression** (evaluated to a string at runtime).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Structural notes:
@@ -10689,14 +11465,14 @@ ENDNOSKIP
 - `<argN>`: optional call arguments (not allowed for `TRYGOTOLIST`).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Not executed as a standalone statement.
 - During load, Emuera collects `FUNC` lines into the surrounding `TRY*LIST` instruction’s internal `callList`.
 - At runtime, the surrounding `TRY*LIST` evaluates these items in order (see `TRYCALLLIST` / `TRYJUMPLIST` / `TRYGOTOLIST`).
-- Implementation detail: `FUNC` is parsed using the same argument builder as `CALLFORM`.
-- Implementation detail: in `TRYCALLLIST` / `TRYJUMPLIST`, the optional `[...]` subname segment is parsed and stored, but the current runtime implementation does not use it when selecting/calling the function.
+- Argument parsing is the same as `CALLFORM`: candidate name is a FORM string; call arguments are normal expressions.
+- In `TRYCALLLIST` / `TRYJUMPLIST`, the optional `[...]` subname segment is parsed and stored, but it is not used when selecting/calling the function.
 
 **Errors & validation**
 - `FUNC` must appear only inside `TRY*LIST ... ENDFUNC`; otherwise it is a load-time error (the line is marked as error).
@@ -10725,7 +11501,7 @@ ENDNOSKIP
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Marker-only instruction (no runtime effect). The surrounding `TRY*LIST` uses it as the jump target when no candidate succeeds.
@@ -11002,7 +11778,7 @@ ENDNOSKIP
 - `<var*>`: one or more changeable non-character variable terms (arrays are allowed; several variable categories are rejected).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
@@ -11039,7 +11815,7 @@ ENDNOSKIP
 - `<name>`: string expression; intended file name component.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
@@ -11077,12 +11853,12 @@ ENDNOSKIP
 - `<charaNo*>`: one or more integer expressions; character indices to save (0-based).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Writes a binary file under `Program.DatDir`:
   - Path is `chara_<name>.dat`.
-- File format (implementation detail):
+- File format:
   - Binary save format with file type `CharVar`.
   - Includes game unique code and script version checks, `<saveText>`, and the serialized character data.
 - Validates the character list:
@@ -11126,7 +11902,7 @@ ENDNOSKIP
 - `<name>`: string expression; the file name component.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Reads `Program.DatDir/chara_<name>.dat`.
@@ -11224,23 +12000,39 @@ ENDNOSKIP
 
 ## HTML_PRINT (instruction)
 **Summary**
-- (TODO)
+- Prints an HTML string (Emuera’s HTML-like mini language) as console output.
 
 **Metadata**
 - Arg spec: `SP_HTML_PRINT` (see #argument-spec-sp_html_print) (inferred from `HTML_PRINT_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new HTML_PRINT_Instruction()`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `HTML_PRINT <html>(, <toBuffer>)`
 
 **Arguments**
-- Builder: `SP_HTML_PRINT_ArgumentBuilder()`
-- Type pattern: `null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) }` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
+- `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
+- `<toBuffer>` (optional): integer expression.
+  - `0` (default): print as a complete logical output line (implicit line end).
+  - non-zero: append the HTML output into the current print buffer (no implicit line end).
+
+- Omitted arguments / defaults:
+  - `<toBuffer>` defaults to `0`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output and no evaluation).
+- Evaluates `<html>` to a string.
+  - If it is null/empty, no output is produced.
+- Interprets the string as an HTML string and renders it according to `html-output.md` (tags, entities, comments, wrapping rules).
+- If `<toBuffer> = 0` (or omitted):
+  - Any pending print buffer content is flushed first (as with other “line-ending” print operations).
+  - The HTML is rendered into one logical output line (it may still occupy multiple display lines due to `<br>` or wrapping).
+- If `<toBuffer> != 0`:
+  - The HTML is converted to output segments and appended into the current print buffer.
+  - `<br>` (and literal `'\n'` inside the HTML string) insert display line breaks, but no final line end is implied.
+- The output is not affected by non-HTML text style commands like `ALIGNMENT`, `SETFONT`, `SETCOLOR`, or `FONTSTYLE`; use HTML tags (`<p>`, `<font>`, `<b>`, etc.) instead.
 - Engine-extracted notes (base flags from class):
   - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
@@ -11248,10 +12040,20 @@ ENDNOSKIP
   - `else exm.Console.PrintHtml(arg.Str.GetStrValue(exm), arg.Opt == null ? false : arg.Opt.GetIntValue(exm) != 0)`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors follow the normal expression argument rules.
+- Invalid HTML strings raise runtime errors (unsupported tags, invalid attributes, invalid character references, tag structure violations), except where a tag explicitly specifies a fallback-to-text behavior (e.g. unresolved `<img>` resources).
 
 **Examples**
-- (TODO)
+```erabasic
+; Prints one logical line (with HTML styling)
+HTML_PRINT "<p align='center'><b>Hello</b> <font color='red'>world</font></p>"
+```
+
+```erabasic
+; Appends into the current print buffer (no implicit newline)
+HTML_PRINT "<b>HP:</b> 10", 1
+PRINTL ""
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11260,32 +12062,55 @@ ENDNOSKIP
 
 ## HTML_TAGSPLIT (instruction)
 **Summary**
-- (TODO)
+- Splits an HTML string into a sequence of raw tags and raw text segments.
 
 **Metadata**
 - Arg spec: `SP_HTMLSPLIT` (see #argument-spec-sp_htmlsplit) (inferred from `HTML_TAGSPLIT_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new HTML_TAGSPLIT_Instruction()`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `HTML_TAGSPLIT <html>(, <outParts>, <outCount>)`
 
 **Arguments**
-- Builder: `SP_HTMLSPLIT_ArgumentBuilder()`
-- Type pattern: `[typeof(string), typeof(string), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- `<html>`: string expression.
+- `<outParts>` (optional): a changeable 1D **non-character** string array variable.
+  - Default: `RESULTS`.
+- `<outCount>` (optional): a changeable integer variable.
+  - Default: `RESULT`.
+
+- Omitted arguments / defaults:
+  - If `<outParts>` is omitted, the split parts are written to `RESULTS`.
+  - If `<outCount>` is omitted, the split count is written to `RESULT`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Interprets `<html>` as an HTML string and splits it by scanning for `<...>` regions:
+  - Each tag-like region from `<` through the next `>` (inclusive) is emitted as a single part.
+  - Text between such regions is emitted as-is as a single part.
+- The splitter does **not** validate tag relationships or supported tag names; it only performs lexical splitting.
+  - For example, it will emit `</font>` as a tag part even if no `<font>` was previously seen.
+- On success:
+  - Writes the total part count to `<outCount>`.
+  - Writes parts to `<outParts>:i` for `0 <= i < min(partCount, len(<outParts>))`.
+  - If `partCount` exceeds the destination array length, excess parts are not written.
+- On failure (e.g. a `<` is found but no matching `>` exists later in the string):
+  - Writes `-1` to `<outCount>`.
+  - Does not modify `<outParts>`.
 - Engine-extracted notes (base flags from class):
   - `flag = EXTENDED | METHOD_SAFE`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors follow the normal expression argument rules.
 
 **Examples**
-- (TODO)
+```erabasic
+HTML_TAGSPLIT "<p align='right'>A<!--c-->B</p>"
+PRINTFORML RESULT = {RESULT}
+PRINTFORML RESULTS:0 = %RESULTS:0%
+PRINTFORML RESULTS:1 = %RESULTS:1%
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11643,7 +12468,7 @@ ENDNOSKIP
 - None.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Reads the current local time (`DateTime.Now`) and assigns:
@@ -11682,7 +12507,7 @@ ENDNOSKIP
 - `<y>`: integer expression (exponent).
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates `<x>` and `<y>` as integers, converts them to `double`, then computes `pow = Math.Pow(x, y)`.
@@ -12247,7 +13072,7 @@ ENDNOSKIP
 - Same as `BEGIN`.
 
 **Defaults / optional arguments**
-- None.
+- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Same as `BEGIN` in the current engine implementation.
@@ -12782,7 +13607,7 @@ ENDNOSKIP
 
 ## HTML_PRINT_ISLAND (instruction)
 **Summary**
-- (TODO)
+- Prints an HTML string into the “HTML island” layer, which is not tied to the normal scrollback/logical line list.
 
 **Metadata**
 - Arg spec: `SP_HTML_PRINT` (see #argument-spec-sp_html_print) (inferred from `HTML_PRINT_ISLAND_Instruction` ArgBuilder assignment)
@@ -12790,26 +13615,37 @@ ENDNOSKIP
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `HTML_PRINT_ISLAND <html>(, <ignored>)`
 
 **Arguments**
-- Builder: `SP_HTML_PRINT_ArgumentBuilder()`
-- Type pattern: `null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) }` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
+- `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
+- `<ignored>` (optional): integer expression. Accepted by the argument parser but ignored by this instruction.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output and no evaluation).
+- Evaluates `<html>` to a string and appends the rendered HTML output into a separate “island” layer.
+- The island layer is not counted by `LINECOUNT` and is not removed by `CLEARLINE`.
+- The island layer is drawn independently of the normal log:
+  - It does not scroll with the log.
+  - It is drawn from the top of the window, with each appended “logical line” placed on successive rows.
+- Note: `<div ...>...</div>` sub-areas are not rendered in the island layer.
+- Use `HTML_PRINT_ISLAND_CLEAR` to clear the island layer.
 - Engine-extracted notes (base flags from class):
   - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintHTMLIsland(str)`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors follow the normal expression argument rules.
+- Invalid HTML strings raise runtime errors (same HTML mini-language as `HTML_PRINT`).
 
 **Examples**
-- (TODO)
+```erabasic
+HTML_PRINT_ISLAND "<div width='300px' height='30px' color='#202020'><font color='white'>Status</font></div>"
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -12818,7 +13654,7 @@ ENDNOSKIP
 
 ## HTML_PRINT_ISLAND_CLEAR (instruction)
 **Summary**
-- (TODO)
+- Clears all content previously added by `HTML_PRINT_ISLAND`.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `HTML_PRINT_ISLAND_CLEAR_Instruction` ArgBuilder assignment)
@@ -12826,27 +13662,29 @@ ENDNOSKIP
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `HTML_PRINT_ISLAND_CLEAR`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Clears the “HTML island” layer immediately.
+- This instruction is not skipped by output skipping; it always clears the island layer.
 - Engine-extracted notes (base flags from class):
   - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.Console.ClearHTMLIsland()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+```erabasic
+HTML_PRINT_ISLAND_CLEAR
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -12870,8 +13708,11 @@ ENDNOSKIP
 **Arguments**
 - Optional raw literal text (not an expression).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -12914,8 +13755,11 @@ ENDNOSKIP
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
+- Omitted arguments / defaults:
+  - None (missing arguments are an error).
+
 **Defaults / optional arguments**
-- None (missing arguments are an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -12958,8 +13802,11 @@ ENDNOSKIP
 **Arguments**
 - A single string expression (must be present).
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -13003,8 +13850,11 @@ ENDNOSKIP
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
+- Omitted arguments / defaults:
+  - Omitted argument prints the empty string.
+
 **Defaults / optional arguments**
-- Omitted argument prints the empty string.
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -13048,8 +13898,11 @@ ENDNOSKIP
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
+- Omitted arguments / defaults:
+  - None (missing argument is an error).
+
 **Defaults / optional arguments**
-- None (missing argument is an error).
+- (TODO)
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -13696,7 +14549,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## FINDCHARA (expression function)
 **Summary**
-- Returns the first character index in the current character list whose character-variable cell equals a target value.
+- Returns the first chara index (role index) in the current character list whose character-data cell equals a target value.
 
 **Metadata**
 - Implementor: `new FindcharaMethod(false)`
@@ -13705,7 +14558,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 **Syntax**
 - `FINDCHARA(charaVarTerm, value [, startIndex [, lastIndex]])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `FINDCHARA(NAME, "A", , 10)`).
 
 **Signatures / argument rules**
 - `FINDCHARA(charaVarTerm, value)` → `long`
@@ -13713,20 +14565,20 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `FINDCHARA(charaVarTerm, value, startIndex, lastIndex)` → `long`
 
 **Arguments**
-- `charaVarTerm`: character-data variable term.
-  - Must evaluate to a variable term whose identifier is marked as “character data”.
-  - If the variable is a 1D/2D array, the array subscripts on `charaVarTerm` select which per-character cell is compared.
-- `value`: scalar value to match; must be the same scalar type as the selected cell (string vs int).
-- `startIndex` (optional): int expression; inclusive start character index.
-- `lastIndex` (optional): int expression; exclusive end character index.
+- `charaVarTerm` (character-data variable term): selects a character-data variable (scalar or array).
+  - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
+  - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
+- The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+- `value` (int|string; must match the selected cell type): scalar value to match.
+- `startIndex` (optional, int; default `0`): inclusive start chara index.
+- `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
 
 **Defaults / optional arguments**
-- If `startIndex` is omitted (or omitted as an empty slot): defaults to `0`.
-- If `lastIndex` is omitted (or omitted as an empty slot): defaults to `CHARANUM` (the current total number of characters).
+- (TODO)
 
 **Semantics**
 - Reads the current `CHARANUM` and searches forward in the half-open range `[startIndex, lastIndex)`.
-- For each character index `i` in the range, compares `charaVarTerm(i)` against `value` using direct equality:
+- For each chara index `i` in the range, compares the selected per-chara cell against `value` using direct equality:
   - string cell: `==` (ordinal string equality in .NET)
   - int cell: `==`
 - Returns the first matching index `i`, or `-1` if:
@@ -13758,7 +14610,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## FINDLASTCHARA (expression function)
 **Summary**
-- Like `FINDCHARA`, but searches backward and returns the last matching character index in the range.
+- Like `FINDCHARA`, but searches backward and returns the last matching chara index (role index) in the range.
 
 **Metadata**
 - Implementor: `new FindcharaMethod(true)`
@@ -13767,7 +14619,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 **Syntax**
 - `FINDLASTCHARA(charaVarTerm, value [, startIndex [, lastIndex]])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `FINDLASTCHARA(NAME, "A", , 10)`).
 
 **Signatures / argument rules**
 - `FINDLASTCHARA(charaVarTerm, value)` → `long`
@@ -13775,21 +14626,21 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `FINDLASTCHARA(charaVarTerm, value, startIndex, lastIndex)` → `long`
 
 **Arguments**
-- `charaVarTerm`: character-data variable term.
-  - Must evaluate to a variable term whose identifier is marked as “character data”.
-  - If the variable is a 1D/2D array, the array subscripts on `charaVarTerm` select which per-character cell is compared.
-- `value`: scalar value to match; must be the same scalar type as the selected cell (string vs int).
-- `startIndex` (optional): int expression; inclusive start character index.
-- `lastIndex` (optional): int expression; exclusive end character index.
+- `charaVarTerm` (character-data variable term): selects a character-data variable (scalar or array).
+  - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
+  - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
+- The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+- `value` (int|string; must match the selected cell type): scalar value to match.
+- `startIndex` (optional, int; default `0`): inclusive start chara index.
+- `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
 
 **Defaults / optional arguments**
-- If `startIndex` is omitted (or omitted as an empty slot): defaults to `0`.
-- If `lastIndex` is omitted (or omitted as an empty slot): defaults to `CHARANUM` (the current total number of characters).
+- (TODO)
 
 **Semantics**
 - Reads the current `CHARANUM` and searches backward in the half-open range `[startIndex, lastIndex)`.
 - The search order is: `lastIndex - 1`, `lastIndex - 2`, ..., down to `startIndex`.
-- For each character index `i` in the range, compares `charaVarTerm(i)` against `value` using direct equality:
+- For each chara index `i` in the range, compares the selected per-chara cell against `value` using direct equality:
   - string cell: `==` (ordinal string equality in .NET)
   - int cell: `==`
 - Returns the first match encountered in that reverse scan (i.e. the “last” match in the range), or `-1` if:
@@ -14310,7 +15161,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## BARSTR (expression function)
 **Summary**
-- (TODO)
+- Returns the same bar string that `BAR`/`BARL` would print with the same arguments.
 
 **Metadata**
 - Implementor: `new BarStringMethod()`
@@ -14318,25 +15169,37 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `BARSTR(value, maxValue, length)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
+- `BARSTR(value, maxValue, length)` → `string`
 
 **Arguments**
-- (TODO)
+- `value`: int expression (numerator).
+- `maxValue`: int expression (denominator); must evaluate to `> 0`.
+- `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
-- (TODO)
+- Produces:
+  - `[` + (`BarChar1` repeated `filled`) + (`BarChar2` repeated `length - filled`) + `]`
+  - where `filled = clamp(value * length / maxValue, 0, length)`.
+- `BarChar1` / `BarChar2` are configurable (defaults: `*` and `.`).
+- As a standalone statement (method-as-statement form), the returned string is written to `RESULTS`.
 
 **Errors & validation**
-- (TODO)
+- Runtime errors if:
+  - `maxValue <= 0`
+  - `length <= 0`
+  - `length >= 100`
 
 **Examples**
-- (TODO)
+```erabasic
+S '= BARSTR(HP, MAXHP, 20)
+PRINTFORML %S%
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16190,7 +17053,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## SUBSTRING (expression function)
 **Summary**
-- Returns a substring where `start`/`length` are measured in the engine’s current language-encoding byte count (not Unicode code units).
+- Returns a substring where `start`/`length` are measured in the engine’s “language length” units (the same unit returned by `STRLEN`).
 
 **Metadata**
 - Implementor: `new SubstringMethod()`
@@ -16199,7 +17062,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 **Syntax**
 - `SUBSTRING(str [, start [, length]])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `SUBSTRING(str, , 10)`).
 
 **Signatures / argument rules**
 - `SUBSTRING(str)` → `string`
@@ -16207,28 +17069,26 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `SUBSTRING(str, start, length)` → `string`
 
 **Arguments**
-- `str`: string.
-- `start` (optional): int (language-length offset; see Semantics).
-- `length` (optional): int (language-length count; `<0` means “to end”).
+- `str` (string): input string.
+- `start` (optional, int; default `0`): language-length offset; see Semantics.
+- `length` (optional, int; default `-1`): language-length count (`<0` means “to end”).
 
 **Defaults / optional arguments**
-- If `start` is omitted (or omitted as an empty slot): defaults to `0`.
-- If `length` is omitted (or omitted as an empty slot): defaults to `-1` (meaning “to end”).
+- (TODO)
 
 **Semantics**
-- The engine defines a “language length” for strings:
-  - If `str` is ASCII-only: `total = str.Length`.
-  - Otherwise: `total = ByteCount(str)` under the engine’s configured language encoding (see `useLanguage` / `Config.Language`).
+- Let `total = STRLEN(str)` (the engine’s “language length” of `str`).
+- `start` and `length` are measured in this same unit.
 - Special cases:
   - If `start >= total` or `length == 0`: returns `""`.
   - If `length < 0` or `length > total`: `length` is treated as `total` (effectively “to end”).
   - If `start <= 0` and `length == total`: returns `str` unchanged.
 - Start position selection (character-boundary rounding):
   - If `start <= 0`, the substring starts at the first character.
-  - If `start > 0`, the engine advances from the beginning, accumulating `ByteCount(char)` until the accumulated count becomes `>= start`; the substring then starts at the *next* character position reached by that scan.
+  - If `start > 0`, the engine advances from the beginning, accumulating the per-character byte count under the current language encoding until the accumulated count becomes `>= start`; the substring then starts at the *next* character position reached by that scan.
   - This means `start` values that fall “inside” a multi-byte character effectively round up to the next character boundary (the multi-byte character is skipped).
 - Length selection (character-boundary rounding):
-  - Starting from the chosen start character, the engine appends characters while accumulating `ByteCount(char)` until the accumulated count becomes `>= length`, or until end-of-string.
+  - Starting from the chosen start character, the engine appends characters while accumulating the per-character byte count under the current language encoding until the accumulated count becomes `>= length`, or until end-of-string.
   - This means the returned substring may exceed `length` in bytes if the last included character is multi-byte.
 
 **Errors & validation**
@@ -16392,7 +17252,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 **Syntax**
 - `TOSTR(i [, format])`
-- Optional arguments can be omitted by leaving an empty argument slot (e.g. `TOSTR(42, )`).
 
 **Signatures / argument rules**
 - `TOSTR(i)` → `string`
@@ -16402,8 +17261,11 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `i`: int expression.
 - `format` (optional): string expression passed to `Int64.ToString(format)`.
 
+- Omitted arguments / defaults:
+  - If `format` is omitted or `null`: uses the default `i.ToString()` formatting.
+
 **Defaults / optional arguments**
-- If `format` is omitted or `null`: uses the default `i.ToString()` formatting.
+- (TODO)
 
 **Semantics**
 - If `format` is omitted or null: returns `i.ToString()`.
@@ -16443,7 +17305,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `str`: string expression.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - Returns `0` if `str` is `null` or `""`.
@@ -16455,7 +17317,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Parses the leading integer literal using the engine’s integer-literal reader (the same routine used by the lexer/parser):
   - recognizes `0x...` / `0X...` (hex) and `0b...` / `0B...` (binary)
   - recognizes exponent suffixes `e`/`E` (base-10) and `p`/`P` (base-2) with a (signed) integer exponent
-    - Implementation detail: exponent digits are parsed by the same digit-reader used for the main literal (so the accepted exponent digit set depends on the literal’s base).
+    - Exponent digits are parsed using the same digit set as the main literal (so the accepted exponent digit set depends on the literal’s base).
 - After the integer literal:
   - If end-of-string: return the parsed value.
   - If the next character is `.`: the remainder must be digits only; this fractional part is validated but ignored.
@@ -16497,7 +17359,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `str`: string expression.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -16533,7 +17395,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `str`: string expression.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -16569,7 +17431,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `str`: string expression.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -16605,7 +17467,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `str`: string expression.
 
 **Defaults / optional arguments**
-- None.
+- (TODO)
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -17126,7 +17988,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## HTML_GETPRINTEDSTR (expression function)
 **Summary**
-- (TODO)
+- Returns the HTML-formatted representation of a previously displayed **logical output line**.
 
 **Metadata**
 - Implementor: `new HtmlGetPrintedStrMethod()`
@@ -17134,28 +17996,51 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `HTML_GETPRINTEDSTR(<lineNo>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int }; OmitStart = 0.
+- Signature: `string HTML_GETPRINTEDSTR(int lineNo = 0)`.
+- `<lineNo>` is evaluated as an integer expression.
 
 **Arguments**
-- (TODO)
+- `<lineNo>` (optional): integer expression. Defaults to `0`.
+  - `0` = the most recent logical output line.
+  - `1` = the second most recent logical output line.
+  - And so on.
+
+- Omitted arguments / defaults:
+  - `<lineNo>` defaults to `0`.
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
+- Interprets `<lineNo>` as a non-negative index into the current display log’s **logical lines**, counted from the end:
+  - `HTML_GETPRINTEDSTR(0)` returns the most recently produced logical output line.
+- Returns `""` if the requested line does not exist.
+- The returned HTML is a normalized representation of the displayed line:
+  - It always wraps the line in `<p align='...'><nobr> ... </nobr></p>`.
+  - It uses `<br>` between display-wrapped lines within the same logical line.
+  - Button segments are represented with `<button ...>` / `<nonbutton ...>` tags (including `title` and `pos` when present).
+  - Inline images and shapes are represented by their tag-like alt text (e.g. `<img ...>` / `<shape ...>`).
+  - `<div ...>` sub-area elements are omitted.
+- This function does not modify the display.
 - Engine-extracted notes (key operations):
   - `ConsoleDisplayLine[] dispLines = exm.Console.GetDisplayLines(lineNo)`
 
 **Errors & validation**
+- If `<lineNo> < 0`, this is a runtime error.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, lineNo))`
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTL "Hello"
+PRINTL "World"
+
+; Gets the most recent logical line (the "World" line)
+S = HTML_GETPRINTEDSTR(0)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17163,7 +18048,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## HTML_POPPRINTINGSTR (expression function)
 **Summary**
-- (TODO)
+- Returns (and clears) the current pending print buffer as an HTML string.
 
 **Metadata**
 - Implementor: `new HtmlPopPrintingStrMethod()`
@@ -17171,26 +18056,40 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `HTML_POPPRINTINGSTR()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- Signature: `string HTML_POPPRINTINGSTR()`.
 
 **Arguments**
-- (TODO)
+- None.
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
+- If the engine output is disabled or the print buffer is empty, returns `""`.
+- Otherwise:
+  - Flushes the current print buffer into display-line structures **without displaying them**.
+  - Clears the print buffer.
+  - Converts the flushed content to an HTML string and returns it.
+- The returned HTML:
+  - uses `<br>` between display-wrapped lines within the flushed buffer
+  - does **not** include `<p ...>` or `<nobr>` wrappers (so it does not reflect `ALIGNMENT`).
+  - omits `<div ...>` sub-area elements
 - Engine-extracted notes (key operations):
   - `ConsoleDisplayLine[] dispLines = exm.Console.PopDisplayingLines()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINT "A"
+PRINT "B"
+S = HTML_POPPRINTINGSTR()
+; At this point, the pending buffer is cleared and nothing was displayed.
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17198,7 +18097,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## HTML_TOPLAINTEXT (expression function)
 **Summary**
-- (TODO)
+- Converts an HTML string to plain text by removing tags and expanding character references.
 
 **Metadata**
 - Implementor: `new HtmlToPlainTextMethod()`
@@ -17206,25 +18105,30 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `HTML_TOPLAINTEXT(html)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `string HTML_TOPLAINTEXT(string html)`.
 
 **Arguments**
-- (TODO)
+- `html`: string expression interpreted as an HTML string.
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
-- (TODO)
+- Removes all tag-like regions of the form `<...>` (including button tags and comments).
+- Then expands character references in the remaining text (e.g. `&amp;` → `&`, `&#x41;` → `A`).
 
 **Errors & validation**
-- (TODO)
+- Malformed character references in the remaining text are runtime errors (e.g. an `&...` sequence missing a terminating `;`).
+- Unsupported numeric character reference values (outside `0 <= codePoint <= 0xFFFF`) are runtime errors.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTFORMW %HTML_TOPLAINTEXT("<b>AAA</b><i><b>BBB</b></i><s>CCC</s>")%
+; prints: AAABBBCCC
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17232,7 +18136,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## HTML_ESCAPE (expression function)
 **Summary**
-- (TODO)
+- Escapes a plain-text string for use in HTML strings.
 
 **Metadata**
 - Implementor: `new HtmlEscapeMethod()`
@@ -17240,25 +18144,34 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `HTML_ESCAPE(text)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `string HTML_ESCAPE(string text)`.
 
 **Arguments**
-- (TODO)
+- `text`: string expression.
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
-- (TODO)
+- Replaces:
+  - `&` → `&amp;`
+  - `>` → `&gt;`
+  - `<` → `&lt;`
+  - `"` → `&quot;`
+  - `'` → `&apos;`
+- All other characters are unchanged.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
+; prints: A&amp;B&lt;C&gt;D&apos;E
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19109,7 +20022,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## HTML_STRINGLEN (expression function)
 **Summary**
-- (TODO)
+- Measures the display width of an HTML string (using the same layout rules as `HTML_PRINT`).
 
 **Metadata**
 - Implementor: `new HtmlStringLenMethod()`
@@ -19117,26 +20030,42 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `HTML_STRINGLEN(html(, returnPixel))`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 1.
+- Signature: `int HTML_STRINGLEN(string html, int returnPixel = 0)`.
+- `returnPixel` is treated as “false” only when it is exactly `0`; any non-zero value selects pixel return.
 
 **Arguments**
-- (TODO)
+- `html`: string expression interpreted as an HTML string.
+- `returnPixel` (optional): integer expression.
+  - `0` (default): return in half-width character units.
+  - non-zero: return in pixels.
+
+- Omitted arguments / defaults:
+  - `returnPixel` defaults to `0`.
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
-- (TODO)
+- Computes the rendered output for `html` using the same rules as `HTML_PRINT`.
+- Measures the width of the **first display line** only (if `html` contains `<br>` or wraps, later lines do not affect the return value).
+- If `returnPixel != 0`, returns the width in pixels.
+- If `returnPixel = 0` (or omitted), converts pixel width to half-width character units using the configured font size:
+  - Let `fontSizePx = FontSize` (see `config-items.md`).
+  - Let `widthPx` be the measured pixel width (non-negative).
+  - Returns the smallest integer `n` such that `n * fontSizePx / 2 >= widthPx`.
+- Unless the HTML string is wrapped in `<nobr>...</nobr>`, the measured width does not exceed the drawable width (content is wrapped).
 
 **Errors & validation**
-- (TODO)
+- Invalid HTML strings raise runtime errors (same HTML mini-language as `HTML_PRINT`).
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTFORML {HTML_STRINGLEN("<b>B</b>")}
+PRINTFORML {HTML_STRINGLEN("<b>B</b>", 1)}
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19144,7 +20073,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## HTML_SUBSTRING (expression function)
 **Summary**
-- (TODO)
+- Splits an HTML string into a prefix that fits within a given display width and the remaining suffix.
 
 **Metadata**
 - Implementor: `new HtmlSubStringMethod()`
@@ -19152,25 +20081,48 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `HTML_SUBSTRING(html, width)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long)]`.
+- Signature: `string HTML_SUBSTRING(string html, int width)`.
+- Also writes results into `RESULTS` (see semantics).
 
 **Arguments**
-- (TODO)
+- `html`: string expression interpreted as an HTML string.
+- `width`: integer expression, in half-width character units.
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
-- (TODO)
+- Returns the first part (the prefix) as an HTML string.
+- Writes the split results into `RESULTS`:
+  - `RESULTS:0` = returned prefix
+  - `RESULTS:1` = remaining suffix (may be `""`)
+  - Other `RESULTS:*` entries are not cleared.
+- Interprets `width` in “half-width character units”. One unit corresponds to half the configured font size in pixels:
+  - `pixelBudget = width * FontSize / 2`
+- Expands character references in `html` first, then performs the split.
+  - This means that sequences like `&lt;b&gt;` may become `<b>` tags after expansion and affect the split.
+- If the expanded HTML contains a `<br>` tag, it forces the split at that point:
+  - The prefix ends before the `<br>`.
+  - The suffix starts after the `<br>`.
+  - The `<br>` tag itself is not included in either result.
+- Compatibility notes:
+  - The special handling of `<br>`, `<img ...>`, and `<shape ...>` is case-sensitive (`br`/`img`/`shape` in lowercase). For example, `<BR>` is not treated as a forced split point.
+  - Literal newline characters (`'\n'`) are not treated as forced split points by this function (unlike `HTML_PRINT` rendering).
+- Treats `<img ...>` and `<shape ...>` as indivisible units when splitting:
+  - If the current line already has content and the next figure would exceed the width budget, the figure is left for the suffix.
+- Produces output HTML that keeps basic style tag balance across the split boundary (so the prefix and suffix remain renderable HTML strings in this mini language).
 
 **Errors & validation**
-- (TODO)
+- Invalid HTML strings (including invalid character references) may raise runtime errors.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTSL HTML_SUBSTRING("AB<b>CD</b>EFG", 4)
+PRINTSL RESULTS:1
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19178,7 +20130,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## HTML_STRINGLINES (expression function)
 **Summary**
-- (TODO)
+- Returns how many lines an HTML string would occupy when repeatedly split by a given width (using `HTML_SUBSTRING`).
 
 **Metadata**
 - Implementor: `new HtmlStringLinesMethod()`
@@ -19186,25 +20138,34 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `HTML_STRINGLINES(html, width)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long)]`.
+- Signature: `int HTML_STRINGLINES(string html, int width)`.
 
 **Arguments**
-- (TODO)
+- `html`: string expression interpreted as an HTML string.
+- `width`: integer expression, in half-width character units.
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
-- (TODO)
+- If `html` is null/empty, returns `0`.
+- Otherwise, repeatedly applies the same splitting rules as `HTML_SUBSTRING(html, width)`:
+  - Each split consumes the prefix as one line.
+  - The remainder becomes the next input.
+- Returns the number of iterations until the remainder becomes empty.
+- Compatibility notes:
+  - This function inherits all parsing/splitting quirks from `HTML_SUBSTRING`, including case-sensitive special handling of `<br>`, `<img ...>`, and `<shape ...>`.
 
 **Errors & validation**
-- (TODO)
+- Invalid HTML strings (including invalid character references) may raise runtime errors.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)

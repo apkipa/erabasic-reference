@@ -1,13 +1,13 @@
 **Summary**
 - Ends a `REPEAT ... REND` loop.
 
+**Tags**
+- control-flow
+
 **Syntax**
 - `REND`
 
 **Arguments**
-- None.
-
-**Defaults / optional arguments**
 - None.
 
 **Semantics**

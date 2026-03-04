@@ -1,6 +1,9 @@
 **Summary**
 - Like `CALLFORM`, but if the evaluated function name does not resolve to a function the instruction **does not error** and simply falls through.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCALLFORM <formString> [, <arg1>, <arg2>, ... ]`
 - `TRYCALLFORM <formString>(<arg1>, <arg2>, ... )`
@@ -8,8 +11,8 @@
 **Arguments**
 - Same as `CALLFORM`.
 
-**Defaults / optional arguments**
-- Same as `CALLFORM`.
+- Omitted arguments / defaults:
+  - Same as `CALLFORM`.
 
 **Semantics**
 - If the target function exists: behaves like `CALLFORM`.

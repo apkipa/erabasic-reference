@@ -29,16 +29,17 @@ This is the actual order in which files/config are loaded before scripts are exe
 4) **Preload file contents** into an in-memory cache (`Preload.Load(erbDir)` and `Preload.Load(csvDir)`).
    - This eagerly reads `*.erb/*.erh/*.erd/*.csv/*.als` under those directories recursively.
    - This does **not** decide “what gets executed” (enumeration rules still decide that), but later readers use `OpenOnCache(...)` and therefore depend on this cache.
-5) **Load `_Replace.csv`** (optional; controlled by config; skipped in analysis mode).
-6) **Load `_Rename.csv`** (optional; controlled by config).
-7) **Load `GAMEBASE.CSV`** (required).
-8) **Load all other main CSV data** (including `VariableSize.CSV` and name tables like `ABL.CSV`, etc.).
-9) Initialize variable/evaluation subsystems.
-10) **Load plugins** (optional; out of scope for a minimal interpreter, but it happens before script parsing in this engine).
-11) **Load header files** `*.ERH` (with rename processing enabled).
-12) Enable macro expansion (only if ERH defined macros).
-13) **Load script files** `*.ERB` (with rename processing enabled only if configured).
-14) Parse/build the script and run syntax checks.
+5) **Load sprites/resources** from `resources/**/*.csv` (and referenced image files) into the sprite dictionary.
+6) **Load `_Replace.csv`** (optional; controlled by config; skipped in analysis mode).
+7) **Load `_Rename.csv`** (optional; controlled by config).
+8) **Load `GAMEBASE.CSV`** (required).
+9) **Load all other main CSV data** (including `VariableSize.CSV` and name tables like `ABL.CSV`, etc.).
+10) Initialize variable/evaluation subsystems.
+11) **Load plugins** (optional; out of scope for a minimal interpreter, but it happens before script parsing in this engine).
+12) **Load header files** `*.ERH` (with rename processing enabled).
+13) Enable macro expansion (only if ERH defined macros).
+14) **Load script files** `*.ERB` (with rename processing enabled only if configured).
+15) Parse/build the script and run syntax checks.
 
 The rest of this document breaks down the interpreter-relevant parts of those steps.
 

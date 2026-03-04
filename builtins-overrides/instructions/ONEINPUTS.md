@@ -1,6 +1,9 @@
 **Summary**
 - Like `INPUTS`, but requests a “one input” string entry (UI-side restriction).
 
+**Tags**
+- io
+
 **Syntax**
 - `ONEINPUTS`
 - `ONEINPUTS <defaultFormString>`
@@ -9,12 +12,13 @@
 **Arguments**
 - Same as `INPUTS`.
 
-**Defaults / optional arguments**
-- Same as `INPUTS`.
+- Omitted arguments / defaults:
+  - Same as `INPUTS`.
 
 **Semantics**
-- Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
-- Implementation detail: the UI input handler may truncate the entered string to at most one character.
+- Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
+  - If the entered text has length > 1, it is truncated to the first character.
+  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 
 **Errors & validation**
 - Same as `INPUTS`.

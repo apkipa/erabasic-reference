@@ -1,6 +1,9 @@
 **Summary**
 - Like `CALLF`, but the method name is a formatted (FORM) string expression evaluated at runtime.
 
+**Tags**
+- calls
+
 **Syntax**
 - `CALLFORMF <formString> [, <arg1>, <arg2>, ... ]`
 - `CALLFORMF <formString>(<arg1>, <arg2>, ... )`
@@ -9,8 +12,8 @@
 - `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
 - `<argN>`: expressions passed to the method.
 
-**Defaults / optional arguments**
-- Depends on the called method’s own signature rules.
+- Omitted arguments / defaults:
+  - Depends on the called method’s own signature rules.
 
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.

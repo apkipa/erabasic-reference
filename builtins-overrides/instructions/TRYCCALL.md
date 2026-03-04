@@ -1,6 +1,9 @@
 **Summary**
 - Like `TRYCALL`, but supports a `CATCH ... ENDCATCH` block for the “not found” case.
 
+**Tags**
+- calls
+
 **Syntax**
 - `TRYCCALL <functionName> [, <arg1>, ... ]`
 - `CATCH`
@@ -10,8 +13,8 @@
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- Same as `CALL`.
+- Omitted arguments / defaults:
+  - Same as `CALL`.
 
 **Semantics**
 - If the target function exists: behaves like `CALL`, then control returns and reaches `CATCH` sequentially; `CATCH` skips the catch body.
