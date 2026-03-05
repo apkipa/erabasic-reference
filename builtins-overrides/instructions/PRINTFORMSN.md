@@ -12,9 +12,6 @@
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.

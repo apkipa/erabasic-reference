@@ -10,12 +10,9 @@
 - `INPUTS <defaultFormString>, <mouse> [, <canSkip>]`
 
 **Arguments**
-- `<defaultFormString>` (optional): a FORM/formatted string expression used as the default string.
-- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input.
-- `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
-
-- Omitted arguments / defaults:
-  - If `<defaultFormString>` is omitted, there is no default value.
+- `<defaultFormString>` (optional): FORM/formatted string expression used as the default string. If omitted, there is no default.
+- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input.
+- `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting.
 
 **Semantics**
 - Enters a string-input UI wait.
@@ -36,7 +33,7 @@
 - Note: if `<canSkip>` is present and `MesSkip` is true at runtime, `<defaultFormString>` must be present.
   - If it is omitted, the engine throws a runtime error when taking the `MesSkip` no-wait path.
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
-- Skip-print interaction is the same as `INPUT` (print-family skip rule + `SKIPDISP` input error case).
+- Output skipping interaction is the same as `INPUT`.
 
 **Errors & validation**
 - Argument parsing errors follow the underlying builder rules for `INPUTS`.

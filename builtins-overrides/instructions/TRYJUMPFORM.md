@@ -11,9 +11,6 @@
 **Arguments**
 - Same as `JUMPFORM`.
 
-- Omitted arguments / defaults:
-  - Same as `JUMPFORM`.
-
 **Semantics**
 - If the target function exists: behaves like `JUMPFORM`.
 - If not: does nothing (continues at the next line after `TRYJUMPFORM`).

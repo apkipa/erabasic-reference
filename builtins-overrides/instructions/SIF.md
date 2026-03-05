@@ -5,14 +5,11 @@
 - control-flow
 
 **Syntax**
-- `SIF <int expr>`
+- `SIF [<int expr>]`
   - `<next logical line>`
 
 **Arguments**
-- `<int expr>`: evaluated as integer; zero = false, non-zero = true.
-
-- Omitted arguments / defaults:
-  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.

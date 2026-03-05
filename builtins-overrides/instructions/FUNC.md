@@ -17,7 +17,7 @@
 
 **Semantics**
 - Not executed as a standalone statement.
-- During load, Emuera collects `FUNC` lines into the surrounding `TRY*LIST` instruction’s internal `callList`.
+- During load, Emuera collects `FUNC` lines into a list owned by the surrounding `TRY*LIST` instruction.
 - At runtime, the surrounding `TRY*LIST` evaluates these items in order (see `TRYCALLLIST` / `TRYJUMPLIST` / `TRYGOTOLIST`).
 - Argument parsing is the same as `CALLFORM`: candidate name is a FORM string; call arguments are normal expressions.
 - In `TRYCALLLIST` / `TRYJUMPLIST`, the optional `[...]` subname segment is parsed and stored, but it is not used when selecting/calling the function.

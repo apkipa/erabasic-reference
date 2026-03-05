@@ -5,21 +5,20 @@
 - control-flow
 
 **Syntax**
-- `REPEAT <countExpr>`
+- `REPEAT [<countExpr>]`
   - `...`
   - `REND`
 
 **Arguments**
-- `<countExpr>`: int expression giving the number of iterations.
+- `<countExpr>` (optional, int; default `0` with a warning if omitted): number of iterations.
 
-- Omitted arguments / defaults:
-  - If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
 
 **Semantics**
 - `REPEAT` is implemented as a FOR-like loop over `COUNT:0`:
   - Initializes `COUNT:0` to `0`.
   - Uses `end = <countExpr>` and `step = 1`.
   - The loop continues while `COUNT:0 < end`.
+- If `end <= 0`, the loop body is skipped.
 - `COUNT:0` is incremented by `1` at `REND` time (and also by `BREAK`/`CONTINUE` for era-maker compatibility).
 - Jump behavior note: control transfers between `REPEAT` and `REND` are done via their marker lines, and entering a marker line as a jump target begins execution at the following logical line:
   - Jumping to `REPEAT` re-enters at the first line of the body.

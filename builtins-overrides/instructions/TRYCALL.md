@@ -11,9 +11,6 @@
 **Arguments**
 - Same as `CALL`.
 
-- Omitted arguments / defaults:
-  - Same as `CALL`.
-
 **Semantics**
 - If the target function exists: behaves like `CALL`.
 - If the target function does not exist: does nothing (continues at the next line after `TRYCALL`).

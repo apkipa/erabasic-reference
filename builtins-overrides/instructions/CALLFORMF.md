@@ -12,9 +12,6 @@
 - `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
 - `<argN>`: expressions passed to the method.
 
-- Omitted arguments / defaults:
-  - Depends on the called method’s own signature rules.
-
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.
 - The return value is computed but not assigned to `RESULT/RESULTS` by this instruction.

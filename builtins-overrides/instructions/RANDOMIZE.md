@@ -9,10 +9,7 @@
 - `RANDOMIZE <seed>`
 
 **Arguments**
-- `<seed>` (optional): integer expression. If omitted, the seed defaults to `0`.
-
-- Omitted arguments / defaults:
-  - `<seed>` defaults to `0`.
+- `<seed>` (optional): int. If omitted, the seed defaults to `0`.
 
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:

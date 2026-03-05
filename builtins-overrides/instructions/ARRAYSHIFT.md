@@ -9,14 +9,10 @@
 
 **Arguments**
 - `<arrayVar>`: changeable 1D array variable term.
-- `<shift>`: int expression.
+- `<shift>`: int (signed). `0` is a no-op.
 - `<default>`: expression of the same scalar type as the array element type.
-- `<start>`: int expression (default `0`).
-- `<count>`: int expression (default “to end”; engine uses a sentinel).
-
-- Omitted arguments / defaults:
-  - `<start>` defaults to `0`.
-  - `<count>` omitted means “to the end”.
+- `<start>` (optional, int; default `0`): start index of the shifted segment.
+- `<count>` (optional, int; default “to end”): number of elements in the segment. If explicitly `0`, this is a no-op.
 
 **Semantics**
 - Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).

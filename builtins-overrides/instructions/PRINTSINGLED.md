@@ -10,10 +10,7 @@
 - `PRINTSINGLED;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

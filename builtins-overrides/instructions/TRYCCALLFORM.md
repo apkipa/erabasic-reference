@@ -13,9 +13,6 @@
 **Arguments**
 - Same as `CALLFORM`.
 
-- Omitted arguments / defaults:
-  - Same as `CALLFORM`.
-
 **Semantics**
 - Same as `TRYCCALL`, but with a runtime-evaluated function name.
 

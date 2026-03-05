@@ -11,9 +11,6 @@
 **Arguments**
 - Same as `CALL`.
 
-- Omitted arguments / defaults:
-  - Same as `CALL`.
-
 **Semantics**
 - Enters the target function.
 - When the target function returns, the engine immediately returns again, effectively discarding the current function’s return address (tail-call-like behavior).

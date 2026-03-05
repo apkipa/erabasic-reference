@@ -10,9 +10,6 @@
 **Arguments**
 - Optional FORM/formatted string scanned to end-of-line.
 
-- Omitted arguments / defaults:
-  - Omitted argument is treated as empty string.
-
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.
 - When selected, evaluated to a string at runtime and printed/concatenated.

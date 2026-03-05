@@ -11,9 +11,6 @@
 **Arguments**
 - `<raw text>`: the literal remainder of the line (not a string expression).
 
-- Omitted arguments / defaults:
-  - If omitted, the argument is treated as the empty string; empty output produces no output segment.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Appends the raw string to the print buffer as a “plain” segment:

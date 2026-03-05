@@ -23,8 +23,6 @@
   - string LHS with `=`: RHS is scanned as a formatted string until end-of-line.
   - string LHS with `'=` / `+=` / `*=`: RHS is parsed as normal expressions.
 
-- Omitted arguments / defaults:
-  - For `++/--`, the implicit delta is `+1` / `-1`.
 
 **Semantics**
 - There is no `SET` keyword in EraBasic source; this entry documents the language’s assignment syntax.

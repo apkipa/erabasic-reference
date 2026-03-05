@@ -13,9 +13,6 @@
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
 - `<argN>`: same as `CALL`.
 
-- Omitted arguments / defaults:
-  - Same as `CALL`.
-
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.
 

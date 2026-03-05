@@ -5,13 +5,10 @@
 - control-flow
 
 **Syntax**
-- `LOOP <int expr>`
+- `LOOP [<int expr>]`
 
 **Arguments**
-- `<int expr>`: loop condition (0 = false, non-zero = true).
-
-- Omitted arguments / defaults:
-  - If omitted, the condition defaults to `0` (false) and emits a load-time warning.
+- `<int expr>` (optional, int; default `0` with a warning if omitted): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates the condition:

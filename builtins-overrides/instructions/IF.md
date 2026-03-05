@@ -5,7 +5,7 @@
 - control-flow
 
 **Syntax**
-- `IF <int expr>`
+- `IF [<int expr>]`
   - `...`
   - `ELSEIF <int expr>`
   - `...`
@@ -14,10 +14,7 @@
   - `ENDIF`
 
 **Arguments**
-- `<int expr>`: evaluated as integer; zero = false, non-zero = true.
-
-- Omitted arguments / defaults:
-  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates its own condition and then each `ELSEIF` condition in order.

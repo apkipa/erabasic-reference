@@ -8,13 +8,10 @@
 - `HTML_GETPRINTEDSTR(<lineNo>)`
 
 **Arguments**
-- `<lineNo>` (optional): integer expression. Defaults to `0`.
+- `<lineNo>` (optional, int; default `0`): index from the end of the logical-line log.
   - `0` = the most recent logical output line.
   - `1` = the second most recent logical output line.
   - And so on.
-
-- Omitted arguments / defaults:
-  - `<lineNo>` defaults to `0`.
 
 **Signatures / argument rules**
 - Signature: `string HTML_GETPRINTEDSTR(int lineNo = 0)`.

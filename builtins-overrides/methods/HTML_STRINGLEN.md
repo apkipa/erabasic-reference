@@ -5,16 +5,13 @@
 - io
 
 **Syntax**
-- `HTML_STRINGLEN(html(, returnPixel))`
+- `HTML_STRINGLEN(html [, returnPixel])`
 
 **Arguments**
 - `html`: string expression interpreted as an HTML string.
-- `returnPixel` (optional): integer expression.
+- `returnPixel` (optional, int; default `0`)
   - `0` (default): return in half-width character units.
   - non-zero: return in pixels.
-
-- Omitted arguments / defaults:
-  - `returnPixel` defaults to `0`.
 
 **Signatures / argument rules**
 - Signature: `int HTML_STRINGLEN(string html, int returnPixel = 0)`.

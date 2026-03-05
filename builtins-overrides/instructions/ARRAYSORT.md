@@ -5,35 +5,29 @@
 - arrays
 
 **Syntax**
-- Minimal form:
-  - `ARRAYSORT <arrayVar>`
-- With explicit order (required for subrange arguments):
-  - `ARRAYSORT <arrayVar>, FORWARD|BACK [, <start> [, <count>]]`
+- `ARRAYSORT <arrayVar> [, FORWARD|BACK [, <start> [, <count>]]]`
 
 **Arguments**
 - `<arrayVar>`: changeable 1D array variable term (int or string).
-- `FORWARD|BACK`:
+- `FORWARD|BACK` (optional; default `FORWARD`):
   - `FORWARD`: ascending
   - `BACK`: descending
-- `<start>` (optional): integer expression; default `0`.
-- `<count>` (optional): integer expression; if omitted, sorts to end.
-
-- Omitted arguments / defaults:
-  - If `FORWARD|BACK` is omitted, order defaults to ascending and the engine does not accept `<start>/<count>` (parsing quirk).
-  - `<start>` defaults to `0` when `FORWARD|BACK` is present but no subrange is provided.
-  - `<count>` omitted means “to the end”.
+- `<start>` (optional, int; default `0`): subrange start index (only parsed when `FORWARD|BACK` is present).
+- `<count>` (optional, int; default “to end”): subrange length (only parsed when `FORWARD|BACK` is present). If explicitly `0`, this is a no-op.
 
 **Semantics**
+- Order defaults to ascending.
 - Sorts the specified region of the array:
-  - The runtime treats `count <= 0` as “to the end” (but an explicitly provided `count == 0` is handled as a no-op in the instruction dispatcher).
-- Parsing rule:
-  - `<start>` and `<count>` are only accepted when the `FORWARD|BACK` token is present.
+  - If `<count>` is omitted: sorts to end.
+  - If `<count>` is provided and `<= 0`: `0` is a no-op; `<0` is an error.
+- Parsing quirk:
+  - `<start>` and `<count>` are only parsed when the `FORWARD|BACK` token is present.
+  - If the token after the first comma is not `FORWARD` or `BACK`:
+    - identifier → parse-time error
+    - non-identifier (e.g. a number) → ignored (sorts the whole array with default order)
 
 **Errors & validation**
-- Parse-time errors if:
-  - `<arrayVar>` is not a changeable 1D array variable term
-  - the order token is present but not `FORWARD` or `BACK`
-  - `<start>/<count>` are provided but are not integers
+- Parse-time errors if `<arrayVar>` is not a changeable 1D array variable term, or if the order token is present but not `FORWARD` or `BACK`.
 - Runtime errors if:
   - `<start> < 0`
   - `<start> >= array length`

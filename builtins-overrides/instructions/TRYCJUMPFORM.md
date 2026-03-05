@@ -13,9 +13,6 @@
 **Arguments**
 - Same as `JUMPFORM`.
 
-- Omitted arguments / defaults:
-  - Same as `JUMPFORM`.
-
 **Semantics**
 - Same as `TRYCJUMP`, but with a runtime-evaluated function name.
 

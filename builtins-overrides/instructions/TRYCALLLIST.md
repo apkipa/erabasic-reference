@@ -20,7 +20,7 @@
 **Semantics**
 - Structural notes:
   - The lines between `TRYCALLLIST` and `ENDFUNC` are **list items**, not a normal executable block body.
-  - Emuera stores the `FUNC` lines into an internal `callList` during load, and executes only `TRYCALLLIST` at runtime.
+  - Emuera collects the `FUNC` lines into a list during load, and executes only `TRYCALLLIST` at runtime.
 - Runtime algorithm:
   - For each `FUNC` item in source order:
     - Evaluate the candidate name to a string.

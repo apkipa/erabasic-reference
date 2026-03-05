@@ -11,9 +11,6 @@
 **Arguments**
 - Same as `JUMP`.
 
-- Omitted arguments / defaults:
-  - Same as `JUMP`.
-
 **Semantics**
 - If the target function exists: behaves like `JUMP`.
 - If the target function does not exist: does nothing (continues at the next line after `TRYJUMP`).

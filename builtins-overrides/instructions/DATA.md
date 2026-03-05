@@ -10,11 +10,8 @@
 - `DATA;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
   - Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as empty string.
 
 **Semantics**
 - At load time, the loader attaches `DATA` lines to the nearest surrounding block (`PRINTDATA*`, `STRDATA`, or `DATALIST`).

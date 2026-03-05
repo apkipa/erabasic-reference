@@ -13,9 +13,6 @@
 **Arguments**
 - Same as `CALL`.
 
-- Omitted arguments / defaults:
-  - Same as `CALL`.
-
 **Semantics**
 - If the target function exists: behaves like `CALL`, then control returns and reaches `CATCH` sequentially; `CATCH` skips the catch body.
 - If the function does not exist: jumps to the `CATCH` marker (so execution begins at the first line of the catch body).

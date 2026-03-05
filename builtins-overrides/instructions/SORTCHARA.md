@@ -15,8 +15,6 @@
 - Order: `FORWARD` = ascending, `BACK` = descending.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
 
-- Omitted arguments / defaults:
-  - If no args: uses key `NO` and ascending.
 
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.

@@ -17,8 +17,6 @@
 **Arguments**
 - Optional `<intVarTerm>`: a changeable int variable term that receives the 0-based chosen index.
 
-- Omitted arguments / defaults:
-  - If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.
 
 **Semantics**
 - Load-time structure rules (enforced by the loader):

@@ -5,16 +5,13 @@
 - io
 
 **Syntax**
-- `HTML_PRINT <html>(, <toBuffer>)`
+- `HTML_PRINT <html> [, <toBuffer>]`
 
 **Arguments**
 - `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
-- `<toBuffer>` (optional): integer expression.
+- `<toBuffer>` (optional, int; default `0`)
   - `0` (default): print as a complete logical output line (implicit line end).
   - non-zero: append the HTML output into the current print buffer (no implicit line end).
-
-- Omitted arguments / defaults:
-  - `<toBuffer>` defaults to `0`.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).

@@ -5,13 +5,11 @@
 - text
 
 **Syntax**
-- `STRLENU <rawString>`
+- `STRLENU [<rawString>]`
 
 **Arguments**
-- `<rawString>`: the literal remainder of the line (not a normal string expression).
+- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string expression).
 
-- Omitted arguments / defaults:
-  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Computes length as `str.Length` and assigns it to `RESULT`.

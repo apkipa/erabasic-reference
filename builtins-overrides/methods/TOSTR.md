@@ -12,11 +12,8 @@
 - `TOSTR(i, format)` → `string`
 
 **Arguments**
-- `i`: int expression.
-- `format` (optional): string expression passed to `Int64.ToString(format)`.
-
-- Omitted arguments / defaults:
-  - If `format` is omitted or `null`: uses the default `i.ToString()` formatting.
+- `i`: int.
+- `format` (optional): string expression passed to `Int64.ToString(format)`. If omitted or `null`, uses default formatting.
 
 **Semantics**
 - If `format` is omitted or null: returns `i.ToString()`.

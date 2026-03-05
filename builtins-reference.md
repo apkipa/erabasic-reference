@@ -77,9 +77,6 @@ In statement form, the engine evaluates the function and writes the return value
   - string LHS with `=`: RHS is scanned as a formatted string until end-of-line.
   - string LHS with `'=` / `+=` / `*=`: RHS is parsed as normal expressions.
 
-- Omitted arguments / defaults:
-  - For `++/--`, the implicit delta is `+1` / `-1`.
-
 **Semantics**
 - There is no `SET` keyword in EraBasic source; this entry documents the language’s assignment syntax.
 - Assignment operator recognition:
@@ -196,10 +193,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTL;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -225,10 +219,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTW;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -256,9 +247,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -284,9 +272,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
-
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -315,9 +300,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -344,9 +326,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A single string expression (must be present).
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
@@ -371,9 +350,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -400,9 +376,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -431,9 +404,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -459,9 +429,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -490,9 +457,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -520,9 +484,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -549,9 +510,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -581,9 +539,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -610,10 +565,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTK;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -639,10 +591,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTKL;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -669,10 +618,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTKW;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -701,9 +647,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -730,9 +673,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
-
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -762,9 +702,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -792,9 +729,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A single string expression (must be present).
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
@@ -820,9 +754,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -850,9 +781,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -882,9 +810,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -911,9 +836,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -943,9 +865,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -974,9 +893,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -1004,9 +920,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1037,9 +950,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -1067,10 +977,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTD;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1096,10 +1003,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTDL;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1126,10 +1030,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTDW;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1158,9 +1059,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -1187,9 +1085,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
-
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1219,9 +1114,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -1249,9 +1141,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A single string expression (must be present).
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
@@ -1277,9 +1166,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1307,9 +1193,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1339,9 +1222,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -1368,9 +1248,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1400,9 +1277,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -1431,9 +1305,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -1461,9 +1332,6 @@ In statement form, the engine evaluates the function and writes the return value
 **Arguments**
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1494,9 +1362,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -1524,10 +1389,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLE;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1557,9 +1419,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -1587,9 +1446,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1620,9 +1476,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -1652,9 +1505,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -1683,10 +1533,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEK;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1717,9 +1564,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -1748,9 +1592,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1782,9 +1623,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -1815,9 +1653,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -1847,10 +1682,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLED;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1881,9 +1713,6 @@ In statement form, the engine evaluates the function and writes the return value
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -1912,9 +1741,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1946,9 +1772,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -1979,9 +1802,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -2011,11 +1831,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTC;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
+- If the resulting text is empty, nothing is appended.
 - Output is converted to a fixed-width “cell” string (see below).
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string, and therefore produces no output.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2050,11 +1868,9 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLC;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
+- If the resulting text is empty, nothing is appended.
 - Output is converted to a fixed-width “cell” string (see below).
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string, and therefore produces no output.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2092,9 +1908,6 @@ In statement form, the engine evaluates the function and writes the return value
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -2124,9 +1937,6 @@ In statement form, the engine evaluates the function and writes the return value
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -2153,11 +1963,8 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTCK;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2185,11 +1992,8 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLCK;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2219,9 +2023,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2253,9 +2054,6 @@ In statement form, the engine evaluates the function and writes the return value
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -2283,11 +2081,8 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTCD;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2315,11 +2110,8 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLCD;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2350,9 +2142,6 @@ In statement form, the engine evaluates the function and writes the return value
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -2382,9 +2171,6 @@ In statement form, the engine evaluates the function and writes the return value
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2419,9 +2205,6 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - Optional `<intVarTerm>`: a changeable int variable term that receives the 0-based chosen index.
-
-- Omitted arguments / defaults:
-  - If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.
 
 **Semantics**
 - Load-time structure rules (enforced by the loader):
@@ -2480,9 +2263,6 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - (No kana conversion flag.)
@@ -2511,9 +2291,6 @@ ENDDATA
 
 **Arguments**
 - Same as `PRINTDATA`.
-
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2544,9 +2321,6 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - Applies kana conversion (`...K`) before printing.
@@ -2575,9 +2349,6 @@ ENDDATA
 
 **Arguments**
 - Same as `PRINTDATA`.
-
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2608,9 +2379,6 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - Applies kana conversion (`...K`) before printing.
@@ -2639,9 +2407,6 @@ ENDDATA
 
 **Arguments**
 - Same as `PRINTDATA`.
-
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2672,9 +2437,6 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - (No kana conversion flag.)
@@ -2703,9 +2465,6 @@ ENDDATA
 
 **Arguments**
 - Same as `PRINTDATA`.
-
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
 
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
@@ -2839,9 +2598,6 @@ INPUT
 **Arguments**
 - `<raw text>`: the literal remainder of the line (not a string expression).
 
-- Omitted arguments / defaults:
-  - If omitted, the argument is treated as the empty string; empty output produces no output segment.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Appends the raw string to the print buffer as a “plain” segment:
@@ -2873,9 +2629,6 @@ PRINTL
 
 **Arguments**
 - `<FORM string>`: a FORM argument scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
-
-- Omitted arguments / defaults:
-  - If omitted, the argument is treated as the empty string; empty output produces no output segment.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -3442,12 +3195,9 @@ Compatibility notes:
 - `INPUTS <defaultFormString>, <mouse> [, <canSkip>]`
 
 **Arguments**
-- `<defaultFormString>` (optional): a FORM/formatted string expression used as the default string.
-- `<mouse>` (optional): integer expression; if non-zero, enables mouse-based input.
-- `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
-
-- Omitted arguments / defaults:
-  - If `<defaultFormString>` is omitted, there is no default value.
+- `<defaultFormString>` (optional): FORM/formatted string expression used as the default string. If omitted, there is no default.
+- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input.
+- `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting.
 
 **Semantics**
 - Enters a string-input UI wait.
@@ -3468,7 +3218,7 @@ Compatibility notes:
 - Note: if `<canSkip>` is present and `MesSkip` is true at runtime, `<defaultFormString>` must be present.
   - If it is omitted, the engine throws a runtime error when taking the `MesSkip` no-wait path.
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
-- Skip-print interaction is the same as `INPUT` (print-family skip rule + `SKIPDISP` input error case).
+- Output skipping interaction is the same as `INPUT`.
 
 **Errors & validation**
 - Argument parsing errors follow the underlying builder rules for `INPUTS`.
@@ -3571,9 +3321,6 @@ Compatibility notes:
 **Arguments**
 - Same as `TINPUT`.
 
-- Omitted arguments / defaults:
-  - Same as `TINPUT`.
-
 **Semantics**
 - Same as `TINPUT`, but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.
@@ -3598,9 +3345,6 @@ Compatibility notes:
 
 **Arguments**
 - Same as `TINPUTS`.
-
-- Omitted arguments / defaults:
-  - Same as `TINPUTS`.
 
 **Semantics**
 - Same as `TINPUTS`, but with “one input” mode enabled:
@@ -3710,9 +3454,6 @@ Compatibility notes:
 **Arguments**
 - Same as `INPUT`.
 
-- Omitted arguments / defaults:
-  - Same as `INPUT`.
-
 **Semantics**
 - Like `INPUT` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
 - Implementation-oriented notes:
@@ -3741,9 +3482,6 @@ Compatibility notes:
 
 **Arguments**
 - Same as `INPUTS`.
-
-- Omitted arguments / defaults:
-  - Same as `INPUTS`.
 
 **Semantics**
 - Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
@@ -3802,9 +3540,6 @@ Compatibility notes:
 
 **Arguments**
 - `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
-
-- Omitted arguments / defaults:
-  - If omitted, the argument is treated as the empty string.
 
 **Semantics**
 - Evaluates `<formString>` to a string and prints it as a temporary line.
@@ -4093,9 +3828,6 @@ DELCHARA 1, 3
 **Arguments**
 - `<formString>` (optional): FORM/formatted string.
 
-- Omitted arguments / defaults:
-  - If omitted, the argument is treated as the empty string.
-
 **Semantics**
 - Evaluates `<formString>` to a string.
 - Appends it to the internal save-description buffer:
@@ -4291,14 +4023,10 @@ DELCHARA 1, 3
 - save-system
 
 **Syntax**
-- `LOADDATA <slot>`
+- `LOADDATA [<slot>]`
 
 **Arguments**
-- `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
-  - If omitted, the argument parser supplies `0` (with a warning); this effectively loads slot `0`.
-
-- Omitted arguments / defaults:
-  - None (but see omitted-argument behavior above).
+- `<slot>` (optional, int; default `0` with a warning if omitted): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
 
 **Semantics**
 - Validates the target save file; if the file is missing/corrupt/mismatched, raises a runtime error.
@@ -4472,14 +4200,11 @@ DELCHARA 1, 3
 - control-flow
 
 **Syntax**
-- `SIF <int expr>`
+- `SIF [<int expr>]`
   - `<next logical line>`
 
 **Arguments**
-- `<int expr>`: evaluated as integer; zero = false, non-zero = true.
-
-- Omitted arguments / defaults:
-  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.
@@ -4511,7 +4236,7 @@ DELCHARA 1, 3
 - control-flow
 
 **Syntax**
-- `IF <int expr>`
+- `IF [<int expr>]`
   - `...`
   - `ELSEIF <int expr>`
   - `...`
@@ -4520,10 +4245,7 @@ DELCHARA 1, 3
   - `ENDIF`
 
 **Arguments**
-- `<int expr>`: evaluated as integer; zero = false, non-zero = true.
-
-- Omitted arguments / defaults:
-  - If the expression is omitted, it defaults to `0` (false) and emits a load-time warning.
+- `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates its own condition and then each `ELSEIF` condition in order.
@@ -4755,21 +4477,19 @@ DELCHARA 1, 3
 - control-flow
 
 **Syntax**
-- `REPEAT <countExpr>`
+- `REPEAT [<countExpr>]`
   - `...`
   - `REND`
 
 **Arguments**
-- `<countExpr>`: int expression giving the number of iterations.
-
-- Omitted arguments / defaults:
-  - If omitted, the count defaults to `0` (and emits a warning when the line’s argument is parsed; by default: when the `REPEAT` line is first reached at runtime).
+- `<countExpr>` (optional, int; default `0` with a warning if omitted): number of iterations.
 
 **Semantics**
 - `REPEAT` is implemented as a FOR-like loop over `COUNT:0`:
   - Initializes `COUNT:0` to `0`.
   - Uses `end = <countExpr>` and `step = 1`.
   - The loop continues while `COUNT:0 < end`.
+- If `end <= 0`, the loop body is skipped.
 - `COUNT:0` is incremented by `1` at `REND` time (and also by `BREAK`/`CONTINUE` for era-maker compatibility).
 - Jump behavior note: control transfers between `REPEAT` and `REND` are done via their marker lines, and entering a marker line as a jump target begins execution at the following logical line:
   - Jumping to `REPEAT` re-enters at the first line of the body.
@@ -4880,15 +4600,12 @@ DELCHARA 1, 3
 - control-flow
 
 **Syntax**
-- `WHILE <int expr>`
+- `WHILE [<int expr>]`
   - `...`
   - `WEND`
 
 **Arguments**
-- `<int expr>`: loop condition (0 = false, non-zero = true).
-
-- Omitted arguments / defaults:
-  - If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
+- `<int expr>` (optional, int; default `0` with a warning if omitted): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - At `WHILE`, evaluates the condition:
@@ -4966,13 +4683,10 @@ DELCHARA 1, 3
 - control-flow
 
 **Syntax**
-- `LOOP <int expr>`
+- `LOOP [<int expr>]`
 
 **Arguments**
-- `<int expr>`: loop condition (0 = false, non-zero = true).
-
-- Omitted arguments / defaults:
-  - If omitted, the condition defaults to `0` (false) and emits a load-time warning.
+- `<int expr>` (optional, int; default `0` with a warning if omitted): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates the condition:
@@ -5051,14 +4765,12 @@ DELCHARA 1, 3
 - `RETURN <int expr1> [, <int expr2>, <int expr3>, ... ]`
 
 **Arguments**
-- Each argument is evaluated as an integer and stored into `RESULT:<index>`.
-
-- Omitted arguments / defaults:
-  - With no arguments: sets `RESULT:0` to `0` and returns `0`.
+- `<valueN>` (optional, int): each value is stored into `RESULT:<index>`.
 
 **Semantics**
 - Evaluates all provided integer expressions (left-to-right), stores them into the `RESULT` integer array starting at index 0, then returns from the function.
 - The return value used by the call stack is `RESULT:0` after the assignment.
+- If no values are provided, behaves like `RETURN 0` (sets `RESULT:0` to `0` and returns `0`).
 - The engine does not clear unused `RESULT:<index>` slots; old values past the written prefix may remain.
 - Load-time diagnostics (non-fatal): the engine may emit compatibility warnings when `RETURN` is used with a non-constant expression/variable, or with multiple values.
 
@@ -5084,14 +4796,12 @@ DELCHARA 1, 3
 **Arguments**
 - `<formString>` is evaluated to a string `s`, then `s` is re-lexed as one or more **comma-separated integer expressions**.
 
-- Omitted arguments / defaults:
-  - If `s` is empty, the engine behaves like `RETURN 0`.
-
 **Semantics**
 - Evaluates the formatted string to a string `s`.
 - Parses `s` as `expr1, expr2, ...` using the engine’s expression lexer/parser.
 - Parsing detail: after each comma, the engine skips ASCII spaces (not tabs) before reading the next expression.
 - Stores the resulting integer values into `RESULT:0`, `RESULT:1`, ... and returns.
+- If `s` is empty, behaves like `RETURN 0`.
 
 **Errors & validation**
 - Errors if any parsed expression is not a valid integer expression.
@@ -5112,13 +4822,13 @@ DELCHARA 1, 3
 - `RETURNF <expr>`
 
 **Arguments**
-- `<expr>` may be int or string, but should match the function’s declared return type.
-
-- Omitted arguments / defaults:
-  - With no argument: returns the engine’s “null” method value (a null internal return term; typically treated as `0` / empty depending on context).
+- `<expr>` (optional): expression whose type should match the function’s declared return type.
 
 **Semantics**
 - Sets the method return value for the current expression-function call and exits the method body.
+- If `<expr>` is omitted:
+  - int-returning method: returns `0`
+  - string-returning method: returns `""`
 - Load-time validation:
   - `RETURNF` outside a `#FUNCTION/#FUNCTIONS` body is a load-time error (the line is marked as error).
   - A return-type mismatch (`RETURNF` returns string from an int method, or int from a string method) is a load-time error.
@@ -5139,13 +4849,10 @@ DELCHARA 1, 3
 - text
 
 **Syntax**
-- `STRLEN <rawString>`
+- `STRLEN [<rawString>]`
 
 **Arguments**
-- `<rawString>`: the literal remainder of the line (not a normal string expression).
-
-- Omitted arguments / defaults:
-  - If omitted, the string defaults to `""`.
+- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string expression).
 
 **Semantics**
 - Computes length via the engine’s language-aware length counter and assigns it to `RESULT`:
@@ -5168,13 +4875,10 @@ DELCHARA 1, 3
 - text
 
 **Syntax**
-- `STRLENFORM <formString>`
+- `STRLENFORM [<formString>]`
 
 **Arguments**
-- `<formString>`: FORM/formatted string expression (supports `%...%` and `{...}`).
-
-- Omitted arguments / defaults:
-  - If omitted, the string defaults to `""`.
+- `<formString>` (optional, default `""`): FORM/formatted string expression (supports `%...%` and `{...}`).
 
 **Semantics**
 - Evaluates the formatted string to a string value, then computes its language/encoding length (see `STRLEN` for details).
@@ -5195,13 +4899,10 @@ DELCHARA 1, 3
 - text
 
 **Syntax**
-- `STRLENU <rawString>`
+- `STRLENU [<rawString>]`
 
 **Arguments**
-- `<rawString>`: the literal remainder of the line (not a normal string expression).
-
-- Omitted arguments / defaults:
-  - If omitted, the string defaults to `""`.
+- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string expression).
 
 **Semantics**
 - Computes length as `str.Length` and assigns it to `RESULT`.
@@ -5221,13 +4922,10 @@ DELCHARA 1, 3
 - text
 
 **Syntax**
-- `STRLENFORMU <formString>`
+- `STRLENFORMU [<formString>]`
 
 **Arguments**
-- `<formString>`: FORM/formatted string expression.
-
-- Omitted arguments / defaults:
-  - If omitted, the string defaults to `""`.
+- `<formString>` (optional, default `""`): FORM/formatted string expression.
 
 **Semantics**
 - Evaluates the formatted string to a string value, then assigns `str.Length` to `RESULT`.
@@ -5349,9 +5047,6 @@ ADDCOPYCHARA 0
 - Order: `FORWARD` = ascending, `BACK` = descending.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
 
-- Omitted arguments / defaults:
-  - If no args: uses key `NO` and ascending.
-
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.
 - Stable sort: ties are broken by original order.
@@ -5436,10 +5131,7 @@ ADDCOPYCHARA 0
 - `RANDOMIZE <seed>`
 
 **Arguments**
-- `<seed>` (optional): integer expression. If omitted, the seed defaults to `0`.
-
-- Omitted arguments / defaults:
-  - `<seed>` defaults to `0`.
+- `<seed>` (optional): int. If omitted, the seed defaults to `0`.
 
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
@@ -5541,11 +5233,8 @@ ADDCOPYCHARA 0
 - `DATA;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
   - Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as empty string.
 
 **Semantics**
 - At load time, the loader attaches `DATA` lines to the nearest surrounding block (`PRINTDATA*`, `STRDATA`, or `DATALIST`).
@@ -5576,9 +5265,6 @@ ENDDATA
 **Arguments**
 - Optional FORM/formatted string scanned to end-of-line.
 
-- Omitted arguments / defaults:
-  - Omitted argument is treated as empty string.
-
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.
 - When selected, evaluated to a string at runtime and printed/concatenated.
@@ -5608,9 +5294,6 @@ ENDDATA
 **Arguments**
 - None.
 
-- Omitted arguments / defaults:
-  - N/A.
-
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
 - The loader wires `PRINTDATA*` / `STRDATA` to jump here after printing/selection.
@@ -5638,9 +5321,6 @@ ENDDATA
 
 **Arguments**
 - None.
-
-- Omitted arguments / defaults:
-  - N/A.
 
 **Semantics**
 - At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.
@@ -5674,9 +5354,6 @@ ENDDATA
 **Arguments**
 - None.
 
-- Omitted arguments / defaults:
-  - N/A.
-
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
 
@@ -5698,11 +5375,7 @@ ENDDATA
 - `STRDATA [<strVarTerm>]` ... `ENDDATA`
 
 **Arguments**
-- Optional `<strVarTerm>`: changeable string variable term to receive the result.
-- If omitted, defaults to `RESULTS`.
-
-- Omitted arguments / defaults:
-  - Destination defaults to `RESULTS` when omitted.
+- `<strVarTerm>` (optional; default `RESULTS`): changeable string variable term to receive the result.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).
@@ -5872,14 +5545,10 @@ ENDNOSKIP
 
 **Arguments**
 - `<arrayVar>`: changeable 1D array variable term.
-- `<shift>`: int expression.
+- `<shift>`: int (signed). `0` is a no-op.
 - `<default>`: expression of the same scalar type as the array element type.
-- `<start>`: int expression (default `0`).
-- `<count>`: int expression (default “to end”; engine uses a sentinel).
-
-- Omitted arguments / defaults:
-  - `<start>` defaults to `0`.
-  - `<count>` omitted means “to the end”.
+- `<start>` (optional, int; default `0`): start index of the shifted segment.
+- `<count>` (optional, int; default “to end”): number of elements in the segment. If explicitly `0`, this is a no-op.
 
 **Semantics**
 - Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).
@@ -5939,35 +5608,29 @@ ENDNOSKIP
 - arrays
 
 **Syntax**
-- Minimal form:
-  - `ARRAYSORT <arrayVar>`
-- With explicit order (required for subrange arguments):
-  - `ARRAYSORT <arrayVar>, FORWARD|BACK [, <start> [, <count>]]`
+- `ARRAYSORT <arrayVar> [, FORWARD|BACK [, <start> [, <count>]]]`
 
 **Arguments**
 - `<arrayVar>`: changeable 1D array variable term (int or string).
-- `FORWARD|BACK`:
+- `FORWARD|BACK` (optional; default `FORWARD`):
   - `FORWARD`: ascending
   - `BACK`: descending
-- `<start>` (optional): integer expression; default `0`.
-- `<count>` (optional): integer expression; if omitted, sorts to end.
-
-- Omitted arguments / defaults:
-  - If `FORWARD|BACK` is omitted, order defaults to ascending and the engine does not accept `<start>/<count>` (parsing quirk).
-  - `<start>` defaults to `0` when `FORWARD|BACK` is present but no subrange is provided.
-  - `<count>` omitted means “to the end”.
+- `<start>` (optional, int; default `0`): subrange start index (only parsed when `FORWARD|BACK` is present).
+- `<count>` (optional, int; default “to end”): subrange length (only parsed when `FORWARD|BACK` is present). If explicitly `0`, this is a no-op.
 
 **Semantics**
+- Order defaults to ascending.
 - Sorts the specified region of the array:
-  - The runtime treats `count <= 0` as “to the end” (but an explicitly provided `count == 0` is handled as a no-op in the instruction dispatcher).
-- Parsing rule:
-  - `<start>` and `<count>` are only accepted when the `FORWARD|BACK` token is present.
+  - If `<count>` is omitted: sorts to end.
+  - If `<count>` is provided and `<= 0`: `0` is a no-op; `<0` is an error.
+- Parsing quirk:
+  - `<start>` and `<count>` are only parsed when the `FORWARD|BACK` token is present.
+  - If the token after the first comma is not `FORWARD` or `BACK`:
+    - identifier → parse-time error
+    - non-identifier (e.g. a number) → ignored (sorts the whole array with default order)
 
 **Errors & validation**
-- Parse-time errors if:
-  - `<arrayVar>` is not a changeable 1D array variable term
-  - the order token is present but not `FORWARD` or `BACK`
-  - `<start>/<count>` are provided but are not integers
+- Parse-time errors if `<arrayVar>` is not a changeable 1D array variable term, or if the order token is present but not `FORWARD` or `BACK`.
 - Runtime errors if:
   - `<start> < 0`
   - `<start> >= array length`
@@ -6051,9 +5714,6 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
-- Omitted arguments / defaults:
-  - Same as `CALL`.
-
 **Semantics**
 - Enters the target function.
 - When the target function returns, the engine immediately returns again, effectively discarding the current function’s return address (tail-call-like behavior).
@@ -6083,9 +5743,6 @@ ENDNOSKIP
 - This is **not** a string literal. Quotes are treated as ordinary characters.
 - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
 - `<argN>`: expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
-
-- Omitted arguments / defaults:
-  - If the callee declares more parameters than provided arguments, omitted arguments are handled by the engine’s user-function argument binder (defaults and config gates apply).
 
 **Semantics**
 - Resolves the target label to a non-event function.
@@ -6122,9 +5779,6 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMP`.
 
-- Omitted arguments / defaults:
-  - Same as `JUMP`.
-
 **Semantics**
 - If the target function exists: behaves like `JUMP`.
 - If the target function does not exist: does nothing (continues at the next line after `TRYJUMP`).
@@ -6150,9 +5804,6 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
-- Omitted arguments / defaults:
-  - Same as `CALL`.
-
 **Semantics**
 - If the target function exists: behaves like `CALL`.
 - If the target function does not exist: does nothing (continues at the next line after `TRYCALL`).
@@ -6177,9 +5828,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `CALLFORM`.
-
-- Omitted arguments / defaults:
-  - Same as `CALLFORM`.
 
 **Semantics**
 - Same as `JUMP`, with a runtime-evaluated function name.
@@ -6207,9 +5855,6 @@ ENDNOSKIP
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
 - `<argN>`: same as `CALL`.
 
-- Omitted arguments / defaults:
-  - Same as `CALL`.
-
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.
 
@@ -6233,9 +5878,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `JUMPFORM`.
-
-- Omitted arguments / defaults:
-  - Same as `JUMPFORM`.
 
 **Semantics**
 - If the target function exists: behaves like `JUMPFORM`.
@@ -6261,9 +5903,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `CALLFORM`.
-
-- Omitted arguments / defaults:
-  - Same as `CALLFORM`.
 
 **Semantics**
 - If the target function exists: behaves like `CALLFORM`.
@@ -6291,9 +5930,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `JUMP`.
-
-- Omitted arguments / defaults:
-  - Same as `JUMP`.
 
 **Semantics**
 - If the target function exists: behaves like `JUMP` (tail-call-like); the current function is discarded, so it does not return to reach `CATCH`.
@@ -6324,9 +5960,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `CALL`.
-
-- Omitted arguments / defaults:
-  - Same as `CALL`.
 
 **Semantics**
 - If the target function exists: behaves like `CALL`, then control returns and reaches `CATCH` sequentially; `CATCH` skips the catch body.
@@ -6359,9 +5992,6 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMPFORM`.
 
-- Omitted arguments / defaults:
-  - Same as `JUMPFORM`.
-
 **Semantics**
 - Same as `TRYCJUMP`, but with a runtime-evaluated function name.
 
@@ -6390,9 +6020,6 @@ ENDNOSKIP
 
 **Arguments**
 - Same as `CALLFORM`.
-
-- Omitted arguments / defaults:
-  - Same as `CALLFORM`.
 
 **Semantics**
 - Same as `TRYCCALL`, but with a runtime-evaluated function name.
@@ -6426,9 +6053,6 @@ ENDNOSKIP
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
 - `<argN>`: expressions passed to the method.
 
-- Omitted arguments / defaults:
-  - Depends on the called method’s own signature rules (omission/variadics/etc.).
-
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.
 - The return value is computed but not assigned to `RESULT/RESULTS` by this instruction (use statement-form method calls or assignment if you need the value).
@@ -6455,9 +6079,6 @@ ENDNOSKIP
 **Arguments**
 - `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
 - `<argN>`: expressions passed to the method.
-
-- Omitted arguments / defaults:
-  - Depends on the called method’s own signature rules.
 
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.
@@ -6719,7 +6340,7 @@ ENDNOSKIP
 **Semantics**
 - Structural notes:
   - The lines between `TRYCALLLIST` and `ENDFUNC` are **list items**, not a normal executable block body.
-  - Emuera stores the `FUNC` lines into an internal `callList` during load, and executes only `TRYCALLLIST` at runtime.
+  - Emuera collects the `FUNC` lines into a list during load, and executes only `TRYCALLLIST` at runtime.
 - Runtime algorithm:
   - For each `FUNC` item in source order:
     - Evaluate the candidate name to a string.
@@ -6839,7 +6460,7 @@ ENDNOSKIP
 
 **Semantics**
 - Not executed as a standalone statement.
-- During load, Emuera collects `FUNC` lines into the surrounding `TRY*LIST` instruction’s internal `callList`.
+- During load, Emuera collects `FUNC` lines into a list owned by the surrounding `TRY*LIST` instruction.
 - At runtime, the surrounding `TRY*LIST` evaluates these items in order (see `TRYCALLLIST` / `TRYJUMPLIST` / `TRYGOTOLIST`).
 - Argument parsing is the same as `CALLFORM`: candidate name is a FORM string; call arguments are normal expressions.
 - In `TRYCALLLIST` / `TRYJUMPLIST`, the optional `[...]` subname segment is parsed and stored, but it is not used when selecting/calling the function.
@@ -7034,16 +6655,13 @@ ENDNOSKIP
 - io
 
 **Syntax**
-- `HTML_PRINT <html>(, <toBuffer>)`
+- `HTML_PRINT <html> [, <toBuffer>]`
 
 **Arguments**
 - `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
-- `<toBuffer>` (optional): integer expression.
+- `<toBuffer>` (optional, int; default `0`)
   - `0` (default): print as a complete logical output line (implicit line end).
   - non-zero: append the HTML output into the current print buffer (no implicit line end).
-
-- Omitted arguments / defaults:
-  - `<toBuffer>` defaults to `0`.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
@@ -7083,18 +6701,12 @@ PRINTL ""
 - string
 
 **Syntax**
-- `HTML_TAGSPLIT <html>(, <outParts>, <outCount>)`
+- `HTML_TAGSPLIT <html> [, <outParts> [, <outCount>]]`
 
 **Arguments**
 - `<html>`: string expression.
-- `<outParts>` (optional): a changeable 1D **non-character** string array variable.
-  - Default: `RESULTS`.
-- `<outCount>` (optional): a changeable integer variable.
-  - Default: `RESULT`.
-
-- Omitted arguments / defaults:
-  - If `<outParts>` is omitted, the split parts are written to `RESULTS`.
-  - If `<outCount>` is omitted, the split count is written to `RESULT`.
+- `<outParts>` (optional; default `RESULTS`): changeable 1D **non-character** string array variable to receive parts.
+- `<outCount>` (optional; default `RESULT`): changeable integer variable to receive the part count.
 
 **Semantics**
 - Interprets `<html>` as an HTML string and splits it by scanning for `<...>` regions:
@@ -7424,10 +7036,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `PRINTN;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -7455,9 +7064,6 @@ HTML_PRINT_ISLAND_CLEAR
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -7483,9 +7089,6 @@ HTML_PRINT_ISLAND_CLEAR
 
 **Arguments**
 - A single string expression (must be present).
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -7514,9 +7117,6 @@ HTML_PRINT_ISLAND_CLEAR
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -7543,9 +7143,6 @@ HTML_PRINT_ISLAND_CLEAR
 **Arguments**
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
-
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -8084,11 +7681,8 @@ PRINTFORML %S%
 - `TOSTR(i, format)` → `string`
 
 **Arguments**
-- `i`: int expression.
-- `format` (optional): string expression passed to `Int64.ToString(format)`.
-
-- Omitted arguments / defaults:
-  - If `format` is omitted or `null`: uses the default `i.ToString()` formatting.
+- `i`: int.
+- `format` (optional): string expression passed to `Int64.ToString(format)`. If omitted or `null`, uses default formatting.
 
 **Semantics**
 - If `format` is omitted or null: returns `i.ToString()`.
@@ -8333,13 +7927,10 @@ PRINTFORML %S%
 - `<lineNo>` is evaluated as an integer expression.
 
 **Arguments**
-- `<lineNo>` (optional): integer expression. Defaults to `0`.
+- `<lineNo>` (optional, int; default `0`): index from the end of the logical-line log.
   - `0` = the most recent logical output line.
   - `1` = the second most recent logical output line.
   - And so on.
-
-- Omitted arguments / defaults:
-  - `<lineNo>` defaults to `0`.
 
 **Semantics**
 - Interprets `<lineNo>` as a non-negative index into the current display log’s **logical lines**, counted from the end:
@@ -8679,7 +8270,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - io
 
 **Syntax**
-- `HTML_STRINGLEN(html(, returnPixel))`
+- `HTML_STRINGLEN(html [, returnPixel])`
 
 **Signatures / argument rules**
 - Signature: `int HTML_STRINGLEN(string html, int returnPixel = 0)`.
@@ -8687,12 +8278,9 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 **Arguments**
 - `html`: string expression interpreted as an HTML string.
-- `returnPixel` (optional): integer expression.
+- `returnPixel` (optional, int; default `0`)
   - `0` (default): return in half-width character units.
   - non-zero: return in pixels.
-
-- Omitted arguments / defaults:
-  - `returnPixel` defaults to `0`.
 
 **Semantics**
 - Computes the rendered output for `html` using the same rules as `HTML_PRINT`.

@@ -11,9 +11,6 @@
 **Arguments**
 - Same as `CALLFORM`.
 
-- Omitted arguments / defaults:
-  - Same as `CALLFORM`.
-
 **Semantics**
 - If the target function exists: behaves like `CALLFORM`.
 - If not: does nothing (continues at the next line after `TRYCALLFORM`).

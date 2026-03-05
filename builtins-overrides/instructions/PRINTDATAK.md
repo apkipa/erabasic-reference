@@ -12,9 +12,6 @@
 **Arguments**
 - Same as `PRINTDATA`.
 
-- Omitted arguments / defaults:
-  - Same as `PRINTDATA`.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - Applies kana conversion (`...K`) before printing.

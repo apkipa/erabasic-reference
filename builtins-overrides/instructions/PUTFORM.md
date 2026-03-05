@@ -11,9 +11,6 @@
 **Arguments**
 - `<formString>` (optional): FORM/formatted string.
 
-- Omitted arguments / defaults:
-  - If omitted, the argument is treated as the empty string.
-
 **Semantics**
 - Evaluates `<formString>` to a string.
 - Appends it to the internal save-description buffer:

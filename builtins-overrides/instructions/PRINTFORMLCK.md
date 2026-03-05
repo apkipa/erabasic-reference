@@ -13,9 +13,6 @@
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.

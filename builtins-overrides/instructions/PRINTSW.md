@@ -11,9 +11,6 @@
 **Arguments**
 - A single string expression (must be present).
 
-- Omitted arguments / defaults:
-  - None (missing argument is an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.

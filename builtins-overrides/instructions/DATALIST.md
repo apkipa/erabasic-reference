@@ -13,9 +13,6 @@
 **Arguments**
 - None.
 
-- Omitted arguments / defaults:
-  - N/A.
-
 **Semantics**
 - At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.
 

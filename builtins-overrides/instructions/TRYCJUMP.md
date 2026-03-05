@@ -13,9 +13,6 @@
 **Arguments**
 - Same as `JUMP`.
 
-- Omitted arguments / defaults:
-  - Same as `JUMP`.
-
 **Semantics**
 - If the target function exists: behaves like `JUMP` (tail-call-like); the current function is discarded, so it does not return to reach `CATCH`.
 - If the function does not exist: jumps to the `CATCH` marker (entering the catch body).

@@ -5,14 +5,10 @@
 - save-system
 
 **Syntax**
-- `LOADDATA <slot>`
+- `LOADDATA [<slot>]`
 
 **Arguments**
-- `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
-  - If omitted, the argument parser supplies `0` (with a warning); this effectively loads slot `0`.
-
-- Omitted arguments / defaults:
-  - None (but see omitted-argument behavior above).
+- `<slot>` (optional, int; default `0` with a warning if omitted): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
 
 **Semantics**
 - Validates the target save file; if the file is missing/corrupt/mismatched, raises a runtime error.

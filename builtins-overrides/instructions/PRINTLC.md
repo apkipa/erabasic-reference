@@ -10,11 +10,9 @@
 - `PRINTLC;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
+- If the resulting text is empty, nothing is appended.
 - Output is converted to a fixed-width “cell” string (see below).
-
-- Omitted arguments / defaults:
-  - Omitted argument is treated as the empty string, and therefore produces no output.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

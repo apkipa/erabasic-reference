@@ -5,15 +5,12 @@
 - control-flow
 
 **Syntax**
-- `WHILE <int expr>`
+- `WHILE [<int expr>]`
   - `...`
   - `WEND`
 
 **Arguments**
-- `<int expr>`: loop condition (0 = false, non-zero = true).
-
-- Omitted arguments / defaults:
-  - If omitted, the condition defaults to `0` (false) and emits a warning when the line’s argument is parsed (by default: when the `WHILE` line is first reached at runtime).
+- `<int expr>` (optional, int; default `0` with a warning if omitted): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - At `WHILE`, evaluates the condition:

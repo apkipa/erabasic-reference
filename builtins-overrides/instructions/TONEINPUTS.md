@@ -10,9 +10,6 @@
 **Arguments**
 - Same as `TINPUTS`.
 
-- Omitted arguments / defaults:
-  - Same as `TINPUTS`.
-
 **Semantics**
 - Same as `TINPUTS`, but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.

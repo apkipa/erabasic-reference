@@ -12,9 +12,6 @@
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-- Omitted arguments / defaults:
-  - None (missing arguments are an error).
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.

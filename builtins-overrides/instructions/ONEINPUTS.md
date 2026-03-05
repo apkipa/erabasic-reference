@@ -12,9 +12,6 @@
 **Arguments**
 - Same as `INPUTS`.
 
-- Omitted arguments / defaults:
-  - Same as `INPUTS`.
-
 **Semantics**
 - Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.

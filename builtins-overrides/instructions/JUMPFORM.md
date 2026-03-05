@@ -11,9 +11,6 @@
 **Arguments**
 - Same as `CALLFORM`.
 
-- Omitted arguments / defaults:
-  - Same as `CALLFORM`.
-
 **Semantics**
 - Same as `JUMP`, with a runtime-evaluated function name.
 

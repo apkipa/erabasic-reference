@@ -10,11 +10,8 @@
 - `PRINTLCD;<raw text>`
 
 **Arguments**
-- Optional raw literal text (not an expression).
+- `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
-
-- Omitted arguments / defaults:
-  - Omitted argument prints the empty string.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

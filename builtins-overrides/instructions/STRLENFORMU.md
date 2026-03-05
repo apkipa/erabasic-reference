@@ -5,13 +5,11 @@
 - text
 
 **Syntax**
-- `STRLENFORMU <formString>`
+- `STRLENFORMU [<formString>]`
 
 **Arguments**
-- `<formString>`: FORM/formatted string expression.
+- `<formString>` (optional, default `""`): FORM/formatted string expression.
 
-- Omitted arguments / defaults:
-  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Evaluates the formatted string to a string value, then assigns `str.Length` to `RESULT`.

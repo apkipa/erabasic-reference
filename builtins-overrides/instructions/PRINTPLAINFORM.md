@@ -11,9 +11,6 @@
 **Arguments**
 - `<FORM string>`: a FORM argument scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
 
-- Omitted arguments / defaults:
-  - If omitted, the argument is treated as the empty string; empty output produces no output segment.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Evaluates the FORM argument to a string, then appends it as a “plain” segment (no automatic button conversion).

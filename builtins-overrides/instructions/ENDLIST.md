@@ -10,9 +10,6 @@
 **Arguments**
 - None.
 
-- Omitted arguments / defaults:
-  - N/A.
-
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
 

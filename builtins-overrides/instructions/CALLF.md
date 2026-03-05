@@ -12,9 +12,6 @@
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
 - `<argN>`: expressions passed to the method.
 
-- Omitted arguments / defaults:
-  - Depends on the called method’s own signature rules (omission/variadics/etc.).
-
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.
 - The return value is computed but not assigned to `RESULT/RESULTS` by this instruction (use statement-form method calls or assignment if you need the value).

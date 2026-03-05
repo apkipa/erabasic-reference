@@ -16,8 +16,6 @@
 - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
 - `<argN>`: expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
 
-- Omitted arguments / defaults:
-  - If the callee declares more parameters than provided arguments, omitted arguments are handled by the engine’s user-function argument binder (defaults and config gates apply).
 
 **Semantics**
 - Resolves the target label to a non-event function.

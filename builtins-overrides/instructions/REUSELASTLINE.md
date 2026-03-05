@@ -11,9 +11,6 @@
 **Arguments**
 - `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
 
-- Omitted arguments / defaults:
-  - If omitted, the argument is treated as the empty string.
-
 **Semantics**
 - Evaluates `<formString>` to a string and prints it as a temporary line.
 - A “temporary line” has a special overwrite behavior:

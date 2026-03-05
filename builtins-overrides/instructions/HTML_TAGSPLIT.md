@@ -5,18 +5,12 @@
 - string
 
 **Syntax**
-- `HTML_TAGSPLIT <html>(, <outParts>, <outCount>)`
+- `HTML_TAGSPLIT <html> [, <outParts> [, <outCount>]]`
 
 **Arguments**
 - `<html>`: string expression.
-- `<outParts>` (optional): a changeable 1D **non-character** string array variable.
-  - Default: `RESULTS`.
-- `<outCount>` (optional): a changeable integer variable.
-  - Default: `RESULT`.
-
-- Omitted arguments / defaults:
-  - If `<outParts>` is omitted, the split parts are written to `RESULTS`.
-  - If `<outCount>` is omitted, the split count is written to `RESULT`.
+- `<outParts>` (optional; default `RESULTS`): changeable 1D **non-character** string array variable to receive parts.
+- `<outCount>` (optional; default `RESULT`): changeable integer variable to receive the part count.
 
 **Semantics**
 - Interprets `<html>` as an HTML string and splits it by scanning for `<...>` regions:

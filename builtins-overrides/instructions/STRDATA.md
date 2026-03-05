@@ -8,11 +8,8 @@
 - `STRDATA [<strVarTerm>]` ... `ENDDATA`
 
 **Arguments**
-- Optional `<strVarTerm>`: changeable string variable term to receive the result.
-- If omitted, defaults to `RESULTS`.
+- `<strVarTerm>` (optional; default `RESULTS`): changeable string variable term to receive the result.
 
-- Omitted arguments / defaults:
-  - Destination defaults to `RESULTS` when omitted.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).

@@ -5,13 +5,11 @@
 - text
 
 **Syntax**
-- `STRLENFORM <formString>`
+- `STRLENFORM [<formString>]`
 
 **Arguments**
-- `<formString>`: FORM/formatted string expression (supports `%...%` and `{...}`).
+- `<formString>` (optional, default `""`): FORM/formatted string expression (supports `%...%` and `{...}`).
 
-- Omitted arguments / defaults:
-  - If omitted, the string defaults to `""`.
 
 **Semantics**
 - Evaluates the formatted string to a string value, then computes its language/encoding length (see `STRLEN` for details).
