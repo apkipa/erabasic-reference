@@ -148,6 +148,8 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`BAR`](builtins-reference.md#bar-instruction) (instruction)
 - [`BARL`](builtins-reference.md#barl-instruction) (instruction)
+- [`BINPUT`](builtins-reference.md#binput-instruction) (instruction)
+- [`BINPUTS`](builtins-reference.md#binputs-instruction) (instruction)
 - [`CLEARLINE`](builtins-reference.md#clearline-instruction) (instruction)
 - [`CUPCHECK`](builtins-reference.md#cupcheck-instruction) (instruction)
 - [`DRAWLINE`](builtins-reference.md#drawline-instruction) (instruction)
@@ -156,7 +158,11 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`HTML_PRINT_ISLAND`](builtins-reference.md#html_print_island-instruction) (instruction)
 - [`HTML_PRINT_ISLAND_CLEAR`](builtins-reference.md#html_print_island_clear-instruction) (instruction)
 - [`INPUT`](builtins-reference.md#input-instruction) (instruction)
+- [`INPUTANY`](builtins-reference.md#inputany-instruction) (instruction)
+- [`INPUTMOUSEKEY`](builtins-reference.md#inputmousekey-instruction) (instruction)
 - [`INPUTS`](builtins-reference.md#inputs-instruction) (instruction)
+- [`ONEBINPUT`](builtins-reference.md#onebinput-instruction) (instruction)
+- [`ONEBINPUTS`](builtins-reference.md#onebinputs-instruction) (instruction)
 - [`ONEINPUT`](builtins-reference.md#oneinput-instruction) (instruction)
 - [`ONEINPUTS`](builtins-reference.md#oneinputs-instruction) (instruction)
 - [`PRINT`](builtins-reference.md#print-instruction) (instruction)
@@ -382,6 +388,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 ## ui
 
 - [`ALIGNMENT`](builtins-reference.md#alignment-instruction) (instruction)
+- [`AWAIT`](builtins-reference.md#await-instruction) (instruction)
 - [`CLEARBGIMAGE`](builtins-reference.md#clearbgimage-instruction) (instruction)
 - [`CLEARTEXTBOX`](builtins-reference.md#cleartextbox-instruction) (instruction)
 - [`CUSTOMDRAWLINE`](builtins-reference.md#customdrawline-instruction) (instruction)

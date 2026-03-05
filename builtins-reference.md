@@ -7537,12 +7537,99 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `TOOLTIP_SETDURATION 0` (use default/indefinite mode)
 
 ## INPUTMOUSEKEY (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Waits for a primitive mouse/key event (mouse down, wheel, key press, or timeout) and reports it via `RESULT` / `RESULT:*` (and sometimes `RESULTS`).
+
+**Tags**
+- io
+
+**Syntax**
+- `INPUTMOUSEKEY`
+- `INPUTMOUSEKEY <timeMs>`
+
+**Arguments**
+- `<timeMs>` (optional, int expression): time limit in milliseconds.
+  - If `timeMs > 0`, enables a timeout.
+  - If omitted or `timeMs <= 0`, no timeout is used.
+
+**Semantics**
+- Enters a wait state for *primitive* input events (not text box submission).
+- This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
+- When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0..5]` (i.e. `RESULT` and `RESULT:1..5`) as follows.
+
+Event type (`RESULT`):
+
+- `1`: mouse button down
+- `2`: mouse wheel
+- `3`: key press
+- `4`: timeout (only possible when `timeMs > 0`)
+
+Payload (`RESULT:*`), by event type:
+
+- Mouse button down (`RESULT == 1`):
+  - `RESULT:1`: mouse button bit flag (`MouseButtons` integer value).
+    - Typical values: left=`1048576`, right=`2097152`, middle=`4194304`.
+  - `RESULT:2`: mouse `x` in client pixels (origin at the left edge).
+  - `RESULT:3`: mouse `y` in client pixels, using a bottom-origin coordinate: `y = rawY - ClientHeight`.
+  - `RESULT:4`: background-map hit value (see `SETBGIMAGE` / mapping graph); `-1` when not available.
+  - `RESULT:5`: if an **integer** button is currently selected, its button value; otherwise `0`.
+  - Additionally, if a **string** button is selected, the engine assigns `RESULTS = <button string>` (and `RESULT:5 = 0`).
+  - Additionally, the UI may assign `RESULT:6` to the selected button’s mapping color (24-bit RGB) if the button contains an `<img srcm='...'>` mapping sprite.
+
+- Mouse wheel (`RESULT == 2`):
+  - `RESULT:1`: wheel delta.
+  - `RESULT:2`: mouse `x` (same coordinate system as above).
+  - `RESULT:3`: mouse `y` (same coordinate system as above).
+  - `RESULT:4 = 0`, `RESULT:5 = 0`.
+
+- Key press (`RESULT == 3`):
+  - `RESULT:1`: key code (`Keys` integer value).
+  - `RESULT:2`: key data (`Keys` integer value).
+  - `RESULT:3 = 0`, `RESULT:4 = 0`, `RESULT:5 = 0`.
+
+- Timeout (`RESULT == 4`):
+  - `RESULT:1..5 = 0`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+```erabasic
+INPUTMOUSEKEY 1000
+PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
+```
 
 ## AWAIT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Processes pending UI events and optionally sleeps for a short time (used to yield to the UI / drive animations).
+
+**Tags**
+- ui
+
+**Syntax**
+- `AWAIT`
+- `AWAIT <timeMs>`
+
+**Arguments**
+- `<timeMs>` (optional, int expression):
+  - If omitted, `AWAIT` yields without sleeping.
+  - Otherwise must satisfy `0 <= timeMs <= 10000`.
+
+**Semantics**
+- Forces a redraw, sets an internal “sleep” state, processes UI events, and then:
+  - if `timeMs > 0`, sleeps for `timeMs` milliseconds
+  - otherwise returns immediately after event processing
+- Does not assign `RESULT`/`RESULTS`.
+- This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
+
+**Errors & validation**
+- Runtime error if `timeMs < 0` or `timeMs > 10000`.
+
+**Examples**
+- `AWAIT`         ; yield to UI
+- `AWAIT 16`      ; ~60 FPS pacing
 
 ## VARSIZE (instruction)
 
@@ -7761,8 +7848,42 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `FORCE_BEGIN TITLE`
 
 ## INPUTANY (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Waits for a text input, then stores it as either an integer (`RESULT`) or a string (`RESULTS`) depending on whether it parses as a 64-bit integer.
+
+**Tags**
+- io
+
+**Syntax**
+- `INPUTANY`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Enters an input wait (`InputType = AnyValue`).
+- On completion:
+  - If the submitted text parses as a signed 64-bit integer, assigns it to `RESULT`.
+  - Otherwise assigns the submitted text to `RESULTS`.
+- Does **not** clear the “other” result:
+  - If an integer is accepted, `RESULTS` remains unchanged.
+  - If a string is accepted, `RESULT` remains unchanged.
+- Empty input is accepted as a string `""` (which produces no visible echo because printing an empty string outputs nothing).
+- This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+```erabasic
+INPUTANY
+IF RESULTS != ""
+  PRINTFORML "string: " + RESULTS
+ELSE
+  PRINTFORML "int: " + RESULT
+ENDIF
+```
 
 ## TOOLTIP_SETFONT (instruction)
 
@@ -7891,20 +8012,184 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `TOOLTIP_IMG 1`
 
 ## BINPUT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `INPUT`, but only accepts an integer that matches a currently selectable **integer button** on screen.
+
+**Tags**
+- io
+
+**Syntax**
+- `BINPUT [<default> [, <mouse> [, <canSkip> [, ... ]]]]`
+
+**Arguments**
+- `<default>` (optional, int expression): used only when the submitted text is empty (not used for invalid integer text).
+- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based completion and the same mouse side channels as `INPUT`.
+- `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
+- Extra arguments after `<canSkip>` are accepted by the argument parser but ignored by the runtime.
+
+**Semantics**
+- Ensures the current output is drawn before waiting (flushes any pending buffer and forces a refresh).
+- If there is no selectable integer button available:
+  - If `<default>` is omitted: runtime error.
+  - Otherwise: immediately accepts `<default>` (writes it to `RESULT`) and returns without waiting.
+- Waits for an integer input and accepts it **only if** it matches a selectable integer button value:
+  - Accepted if there exists an integer button with `buttonValue == input` in the current selectable button generation.
+  - Otherwise the input is rejected and the engine stays in the wait state.
+- Default handling:
+  - If the user submits empty input and `<default>` is present, the engine uses the default value *as the input*.
+  - That default is still rejected if no matching integer button exists.
+- On successful completion:
+  - Assigns the accepted value to `RESULT`.
+  - Echoes the accepted input text to output (UI behavior).
+- `MesSkip` integration:
+  - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
+  - In that no-wait path:
+    - `<default>` must be present; otherwise the engine throws a runtime error.
+    - The accepted value is written to:
+      - `RESULT` if `<mouse> == 0`
+      - `RESULT_ARRAY[1]` if `<mouse> != 0`
+    - The input string is not echoed.
+- Mouse side channels:
+  - When `<mouse> != 0` and the input is completed via a mouse click, the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` side channels as `INPUT` are written (see `INPUT`).
+- Output skipping (`SKIPDISP`):
+  - Same interaction as `INPUT` (reaching input while output skipping is active due to `SKIPDISP` is a runtime error).
+
+**Errors & validation**
+- Runtime error if no selectable integer button exists and `<default>` is omitted.
+- Argument parsing errors if provided arguments are not integer expressions.
+
+**Examples**
+```erabasic
+PRINTBUTTON "A", 10
+PRINTBUTTON "B", 20
+PRINTL ""
+BINPUT
+PRINTFORML "picked=" + RESULT
+```
 
 ## BINPUTS (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `INPUTS`, but only accepts a string that matches a currently selectable **button** on screen.
+
+**Tags**
+- io
+
+**Syntax**
+- `BINPUTS [<default> [, <mouse> [, <canSkip>]]]`
+
+**Arguments**
+- `<default>` (optional, string expression): default string used only when the submitted text is empty.
+- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based completion and the same mouse side channels as `INPUTS`.
+- `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
+
+**Semantics**
+- Ensures the current output is drawn before waiting (flushes any pending buffer and forces a refresh).
+- If there is no selectable button available:
+  - If `<default>` is omitted: runtime error.
+  - Otherwise: immediately accepts `<default>` (writes it to `RESULTS`) and returns without waiting.
+- Waits for a string input and accepts it **only if** it matches a selectable button:
+  - Accepted if there exists a button where either:
+    - it is a string button and `buttonString == input`, or
+    - it is an integer button and `buttonValue.ToString() == input`.
+  - Otherwise the input is rejected and the engine stays in the wait state.
+- Default handling:
+  - If the user submits empty input and `<default>` is present, the engine uses the default string *as the input*.
+  - That default is still rejected if no matching button exists.
+- On successful completion:
+  - Assigns the accepted string to `RESULTS`.
+  - Echoes the accepted input text to output (UI behavior).
+- `MesSkip` integration:
+  - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
+  - In that no-wait path:
+    - `<default>` must be present; otherwise the engine throws a runtime error.
+    - The accepted value is written to:
+      - `RESULTS` if `<mouse> == 0`
+      - `RESULTS_ARRAY[1]` if `<mouse> != 0`
+    - The input string is not echoed.
+- Mouse side channels:
+  - When `<mouse> != 0` and the input is completed via a mouse click, the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` side channels as `INPUTS` are written (see `INPUT`).
+- Output skipping (`SKIPDISP`):
+  - Same interaction as `INPUTS` (runtime error).
+
+**Errors & validation**
+- Runtime error if no selectable button exists and `<default>` is omitted.
+- Argument parsing quirks:
+  - The parser first reads `<default>` as a formatted-string expression up to the first comma.
+  - After the first comma, if `<mouse>` is omitted or is not an integer expression, the engine warns and ignores the entire tail (mouse input is disabled; `canSkip` is not enabled).
+  - Supplying both `<mouse>` and `<canSkip>` may still emit a “too many arguments” warning, but the `<canSkip>` presence is accepted and used by the runtime.
+
+**Examples**
+```erabasic
+PRINTBUTTONS "Yes", "Y"
+PRINTBUTTONS "No", "N"
+PRINTL ""
+BINPUTS
+PRINTFORML "picked=" + RESULTS
+```
 
 ## ONEBINPUT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `BINPUT`, but uses “one input” mode (`OneInput = true`): typed text input is truncated to its first character.
+
+**Tags**
+- io
+
+**Syntax**
+- `ONEBINPUT [<default> [, <mouse> [, <canSkip> [, ... ]]]]`
+
+**Arguments**
+- Same argument model as `BINPUT`.
+
+**Semantics**
+- Same button-matching and default rules as `BINPUT`.
+- Additionally, when the user submits a non-empty input string:
+  - The engine truncates the input to its first character before attempting to parse/match it.
+  - Exception: if the input is produced by mouse selection and config `AllowLongInputByMouse` is enabled, truncation does not occur.
+
+**Errors & validation**
+- Same as `BINPUT`.
+
+**Examples**
+```erabasic
+PRINTBUTTON "0", 0
+PRINTBUTTON "1", 1
+PRINTL ""
+ONEBINPUT
+```
 
 ## ONEBINPUTS (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `BINPUTS`, but uses “one input” mode (`OneInput = true`): typed text input is truncated to its first character.
+
+**Tags**
+- io
+
+**Syntax**
+- `ONEBINPUTS [<default> [, <mouse> [, <canSkip>]]]`
+
+**Arguments**
+- Same argument model as `BINPUTS`.
+
+**Semantics**
+- Same button-matching and default rules as `BINPUTS`.
+- Additionally, when the user submits a non-empty input string:
+  - The engine truncates the input to its first character before attempting to match it.
+  - Exception: if the input is produced by mouse selection and config `AllowLongInputByMouse` is enabled, truncation does not occur.
+
+**Errors & validation**
+- Same as `BINPUTS`.
+
+**Examples**
+```erabasic
+PRINTBUTTONS "A", "A"
+PRINTBUTTONS "B", "B"
+PRINTL ""
+ONEBINPUTS
+```
 
 ## DT_COLUMN_OPTIONS (instruction)
 **Summary**

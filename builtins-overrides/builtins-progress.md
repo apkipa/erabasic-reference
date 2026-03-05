@@ -10,7 +10,7 @@ Legend:
 Notes:
 - To mark an entry complete, add a section `**Progress state**` with `- complete` to the override file.
 
-Instructions: `⛔ 44` / `🟡 0` / `✅ 259` (total `303`).
+Instructions: `⛔ 37` / `🟡 0` / `✅ 266` (total `303`).
 Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 
 ## Instructions
@@ -277,8 +277,8 @@ Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 - ✅ [`TOOLTIP_SETCOLOR`](../builtins-reference.md#tooltip_setcolor-instruction)
 - ✅ [`TOOLTIP_SETDELAY`](../builtins-reference.md#tooltip_setdelay-instruction)
 - ✅ [`TOOLTIP_SETDURATION`](../builtins-reference.md#tooltip_setduration-instruction)
-- ⛔ [`INPUTMOUSEKEY`](../builtins-reference.md#inputmousekey-instruction)
-- ⛔ [`AWAIT`](../builtins-reference.md#await-instruction)
+- ✅ [`INPUTMOUSEKEY`](../builtins-reference.md#inputmousekey-instruction)
+- ✅ [`AWAIT`](../builtins-reference.md#await-instruction)
 - ✅ [`VARSIZE`](../builtins-reference.md#varsize-instruction)
 - ✅ [`GETTIME`](../builtins-reference.md#gettime-instruction)
 - ✅ [`POWER`](../builtins-reference.md#power-instruction)
@@ -298,16 +298,16 @@ Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 - ⛔ [`FORCE_QUIT`](../builtins-reference.md#force_quit-instruction)
 - ⛔ [`FORCE_QUIT_AND_RESTART`](../builtins-reference.md#force_quit_and_restart-instruction)
 - ✅ [`FORCE_BEGIN`](../builtins-reference.md#force_begin-instruction)
-- ⛔ [`INPUTANY`](../builtins-reference.md#inputany-instruction)
+- ✅ [`INPUTANY`](../builtins-reference.md#inputany-instruction)
 - ✅ [`TOOLTIP_SETFONT`](../builtins-reference.md#tooltip_setfont-instruction)
 - ✅ [`TOOLTIP_SETFONTSIZE`](../builtins-reference.md#tooltip_setfontsize-instruction)
 - ✅ [`TOOLTIP_CUSTOM`](../builtins-reference.md#tooltip_custom-instruction)
 - ✅ [`TOOLTIP_FORMAT`](../builtins-reference.md#tooltip_format-instruction)
 - ✅ [`TOOLTIP_IMG`](../builtins-reference.md#tooltip_img-instruction)
-- ⛔ [`BINPUT`](../builtins-reference.md#binput-instruction)
-- ⛔ [`BINPUTS`](../builtins-reference.md#binputs-instruction)
-- ⛔ [`ONEBINPUT`](../builtins-reference.md#onebinput-instruction)
-- ⛔ [`ONEBINPUTS`](../builtins-reference.md#onebinputs-instruction)
+- ✅ [`BINPUT`](../builtins-reference.md#binput-instruction)
+- ✅ [`BINPUTS`](../builtins-reference.md#binputs-instruction)
+- ✅ [`ONEBINPUT`](../builtins-reference.md#onebinput-instruction)
+- ✅ [`ONEBINPUTS`](../builtins-reference.md#onebinputs-instruction)
 - ⛔ [`DT_COLUMN_OPTIONS`](../builtins-reference.md#dt_column_options-instruction)
 - ⛔ [`VARI`](../builtins-reference.md#vari-instruction)
 - ⛔ [`VARS`](../builtins-reference.md#vars-instruction)
