@@ -10476,29 +10476,33 @@ ENDNOSKIP
 
 ## REF (instruction)
 **Summary**
-- (TODO)
+- Declared but **not implemented** in this engine build (always errors).
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new REF_Instruction(false)`
 
 **Syntax**
-- (TODO)
+- `REF <refTarget>, <sourceName>`
 
 **Arguments**
-- (TODO)
+- `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
+- `<sourceName>`: identifier token naming the source variable to bind to.
 
 **Semantics**
+- The current engine implementation throws a “not implemented” error at runtime.
+- In this build, `REF` variables are still used by user-defined function argument binding (pass-by-reference); see `variables.md`.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = 0`
   - `exm.VEvaluator.RESULT = 1`
 
 **Errors & validation**
+- Always errors at runtime.
 - Engine-extracted notes (throws/errors):
   - `throw new NotImplCodeEE()`
 
 **Examples**
-- (TODO)
+- `REF X, A`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10506,29 +10510,33 @@ ENDNOSKIP
 
 ## REFBYNAME (instruction)
 **Summary**
-- (TODO)
+- Declared but **not implemented** in this engine build (always errors).
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new REF_Instruction(true)`
 
 **Syntax**
-- (TODO)
+- `REFBYNAME <refTarget>, <sourceName>`
 
 **Arguments**
-- (TODO)
+- `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
+- `<sourceName>` (string expression): evaluates to a variable name string.
 
 **Semantics**
+- The current engine implementation throws a “not implemented” error at runtime.
+- In this build, `REF` variables are still used by user-defined function argument binding (pass-by-reference); see `variables.md`.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = 0`
   - `exm.VEvaluator.RESULT = 1`
 
 **Errors & validation**
+- Always errors at runtime.
 - Engine-extracted notes (throws/errors):
   - `throw new NotImplCodeEE()`
 
 **Examples**
-- (TODO)
+- `REFBYNAME X, "A"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11401,27 +11409,41 @@ ENCODETOUNI "ABC"
 
 ## TRYCALLF (instruction)
 **Summary**
-- (TODO)
+- Tries to call a **user-defined** expression function (`#FUNCTION/#FUNCTIONS`) by name; if it cannot be resolved, does nothing.
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new TRYCALLF_Instruction(false)`
 
 **Syntax**
-- (TODO)
+- `TRYCALLF <methodName> [, <arg1>, <arg2>, ... ]`
+- `TRYCALLF <methodName>(<arg1>, <arg2>, ... )`
+- Optional (currently unused) bracket segment may appear after the name:
+  - `TRYCALLF <methodName>[<subName1>, <subName2>, ...](...)`
 
 **Arguments**
-- (TODO)
+- `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
+  - This is **not** a string literal or string expression.
+  - Quotes are treated as ordinary characters.
+  - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
+- `<argN>`: expressions passed to the target method.
 
 **Semantics**
+- Resolution scope:
+  - Only **user-defined** expression functions are considered (built-in expression functions are not).
+- Resolves `<methodName>` to a user-defined expression function with the provided argument list.
+  - If no matching method is found (or it cannot be resolved at load time for the constant-name fast path), the instruction is a no-op.
+  - Otherwise evaluates the method.
+- The return value is computed but not assigned to `RESULT/RESULTS` by this instruction.
 - Engine-extracted notes (key operations):
   - `if ((!func.Argument.IsConst) || exm.Console.RunERBFromMemory)`
 
 **Errors & validation**
-- (TODO)
+- The “try” behavior only covers “cannot resolve to a callable user-defined expression function”.
+- Errors if a name resolves to an incompatible kind of function (not an expression function) or if argument checking/conversion fails.
 
 **Examples**
-- (TODO)
+- `TRYCALLF HOOK_AFTER_PRINT, TARGET`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11429,27 +11451,31 @@ ENCODETOUNI "ABC"
 
 ## TRYCALLFORMF (instruction)
 **Summary**
-- (TODO)
+- Like `TRYCALLF`, but the method name is a formatted (FORM) string expression evaluated at runtime.
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new TRYCALLF_Instruction(true)`
 
 **Syntax**
-- (TODO)
+- `TRYCALLFORMF <formString> [, <arg1>, <arg2>, ... ]`
+- `TRYCALLFORMF <formString>(<arg1>, <arg2>, ... )`
 
 **Arguments**
-- (TODO)
+- `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
+- `<argN>`: expressions passed to the target method.
 
 **Semantics**
+- Evaluates `<formString>` to a name string, then behaves like `TRYCALLF`.
+- The return value is computed but not assigned to `RESULT/RESULTS` by this instruction.
 - Engine-extracted notes (key operations):
   - `if ((!func.Argument.IsConst) || exm.Console.RunERBFromMemory)`
 
 **Errors & validation**
-- (TODO)
+- Same as `TRYCALLF`.
 
 **Examples**
-- (TODO)
+- `TRYCALLFORMF "HOOK_%TARGET%", TARGET`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`

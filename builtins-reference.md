@@ -7255,12 +7255,54 @@ ENDNOSKIP
 - `LOADCHARA "party"`
 
 ## REF (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Declared but **not implemented** in this engine build (always errors).
+
+**Tags**
+- variables
+
+**Syntax**
+- `REF <refTarget>, <sourceName>`
+
+**Arguments**
+- `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
+- `<sourceName>`: identifier token naming the source variable to bind to.
+
+**Semantics**
+- The current engine implementation throws a “not implemented” error at runtime.
+- In this build, `REF` variables are still used by user-defined function argument binding (pass-by-reference); see `variables.md`.
+
+**Errors & validation**
+- Always errors at runtime.
+
+**Examples**
+- `REF X, A`
 
 ## REFBYNAME (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Declared but **not implemented** in this engine build (always errors).
+
+**Tags**
+- variables
+
+**Syntax**
+- `REFBYNAME <refTarget>, <sourceName>`
+
+**Arguments**
+- `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
+- `<sourceName>` (string expression): evaluates to a variable name string.
+
+**Semantics**
+- The current engine implementation throws a “not implemented” error at runtime.
+- In this build, `REF` variables are still used by user-defined function argument binding (pass-by-reference); see `variables.md`.
+
+**Errors & validation**
+- Always errors at runtime.
+
+**Examples**
+- `REFBYNAME X, "A"`
 
 ## HTML_PRINT (instruction)
 
@@ -7966,12 +8008,66 @@ ENCODETOUNI "ABC"
 - `SETBGMVOLUME 50`
 
 ## TRYCALLF (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Tries to call a **user-defined** expression function (`#FUNCTION/#FUNCTIONS`) by name; if it cannot be resolved, does nothing.
+
+**Tags**
+- calls
+
+**Syntax**
+- `TRYCALLF <methodName> [, <arg1>, <arg2>, ... ]`
+- `TRYCALLF <methodName>(<arg1>, <arg2>, ... )`
+- Optional (currently unused) bracket segment may appear after the name:
+  - `TRYCALLF <methodName>[<subName1>, <subName2>, ...](...)`
+
+**Arguments**
+- `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
+  - This is **not** a string literal or string expression.
+  - Quotes are treated as ordinary characters.
+  - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
+- `<argN>`: expressions passed to the target method.
+
+**Semantics**
+- Resolution scope:
+  - Only **user-defined** expression functions are considered (built-in expression functions are not).
+- Resolves `<methodName>` to a user-defined expression function with the provided argument list.
+  - If no matching method is found (or it cannot be resolved at load time for the constant-name fast path), the instruction is a no-op.
+  - Otherwise evaluates the method.
+- The return value is computed but not assigned to `RESULT/RESULTS` by this instruction.
+
+**Errors & validation**
+- The “try” behavior only covers “cannot resolve to a callable user-defined expression function”.
+- Errors if a name resolves to an incompatible kind of function (not an expression function) or if argument checking/conversion fails.
+
+**Examples**
+- `TRYCALLF HOOK_AFTER_PRINT, TARGET`
 
 ## TRYCALLFORMF (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Like `TRYCALLF`, but the method name is a formatted (FORM) string expression evaluated at runtime.
+
+**Tags**
+- calls
+
+**Syntax**
+- `TRYCALLFORMF <formString> [, <arg1>, <arg2>, ... ]`
+- `TRYCALLFORMF <formString>(<arg1>, <arg2>, ... )`
+
+**Arguments**
+- `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
+- `<argN>`: expressions passed to the target method.
+
+**Semantics**
+- Evaluates `<formString>` to a name string, then behaves like `TRYCALLF`.
+- The return value is computed but not assigned to `RESULT/RESULTS` by this instruction.
+
+**Errors & validation**
+- Same as `TRYCALLF`.
+
+**Examples**
+- `TRYCALLFORMF "HOOK_%TARGET%", TARGET`
 
 ## UPDATECHECK (instruction)
 

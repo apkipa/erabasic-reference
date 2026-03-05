@@ -10,7 +10,7 @@ Legend:
 Notes:
 - To mark an entry complete, add a section `**Progress state**` with `- complete` to the override file.
 
-Instructions: `⛔ 26` / `🟡 0` / `✅ 277` (total `303`).
+Instructions: `⛔ 22` / `🟡 0` / `✅ 281` (total `303`).
 Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 
 ## Instructions
@@ -267,8 +267,8 @@ Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 - ✅ [`LOADVAR`](../builtins-reference.md#loadvar-instruction)
 - ✅ [`SAVECHARA`](../builtins-reference.md#savechara-instruction)
 - ✅ [`LOADCHARA`](../builtins-reference.md#loadchara-instruction)
-- ⛔ [`REF`](../builtins-reference.md#ref-instruction)
-- ⛔ [`REFBYNAME`](../builtins-reference.md#refbyname-instruction)
+- ✅ [`REF`](../builtins-reference.md#ref-instruction)
+- ✅ [`REFBYNAME`](../builtins-reference.md#refbyname-instruction)
 - ✅ [`HTML_PRINT`](../builtins-reference.md#html_print-instruction)
 - ✅ [`HTML_TAGSPLIT`](../builtins-reference.md#html_tagsplit-instruction)
 - ✅ [`PRINT_IMG`](../builtins-reference.md#print_img-instruction)
@@ -291,8 +291,8 @@ Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 - ✅ [`STOPBGM`](../builtins-reference.md#stopbgm-instruction)
 - ✅ [`SETSOUNDVOLUME`](../builtins-reference.md#setsoundvolume-instruction)
 - ✅ [`SETBGMVOLUME`](../builtins-reference.md#setbgmvolume-instruction)
-- ⛔ [`TRYCALLF`](../builtins-reference.md#trycallf-instruction)
-- ⛔ [`TRYCALLFORMF`](../builtins-reference.md#trycallformf-instruction)
+- ✅ [`TRYCALLF`](../builtins-reference.md#trycallf-instruction)
+- ✅ [`TRYCALLFORMF`](../builtins-reference.md#trycallformf-instruction)
 - ✅ [`UPDATECHECK`](../builtins-reference.md#updatecheck-instruction)
 - ✅ [`QUIT_AND_RESTART`](../builtins-reference.md#quit_and_restart-instruction)
 - ✅ [`FORCE_QUIT`](../builtins-reference.md#force_quit-instruction)

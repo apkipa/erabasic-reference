@@ -35,7 +35,9 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`RETURNF`](builtins-reference.md#returnf-instruction) (instruction)
 - [`RETURNFORM`](builtins-reference.md#returnform-instruction) (instruction)
 - [`TRYCALL`](builtins-reference.md#trycall-instruction) (instruction)
+- [`TRYCALLF`](builtins-reference.md#trycallf-instruction) (instruction)
 - [`TRYCALLFORM`](builtins-reference.md#trycallform-instruction) (instruction)
+- [`TRYCALLFORMF`](builtins-reference.md#trycallformf-instruction) (instruction)
 - [`TRYCALLLIST`](builtins-reference.md#trycalllist-instruction) (instruction)
 - [`TRYCCALL`](builtins-reference.md#tryccall-instruction) (instruction)
 - [`TRYCCALLFORM`](builtins-reference.md#tryccallform-instruction) (instruction)
@@ -446,6 +448,8 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## variables
 
+- [`REF`](builtins-reference.md#ref-instruction) (instruction)
+- [`REFBYNAME`](builtins-reference.md#refbyname-instruction) (instruction)
 - [`SET`](builtins-reference.md#set-instruction) (instruction)
 - [`SWAP`](builtins-reference.md#swap-instruction) (instruction)
 - [`VARSIZE`](builtins-reference.md#varsize-instruction) (instruction)
