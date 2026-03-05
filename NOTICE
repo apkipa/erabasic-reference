@@ -1,0 +1,13 @@
+This directory (`erabasic-reference/`) contains documentation and tooling for EraBasic behavior as implemented by Emuera / EvilMask.
+
+License summary:
+
+- Unless otherwise noted, original content in this directory is licensed under the MIT License (see `LICENSE`).
+- This reference is written against the Emuera engine and includes/generated-from parts of that codebase (for example, engine-extracted hints and raw comments in `appendix/tooling/builtins-reference-engine.md`).
+  Those portions are subject to Emuera’s license and attribution requirements.
+
+Third-party licenses:
+
+- Emuera — Copyright (C) 2008- MinorShift
+  License text: `THIRD_PARTY_NOTICES/Emuera.LICENSE.txt`
+
