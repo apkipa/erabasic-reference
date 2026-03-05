@@ -5238,7 +5238,7 @@ Compatibility notes:
 **Arguments**
 - `<defaultFormString>` (optional): FORM/formatted string expression used as the default string. If omitted, there is no default.
 - `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input.
-- `<canSkip>` (optional): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
+- `<canSkip>` (optional, any): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -5274,7 +5274,7 @@ Compatibility notes:
 - Argument parsing quirks:
   - After the first comma, the engine tries to parse `<mouse>` as an `int` expression.
     - If it is omitted or not an integer expression, the engine warns and ignores the entire tail (mouse input is disabled; `canSkip` is not enabled).
-  - Supplying `<canSkip>` may still emit a “too many arguments” warning, but the value is accepted and used by the runtime.
+  - Supplying `<canSkip>` may still emit a “too many arguments” warning, but its presence is accepted and used by the runtime.
 
 **Examples**
 - `INPUTS`
