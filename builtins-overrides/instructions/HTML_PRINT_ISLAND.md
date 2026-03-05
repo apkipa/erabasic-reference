@@ -9,7 +9,9 @@
 
 **Arguments**
 - `<html>` (string): HTML string (see `html-output.md`).
-- `<ignored>` (optional): integer expression. Accepted by the argument parser but ignored by this instruction.
+- `<ignored>` (optional, int): compatibility-only argument.
+  - If provided, it must be a valid `int` expression (it is parsed and type-checked).
+  - The value is ignored by `HTML_PRINT_ISLAND` and is not evaluated during execution.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).

@@ -3197,7 +3197,7 @@ Compatibility notes:
 **Arguments**
 - `<defaultFormString>` (optional): FORM/formatted string expression used as the default string. If omitted, there is no default.
 - `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input.
-- `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting.
+- `<canSkip>` (optional): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
 
 **Semantics**
 - Enters a string-input UI wait.
@@ -3223,7 +3223,8 @@ Compatibility notes:
 **Errors & validation**
 - Argument parsing errors follow the underlying builder rules for `INPUTS`.
 - Argument parsing quirks:
-  - After the first comma, non-integer expressions are ignored with a warning.
+  - After the first comma, the engine tries to parse `<mouse>` as an `int` expression.
+    - If it is omitted or not an integer expression, the engine warns and ignores the entire tail (mouse input is disabled; `canSkip` is not enabled).
   - Supplying `<canSkip>` may still emit a “too many arguments” warning, but the value is accepted and used by the runtime.
 
 **Examples**
@@ -7005,7 +7006,9 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 **Arguments**
 - `<html>` (string): HTML string (see `html-output.md`).
-- `<ignored>` (optional): integer expression. Accepted by the argument parser but ignored by this instruction.
+- `<ignored>` (optional, int): compatibility-only argument.
+  - If provided, it must be a valid `int` expression (it is parsed and type-checked).
+  - The value is ignored by `HTML_PRINT_ISLAND` and is not evaluated during execution.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
