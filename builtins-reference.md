@@ -7773,32 +7773,197 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - `SAVENOS X`      ; writes into `X`
 
 ## ENCODETOUNI (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Encodes a string into Unicode scalar values and writes them into `RESULT:*`.
+
+**Tags**
+- string
+
+**Syntax**
+- `ENCODETOUNI`
+- `ENCODETOUNI <formString>`
+
+**Arguments**
+- `<formString>` (optional, FORM/formatted string; default `""`): the string to encode.
+
+**Semantics**
+- Evaluates `<formString>` to a string `s`.
+- Let `cap = length(RESULT_ARRAY) - 1` (because `RESULT:0` stores the length).
+  - If `len(s) > cap`, runtime error.
+- Produces an integer sequence of length `len(s)` by applying the platform’s UTF-16 conversion at each string index:
+  - For each index `i` in `0 <= i < len(s)`, compute `code[i] = ConvertToUtf32(s, i)`.
+  - Note: this is done at every index; if `s` contains a surrogate pair, converting at the *second* (low-surrogate) index raises an error.
+- Writes the result to `RESULT_ARRAY`:
+  - `RESULT:0 = len(s)`
+  - For `0 <= i < len(s)`: `RESULT:(i+1) = code[i]`
+- Does not clear any `RESULT:*` slots beyond `RESULT:len(s)`.
+
+**Errors & validation**
+- Runtime error if `len(s) > length(RESULT_ARRAY) - 1`.
+- Runtime error if the UTF-16 conversion fails at any index (e.g. low surrogate, invalid surrogate pair).
+
+**Examples**
+```erabasic
+ENCODETOUNI "ABC"
+; RESULT:0 = 3
+; RESULT:1 = 65
+; RESULT:2 = 66
+; RESULT:3 = 67
+```
 
 ## PLAYSOUND (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Plays a one-shot sound effect file from the sound directory.
+
+**Tags**
+- io
+
+**Syntax**
+- `PLAYSOUND <filename> [, <repeat>]`
+
+**Arguments**
+- `<filename>` (string expression): file name or relative path under the sound directory.
+- `<repeat>` (optional, int; default `1`): number of times to repeat the sound.
+  - Values `< 1` are clamped to `1`.
+
+**Semantics**
+- Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
+- If the file does not exist, no-op.
+- Otherwise, starts playback on a “sound effect slot”:
+  - There are 10 slots (`0..9`).
+  - The engine prefers the first non-playing slot; if all are playing, it reuses slot `0`.
+- Playback is independent from BGM (`PLAYBGM`).
+
+**Errors & validation**
+- Runtime error if the file exists but cannot be decoded/played by the audio backend.
+
+**Examples**
+- `PLAYSOUND "click.wav"`
+- `PLAYSOUND "se\\hit.ogg", 3`
 
 ## STOPSOUND (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Stops all currently playing sound effects (all 10 sound effect slots).
+
+**Tags**
+- io
+
+**Syntax**
+- `STOPSOUND`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Stops playback of all sound effect slots (`0..9`).
+- Does not affect BGM (`PLAYBGM`).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `STOPSOUND`
 
 ## PLAYBGM (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Starts looping background music (BGM) from the sound directory.
+
+**Tags**
+- io
+
+**Syntax**
+- `PLAYBGM <filename>`
+
+**Arguments**
+- `<filename>` (string expression): file name or relative path under the sound directory.
+
+**Semantics**
+- Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
+- If the file does not exist, no-op (does not stop any currently playing BGM).
+- Otherwise, starts playback on the BGM channel and repeats indefinitely.
+  - Starting a new BGM replaces the previous BGM.
+
+**Errors & validation**
+- Runtime error if the file exists but cannot be decoded/played by the audio backend.
+
+**Examples**
+- `PLAYBGM "bgm\\theme.flac"`
 
 ## STOPBGM (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Stops the currently playing BGM.
+
+**Tags**
+- io
+
+**Syntax**
+- `STOPBGM`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Stops BGM playback.
+- Does not affect sound effects (`PLAYSOUND`).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `STOPBGM`
 
 ## SETSOUNDVOLUME (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the volume for sound effects (`PLAYSOUND`) across all sound effect slots.
+
+**Tags**
+- io
+
+**Syntax**
+- `SETSOUNDVOLUME <volume>`
+
+**Arguments**
+- `<volume>` (int expression): volume level, clamped to `0 .. 100`.
+
+**Semantics**
+- Applies the volume to all 10 sound effect slots (`0..9`).
+- If a slot is currently playing, the change takes effect immediately.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `SETSOUNDVOLUME 30`
 
 ## SETBGMVOLUME (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the volume for BGM (`PLAYBGM`).
+
+**Tags**
+- io
+
+**Syntax**
+- `SETBGMVOLUME <volume>`
+
+**Arguments**
+- `<volume>` (int expression): volume level, clamped to `0 .. 100`.
+
+**Semantics**
+- Applies the volume to the BGM channel.
+- If BGM is currently playing, the change takes effect immediately.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `SETBGMVOLUME 50`
 
 ## TRYCALLF (instruction)
 **Summary**
@@ -7809,20 +7974,120 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - (TODO: not yet documented)
 
 ## UPDATECHECK (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Checks a remote “update check” URL and reports whether a newer version is available.
+
+**Tags**
+- system
+
+**Syntax**
+- `UPDATECHECK`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Writes a status code into `RESULT`:
+  - `0`: remote version string equals the current version string (no update).
+  - `1`: remote version differs; user chose “No” in the confirmation dialog.
+  - `2`: remote version differs; user chose “Yes” and the engine attempted to open the provided link in the OS.
+  - `3`: update check failed (URL missing/invalid response/network/IO error).
+  - `4`: update check is forbidden by config (`ForbidUpdateCheck`).
+  - `5`: no network is available.
+- The update check source is `UpdateCheckURL` from the game base metadata.
+  - If it is missing/empty, sets `RESULT = 3`.
+- If network is available and the URL is present:
+  - Fetches the URL and reads the first two lines:
+    - line 1: remote version string
+    - line 2: link URL
+  - If either line is missing/empty, sets `RESULT = 3`.
+  - If the remote version string differs from the current version string:
+    - Shows a confirmation dialog containing the version and link.
+    - If the user accepts, sets `RESULT = 2` and opens the link via the OS.
+    - Otherwise sets `RESULT = 1`.
+
+**Errors & validation**
+- No runtime errors; failures are reported via `RESULT`.
+
+**Examples**
+- `UPDATECHECK`
+- `PRINTFORML "updatecheck=" + RESULT`
 
 ## QUIT_AND_RESTART (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Requests the console to quit and restart the application.
+
+**Tags**
+- system
+
+**Syntax**
+- `QUIT_AND_RESTART`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Sets the engine’s “reboot on quit” flag, then requests quit (same as `QUIT` for script control flow).
+- Script execution stops immediately.
+- The actual restart is performed by the UI host after the quit request is posted (typically on the next user interaction in the quit state).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `QUIT_AND_RESTART`
 
 ## FORCE_QUIT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- A “forced quit” instruction in this engine build.
+
+**Tags**
+- system
+
+**Syntax**
+- `FORCE_QUIT`
+
+**Arguments**
+- None.
+
+**Semantics**
+- In the current engine implementation, this instruction does not request a normal quit by itself.
+- It participates in the same “consecutive forced restart” guard used by `FORCE_QUIT_AND_RESTART`.
+
+**Errors & validation**
+- May raise a runtime error on the guard path (see `FORCE_QUIT_AND_RESTART`).
+
+**Examples**
+- `FORCE_QUIT`
 
 ## FORCE_QUIT_AND_RESTART (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Forces an immediate application restart (without waiting for the normal quit UI flow).
+
+**Tags**
+- system
+
+**Syntax**
+- `FORCE_QUIT_AND_RESTART`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Sets the engine’s “reboot” flag and triggers the UI host’s restart routine immediately.
+- Guard behavior (to prevent continuous restart without an intervening input wait):
+  - If this instruction is executed again without passing through an input-wait/quit/error state, the engine shows a confirmation dialog.
+  - If the user accepts, the engine cancels restart and raises a runtime error instead.
+
+**Errors & validation**
+- May raise a runtime error on the guard path (see above).
+
+**Examples**
+- `FORCE_QUIT_AND_RESTART`
 
 ## FORCE_BEGIN (instruction)
 

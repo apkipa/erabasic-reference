@@ -11164,31 +11164,48 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## ENCODETOUNI (instruction)
 **Summary**
-- (TODO)
+- Encodes a string into Unicode scalar values and writes them into `RESULT:*`.
 
 **Metadata**
 - Arg spec: `FORM_STR_NULLABLE` (see #argument-spec-form_str_nullable)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): FORM string型。optional
-- Hint (raw comment): `書式付文字列型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `ENCODETOUNI`
+- `ENCODETOUNI <formString>`
 
 **Arguments**
-- Builder: `FORM_STR_ArgumentBuilder(true)`
+- `<formString>` (optional, FORM/formatted string; default `""`): the string to encode.
 
 **Semantics**
+- Evaluates `<formString>` to a string `s`.
+- Let `cap = length(RESULT_ARRAY) - 1` (because `RESULT:0` stores the length).
+  - If `len(s) > cap`, runtime error.
+- Produces an integer sequence of length `len(s)` by applying the platform’s UTF-16 conversion at each string index:
+  - For each index `i` in `0 <= i < len(s)`, compute `code[i] = ConvertToUtf32(s, i)`.
+  - Note: this is done at every index; if `s` contains a surrogate pair, converting at the *second* (low-surrogate) index raises an error.
+- Writes the result to `RESULT_ARRAY`:
+  - `RESULT:0 = len(s)`
+  - For `0 <= i < len(s)`: `RESULT:(i+1) = code[i]`
+- Does not clear any `RESULT:*` slots beyond `RESULT:len(s)`.
 - Engine-extracted notes (key operations):
   - `int length = vEvaluator.RESULT_ARRAY.Length`
   - `vEvaluator.SetEncodingResult(ary)`
 
 **Errors & validation**
+- Runtime error if `len(s) > length(RESULT_ARRAY) - 1`.
+- Runtime error if the UTF-16 conversion fails at any index (e.g. low surrogate, invalid surrogate pair).
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.tooLongEncodetouniArg.Text, target.Length, length - 1))`
 
 **Examples**
-- (TODO)
+```erabasic
+ENCODETOUNI "ABC"
+; RESULT:0 = 3
+; RESULT:1 = 65
+; RESULT:2 = 66
+; RESULT:3 = 67
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11197,28 +11214,36 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## PLAYSOUND (instruction)
 **Summary**
-- (TODO)
+- Plays a one-shot sound effect file from the sound directory.
 
 **Metadata**
 - Arg spec: `SP_HTML_PRINT` (see #argument-spec-sp_html_print) (inferred from `PLAYSOUND_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new PLAYSOUND_Instruction()`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PLAYSOUND <filename> [, <repeat>]`
 
 **Arguments**
-- Builder: `SP_HTML_PRINT_ArgumentBuilder()`
-- Type pattern: `null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) }` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
+- `<filename>` (string expression): file name or relative path under the sound directory.
+- `<repeat>` (optional, int; default `1`): number of times to repeat the sound.
+  - Values `< 1` are clamped to `1`.
 
 **Semantics**
-- (TODO)
+- Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
+- If the file does not exist, no-op.
+- Otherwise, starts playback on a “sound effect slot”:
+  - There are 10 slots (`0..9`).
+  - The engine prefers the first non-playing slot; if all are playing, it reuses slot `0`.
+- Playback is independent from BGM (`PLAYBGM`).
 
 **Errors & validation**
+- Runtime error if the file exists but cannot be decoded/played by the audio backend.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.ImcompatibleSoundFile.Text)`
 
 **Examples**
-- (TODO)
+- `PLAYSOUND "click.wav"`
+- `PLAYSOUND "se\\hit.ogg", 3`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11227,28 +11252,27 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## STOPSOUND (instruction)
 **Summary**
-- (TODO)
+- Stops all currently playing sound effects (all 10 sound effect slots).
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `STOPSOUND_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new STOPSOUND_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `STOPSOUND`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
-- (TODO)
+- Stops playback of all sound effect slots (`0..9`).
+- Does not affect BGM (`PLAYBGM`).
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `STOPSOUND`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11257,31 +11281,31 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## PLAYBGM (instruction)
 **Summary**
-- (TODO)
+- Starts looping background music (BGM) from the sound directory.
 
 **Metadata**
 - Arg spec: `STR_EXPRESSION` (see #argument-spec-str_expression) (inferred from `PLAYBGM_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new PLAYBGM_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): string expression
-- Hint (raw comment): `文字列式型`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PLAYBGM <filename>`
 
 **Arguments**
-- Builder: `STR_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(string)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<filename>` (string expression): file name or relative path under the sound directory.
 
 **Semantics**
-- (TODO)
+- Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
+- If the file does not exist, no-op (does not stop any currently playing BGM).
+- Otherwise, starts playback on the BGM channel and repeats indefinitely.
+  - Starting a new BGM replaces the previous BGM.
 
 **Errors & validation**
+- Runtime error if the file exists but cannot be decoded/played by the audio backend.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.ImcompatibleSoundFile.Text)`
 
 **Examples**
-- (TODO)
+- `PLAYBGM "bgm\\theme.flac"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11290,28 +11314,27 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## STOPBGM (instruction)
 **Summary**
-- (TODO)
+- Stops the currently playing BGM.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `STOPBGM_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new STOPBGM_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `STOPBGM`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
-- (TODO)
+- Stops BGM playback.
+- Does not affect sound effects (`PLAYSOUND`).
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `STOPBGM`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11320,30 +11343,27 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## SETSOUNDVOLUME (instruction)
 **Summary**
-- (TODO)
+- Sets the volume for sound effects (`PLAYSOUND`) across all sound effect slots.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `SETSOUNDVOLUME_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new SETSOUNDVOLUME_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SETSOUNDVOLUME <volume>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<volume>` (int expression): volume level, clamped to `0 .. 100`.
 
 **Semantics**
-- (TODO)
+- Applies the volume to all 10 sound effect slots (`0..9`).
+- If a slot is currently playing, the change takes effect immediately.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `SETSOUNDVOLUME 30`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11352,30 +11372,27 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## SETBGMVOLUME (instruction)
 **Summary**
-- (TODO)
+- Sets the volume for BGM (`PLAYBGM`).
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `SETBGMVOLUME_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new SETBGMVOLUME_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SETBGMVOLUME <volume>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<volume>` (int expression): volume level, clamped to `0 .. 100`.
 
 **Semantics**
-- (TODO)
+- Applies the volume to the BGM channel.
+- If BGM is currently playing, the change takes effect immediately.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `SETBGMVOLUME 50`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11440,21 +11457,37 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## UPDATECHECK (instruction)
 **Summary**
-- (TODO)
+- Checks a remote “update check” URL and reports whether a newer version is available.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `UPDATECHECK_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new UPDATECHECK_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `UPDATECHECK`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- Writes a status code into `RESULT`:
+  - `0`: remote version string equals the current version string (no update).
+  - `1`: remote version differs; user chose “No” in the confirmation dialog.
+  - `2`: remote version differs; user chose “Yes” and the engine attempted to open the provided link in the OS.
+  - `3`: update check failed (URL missing/invalid response/network/IO error).
+  - `4`: update check is forbidden by config (`ForbidUpdateCheck`).
+  - `5`: no network is available.
+- The update check source is `UpdateCheckURL` from the game base metadata.
+  - If it is missing/empty, sets `RESULT = 3`.
+- If network is available and the URL is present:
+  - Fetches the URL and reads the first two lines:
+    - line 1: remote version string
+    - line 2: link URL
+  - If either line is missing/empty, sets `RESULT = 3`.
+  - If the remote version string differs from the current version string:
+    - Shows a confirmation dialog containing the version and link.
+    - If the user accepts, sets `RESULT = 2` and opens the link via the OS.
+    - Otherwise sets `RESULT = 1`.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = 4`
   - `exm.VEvaluator.RESULT = 5`
@@ -11464,10 +11497,11 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
   - `exm.VEvaluator.RESULT = 0`
 
 **Errors & validation**
-- (TODO)
+- No runtime errors; failures are reported via `RESULT`.
 
 **Examples**
-- (TODO)
+- `UPDATECHECK`
+- `PRINTFORML "updatecheck=" + RESULT`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11476,28 +11510,29 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## QUIT_AND_RESTART (instruction)
 **Summary**
-- (TODO)
+- Requests the console to quit and restart the application.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `QUIT_AND_RESTART`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- Sets the engine’s “reboot on quit” flag, then requests quit (same as `QUIT` for script control flow).
+- Script execution stops immediately.
+- The actual restart is performed by the UI host after the quit request is posted (typically on the next user interaction in the quit state).
 - Engine-extracted notes (key operations):
   - `exm.Console.Quit()`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `QUIT_AND_RESTART`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11506,28 +11541,28 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## FORCE_QUIT (instruction)
 **Summary**
-- (TODO)
+- A “forced quit” instruction in this engine build.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `FORCE_QUIT`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- In the current engine implementation, this instruction does not request a normal quit by itself.
+- It participates in the same “consecutive forced restart” guard used by `FORCE_QUIT_AND_RESTART`.
 - Engine-extracted notes (key operations):
   - `exm.Console.ForceQuit()`
 
 **Errors & validation**
-- (TODO)
+- May raise a runtime error on the guard path (see `FORCE_QUIT_AND_RESTART`).
 
 **Examples**
-- (TODO)
+- `FORCE_QUIT`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11536,28 +11571,30 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 ## FORCE_QUIT_AND_RESTART (instruction)
 **Summary**
-- (TODO)
+- Forces an immediate application restart (without waiting for the normal quit UI flow).
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `FORCE_QUIT_AND_RESTART`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- Sets the engine’s “reboot” flag and triggers the UI host’s restart routine immediately.
+- Guard behavior (to prevent continuous restart without an intervening input wait):
+  - If this instruction is executed again without passing through an input-wait/quit/error state, the engine shows a confirmation dialog.
+  - If the user accepts, the engine cancels restart and raises a runtime error instead.
 - Engine-extracted notes (key operations):
   - `exm.Console.ForceQuit()`
 
 **Errors & validation**
-- (TODO)
+- May raise a runtime error on the guard path (see above).
 
 **Examples**
-- (TODO)
+- `FORCE_QUIT_AND_RESTART`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`

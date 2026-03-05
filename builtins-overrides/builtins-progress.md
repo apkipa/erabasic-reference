@@ -10,7 +10,7 @@ Legend:
 Notes:
 - To mark an entry complete, add a section `**Progress state**` with `- complete` to the override file.
 
-Instructions: `⛔ 37` / `🟡 0` / `✅ 266` (total `303`).
+Instructions: `⛔ 26` / `🟡 0` / `✅ 277` (total `303`).
 Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 
 ## Instructions
@@ -284,19 +284,19 @@ Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 - ✅ [`POWER`](../builtins-reference.md#power-instruction)
 - ✅ [`PRINTCPERLINE`](../builtins-reference.md#printcperline-instruction)
 - ✅ [`SAVENOS`](../builtins-reference.md#savenos-instruction)
-- ⛔ [`ENCODETOUNI`](../builtins-reference.md#encodetouni-instruction)
-- ⛔ [`PLAYSOUND`](../builtins-reference.md#playsound-instruction)
-- ⛔ [`STOPSOUND`](../builtins-reference.md#stopsound-instruction)
-- ⛔ [`PLAYBGM`](../builtins-reference.md#playbgm-instruction)
-- ⛔ [`STOPBGM`](../builtins-reference.md#stopbgm-instruction)
-- ⛔ [`SETSOUNDVOLUME`](../builtins-reference.md#setsoundvolume-instruction)
-- ⛔ [`SETBGMVOLUME`](../builtins-reference.md#setbgmvolume-instruction)
+- ✅ [`ENCODETOUNI`](../builtins-reference.md#encodetouni-instruction)
+- ✅ [`PLAYSOUND`](../builtins-reference.md#playsound-instruction)
+- ✅ [`STOPSOUND`](../builtins-reference.md#stopsound-instruction)
+- ✅ [`PLAYBGM`](../builtins-reference.md#playbgm-instruction)
+- ✅ [`STOPBGM`](../builtins-reference.md#stopbgm-instruction)
+- ✅ [`SETSOUNDVOLUME`](../builtins-reference.md#setsoundvolume-instruction)
+- ✅ [`SETBGMVOLUME`](../builtins-reference.md#setbgmvolume-instruction)
 - ⛔ [`TRYCALLF`](../builtins-reference.md#trycallf-instruction)
 - ⛔ [`TRYCALLFORMF`](../builtins-reference.md#trycallformf-instruction)
-- ⛔ [`UPDATECHECK`](../builtins-reference.md#updatecheck-instruction)
-- ⛔ [`QUIT_AND_RESTART`](../builtins-reference.md#quit_and_restart-instruction)
-- ⛔ [`FORCE_QUIT`](../builtins-reference.md#force_quit-instruction)
-- ⛔ [`FORCE_QUIT_AND_RESTART`](../builtins-reference.md#force_quit_and_restart-instruction)
+- ✅ [`UPDATECHECK`](../builtins-reference.md#updatecheck-instruction)
+- ✅ [`QUIT_AND_RESTART`](../builtins-reference.md#quit_and_restart-instruction)
+- ✅ [`FORCE_QUIT`](../builtins-reference.md#force_quit-instruction)
+- ✅ [`FORCE_QUIT_AND_RESTART`](../builtins-reference.md#force_quit_and_restart-instruction)
 - ✅ [`FORCE_BEGIN`](../builtins-reference.md#force_begin-instruction)
 - ✅ [`INPUTANY`](../builtins-reference.md#inputany-instruction)
 - ✅ [`TOOLTIP_SETFONT`](../builtins-reference.md#tooltip_setfont-instruction)

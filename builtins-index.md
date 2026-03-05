@@ -165,6 +165,8 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`ONEBINPUTS`](builtins-reference.md#onebinputs-instruction) (instruction)
 - [`ONEINPUT`](builtins-reference.md#oneinput-instruction) (instruction)
 - [`ONEINPUTS`](builtins-reference.md#oneinputs-instruction) (instruction)
+- [`PLAYBGM`](builtins-reference.md#playbgm-instruction) (instruction)
+- [`PLAYSOUND`](builtins-reference.md#playsound-instruction) (instruction)
 - [`PRINT`](builtins-reference.md#print-instruction) (instruction)
 - [`PRINTBUTTON`](builtins-reference.md#printbutton-instruction) (instruction)
 - [`PRINTBUTTONC`](builtins-reference.md#printbuttonc-instruction) (instruction)
@@ -265,6 +267,10 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`PRINT_TALENT`](builtins-reference.md#print_talent-instruction) (instruction)
 - [`PUTFORM`](builtins-reference.md#putform-instruction) (instruction)
 - [`REUSELASTLINE`](builtins-reference.md#reuselastline-instruction) (instruction)
+- [`SETBGMVOLUME`](builtins-reference.md#setbgmvolume-instruction) (instruction)
+- [`SETSOUNDVOLUME`](builtins-reference.md#setsoundvolume-instruction) (instruction)
+- [`STOPBGM`](builtins-reference.md#stopbgm-instruction) (instruction)
+- [`STOPSOUND`](builtins-reference.md#stopsound-instruction) (instruction)
 - [`TINPUT`](builtins-reference.md#tinput-instruction) (instruction)
 - [`TINPUTS`](builtins-reference.md#tinputs-instruction) (instruction)
 - [`TONEINPUT`](builtins-reference.md#toneinput-instruction) (instruction)
@@ -348,6 +354,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## string
 
+- [`ENCODETOUNI`](builtins-reference.md#encodetouni-instruction) (instruction)
 - [`HTML_TAGSPLIT`](builtins-reference.md#html_tagsplit-instruction) (instruction)
 - [`HTML_ESCAPE`](builtins-reference.md#html_escape-expression-function) (method)
 - [`HTML_TOPLAINTEXT`](builtins-reference.md#html_toplaintext-expression-function) (method)
@@ -359,8 +366,12 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`CALLTRAIN`](builtins-reference.md#calltrain-instruction) (instruction)
 - [`DOTRAIN`](builtins-reference.md#dotrain-instruction) (instruction)
 - [`FORCE_BEGIN`](builtins-reference.md#force_begin-instruction) (instruction)
+- [`FORCE_QUIT`](builtins-reference.md#force_quit-instruction) (instruction)
+- [`FORCE_QUIT_AND_RESTART`](builtins-reference.md#force_quit_and_restart-instruction) (instruction)
 - [`QUIT`](builtins-reference.md#quit-instruction) (instruction)
+- [`QUIT_AND_RESTART`](builtins-reference.md#quit_and_restart-instruction) (instruction)
 - [`STOPCALLTRAIN`](builtins-reference.md#stopcalltrain-instruction) (instruction)
+- [`UPDATECHECK`](builtins-reference.md#updatecheck-instruction) (instruction)
 
 ## text
 
