@@ -7350,28 +7350,191 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 ```
 
 ## PRINT_IMG (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Appends an inline image part to the current output line (equivalent to an `<img ...>` element in the HTML output model).
+
+**Tags**
+- ui
+
+**Syntax**
+- `PRINT_IMG <src>`
+- `PRINT_IMG <src>, <srcb>`
+- `PRINT_IMG <src>, <srcb>, <srcm>`
+- `PRINT_IMG <src>, <srcb>, <srcm>, <width> [, <height> [, <ypos>]]`
+- `PRINT_IMG <src>, <width> [, <height> [, <ypos>]]`
+
+**Arguments**
+- `<src>` (string expression): sprite name.
+- `<srcb>` (optional, string expression): sprite name used when the region is selected/focused.
+  - If this evaluates to `""`, it is treated as omitted.
+- `<srcm>` (optional, string expression): mapping-sprite name used by mouse-input mapping color side channels (see `html-output.md` and `INPUT`).
+- `<width>` / `<height>` / `<ypos>` (optional, int expressions): mixed numeric attributes.
+  - Each numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `80px`).
+  - Without `px`, the value is interpreted as a percentage of the current font size (in pixels): `valuePx = value * FontSize / 100`.
+  - Numeric argument order is `width`, then `height`, then `ypos`.
+
+**Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Appends an image part to the current print buffer (no implicit newline).
+- The image part is equivalent to emitting an HTML `<img ...>` tag and letting the HTML renderer handle it:
+  - `src=<src>`, `srcb=<srcb>`, `srcm=<srcm>`
+  - `width=<width>`, `height=<height>`, `ypos=<ypos>` (only included when the numeric value is non-zero)
+- See `html-output.md` (“Inline images: `<img ...>`”) for rendering rules:
+  - If `height` is omitted or `0`, it defaults to the current font size (pixels).
+  - If `width` is omitted or `0`, the original aspect ratio is preserved.
+  - Negative `width` / `height` values flip the image horizontally/vertically.
+  - If the sprite cannot be resolved, the tag is rendered as literal text.
+
+**Errors & validation**
+- Argument parse-time errors if more than 3 numeric arguments are provided, or if string arguments appear after numeric arguments.
+
+**Examples**
+- `PRINT_IMG "FACE_001"`
+- `PRINT_IMG "FACE_001", 80px` (explicit pixel width)
+- `PRINT_IMG "FACE_001", 120, 120` (width/height as percent of font size)
 
 ## PRINT_RECT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Appends a filled rectangle shape part to the current output line (equivalent to a `<shape type='rect' ...>` element in the HTML output model).
+
+**Tags**
+- ui
+
+**Syntax**
+- `PRINT_RECT <width>`
+- `PRINT_RECT <x>, <y>, <width>, <height>`
+
+**Arguments**
+- The numeric arguments are int expressions in mixed units:
+  - A numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `30px`).
+  - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `valuePx = value * FontSize / 100`.
+- 1-argument form:
+  - `<width>`: rectangle width (must be `> 0`).
+  - Height is the current font size (pixels), and the rectangle starts at `(x=0, y=0)` within the line box.
+- 4-argument form:
+  - `<x>, <y>, <width>, <height>` define the rectangle (must satisfy `x >= 0`, `width > 0`, `height > 0`; `y` may be negative).
+
+**Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Appends a rectangle shape part to the current print buffer (no implicit newline).
+- The shape uses the current output color as its fill color, and uses the current “button color” when selected/focused.
+- The output part is equivalent to emitting an HTML `<shape type='rect' ...>` tag; see `html-output.md` (“Shapes: `<shape ...>`”) for details and the literal-text fallback behavior for invalid params.
+
+**Errors & validation**
+- Parse-time error if the number of arguments is not exactly `1` or `4`.
+- If the rectangle is not drawable (unsupported parameter constraints), it is rendered as literal text (the string form of the `<shape ...>` tag).
+
+**Examples**
+- `PRINT_RECT 200` (width = 200% of font size)
+- `PRINT_RECT 0px, -20px, 100px, 20px`
 
 ## PRINT_SPACE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Appends a non-drawing horizontal space part to the current output line (equivalent to a `<shape type='space' ...>` element in the HTML output model).
+
+**Tags**
+- ui
+
+**Syntax**
+- `PRINT_SPACE <width>`
+
+**Arguments**
+- `<width>` (int expression): space width in mixed units.
+  - May be followed by a `px` suffix token to indicate pixels (e.g. `40px`).
+  - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `widthPx = width * FontSize / 100`.
+
+**Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Appends a space shape part to the current print buffer (no implicit newline).
+- Equivalent to emitting an HTML `<shape type='space' ...>` tag; see `html-output.md` (“Shapes: `<shape ...>`”).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `PRINT_SPACE 100` (one “em”, i.e. 100% of font size)
+- `PRINT_SPACE 12px`
 
 ## TOOLTIP_SETCOLOR (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the tooltip text and background colors.
+
+**Tags**
+- ui
+
+**Syntax**
+- `TOOLTIP_SETCOLOR <foreColor>, <backColor>`
+
+**Arguments**
+- `<foreColor>` (int expression): RGB color `0x000000 .. 0xFFFFFF`.
+- `<backColor>` (int expression): RGB color `0x000000 .. 0xFFFFFF`.
+
+**Semantics**
+- Updates the UI tooltip colors for subsequent tooltips.
+- This instruction executes even when output skipping is active.
+
+**Errors & validation**
+- Runtime error if either color is outside `0 .. 0xFFFFFF`.
+
+**Examples**
+- `TOOLTIP_SETCOLOR 0xFFFFFF, 0x000000`
 
 ## TOOLTIP_SETDELAY (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the tooltip initial delay (time between hover and tooltip popup).
+
+**Tags**
+- ui
+
+**Syntax**
+- `TOOLTIP_SETDELAY <delayMs>`
+
+**Arguments**
+- `<delayMs>` (int expression): delay in milliseconds.
+  - Omitted argument is accepted with a warning and treated as `0`.
+
+**Semantics**
+- Sets the tooltip initial delay used by the engine’s tooltip popup logic.
+- This instruction executes even when output skipping is active.
+
+**Errors & validation**
+- Runtime error if `<delayMs> < 0` or `<delayMs> > 2147483647`.
+
+**Examples**
+- `TOOLTIP_SETDELAY 500`
 
 ## TOOLTIP_SETDURATION (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the tooltip display duration.
+
+**Tags**
+- ui
+
+**Syntax**
+- `TOOLTIP_SETDURATION <durationMs>`
+
+**Arguments**
+- `<durationMs>` (int expression): duration in milliseconds.
+  - Omitted argument is accepted with a warning and treated as `0`.
+
+**Semantics**
+- Sets how long tooltips stay visible after appearing.
+  - `0` uses the UI toolkit’s default “no explicit duration” mode.
+- Values greater than `32767` are clamped to `32767`.
+- This instruction executes even when output skipping is active.
+
+**Errors & validation**
+- Runtime error if `<durationMs> < 0` or `<durationMs> > 2147483647`.
+
+**Examples**
+- `TOOLTIP_SETDURATION 2000`
+- `TOOLTIP_SETDURATION 0` (use default/indefinite mode)
 
 ## INPUTMOUSEKEY (instruction)
 **Summary**
@@ -7602,24 +7765,130 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - (TODO: not yet documented)
 
 ## TOOLTIP_SETFONT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the font family name used when drawing tooltips (in custom-draw mode).
+
+**Tags**
+- ui
+
+**Syntax**
+- `TOOLTIP_SETFONT <fontName>`
+
+**Arguments**
+- `<fontName>` (string expression): font family name.
+
+**Semantics**
+- Stores the font name used by tooltip custom drawing (`TOOLTIP_CUSTOM 1`).
+- This instruction executes even when output skipping is active.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `TOOLTIP_SETFONT "MS Gothic"`
 
 ## TOOLTIP_SETFONTSIZE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the font size (in points) used when drawing tooltips (in custom-draw mode).
+
+**Tags**
+- ui
+
+**Syntax**
+- `TOOLTIP_SETFONTSIZE <size>`
+
+**Arguments**
+- `<size>` (int expression): font size value passed to the UI font constructor.
+
+**Semantics**
+- Stores the tooltip font size used by tooltip custom drawing (`TOOLTIP_CUSTOM 1`).
+- This instruction executes even when output skipping is active.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `TOOLTIP_SETFONTSIZE 12`
 
 ## TOOLTIP_CUSTOM (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Enables/disables owner-drawn (custom rendered) tooltips.
+
+**Tags**
+- ui
+
+**Syntax**
+- `TOOLTIP_CUSTOM <enabled>`
+
+**Arguments**
+- `<enabled>` (int expression): `0` disables custom tooltips; non-zero enables.
+
+**Semantics**
+- When enabled, tooltips are drawn via the engine’s custom draw logic, which supports:
+  - custom font name/size (`TOOLTIP_SETFONT`, `TOOLTIP_SETFONTSIZE`)
+  - custom text formatting flags (`TOOLTIP_FORMAT`)
+  - optional image tooltips (`TOOLTIP_IMG`)
+- This instruction executes even when output skipping is active.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `TOOLTIP_CUSTOM 1`
 
 ## TOOLTIP_FORMAT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the tooltip text rendering flags used by the UI text renderer (in custom-draw mode).
+
+**Tags**
+- ui
+
+**Syntax**
+- `TOOLTIP_FORMAT <flags>`
+
+**Arguments**
+- `<flags>` (int expression): bitmask passed through as `.NET` `TextFormatFlags`.
+
+**Semantics**
+- Updates the text format flags used when drawing tooltip text in custom-draw mode (`TOOLTIP_CUSTOM 1`).
+- This instruction executes even when output skipping is active.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `TOOLTIP_FORMAT 0`
 
 ## TOOLTIP_IMG (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Enables/disables “image tooltip” interpretation in custom-draw tooltips.
+
+**Tags**
+- ui
+
+**Syntax**
+- `TOOLTIP_IMG <enabled>`
+
+**Arguments**
+- `<enabled>` (int expression): `0` disables; non-zero enables.
+
+**Semantics**
+- When enabled and tooltips are custom-drawn (`TOOLTIP_CUSTOM 1`):
+  - If the tooltip text can be parsed as an integer `i`, the engine attempts to draw graphics resource `G:i` as the tooltip content.
+  - If the graphics resource is not available, it falls back to drawing the tooltip text.
+- This instruction executes even when output skipping is active.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `TOOLTIP_CUSTOM 1`
+- `TOOLTIP_IMG 1`
 
 ## BINPUT (instruction)
 **Summary**

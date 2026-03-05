@@ -10636,30 +10636,52 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## PRINT_IMG (instruction)
 **Summary**
-- (TODO)
+- Appends an inline image part to the current output line (equivalent to an `<img ...>` element in the HTML output model).
 
 **Metadata**
 - Arg spec: `SP_PRINT_IMG` (see #argument-spec-sp_print_img) (inferred from `PRINT_IMG_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new PRINT_IMG_Instruction()`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_IMG <src>`
+- `PRINT_IMG <src>, <srcb>`
+- `PRINT_IMG <src>, <srcb>, <srcm>`
+- `PRINT_IMG <src>, <srcb>, <srcm>, <width> [, <height> [, <ypos>]]`
+- `PRINT_IMG <src>, <width> [, <height> [, <ypos>]]`
 
 **Arguments**
-- Builder: `SP_PRINT_IMG_ArgumentBuilder()`
-- Type pattern: `null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) }` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- `<src>` (string expression): sprite name.
+- `<srcb>` (optional, string expression): sprite name used when the region is selected/focused.
+  - If this evaluates to `""`, it is treated as omitted.
+- `<srcm>` (optional, string expression): mapping-sprite name used by mouse-input mapping color side channels (see `html-output.md` and `INPUT`).
+- `<width>` / `<height>` / `<ypos>` (optional, int expressions): mixed numeric attributes.
+  - Each numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `80px`).
+  - Without `px`, the value is interpreted as a percentage of the current font size (in pixels): `valuePx = value * FontSize / 100`.
+  - Numeric argument order is `width`, then `height`, then `ypos`.
 
 **Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Appends an image part to the current print buffer (no implicit newline).
+- The image part is equivalent to emitting an HTML `<img ...>` tag and letting the HTML renderer handle it:
+  - `src=<src>`, `srcb=<srcb>`, `srcm=<srcm>`
+  - `width=<width>`, `height=<height>`, `ypos=<ypos>` (only included when the numeric value is non-zero)
+- See `html-output.md` (“Inline images: `<img ...>`”) for rendering rules:
+  - If `height` is omitted or `0`, it defaults to the current font size (pixels).
+  - If `width` is omitted or `0`, the original aspect ratio is preserved.
+  - Negative `width` / `height` values flip the image horizontally/vertically.
+  - If the sprite cannot be resolved, the tag is rendered as literal text.
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintImg(`
 
 **Errors & validation**
+- Argument parse-time errors if more than 3 numeric arguments are provided, or if string arguments appear after numeric arguments.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.InvalidArg.Text)`
 
 **Examples**
-- (TODO)
+- `PRINT_IMG "FACE_001"`
+- `PRINT_IMG "FACE_001", 80px` (explicit pixel width)
+- `PRINT_IMG "FACE_001", 120, 120` (width/height as percent of font size)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10668,30 +10690,43 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## PRINT_RECT (instruction)
 **Summary**
-- (TODO)
+- Appends a filled rectangle shape part to the current output line (equivalent to a `<shape type='rect' ...>` element in the HTML output model).
 
 **Metadata**
 - Arg spec: `SP_PRINT_RECT` (see #argument-spec-sp_print_rect) (inferred from `PRINT_RECT_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new PRINT_RECT_Instruction()`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_RECT <width>`
+- `PRINT_RECT <x>, <y>, <width>, <height>`
 
 **Arguments**
-- Builder: `SP_PRINT_SHAPE_ArgumentBuilder(4)`
-- Type pattern: `[typeof(long), typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- The numeric arguments are int expressions in mixed units:
+  - A numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `30px`).
+  - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `valuePx = value * FontSize / 100`.
+- 1-argument form:
+  - `<width>`: rectangle width (must be `> 0`).
+  - Height is the current font size (pixels), and the rectangle starts at `(x=0, y=0)` within the line box.
+- 4-argument form:
+  - `<x>, <y>, <width>, <height>` define the rectangle (must satisfy `x >= 0`, `width > 0`, `height > 0`; `y` may be negative).
 
 **Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Appends a rectangle shape part to the current print buffer (no implicit newline).
+- The shape uses the current output color as its fill color, and uses the current “button color” when selected/focused.
+- The output part is equivalent to emitting an HTML `<shape type='rect' ...>` tag; see `html-output.md` (“Shapes: `<shape ...>`”) for details and the literal-text fallback behavior for invalid params.
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintShape("rect", param)`
 
 **Errors & validation**
+- Parse-time error if the number of arguments is not exactly `1` or `4`.
+- If the rectangle is not drawable (unsupported parameter constraints), it is rendered as literal text (the string form of the `<shape ...>` tag).
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.InvalidArg.Text)`
 
 **Examples**
-- (TODO)
+- `PRINT_RECT 200` (width = 200% of font size)
+- `PRINT_RECT 0px, -20px, 100px, 20px`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10700,30 +10735,35 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## PRINT_SPACE (instruction)
 **Summary**
-- (TODO)
+- Appends a non-drawing horizontal space part to the current output line (equivalent to a `<shape type='space' ...>` element in the HTML output model).
 
 **Metadata**
 - Arg spec: `SP_PRINT_SPACE` (see #argument-spec-sp_print_space) (inferred from `PRINT_SPACE_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new PRINT_SPACE_Instruction()`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINT_SPACE <width>`
 
 **Arguments**
-- Builder: `SP_PRINT_SHAPE_ArgumentBuilder(1)`
-- Type pattern: `[typeof(long), typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- `<width>` (int expression): space width in mixed units.
+  - May be followed by a `px` suffix token to indicate pixels (e.g. `40px`).
+  - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `widthPx = width * FontSize / 100`.
 
 **Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Appends a space shape part to the current print buffer (no implicit newline).
+- Equivalent to emitting an HTML `<shape type='space' ...>` tag; see `html-output.md` (“Shapes: `<shape ...>`”).
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintShape("space", param)`
 
 **Errors & validation**
+- (none)
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.InvalidArg.Text)`
 
 **Examples**
-- (TODO)
+- `PRINT_SPACE 100` (one “em”, i.e. 100% of font size)
+- `PRINT_SPACE 12px`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10732,33 +10772,33 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## TOOLTIP_SETCOLOR (instruction)
 **Summary**
-- (TODO)
+- Sets the tooltip text and background colors.
 
 **Metadata**
 - Arg spec: `SP_SWAP` (see #argument-spec-sp_swap) (inferred from `TOOLTIP_SETCOLOR_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TOOLTIP_SETCOLOR_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): <int>,<int>
-- Hint (raw comment): `<数値>,<数値>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TOOLTIP_SETCOLOR <foreColor>, <backColor>`
 
 **Arguments**
-- Builder: `SP_SWAP_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- `<foreColor>` (int expression): RGB color `0x000000 .. 0xFFFFFF`.
+- `<backColor>` (int expression): RGB color `0x000000 .. 0xFFFFFF`.
 
 **Semantics**
+- Updates the UI tooltip colors for subsequent tooltips.
+- This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipColor(fc, bc)`
 
 **Errors & validation**
+- Runtime error if either color is outside `0 .. 0xFFFFFF`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsOoRColorCode.Text, "1"))`
   - `throw new CodeEE(string.Format(trerror.ArgIsOoRColorCode.Text, "2"))`
 
 **Examples**
-- (TODO)
+- `TOOLTIP_SETCOLOR 0xFFFFFF, 0x000000`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10767,32 +10807,32 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## TOOLTIP_SETDELAY (instruction)
 **Summary**
-- (TODO)
+- Sets the tooltip initial delay (time between hover and tooltip popup).
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `TOOLTIP_SETDELAY_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TOOLTIP_SETDELAY_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TOOLTIP_SETDELAY <delayMs>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<delayMs>` (int expression): delay in milliseconds.
+  - Omitted argument is accepted with a warning and treated as `0`.
 
 **Semantics**
+- Sets the tooltip initial delay used by the engine’s tooltip popup logic.
+- This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipDelay((int)delay)`
 
 **Errors & validation**
+- Runtime error if `<delayMs> < 0` or `<delayMs> > 2147483647`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.ArgIsOoR.Text)`
 
 **Examples**
-- (TODO)
+- `TOOLTIP_SETDELAY 500`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10801,32 +10841,35 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## TOOLTIP_SETDURATION (instruction)
 **Summary**
-- (TODO)
+- Sets the tooltip display duration.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `TOOLTIP_SETDURATION_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TOOLTIP_SETDURATION_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TOOLTIP_SETDURATION <durationMs>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<durationMs>` (int expression): duration in milliseconds.
+  - Omitted argument is accepted with a warning and treated as `0`.
 
 **Semantics**
+- Sets how long tooltips stay visible after appearing.
+  - `0` uses the UI toolkit’s default “no explicit duration” mode.
+- Values greater than `32767` are clamped to `32767`.
+- This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipDuration((int)duration)`
 
 **Errors & validation**
+- Runtime error if `<durationMs> < 0` or `<durationMs> > 2147483647`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.ArgIsOoR.Text)`
 
 **Examples**
-- (TODO)
+- `TOOLTIP_SETDURATION 2000`
+- `TOOLTIP_SETDURATION 0` (use default/indefinite mode)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11538,31 +11581,29 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## TOOLTIP_SETFONT (instruction)
 **Summary**
-- (TODO)
+- Sets the font family name used when drawing tooltips (in custom-draw mode).
 
 **Metadata**
 - Arg spec: `STR_EXPRESSION` (see #argument-spec-str_expression) (inferred from `TOOLTIP_SETFONT_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TOOLTIP_SETFONT_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): string expression
-- Hint (raw comment): `文字列式型`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TOOLTIP_SETFONT <fontName>`
 
 **Arguments**
-- Builder: `STR_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(string)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<fontName>` (string expression): font family name.
 
 **Semantics**
+- Stores the font name used by tooltip custom drawing (`TOOLTIP_CUSTOM 1`).
+- This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipFontName(fn.Term.GetStrValue(exm))`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `TOOLTIP_SETFONT "MS Gothic"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11571,31 +11612,29 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## TOOLTIP_SETFONTSIZE (instruction)
 **Summary**
-- (TODO)
+- Sets the font size (in points) used when drawing tooltips (in custom-draw mode).
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `TOOLTIP_SETFONTSIZE_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TOOLTIP_SETFONTSIZE_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TOOLTIP_SETFONTSIZE <size>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<size>` (int expression): font size value passed to the UI font constructor.
 
 **Semantics**
+- Stores the tooltip font size used by tooltip custom drawing (`TOOLTIP_CUSTOM 1`).
+- This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipFontSize(fs.Term.GetIntValue(exm))`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `TOOLTIP_SETFONTSIZE 12`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11604,32 +11643,33 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## TOOLTIP_CUSTOM (instruction)
 **Summary**
-- (TODO)
+- Enables/disables owner-drawn (custom rendered) tooltips.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `TOOLTIP_CUSTOM_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TOOLTIP_CUSTOM_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TOOLTIP_CUSTOM <enabled>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<enabled>` (int expression): `0` disables custom tooltips; non-zero enables.
 
 **Semantics**
+- When enabled, tooltips are drawn via the engine’s custom draw logic, which supports:
+  - custom font name/size (`TOOLTIP_SETFONT`, `TOOLTIP_SETFONTSIZE`)
+  - custom text formatting flags (`TOOLTIP_FORMAT`)
+  - optional image tooltips (`TOOLTIP_IMG`)
+- This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `exm.Console.CustomToolTip(false)`
   - `exm.Console.CustomToolTip(true)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `TOOLTIP_CUSTOM 1`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11638,31 +11678,29 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## TOOLTIP_FORMAT (instruction)
 **Summary**
-- (TODO)
+- Sets the tooltip text rendering flags used by the UI text renderer (in custom-draw mode).
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `TOOLTIP_FORMAT_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TOOLTIP_FORMAT_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TOOLTIP_FORMAT <flags>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<flags>` (int expression): bitmask passed through as `.NET` `TextFormatFlags`.
 
 **Semantics**
+- Updates the text format flags used when drawing tooltip text in custom-draw mode (`TOOLTIP_CUSTOM 1`).
+- This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipFormat(i.Term.GetIntValue(exm))`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `TOOLTIP_FORMAT 0`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11671,31 +11709,32 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## TOOLTIP_IMG (instruction)
 **Summary**
-- (TODO)
+- Enables/disables “image tooltip” interpretation in custom-draw tooltips.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `TOOLTIP_IMG_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new TOOLTIP_IMG_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `TOOLTIP_IMG <enabled>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<enabled>` (int expression): `0` disables; non-zero enables.
 
 **Semantics**
+- When enabled and tooltips are custom-drawn (`TOOLTIP_CUSTOM 1`):
+  - If the tooltip text can be parsed as an integer `i`, the engine attempts to draw graphics resource `G:i` as the tooltip content.
+  - If the graphics resource is not available, it falls back to drawing the tooltip text.
+- This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipImg(i.Term.GetIntValue(exm) != 0)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `TOOLTIP_CUSTOM 1`
+- `TOOLTIP_IMG 1`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
