@@ -5048,6 +5048,7 @@ ADDCOPYCHARA 0
 - `<charaVarTerm>`: a variable term whose identifier is a character-data variable.
 - Order: `FORWARD` = ascending, `BACK` = descending.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
+  - Any written chara selector in `<charaVarTerm>` is ignored and not evaluated (the sort always scans `i = 0 .. CHARANUM-1`).
 
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.
@@ -5553,6 +5554,9 @@ ENDNOSKIP
 - `<count>` (optional, int; default “to end”): number of elements in the segment. If explicitly `0`, this is a no-op.
 
 **Semantics**
+- If `<arrayVar>` is a character-data 1D array, the shift is applied to the **per-character slice** selected by `<arrayVar>`’s chara selector.
+  - Any element-index subscript written after the chara selector is ignored for this instruction, but it is still evaluated once when the instruction evaluates `<arrayVar>`’s indices.
+  - To target a specific character explicitly, write both indices (the element index is a dummy), e.g. `CFLAG:chara:0`.
 - Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).
 - If `shift == 0`, does nothing.
 - If shifting removes all overlap, fills the whole segment with `<default>`.
@@ -5583,6 +5587,9 @@ ENDNOSKIP
 
 **Semantics**
 - Works only on 1D arrays (int or string).
+- If `<arrayVar>` is a character-data 1D array, the removal is applied to the **per-character slice** selected by `<arrayVar>`’s chara selector.
+  - Any element-index subscript written after the chara selector is ignored for this instruction, but it is still evaluated once when the instruction evaluates `<arrayVar>`’s indices.
+  - To target a specific character explicitly, write both indices (the element index is a dummy), e.g. `CFLAG:chara:0`.
 - Removes elements in the conceptual range `[start, start+count)`:
   - Elements after the removed segment are shifted left into the gap.
   - The remaining tail is filled with defaults:
@@ -5622,6 +5629,9 @@ ENDNOSKIP
 
 **Semantics**
 - Order defaults to ascending.
+- If `<arrayVar>` is a character-data 1D array, the sort is applied to the **per-character slice** selected by `<arrayVar>`’s chara selector.
+  - Any element-index subscript written after the chara selector is ignored for this instruction, but it is still evaluated once when the instruction evaluates `<arrayVar>`’s indices.
+  - To target a specific character explicitly, write both indices (the element index is a dummy), e.g. `CFLAG:chara:0`.
 - Sorts the specified region of the array:
   - If `<count>` is omitted: sorts to end.
   - If `<count>` is provided and `<= 0`: `0` is a no-op; `<0` is an error.
@@ -7276,6 +7286,7 @@ HTML_PRINT_ISLAND_CLEAR
   - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
   - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
 - The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+  - The written chara selector is also not evaluated (no side effects from that expression).
 - `value` (int|string; must match the selected cell type): scalar value to match.
 - `startIndex` (optional, int; default `0`): inclusive start chara index.
 - `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
@@ -7321,6 +7332,7 @@ HTML_PRINT_ISLAND_CLEAR
   - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
   - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
 - The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+  - The written chara selector is also not evaluated (no side effects from that expression).
 - `value` (int|string; must match the selected cell type): scalar value to match.
 - `startIndex` (optional, int; default `0`): inclusive start chara index.
 - `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
@@ -7561,72 +7573,609 @@ PRINTFORML %S%
 - (TODO: not yet documented)
 
 ## LOG (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the natural logarithm of an integer, truncated to an integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `LOG(x)`
+
+**Signatures / argument rules**
+- `LOG(x)` → `long`
+
+**Arguments**
+- `x` (int): must be greater than `0`.
+
+**Semantics**
+- Computes `Math.Log((double)x)` (base *e*) and returns it truncated toward `0` as an integer.
+
+**Errors & validation**
+- Runtime error if `x <= 0`.
+- Runtime error if the computed value is NaN, Infinity, or outside the `Int64` range.
+
+**Examples**
+- `LOG(1)` returns `0`.
+- `LOG(2)` returns `0` (since `ln(2)` is between `0` and `1`).
 
 ## LOG10 (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the base-10 logarithm of an integer, truncated to an integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `LOG10(x)`
+
+**Signatures / argument rules**
+- `LOG10(x)` → `long`
+
+**Arguments**
+- `x` (int): must be greater than `0`.
+
+**Semantics**
+- Computes `Math.Log10((double)x)` and returns it truncated toward `0` as an integer.
+
+**Errors & validation**
+- Runtime error if `x <= 0`.
+- Runtime error if the computed value is NaN, Infinity, or outside the `Int64` range.
+
+**Examples**
+- `LOG10(1)` returns `0`.
+- `LOG10(9)` returns `0`.
+- `LOG10(10)` returns `1`.
 
 ## EXPONENT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns `e^x` (the exponential function), truncated to an integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `EXPONENT(x)`
+
+**Signatures / argument rules**
+- `EXPONENT(x)` → `long`
+
+**Arguments**
+- `x` (int)
+
+**Semantics**
+- Computes `Math.Exp((double)x)` and returns it truncated toward `0` as an integer.
+
+**Errors & validation**
+- Runtime error if the computed value is NaN, Infinity, or outside the `Int64` range.
+
+**Examples**
+- `EXPONENT(0)` returns `1`.
+- `EXPONENT(1)` returns `2`.
+- `EXPONENT(-1)` returns `0`.
 
 ## SIGN (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the sign of an integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `SIGN(x)`
+
+**Signatures / argument rules**
+- `SIGN(x)` → `long`
+
+**Arguments**
+- `x` (int)
+
+**Semantics**
+- Returns:
+  - `-1` if `x < 0`
+  - `0` if `x == 0`
+  - `1` if `x > 0`
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `SIGN(-10)` returns `-1`.
+- `SIGN(0)` returns `0`.
+- `SIGN(10)` returns `1`.
 
 ## LIMIT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Clamps an integer value to a specified inclusive range.
+
+**Tags**
+- math
+
+**Syntax**
+- `LIMIT(value, min, max)`
+
+**Signatures / argument rules**
+- `LIMIT(value, min, max)` → `long`
+
+**Arguments**
+- `value` (int)
+- `min` (int)
+- `max` (int)
+
+**Semantics**
+- Returns:
+  - `min` if `value < min`
+  - `max` if `value > max`
+  - otherwise `value`
+- Note: `min` and `max` are used as written; they are not swapped if `min > max`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `LIMIT(5, 0, 10)` returns `5`.
+- `LIMIT(-1, 0, 10)` returns `0`.
+- `LIMIT(11, 0, 10)` returns `10`.
 
 ## SUMARRAY (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the sum of elements in an integer array over a specified index range.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `SUMARRAY(arrayVarTerm [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `SUMARRAY(arrayVarTerm)` → `long`
+- `SUMARRAY(arrayVarTerm, startIndex)` → `long`
+- `SUMARRAY(arrayVarTerm, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `arrayVarTerm` (int array variable term): an integer array variable term (1D/2D/3D; character-data arrays are allowed).
+  - The operation sums along the **last** dimension.
+  - Any subscript written in the **last** slot of `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
+    - 1D: `A:x` → sums `A[i]` (the written `x` is ignored)
+    - 2D: `A:x:y` → sums `A[x, i]` (the written `y` is ignored)
+    - 3D: `A:x:y:z` → sums `A[x, y, i]` (the written `z` is ignored)
+    - character-data 1D: `C:chara:x` → sums `C[chara, i]` (the written `x` is ignored)
+    - character-data 2D: `C:chara:x:y` → sums `C[chara, x, i]` (the written `y` is ignored)
+- `startIndex` (optional, int; default `0`): inclusive start index in the summed dimension.
+- `endIndex` (optional, int; default = length of the summed dimension): exclusive end index in the summed dimension.
+
+**Semantics**
+- Returns `Σ arrayVarTerm[...]` over indices `i` with `startIndex <= i < endIndex` using the addressing rules above.
+- If `startIndex >= endIndex`, returns `0`.
+
+**Errors & validation**
+- Parse-time error if `arrayVarTerm` is not a non-`CONST` integer array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `endIndex < 0`
+  - `startIndex > length` or `endIndex > length` (where `length` is the length of the summed dimension)
+  - any fixed indices inside `arrayVarTerm` are out of range
+  - the ignored “last-slot” subscript written in `arrayVarTerm` is out of range
+
+**Examples**
+- `total = SUMARRAY(A, 0, 10)`
+- `total = SUMARRAY(B:2:0, 5, 8)`  ; sums `B[2,5] + B[2,6] + B[2,7]`
+- `total = SUMARRAY(CFLAG, 0, 100)` ; sums `CFLAG[TARGET,i]` for `0 <= i < 100`
 
 ## SUMCARRAY (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the sum of a character-data integer variable over a specified character-index range.
+
+**Tags**
+- characters
+- arrays
+
+**Syntax**
+- `SUMCARRAY(charaVarTerm [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `SUMCARRAY(charaVarTerm)` → `long`
+- `SUMCARRAY(charaVarTerm, startIndex)` → `long`
+- `SUMCARRAY(charaVarTerm, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `charaVarTerm` (character-data int array variable term): selects which per-character cell to read.
+  - The function scans characters and treats the scanned index `i` as the effective character selector.
+  - Any written chara selector in `charaVarTerm` does not affect which characters are scanned.
+  - Subscripts written after the chara selector (if any) select which per-character cell is summed:
+    - character 1D array: reads `V[i, index]`
+    - character 2D array: reads `V[i, index1, 0]` (the second index is not used by this function and behaves as `0`)
+- `startIndex` (optional, int; default `0`): inclusive start chara index.
+- `endIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
+
+**Semantics**
+- Returns `Σ charaVarTerm[i]` over character indices `i` with `startIndex <= i < endIndex` using the addressing rules above.
+- If `startIndex >= endIndex`, returns `0`.
+
+**Errors & validation**
+- Parse-time error if `charaVarTerm` is not a character-data integer array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `startIndex >= CHARANUM`
+  - `endIndex < 0` or `endIndex > CHARANUM`
+  - any “after-chara” subscripts inside `charaVarTerm` are out of range
+  - any written chara selector inside `charaVarTerm` is out of range (even though it does not affect the scan)
+
+**Examples**
+- `sum = SUMCARRAY(CFLAG:3)`        ; sums `CFLAG[i,3]` for `0 <= i < CHARANUM`
+- `sum = SUMCARRAY(TALENT:0, 0, 10)` ; sums `TALENT[i,0]` for `0 <= i < 10`
 
 ## MATCH (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Counts how many elements in an array equal a target value.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `MATCH(arrayVarTerm, value [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `MATCH(arrayVarTerm, value)` → `long`
+- `MATCH(arrayVarTerm, value, startIndex)` → `long`
+- `MATCH(arrayVarTerm, value, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `arrayVarTerm` (1D array variable term): a 1D variable term (int or string). Character-data 1D arrays are allowed (the chara selector chooses the character slice).
+  - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
+- `value` (int|string; must match the array element type): target value.
+- `startIndex` (optional, int; default `0`): inclusive start index.
+- `endIndex` (optional, int; default = array length): exclusive end index.
+
+**Semantics**
+- Counts indices `i` with `startIndex <= i < endIndex` where the element equals `value`.
+- Equality:
+  - int array: `==`
+  - string array: `==` (ordinal string equality in .NET), with the following rule:
+    - if `value` is `""`, then both `""` and `null` elements are counted as matches
+- Returns the count (0 or greater).
+
+**Errors & validation**
+- Parse-time error if `arrayVarTerm` is not a 1D array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `endIndex < 0`
+  - `startIndex > length` or `endIndex > length`
+  - the ignored written subscript in `arrayVarTerm` is out of range
+
+**Examples**
+- `n = MATCH(A, 0)`
+- `n = MATCH(S, "", 0, 100)`
+- `n = MATCH(CFLAG, 1, 0, 50)` ; counts in `CFLAG[TARGET,i]` for `0 <= i < 50`
 
 ## CMATCH (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Counts how many characters in the current character list have a given character-data cell equal to a target value.
+
+**Tags**
+- characters
+
+**Syntax**
+- `CMATCH(charaVarTerm, value [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `CMATCH(charaVarTerm, value)` → `long`
+- `CMATCH(charaVarTerm, value, startIndex)` → `long`
+- `CMATCH(charaVarTerm, value, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `charaVarTerm` (character-data variable term): selects which per-character cell to compare.
+  - The function scans characters and treats the scanned index `i` as the effective character selector.
+  - Any written chara selector in `charaVarTerm` does not affect the scan.
+  - Subscripts written after the chara selector (if any) select the per-character cell:
+    - scalar character variable: compares `V[i]`
+    - character 1D array: compares `V[i, index]`
+    - character 2D array: compares `V[i, index1, index2]`
+- `value` (int|string; must match the selected cell type): target value.
+- `startIndex` (optional, int; default `0`): inclusive start chara index.
+- `endIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
+
+**Semantics**
+- Counts character indices `i` with `startIndex <= i < endIndex` where the selected cell equals `value`.
+- Equality:
+  - int cell: `==`
+  - string cell: `==` (ordinal string equality in .NET), with the following rule:
+    - if `value` is `""`, then both `""` and `null` cells are counted as matches
+- Returns the count (0 or greater).
+
+**Errors & validation**
+- Error if `charaVarTerm` is not a character-data variable term.
+- Runtime error if:
+  - `startIndex < 0` or `startIndex >= CHARANUM`
+  - `endIndex < 0` or `endIndex > CHARANUM`
+  - any “after-chara” subscripts inside `charaVarTerm` are out of range
+  - any written chara selector inside `charaVarTerm` is out of range (even though it does not affect the scan)
+
+**Examples**
+- `n = CMATCH(TALENT, 1)`
+- `n = CMATCH(CFLAG:3, 0, 0, CHARANUM)`
 
 ## GROUPMATCH (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Counts how many of the trailing arguments are equal to the first argument.
+
+**Tags**
+- math
+
+**Syntax**
+- `GROUPMATCH(base, value1 [, value2 ...])`
+
+**Signatures / argument rules**
+- `GROUPMATCH(base, value1 [, value2 ...])` → `long`
+  - Requires at least 2 arguments.
+  - All arguments must have the same type (int or string).
+
+**Arguments**
+- `base` (int|string)
+- `valueN` (int|string): values to compare against `base`.
+
+**Semantics**
+- Returns the number of `valueN` that compare equal to `base` using `==`.
+- The first argument `base` is not counted as a match against itself.
+
+**Errors & validation**
+- Parse-time error if any `valueN` has a different type from `base`.
+
+**Examples**
+- `GROUPMATCH(1, 1, 2, 1)` returns `2`.
+- `GROUPMATCH("a", "a", "b")` returns `1`.
 
 ## NOSAMES (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Tests whether all arguments are pairwise distinct.
+
+**Tags**
+- math
+
+**Syntax**
+- `NOSAMES(a, b [, c ...])`
+
+**Signatures / argument rules**
+- `NOSAMES(a, b [, c ...])` → `long`
+  - Requires at least 2 arguments.
+  - All arguments must have the same type (int or string).
+
+**Arguments**
+- `a` (int|string)
+- `b` (int|string)
+- `c...` (optional, int|string)
+
+**Semantics**
+- Returns `1` if no two arguments are equal (using `==`), otherwise returns `0`.
+
+**Errors & validation**
+- Parse-time error if the argument types do not match.
+
+**Examples**
+- `NOSAMES(1, 2, 3)` returns `1`.
+- `NOSAMES(1, 2, 1)` returns `0`.
 
 ## ALLSAMES (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Tests whether all arguments are equal to the first argument.
+
+**Tags**
+- math
+
+**Syntax**
+- `ALLSAMES(a, b [, c ...])`
+
+**Signatures / argument rules**
+- `ALLSAMES(a, b [, c ...])` → `long`
+  - Requires at least 2 arguments.
+  - All arguments must have the same type (int or string).
+
+**Arguments**
+- `a` (int|string)
+- `b` (int|string)
+- `c...` (optional, int|string)
+
+**Semantics**
+- Returns `1` if `a == b == c == ...`, otherwise returns `0`.
+
+**Errors & validation**
+- Parse-time error if the argument types do not match.
+
+**Examples**
+- `ALLSAMES(1, 1, 1)` returns `1`.
+- `ALLSAMES(1, 1, 2)` returns `0`.
 
 ## MAXARRAY (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the maximum integer value in an array range.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `MAXARRAY(arrayVarTerm [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `MAXARRAY(arrayVarTerm)` → `long`
+- `MAXARRAY(arrayVarTerm, startIndex)` → `long`
+- `MAXARRAY(arrayVarTerm, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `arrayVarTerm` (int 1D array variable term): a 1D integer array variable term. Character-data 1D arrays are allowed (the chara selector chooses the character slice).
+  - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
+- `startIndex` (optional, int; default `0`): start index.
+- `endIndex` (optional, int; default = array length): end index.
+
+**Semantics**
+- Reads `ret = element[startIndex]`, then scans `i` from `startIndex + 1` while `i < endIndex`, and updates `ret = max(ret, element[i])`.
+- If `endIndex <= startIndex`, returns `element[startIndex]` (the single element at `startIndex`).
+
+**Errors & validation**
+- Parse-time error if `arrayVarTerm` is not an integer 1D array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `startIndex >= length`
+  - `endIndex < 0` or `endIndex > length`
+  - the ignored written subscript in `arrayVarTerm` is out of range
+
+**Examples**
+- `m = MAXARRAY(A)`
+- `m = MAXARRAY(A, 10, 20)`
+- `m = MAXARRAY(CFLAG, 0, 100)` ; max within `CFLAG[TARGET,i]` for `0 <= i < 100`
 
 ## MAXCARRAY (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the maximum integer value of a character-data cell over a character-index range.
+
+**Tags**
+- characters
+
+**Syntax**
+- `MAXCARRAY(charaVarTerm [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `MAXCARRAY(charaVarTerm)` → `long`
+- `MAXCARRAY(charaVarTerm, startIndex)` → `long`
+- `MAXCARRAY(charaVarTerm, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `charaVarTerm` (character-data int 1D array variable term): selects which per-character cell to read.
+  - The function scans characters and treats the scanned index `i` as the effective character selector.
+  - Any written chara selector in `charaVarTerm` does not affect the scan.
+  - The subscript written after the chara selector selects the per-character cell: reads `V[i, index]`.
+- `startIndex` (optional, int; default `0`): start chara index.
+- `endIndex` (optional, int; default `CHARANUM`): end chara index.
+
+**Semantics**
+- Reads `ret = cell[startIndex]`, then scans `i` from `startIndex + 1` while `i < endIndex`, and updates `ret = max(ret, cell[i])`.
+- If `endIndex <= startIndex`, returns `cell[startIndex]` (the single cell at `startIndex`).
+
+**Errors & validation**
+- Parse-time error if `charaVarTerm` is not a character-data integer 1D array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `startIndex >= CHARANUM`
+  - `endIndex < 0` or `endIndex > CHARANUM`
+  - any “after-chara” subscripts inside `charaVarTerm` are out of range
+  - any written chara selector inside `charaVarTerm` is out of range (even though it does not affect the scan)
+
+**Examples**
+- `m = MAXCARRAY(CFLAG:3)`
+- `m = MAXCARRAY(CFLAG:3, 0, CHARANUM)`
 
 ## MINARRAY (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the minimum integer value in an array range.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `MINARRAY(arrayVarTerm [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `MINARRAY(arrayVarTerm)` → `long`
+- `MINARRAY(arrayVarTerm, startIndex)` → `long`
+- `MINARRAY(arrayVarTerm, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `arrayVarTerm` (int 1D array variable term): a 1D integer array variable term. Character-data 1D arrays are allowed (the chara selector chooses the character slice).
+  - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
+- `startIndex` (optional, int; default `0`): start index.
+- `endIndex` (optional, int; default = array length): end index.
+
+**Semantics**
+- Reads `ret = element[startIndex]`, then scans `i` from `startIndex + 1` while `i < endIndex`, and updates `ret = min(ret, element[i])`.
+- If `endIndex <= startIndex`, returns `element[startIndex]` (the single element at `startIndex`).
+
+**Errors & validation**
+- Parse-time error if `arrayVarTerm` is not an integer 1D array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `startIndex >= length`
+  - `endIndex < 0` or `endIndex > length`
+  - the ignored written subscript in `arrayVarTerm` is out of range
+
+**Examples**
+- `m = MINARRAY(A)`
+- `m = MINARRAY(A, 10, 20)`
 
 ## MINCARRAY (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the minimum integer value of a character-data cell over a character-index range.
+
+**Tags**
+- characters
+
+**Syntax**
+- `MINCARRAY(charaVarTerm [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `MINCARRAY(charaVarTerm)` → `long`
+- `MINCARRAY(charaVarTerm, startIndex)` → `long`
+- `MINCARRAY(charaVarTerm, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `charaVarTerm` (character-data int 1D array variable term): selects which per-character cell to read.
+  - The function scans characters and treats the scanned index `i` as the effective character selector.
+  - Any written chara selector in `charaVarTerm` does not affect the scan.
+  - The subscript written after the chara selector selects the per-character cell: reads `V[i, index]`.
+- `startIndex` (optional, int; default `0`): start chara index.
+- `endIndex` (optional, int; default `CHARANUM`): end chara index.
+
+**Semantics**
+- Reads `ret = cell[startIndex]`, then scans `i` from `startIndex + 1` while `i < endIndex`, and updates `ret = min(ret, cell[i])`.
+- If `endIndex <= startIndex`, returns `cell[startIndex]` (the single cell at `startIndex`).
+
+**Errors & validation**
+- Parse-time error if `charaVarTerm` is not a character-data integer 1D array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `startIndex >= CHARANUM`
+  - `endIndex < 0` or `endIndex > CHARANUM`
+  - any “after-chara” subscripts inside `charaVarTerm` are out of range
+  - any written chara selector inside `charaVarTerm` is out of range (even though it does not affect the scan)
+
+**Examples**
+- `m = MINCARRAY(CFLAG:3)`
 
 ## GETBIT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Extracts a single bit from a 64-bit integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `GETBIT(n, m)`
+
+**Signatures / argument rules**
+- `GETBIT(n, m)` → `long`
+
+**Arguments**
+- `n` (int): treated as a signed 64-bit value.
+- `m` (int): bit position, must satisfy `0 <= m <= 63` (`0` = least-significant bit).
+
+**Semantics**
+- Returns `((n >> m) & 1)`.
+
+**Errors & validation**
+- Runtime error if `m < 0` or `m > 63`.
+
+**Examples**
+- `GETBIT(5, 0)` returns `1`.
+- `GETBIT(5, 2)` returns `1`.
+- `GETBIT(5, 1)` returns `0`.
 
 ## GETNUM (expression function)
 **Summary**
@@ -7641,32 +8190,250 @@ PRINTFORML %S%
 - (TODO: not yet documented)
 
 ## FINDELEMENT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Searches a 1D array for a target and returns the first matching index.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `FINDELEMENT(arrayVarTerm, target [, startIndex [, endIndex [, exact]]])`
+
+**Signatures / argument rules**
+- `FINDELEMENT(arrayVarTerm, target)` → `long`
+- `FINDELEMENT(arrayVarTerm, target, startIndex)` → `long`
+- `FINDELEMENT(arrayVarTerm, target, startIndex, endIndex)` → `long`
+- `FINDELEMENT(arrayVarTerm, target, startIndex, endIndex, exact)` → `long`
+
+**Arguments**
+- `arrayVarTerm` (1D array variable term): a 1D variable term (int or string). Character-data 1D arrays are allowed (the chara selector chooses the character slice).
+  - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
+- `target`:
+  - int array: int value to match
+  - string array: a **regular expression pattern** (see “Semantics”)
+- `startIndex` (optional, int; default `0`): inclusive start index.
+- `endIndex` (optional, int; default = array length): exclusive end index.
+- `exact` (optional, int; default `0`): only meaningful for string arrays.
+  - `0`: regex partial match
+  - non-zero: regex full-string match
+
+**Semantics**
+- If `startIndex >= endIndex`, returns `-1`.
+- int array:
+  - Returns the first index `i` with `startIndex <= i < endIndex` where `array[i] == target`, or `-1` if not found.
+  - `exact` is accepted but has no effect.
+- string array:
+  - Compiles `target` as a .NET regular expression pattern.
+  - Treats `null` array elements as `""` during matching.
+  - If `exact != 0`, returns the first index whose string fully matches the regex.
+  - Otherwise, returns the first index whose string contains a regex match.
+
+**Errors & validation**
+- Parse-time error if `arrayVarTerm` is not a 1D array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `endIndex < 0`
+  - `startIndex > length` or `endIndex > length`
+  - the ignored written subscript in `arrayVarTerm` is out of range
+  - the regex pattern is invalid (string array case)
+
+**Examples**
+- `i = FINDELEMENT(A, 0)`
+- `i = FINDELEMENT(S, \"^Alice$\", 0, 100, 1)`
 
 ## FINDLASTELEMENT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Searches a 1D array for a target and returns the last matching index.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `FINDLASTELEMENT(arrayVarTerm, target [, startIndex [, endIndex [, exact]]])`
+
+**Signatures / argument rules**
+- `FINDLASTELEMENT(arrayVarTerm, target)` → `long`
+- `FINDLASTELEMENT(arrayVarTerm, target, startIndex)` → `long`
+- `FINDLASTELEMENT(arrayVarTerm, target, startIndex, endIndex)` → `long`
+- `FINDLASTELEMENT(arrayVarTerm, target, startIndex, endIndex, exact)` → `long`
+
+**Arguments**
+- Same as `FINDELEMENT`.
+
+**Semantics**
+- Same as `FINDELEMENT`, except it searches backward and returns the last matching index in `[startIndex, endIndex)`.
+
+**Errors & validation**
+- Same as `FINDELEMENT`.
+
+**Examples**
+- `i = FINDLASTELEMENT(A, 0)`
+- `i = FINDLASTELEMENT(S, \"Alice\", 0, 100, 1)`  ; exact regex match
 
 ## INRANGE (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Tests whether a value is within an inclusive numeric range.
+
+**Tags**
+- math
+
+**Syntax**
+- `INRANGE(value, min, max)`
+
+**Signatures / argument rules**
+- `INRANGE(value, min, max)` → `long`
+
+**Arguments**
+- `value` (int)
+- `min` (int)
+- `max` (int)
+
+**Semantics**
+- Returns `1` if `min <= value <= max`, otherwise returns `0`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `INRANGE(5, 0, 10)` returns `1`.
+- `INRANGE(10, 0, 10)` returns `1`.
+- `INRANGE(11, 0, 10)` returns `0`.
 
 ## INRANGEARRAY (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Counts how many elements of an integer array are within a numeric range.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `INRANGEARRAY(arrayVarTerm, min, max [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `INRANGEARRAY(arrayVarTerm, min, max)` → `long`
+- `INRANGEARRAY(arrayVarTerm, min, max, startIndex)` → `long`
+- `INRANGEARRAY(arrayVarTerm, min, max, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `arrayVarTerm` (int 1D array variable term): a 1D integer array variable term. Character-data 1D arrays are allowed (the chara selector chooses the character slice).
+  - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
+- `min` (int): inclusive lower bound.
+- `max` (int): exclusive upper bound.
+- `startIndex` (optional, int; default `0`): inclusive start index.
+- `endIndex` (optional, int; default = array length): exclusive end index.
+
+**Semantics**
+- Returns how many indices `i` satisfy:
+  - `startIndex <= i < endIndex`, and
+  - `min <= array[i] < max`.
+- If `startIndex >= endIndex`, returns `0`.
+
+**Errors & validation**
+- Parse-time error if `arrayVarTerm` is not an integer 1D array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `endIndex < 0`
+  - `startIndex > length` or `endIndex > length`
+  - the ignored written subscript in `arrayVarTerm` is out of range
+
+**Examples**
+- `n = INRANGEARRAY(A, 0, 10)`       ; counts `0 <= A[i] < 10`
+- `n = INRANGEARRAY(CFLAG, 1, 2)`   ; counts `CFLAG[TARGET,i] == 1`
 
 ## INRANGECARRAY (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Counts how many characters have a character-data cell within a numeric range.
+
+**Tags**
+- characters
+
+**Syntax**
+- `INRANGECARRAY(charaVarTerm, min, max [, startIndex [, endIndex]])`
+
+**Signatures / argument rules**
+- `INRANGECARRAY(charaVarTerm, min, max)` → `long`
+- `INRANGECARRAY(charaVarTerm, min, max, startIndex)` → `long`
+- `INRANGECARRAY(charaVarTerm, min, max, startIndex, endIndex)` → `long`
+
+**Arguments**
+- `charaVarTerm` (character-data int 1D array variable term): selects which per-character cell to test.
+  - The function scans characters and treats the scanned index `i` as the effective character selector.
+  - Any written chara selector in `charaVarTerm` does not affect the scan.
+  - The subscript written after the chara selector selects the per-character cell: reads `V[i, index]`.
+- `min` (int): inclusive lower bound.
+- `max` (int): exclusive upper bound.
+- `startIndex` (optional, int; default `0`): inclusive start chara index.
+- `endIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
+
+**Semantics**
+- Returns how many character indices `i` satisfy:
+  - `startIndex <= i < endIndex`, and
+  - `min <= cell[i] < max`.
+- If `startIndex >= endIndex`, returns `0`.
+
+**Errors & validation**
+- Parse-time error if `charaVarTerm` is not a character-data integer 1D array variable term.
+- Runtime error if:
+  - `startIndex < 0` or `startIndex >= CHARANUM`
+  - `endIndex < 0` or `endIndex > CHARANUM`
+  - any “after-chara” subscripts inside `charaVarTerm` are out of range
+  - any written chara selector inside `charaVarTerm` is out of range (even though it does not affect the scan)
+
+**Examples**
+- `n = INRANGECARRAY(CFLAG:3, 1, 2)` ; counts `CFLAG[i,3] == 1`
 
 ## GETNUMB (expression function)
 **Summary**
 - (TODO: not yet documented)
 
 ## ARRAYMSORT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Sorts one or more array variables in-place using the first argument as the sort key array.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `ARRAYMSORT(keyArray, array1 [, array2 ...])`
+
+**Signatures / argument rules**
+- `ARRAYMSORT(keyArray, array1 [, array2 ...])` → `long`
+
+**Arguments**
+- `keyArray` (array variable term): non-character 1D array variable term (int or string). Must not be `CONST` or a calculated/pseudo variable.
+- `arrayN` (array variable term): one or more non-character array variable terms (1D/2D/3D; int or string). Must not be `CONST` or calculated.
+  - Any subscripts written in these variable terms are ignored; the function operates on the underlying array storage.
+
+**Semantics**
+- Builds a permutation by scanning `keyArray` from index `0` and collecting a prefix of entries:
+  - int key array: stops at the first `0`
+  - string key array: stops at the first `null` or empty string
+- Sorts that collected prefix in ascending order by key:
+  - int keys: numeric ascending
+  - string keys: `string.CompareTo` ordering (current culture)
+- Applies the resulting permutation to each argument array (including `keyArray` itself):
+  - 1D arrays: permutes elements `0 .. n-1`
+  - 2D arrays: permutes rows by the first index (`[row, col]`)
+  - 3D arrays: permutes slabs by the first index (`[i, j, k]`)
+- If any argument array’s first dimension is shorter than `n`, the function returns `0`.
+  - This function is not atomic: earlier arrays may already have been permuted before the failure is detected.
+- Returns `1` on success.
+
+**Errors & validation**
+- Errors if:
+  - `keyArray` is not a 1D array variable term
+  - any `arrayN` is not an array variable term
+  - any argument is a character-data variable
+  - any argument is `CONST` or a calculated/pseudo variable
+
+**Examples**
+```erabasic
+ARRAYMSORT(A, B, C)
+```
 
 ## STRLENS (expression function)
 **Summary**
@@ -8523,8 +9290,71 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - (TODO: not yet documented)
 
 ## ARRAYMSORTEX (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Sorts one or more array variables in-place using a key array, with explicit control of sort order and the sorted prefix length.
+
+**Tags**
+- arrays
+
+**Syntax**
+- `ARRAYMSORTEX(keyArray, arrayNameList [, isAscending [, fixedLength]])`
+
+**Signatures / argument rules**
+- `ARRAYMSORTEX(keyArray, arrayNameList)` → `long`
+- `ARRAYMSORTEX(keyArray, arrayNameList, isAscending)` → `long`
+- `ARRAYMSORTEX(keyArray, arrayNameList, isAscending, fixedLength)` → `long`
+
+**Arguments**
+- `keyArray` (array variable term | string):
+  - Either a non-character 1D array variable term (int or string), or a string that is parsed as a variable term expression.
+  - Must not be `CONST`, calculated, or character-data.
+- `arrayNameList` (string 1D array variable term): a string array whose elements are variable-term strings naming the arrays to permute.
+  - Each element is parsed as a variable term expression at runtime.
+  - Any subscripts written in those variable-term strings are ignored; the function operates on the underlying array storage.
+- `isAscending` (optional, int; default `1`): sort order flag.
+  - `0` = descending
+  - non-zero = ascending
+- `fixedLength` (optional, int; default `-1`): how many key entries to sort.
+  - `-1`: sentinel-terminated mode (see Semantics)
+  - `> 0`: sorts the first `min(fixedLength, length(keyArray))` entries
+  - `0`: returns `0`
+
+**Semantics**
+- Resolves `keyArray` to a key list of length `n` (indexed by `0 <= i < n`):
+  - int key array:
+    - if `fixedLength == -1`: collects entries until the first `0`
+    - else: collects exactly `min(fixedLength, length(keyArray))` entries (including `0` values)
+  - string key array:
+    - if `fixedLength == -1`: returns `0` if any inspected entry is `null` or empty
+    - else: collects exactly `min(fixedLength, length(keyArray))` entries
+- Sorts the collected key list using:
+  - int keys: numeric ordering
+  - string keys: `string.CompareTo` ordering (current culture)
+  - direction is controlled by `isAscending`
+- For each variable-term string in `arrayNameList`, resolves it to an array variable and applies the same permutation:
+  - 1D arrays: permutes elements `0 .. n-1`
+  - 2D arrays: permutes rows by the first index (`[row, col]`)
+  - 3D arrays: permutes slabs by the first index (`[i, j, k]`)
+- If any target array’s first dimension is shorter than `n`, the function returns `0`.
+  - This function is not atomic: earlier arrays may already have been permuted before the failure is detected.
+- Returns `1` on success.
+
+**Errors & validation**
+- Errors if:
+  - `keyArray` cannot be resolved as a non-character, non-`CONST` array variable term
+  - any array name in `arrayNameList` cannot be resolved to a non-character, non-`CONST` array variable term
+  - any resolved array is not an array (dimension 0)
+  - any resolved array is a calculated/pseudo variable
+
+**Examples**
+```erabasic
+#DIM SORT_TARGETS, 3
+SORT_TARGETS:0 = "A"
+SORT_TARGETS:1 = "B"
+SORT_TARGETS:2 = "C"
+ARRAYMSORTEX(A, SORT_TARGETS, 1)
+```
 
 ## REGEXPMATCH (expression function)
 **Summary**

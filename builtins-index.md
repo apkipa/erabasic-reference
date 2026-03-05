@@ -10,6 +10,16 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`ARRAYREMOVE`](builtins-reference.md#arrayremove-instruction) (instruction)
 - [`ARRAYSHIFT`](builtins-reference.md#arrayshift-instruction) (instruction)
 - [`ARRAYSORT`](builtins-reference.md#arraysort-instruction) (instruction)
+- [`ARRAYMSORT`](builtins-reference.md#arraymsort-expression-function) (method)
+- [`ARRAYMSORTEX`](builtins-reference.md#arraymsortex-expression-function) (method)
+- [`FINDELEMENT`](builtins-reference.md#findelement-expression-function) (method)
+- [`FINDLASTELEMENT`](builtins-reference.md#findlastelement-expression-function) (method)
+- [`INRANGEARRAY`](builtins-reference.md#inrangearray-expression-function) (method)
+- [`MATCH`](builtins-reference.md#match-expression-function) (method)
+- [`MAXARRAY`](builtins-reference.md#maxarray-expression-function) (method)
+- [`MINARRAY`](builtins-reference.md#minarray-expression-function) (method)
+- [`SUMARRAY`](builtins-reference.md#sumarray-expression-function) (method)
+- [`SUMCARRAY`](builtins-reference.md#sumcarray-expression-function) (method)
 
 ## calls
 
@@ -58,8 +68,13 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`SAVECHARA`](builtins-reference.md#savechara-instruction) (instruction)
 - [`SORTCHARA`](builtins-reference.md#sortchara-instruction) (instruction)
 - [`UPCHECK`](builtins-reference.md#upcheck-instruction) (instruction)
+- [`CMATCH`](builtins-reference.md#cmatch-expression-function) (method)
 - [`FINDCHARA`](builtins-reference.md#findchara-expression-function) (method)
 - [`FINDLASTCHARA`](builtins-reference.md#findlastchara-expression-function) (method)
+- [`INRANGECARRAY`](builtins-reference.md#inrangecarray-expression-function) (method)
+- [`MAXCARRAY`](builtins-reference.md#maxcarray-expression-function) (method)
+- [`MINCARRAY`](builtins-reference.md#mincarray-expression-function) (method)
+- [`SUMCARRAY`](builtins-reference.md#sumcarray-expression-function) (method)
 
 ## control-flow
 
@@ -245,6 +260,16 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`POWER`](builtins-reference.md#power-instruction) (instruction)
 - [`TIMES`](builtins-reference.md#times-instruction) (instruction)
+- [`ALLSAMES`](builtins-reference.md#allsames-expression-function) (method)
+- [`EXPONENT`](builtins-reference.md#exponent-expression-function) (method)
+- [`GETBIT`](builtins-reference.md#getbit-expression-function) (method)
+- [`GROUPMATCH`](builtins-reference.md#groupmatch-expression-function) (method)
+- [`INRANGE`](builtins-reference.md#inrange-expression-function) (method)
+- [`LIMIT`](builtins-reference.md#limit-expression-function) (method)
+- [`LOG`](builtins-reference.md#log-expression-function) (method)
+- [`LOG10`](builtins-reference.md#log10-expression-function) (method)
+- [`NOSAMES`](builtins-reference.md#nosames-expression-function) (method)
+- [`SIGN`](builtins-reference.md#sign-expression-function) (method)
 
 ## random
 

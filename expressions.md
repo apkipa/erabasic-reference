@@ -96,14 +96,29 @@ Variable terms have the shape:
 - Each `:` argument is an expression, but it is ultimately converted to a numeric index:
   - normally: numeric expression → numeric index
   - for specific CSV-backed variables/positions: string key → numeric index via name tables (this is targeted, not general “string indexing”)
+    - See `string-key-indexing.md` for the exact resolution rules and the engine-accurate list of variables/argument positions that accept string keys.
 
 ### Omitted indices are not “the whole array”
 
-Because variable parsing performs argument inference, “omitting indices” does **not** generally produce an “array reference”:
+Because variable parsing performs argument inference, “omitting indices” does **not** generally produce an “array reference” (and EraBasic expressions do not have an “array value” type):
 
-- For **non-character 1D arrays**, `NAME` is treated as `NAME:0` (except `RAND`, which can reject omission depending on config).
-- For **character-data 1D arrays**, the value form expects two indices: `[chara, index]`. If `SystemNoTarget=NO`, a single written index is treated as the **element index** and the character defaults to `TARGET`.
-- For **2D/3D arrays (character or not)**, omitting indices may parse to a special “no-arg variable term” that throws a “missing variable argument” error if evaluated as a value.
+- **Non-character 1D arrays**: `NAME` is treated as `NAME:0` (except `RAND`, which can reject omission depending on `CompatiRAND`).
+- **Character-data 1D arrays** (final indices are `[chara, index]`):
+  - if `SystemNoTarget=NO`: `NAME` defaults to `NAME:TARGET:0`, and `NAME:i` is treated as `NAME:TARGET:i` (the single written arg is the element index)
+  - if `SystemNoTarget=YES`: `NAME` becomes a special *no-arg variable term*; `NAME:i` is an error (you must write both `chara` and `index`)
+- **2D/3D arrays (character or not)**: there is no “partially indexed” value form.
+  - if you write no `:` args (`NAME`), it parses as a *no-arg variable term*
+  - if you write any `:` args, you must write **all required indices** to read/write a scalar cell (e.g. `NAME:i:j`, or `NAME:chara:i:j` for a character-data 2D array); forms like `NAME:i` or `NAME:chara:i` are errors
+  - evaluating a no-arg variable term as a value throws a “missing variable argument” error
+
+See `variables.md` for the full argument inference tables (especially for character-data variables).
+
+Important: a *no-arg variable term* is not “filled in later” by built-ins. It does not implicitly become `...:TARGET:...`; any built-in that needs indices will fail when it attempts to read them.
+
+Nevertheless, some built-ins can accept a no-arg variable term because they only need the **variable identifier / underlying storage** and never read indices from the term. Examples include:
+
+- array-wide operations on non-character 2D/3D arrays (e.g. `ARRAYMSORT(DA, ...)`)
+- whole-character-list scan operations where the variable is a character scalar (e.g. `SORTCHARA NAME`, `FINDCHARA(NAME, ...)`), because they do not consult a written chara selector
 
 This matters for array-manipulating built-ins:
 

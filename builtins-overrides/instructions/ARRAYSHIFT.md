@@ -15,6 +15,9 @@
 - `<count>` (optional, int; default “to end”): number of elements in the segment. If explicitly `0`, this is a no-op.
 
 **Semantics**
+- If `<arrayVar>` is a character-data 1D array, the shift is applied to the **per-character slice** selected by `<arrayVar>`’s chara selector.
+  - Any element-index subscript written after the chara selector is ignored for this instruction, but it is still evaluated once when the instruction evaluates `<arrayVar>`’s indices.
+  - To target a specific character explicitly, write both indices (the element index is a dummy), e.g. `CFLAG:chara:0`.
 - Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).
 - If `shift == 0`, does nothing.
 - If shifting removes all overlap, fills the whole segment with `<default>`.

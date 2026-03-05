@@ -362,6 +362,22 @@ Additional constraints enforced by this codebase’s type checker:
   - a character-data variable (this engine path rejects chara vars for `REF` parameters)
 - Integer vs string and the dimension count must match exactly.
 
+#### Counterfactual: what would happen if character-data variables were accepted as `REF` actuals?
+
+This codebase currently rejects character-data variables as `REF` actual arguments (see the constraint list above).
+
+However, the engine already contains a “per-character slice” transport path for `REF` arguments. If the type checker were changed to allow character-data arrays for `REF` parameters, the existing transport logic implies the following observable behavior:
+
+- The actual argument must still be a variable term whose identifier is a character-data **array** (`Dimension > 0`).
+- The engine would evaluate the **chara selector** (the first index after inference) to obtain a concrete `charaNo`:
+  - it is bounds-checked against the current character list (`0 <= charaNo < CHARANUM`)
+  - out-of-range is a runtime error
+- The `REF` formal would be bound to the underlying array storage for that specific character (conceptually: “drop the character dimension and take the per-character slice”).
+  - Mutations through the `REF` parameter would mutate that same character’s slice of the original variable.
+- Only the chara selector is consulted for binding:
+  - any additional subscripts written after the chara selector would be ignored and not evaluated (no side effects from those expressions)
+  - if the variable term does not provide a usable chara selector after inference (e.g. it becomes a no-arg variable term), binding fails with a missing-argument error when attempting to read the selector
+
 Binding lifetime (engine-accurate):
 
 - Private `REF` variables are “scoped” via `ScopeIn/ScopeOut` just like other dynamic private variables.

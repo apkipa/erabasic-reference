@@ -55,8 +55,11 @@ Evaluation note:
 
 Special forms that matter for compatibility:
 
-- **Fixed variable terms**: when all indices are compile-time constants, the engine may restructure a variable term into a “fixed” form that stores the indices as numeric constants.
-  - This is observable only via error timing (some bounds/type errors can occur at load time due to constant folding).
+- **Fixed indices / “fixed variable term” (two related meanings)**:
+  - **Runtime fixed indices (instruction-specific)**: some built-ins evaluate a variable term’s index expressions once, store the resulting numeric indices, and then perform multiple reads/writes using those stored indices.
+    - This is observable when the same variable term would otherwise be evaluated multiple times (e.g. repeated reads/writes), and it affects how many times index expressions with side effects can run.
+  - **Compile-time fixed term (constant folding)**: when all indices are compile-time constants, the engine may restructure a variable term into a “fixed” form that stores the indices as numeric constants during load.
+    - This is observable mostly via error timing (some bounds/type errors can occur at load time due to constant folding).
 - **No-arg variable terms** (missing required indices): for some arrays, writing no `:` indices at all can produce a distinct term that cannot be read/written as a value.
   - Evaluating it as a value (or assigning to it) throws a “missing variable argument” error.
   - Some built-ins accept this form only via instruction-specific special cases. Do not assume it behaves like “the whole array”.
@@ -208,6 +211,17 @@ Terminology used below:
 - “provided args” means the raw `:` arguments you wrote before inference.
 - The final argument list is the list actually stored in the parsed `VariableTerm`.
 
+How character-data variable terms are *used* by built-ins (important for compatibility):
+
+- **Per-character slice usage**: many operations first select a character by evaluating the chara selector, then operate on that character’s underlying array storage.
+  - Conceptually, the engine uses `[chara, ...]` to pick a per-character slice and then treats the remaining indices as indices into that slice.
+  - Equivalently: once `chara` is fixed, a character-data *N*-D array behaves like a non-character *(N-1)*-D array for that operation.
+  - In this usage mode, the chara selector must be present and in range; a no-arg variable term cannot work.
+- **Whole-character-list scan usage** (e.g. `SORTCHARA`, `FINDCHARA`): the operation iterates `i = 0 .. CHARANUM-1` and treats `i` as the effective chara selector.
+  - In this usage mode, any written chara selector in the variable term is ignored.
+  - Subscripts written *after* the chara selector (if any) still matter: they select which per-chara cell is compared/sorted.
+  - For character scalar (0D) variables there are no “after-chara” subscripts, so `NAME` / `NO` can be usable even when parsed as a no-arg term.
+
 ### 0D character variables (scalar per character)
 
 Expected final args: 1 argument: `[chara]`.
@@ -216,6 +230,7 @@ Expected final args: 1 argument: `[chara]`.
 - If args omitted and `SystemNoTarget` is `false`: `chara` defaults to `TARGET`.
 - If you provide more than 1 argument: error.
 - If you provide no chara argument while `SystemNoTarget` is `true`: error (the only exception is “args omitted” which becomes the no-arg term).
+  - The no-arg term is not lazily completed later: built-ins do not implicitly substitute `TARGET` when they attempt to read indices from it.
 
 ### 1D character variables (per-character arrays)
 

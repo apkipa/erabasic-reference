@@ -14,6 +14,9 @@
 
 **Semantics**
 - Works only on 1D arrays (int or string).
+- If `<arrayVar>` is a character-data 1D array, the removal is applied to the **per-character slice** selected by `<arrayVar>`’s chara selector.
+  - Any element-index subscript written after the chara selector is ignored for this instruction, but it is still evaluated once when the instruction evaluates `<arrayVar>`’s indices.
+  - To target a specific character explicitly, write both indices (the element index is a dummy), e.g. `CFLAG:chara:0`.
 - Removes elements in the conceptual range `[start, start+count)`:
   - Elements after the removed segment are shifted left into the gap.
   - The remaining tail is filled with defaults:

@@ -14,6 +14,7 @@
 - `<charaVarTerm>`: a variable term whose identifier is a character-data variable.
 - Order: `FORWARD` = ascending, `BACK` = descending.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
+  - Any written chara selector in `<charaVarTerm>` is ignored and not evaluated (the sort always scans `i = 0 .. CHARANUM-1`).
 
 
 **Semantics**

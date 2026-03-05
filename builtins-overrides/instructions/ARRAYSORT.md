@@ -17,6 +17,9 @@
 
 **Semantics**
 - Order defaults to ascending.
+- If `<arrayVar>` is a character-data 1D array, the sort is applied to the **per-character slice** selected by `<arrayVar>`’s chara selector.
+  - Any element-index subscript written after the chara selector is ignored for this instruction, but it is still evaluated once when the instruction evaluates `<arrayVar>`’s indices.
+  - To target a specific character explicitly, write both indices (the element index is a dummy), e.g. `CFLAG:chara:0`.
 - Sorts the specified region of the array:
   - If `<count>` is omitted: sorts to end.
   - If `<count>` is provided and `<= 0`: `0` is a no-op; `<0` is an error.
