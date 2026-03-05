@@ -1478,19 +1478,10 @@ def _render_instruction_entry(
             for ln in spec.summary_lines[:6]:
                 arguments.append(f"- {ln}")
 
-    if "Defaults / optional arguments" in override:
-        defaults = override["Defaults / optional arguments"]
-    else:
-        defaults = []
-        if spec:
-            defaults.append("- Optional/default behavior is builder-specific; see engine refs.")
-
     parts.append("")
     parts.extend(_render_section("Syntax", syntax))
     parts.append("")
     parts.extend(_render_section("Arguments", arguments))
-    parts.append("")
-    parts.extend(_render_section("Defaults / optional arguments", defaults))
 
     # Semantics / Errors: engine-extracted key operations + throws
     semantics: list[str] = list(override.get("Semantics", []))
@@ -1528,7 +1519,7 @@ def _render_instruction_entry(
         if cls_impl and cls_name:
             p, start, _end, _block = cls_impl
             refs.append(f"- Execution: `{p.relative_to(REPO_ROOT)}`:{start} (`{cls_name}`)")
-            base_flag_lines = [fl for fl in cls_flag_lines if re.match(r"^flag\s*=", fl)]
+            base_flag_lines = [fl for fl in cls_flag_lines if re.match(r"^flag\\s*=", fl)]
             if base_flag_lines:
                 semantics.append("- Engine-extracted notes (base flags from class):")
                 for fl in base_flag_lines[:5]:
@@ -1590,8 +1581,6 @@ def _render_method_entry(reg: MethodReg, info: MethodClassInfo | None) -> str:
     parts.extend(_render_section("Signatures / argument rules", sig))
     parts.append("")
     parts.extend(_render_section("Arguments", override.get("Arguments", [])))
-    parts.append("")
-    parts.extend(_render_section("Defaults / optional arguments", override.get("Defaults / optional arguments", [])))
 
     sem: list[str] = list(override.get("Semantics", []))
     errs: list[str] = list(override.get("Errors & validation", []))
@@ -1792,7 +1781,7 @@ def main(argv: list[str] | None = None) -> int:
     md.append(f"- `{OUTPUT_MD.relative_to(REPO_ROOT)}`")
     md.append("")
     md.append("This document is intentionally **no-table** and uses a per-entry template:")
-    md.append("- Summary / Syntax / Arguments / Defaults / Semantics / Errors / Examples / Engine refs")
+    md.append("- Summary / Syntax / Arguments / Semantics / Errors / Examples / Engine refs")
     md.append("")
     md.append("Important:")
     md.append("- The generator can reliably extract hooks (argument builders, flags, code entry points).")

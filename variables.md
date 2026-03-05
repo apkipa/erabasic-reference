@@ -74,6 +74,12 @@ This difference is observable:
 - If a built-in takes a **variable name string** (e.g. a method like `VARSIZE("CFLAG")`), the lookup is done on the entire string.
   - A string that includes `:` indices (e.g. `"CFLAG:TARGET:0"`) does not match any variable name and is rejected.
 
+Practical reading tip:
+
+- “Ignored tail” can mean two different things depending on how the built-in parses arguments:
+  - **Identifier-only** parsing (like `VARSIZE <name>`): the tail is not parsed at all (it may contain arbitrary characters), and it is not evaluated.
+  - **Compatibility tail** parsing (like `GOTO LABEL, expr...`): the tail must still be syntactically valid according to expression grammar, but the engine does not evaluate it (no side effects).
+
 ## Variable sizes and prohibiting variables
 
 In Emuera, the element count of many built-in array variables is configurable via `csv/VariableSize.csv`.

@@ -9,7 +9,7 @@ User-facing built-ins documentation lives in:
 - `erabasic-reference/builtins-reference.md`
 
 This document is intentionally **no-table** and uses a per-entry template:
-- Summary / Syntax / Arguments / Defaults / Semantics / Errors / Examples / Engine refs
+- Summary / Syntax / Arguments / Semantics / Errors / Examples / Engine refs
 
 Important:
 - The generator can reliably extract hooks (argument builders, flags, code entry points).
@@ -480,9 +480,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - string LHS with `=`: RHS is scanned as a formatted string until end-of-line.
   - string LHS with `'=` / `+=` / `*=`: RHS is parsed as normal expressions.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - There is no `SET` keyword in EraBasic source; this entry documents the language’s assignment syntax.
 - Assignment operator recognition:
@@ -550,9 +547,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - `PRINT  X` prints `" X"` (the second space remains in the argument).
   - `PRINT;X` prints `X` (no leading whitespace in the argument).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Output is appended to the engine’s **print buffer** (it is not necessarily flushed to the UI immediately).
 - If output skipping is active (`SKIPDISP`):
@@ -583,8 +577,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - `PRINT` itself:
   - Uses the raw literal argument as the output string.
   - Treats the output as ending a logical line (even though it does not insert a newline by itself).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -622,14 +614,9 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -665,14 +652,9 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -708,14 +690,9 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -751,15 +728,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -795,15 +767,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -838,14 +805,9 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -880,15 +842,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -923,15 +880,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -967,14 +919,9 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1010,15 +957,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1054,15 +996,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1098,15 +1035,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1142,16 +1074,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1187,16 +1114,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1232,14 +1154,9 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1275,15 +1192,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1319,15 +1231,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1363,15 +1270,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1407,16 +1309,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1452,16 +1349,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1496,15 +1388,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1539,16 +1426,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1583,16 +1465,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1628,15 +1505,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1672,16 +1544,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1717,16 +1584,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1762,16 +1624,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1807,17 +1664,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1853,17 +1705,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - Applies kana conversion (`FORCEKANA` state) before printing.
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1899,14 +1746,9 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1942,15 +1784,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -1986,15 +1823,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2030,15 +1862,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2074,16 +1901,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2119,16 +1941,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2163,15 +1980,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2206,16 +2018,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2250,16 +2057,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2295,15 +2097,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2339,16 +2136,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2384,16 +2176,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2429,16 +2216,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2474,17 +2256,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2520,17 +2297,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - After printing, flushes and appends a newline, then waits for a key.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2566,16 +2338,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - If the produced output string is empty, this instruction does nothing.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2611,17 +2378,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - If the produced output string is empty, this instruction does nothing.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2656,17 +2418,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - If the produced output string is empty, this instruction does nothing.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2702,17 +2459,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - If the produced output string is empty, this instruction does nothing.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2748,9 +2500,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -2758,8 +2507,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - If the produced output string is empty, this instruction does nothing.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2795,17 +2542,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - If the produced output string is empty, this instruction does nothing.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2841,9 +2583,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -2851,8 +2590,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2887,9 +2624,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
@@ -2897,8 +2631,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2934,9 +2666,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -2944,8 +2673,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2981,9 +2708,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -2992,8 +2716,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Applies kana conversion (`FORCEKANA` state) before printing.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3029,17 +2751,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - If the produced output string is empty, this instruction does nothing.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3075,9 +2792,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
@@ -3085,8 +2799,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3121,9 +2833,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
@@ -3131,8 +2840,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3168,9 +2875,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
@@ -3178,8 +2882,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3215,9 +2917,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
@@ -3226,8 +2925,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Otherwise, flushes any pending buffered output first, then prints as a **single display line**.
 - `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3265,9 +2962,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - If the resulting text is empty, nothing is appended.
 - Output is converted to a fixed-width “cell” string (see below).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes one fixed-width cell; does not append a newline and does not flush immediately.
@@ -3280,8 +2974,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - If `len < n`, left-pads spaces to reach exactly `n` bytes.
   - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
   - If `len >= n`, it does not add padding and does not truncate (overlong strings are kept as-is).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3319,9 +3011,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - If the resulting text is empty, nothing is appended.
 - Output is converted to a fixed-width “cell” string (see below).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes one fixed-width cell; does not append a newline and does not flush immediately.
@@ -3334,8 +3023,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - If `len < n + 1`, right-pads spaces to reach exactly `n + 1` bytes.
   - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the last character is a space, it removes one trailing space and re-measures.
   - If `len >= n + 1`, it does not add padding and does not truncate (overlong strings are kept as-is).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3372,16 +3059,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3418,16 +3100,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3464,16 +3141,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3510,16 +3182,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3556,17 +3223,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3603,17 +3265,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3650,16 +3307,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3696,16 +3348,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3742,17 +3389,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3789,17 +3431,12 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
 - Alignment: `...C` right-aligns; `...LC` left-aligns.
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3840,9 +3477,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - Optional `<intVarTerm>`: a changeable int variable term that receives the 0-based chosen index.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Load-time structure rules (enforced by the loader):
   - `PRINTDATA*` must be closed by a matching `ENDDATA`.
@@ -3861,8 +3495,6 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
       - A `DATALIST` entry prints each contained `DATA`/`DATAFORM` line separated by newlines.
     - If the keyword has `...L`/`...W` behavior, append a newline (and optionally wait for a key).
     - Jump to the `ENDDATA` line, skipping over the block body.
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3918,17 +3550,12 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - (No kana conversion flag.)
   - (Honors `SETCOLOR` color.)
   - Appends a newline after printing (`...L`).
   - (No automatic wait suffix.)
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3968,17 +3595,12 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - (No kana conversion flag.)
   - (Honors `SETCOLOR` color.)
   - (No automatic newline suffix.)
   - Appends a newline and waits for a key (`...W`).
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -4018,17 +3640,12 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - Applies kana conversion (`...K`) before printing.
   - (Honors `SETCOLOR` color.)
   - (No automatic newline suffix.)
   - (No automatic wait suffix.)
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -4068,17 +3685,12 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - Applies kana conversion (`...K`) before printing.
   - (Honors `SETCOLOR` color.)
   - Appends a newline after printing (`...L`).
   - (No automatic wait suffix.)
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -4118,17 +3730,12 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - Applies kana conversion (`...K`) before printing.
   - (Honors `SETCOLOR` color.)
   - (No automatic newline suffix.)
   - Appends a newline and waits for a key (`...W`).
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -4168,17 +3775,12 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - (No kana conversion flag.)
   - Ignores `SETCOLOR`’s color (`...D`) for this output.
   - (No automatic newline suffix.)
   - (No automatic wait suffix.)
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -4218,17 +3820,12 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - (No kana conversion flag.)
   - Ignores `SETCOLOR`’s color (`...D`) for this output.
   - Appends a newline after printing (`...L`).
   - (No automatic wait suffix.)
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -4268,17 +3865,12 @@ ENDDATA
 **Arguments**
 - Same as `PRINTDATA`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTDATA`, with these differences:
   - (No kana conversion flag.)
   - Ignores `SETCOLOR`’s color (`...D`) for this output.
   - (No automatic newline suffix.)
   - Appends a newline and waits for a key (`...W`).
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -4319,9 +3911,6 @@ ENDDATA
 - `<buttonValue>`: expression whose runtime type is either:
   - integer (button produces that integer as input), or
   - string (button produces that string as input; useful with `INPUTS`).
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -4376,9 +3965,6 @@ INPUTS
 **Arguments**
 - Same as `PRINTBUTTON`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTBUTTON`, with these differences:
   - The label still has all `'\n'` characters removed (same as `PRINTBUTTON`).
@@ -4418,9 +4004,6 @@ INPUT
 **Arguments**
 - Same as `PRINTBUTTON`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `PRINTBUTTONC`, except the label cell is aligned to the left:
   - Uses the same fixed-width cell formatting rules as `PRINTLC`.
@@ -4459,9 +4042,6 @@ INPUT
 
 **Arguments**
 - `<raw text>`: the literal remainder of the line (not a string expression).
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -4504,9 +4084,6 @@ PRINTL
 **Arguments**
 - `<FORM string>`: a FORM argument scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Evaluates the FORM argument to a string, then appends it as a “plain” segment (no automatic button conversion).
@@ -4544,9 +4121,6 @@ PRINTL
 
 **Arguments**
 - `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -4594,9 +4168,6 @@ PRINT_ABL TARGET
 **Arguments**
 - `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
@@ -4642,9 +4213,6 @@ PRINT_TALENT TARGET
 
 **Arguments**
 - `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -4692,9 +4260,6 @@ PRINT_MARK TARGET
 **Arguments**
 - `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
@@ -4740,9 +4305,6 @@ PRINT_EXP TARGET
 
 **Arguments**
 - `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -4806,9 +4368,6 @@ PRINT_PALAM TARGET
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Builds a Japanese summary string `s` as follows:
@@ -4850,9 +4409,6 @@ PRINT_PALAM TARGET
 
 **Arguments**
 - None.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -4913,9 +4469,6 @@ PRINT_PALAM TARGET
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - The engine prints a precomputed “draw line” string and then ends the line.
@@ -4966,9 +4519,6 @@ DRAWLINE
 - `maxValue`: int expression (denominator); must evaluate to `> 0`.
 - `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Computes `filled = clamp(value * length / maxValue, 0, length)` using 64-bit integer arithmetic (integer overflow wraps).
 - Produces and prints:
@@ -4978,8 +4528,6 @@ DRAWLINE
   - `BarChar2` default `.`
 - Does **not** append a newline; use `BARL` if you want a newline.
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.Print(ExpressionMediator.CreateBar(var, max, length))`
   - `exm.Console.NewLine()`
@@ -5015,15 +4563,10 @@ PRINTL (2/10)
 **Arguments**
 - Same as `BAR`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Prints the same bar string as `BAR value, maxValue, length`.
 - Appends a newline after printing.
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.Print(ExpressionMediator.CreateBar(var, max, length))`
   - `exm.Console.NewLine()`
@@ -5056,9 +4599,6 @@ BARL 114, 514, 81
 - `intVarTerm`: a changeable integer variable term (must not be `CONST`).
 - `realLiteral`: a real-number **literal** parsed as `double` (not an expression).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Reads `intVarTerm`’s current value, multiplies it by `realLiteral`, then stores `(long)product` back into `intVarTerm`.
   - The cast truncates toward zero (`125.9` → `125`, `-1.9` → `-1`).
@@ -5066,8 +4606,6 @@ BARL 114, 514, 81
   - If enabled: uses `double` math.
   - Otherwise: uses `decimal` math (with a fallback conversion path for overflow) to reduce rounding differences.
 - The assignment is performed in an `unchecked` context (overflow does not raise an error).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE`
 
 **Errors & validation**
 - Load/parse-time validation rejects:
@@ -5103,15 +4641,10 @@ PRINTFORML {X}  ; 125
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Enters a UI wait state for an Enter-style key/click.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.ReadAnyKey(false, true)`
   - `exm.Console.ReadAnyKey()`
@@ -5145,9 +4678,6 @@ PRINTFORML {X}  ; 125
   - Note: mouse mode does not change where the accepted integer is stored on the normal wait path (it is still stored into `RESULT`).
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 - `<extra>` (optional, int): accepted by the argument parser but ignored by the runtime (not read/evaluated).
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Enters an integer-input UI wait.
@@ -5201,8 +4731,6 @@ Compatibility notes:
 - Some other UI wait types (not `INPUT` itself) may write a mapping color to `RESULT:6` instead of `RESULT:3` (e.g. the “primitive mouse/key” wait used by `INPUTMOUSEKEY`).
 - When output skipping is enabled, the engine normally skips `INPUT`.
   - Exception: if output skipping was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT`
 - Engine-extracted notes (key operations):
   - `exm.Console.Window.ApplyTextBoxChanges()`
   - `exm.Console.WaitInput(req)`
@@ -5240,9 +4768,6 @@ Compatibility notes:
 - `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input.
 - `<canSkip>` (optional, any): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Enters a string-input UI wait.
 - If `<defaultFormString>` is provided, it is evaluated to a string and used as the default when the input is empty and the request is not running a timer.
@@ -5263,8 +4788,6 @@ Compatibility notes:
   - If it is omitted, the engine throws a runtime error when taking the `MesSkip` no-wait path.
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 - Output skipping interaction is the same as `INPUT`.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT`
 - Engine-extracted notes (key operations):
   - `exm.Console.Window.ApplyTextBoxChanges()`
   - `exm.Console.WaitInput(req)`
@@ -5305,9 +4828,6 @@ Compatibility notes:
 - `<mouse>` (optional, int; default `0`): enables mouse input when equal to `1`.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Enters an integer-input UI wait with a timer of `<timeMs>` milliseconds (a default is always present for timed input).
 - Timeout behavior:
@@ -5321,8 +4841,6 @@ Compatibility notes:
   - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 - Output skipping interaction is the same as `INPUT`.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -5357,9 +4875,6 @@ Compatibility notes:
 - `<mouse>` (optional, int; default `0`): enables mouse input when equal to `1`.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same model as `TINPUT`, but stores into `RESULTS` (string) rather than `RESULT` (int).
 - `MesSkip` integration:
@@ -5369,8 +4884,6 @@ Compatibility notes:
     - `RESULTS_ARRAY[1]` if `<mouse> != 0`
   - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -5400,15 +4913,10 @@ Compatibility notes:
 **Arguments**
 - Same as `TINPUT`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `TINPUT`, but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.
   - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -5437,15 +4945,10 @@ Compatibility notes:
 **Arguments**
 - Same as `TINPUTS`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `TINPUTS`, but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.
   - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -5477,17 +4980,12 @@ Compatibility notes:
   - `0`: wait for Enter/click, but time out after `<timeMs>`.
   - non-zero: disallow input and simply wait `<timeMs>` (or be affected by macro/skip behavior).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If `<mode> == 0`: waits for Enter/click, but times out after `<timeMs>`.
 - If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.ReadAnyKey()`
   - `exm.Console.WaitInput(req)`
@@ -5518,15 +5016,10 @@ Compatibility notes:
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Enters a UI wait state for any-key input.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.ReadAnyKey(true, false)`
 
@@ -5555,15 +5048,10 @@ Compatibility notes:
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Waits for Enter/click, and stops “message skip” from auto-advancing past the wait.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.ReadAnyKey(false, true)`
   - `exm.Console.ReadAnyKey()`
@@ -5595,16 +5083,11 @@ Compatibility notes:
 **Arguments**
 - Same as `INPUT`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Like `INPUT` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
 - Implementation-oriented notes:
   - In the UI input handler, `OneInput` truncates the entered text to at most one character in many cases, so it typically behaves like “read a single digit/character then parse”.
   - Depending on configuration, mouse-provided input may bypass this truncation.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -5636,15 +5119,10 @@ Compatibility notes:
 **Arguments**
 - Same as `INPUTS`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.
   - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -5675,9 +5153,6 @@ Compatibility notes:
 - `<n>` (int): number of logical output lines to delete.
   - The evaluated value is converted to a 32-bit signed integer by truncation (i.e. low 32 bits interpreted as signed).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Evaluates `<n>` and deletes the last `n` logical output lines from the console display/log.
 - The deletion count is in **logical lines**, not raw display lines:
@@ -5685,8 +5160,6 @@ Compatibility notes:
   - Deletion walks backward from the end of the display list and counts only entries marked as “logical line” boundaries; all associated display lines are removed.
 - If `n <= 0`, nothing is deleted.
 - After deleting, the display is refreshed.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.deleteLine(delNum)`
   - `exm.Console.RefreshStrings(false)`
@@ -5719,17 +5192,12 @@ Compatibility notes:
 **Arguments**
 - `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Evaluates `<formString>` to a string and prints it as a temporary line.
 - A “temporary line” has a special overwrite behavior:
   - When the engine later adds a new display line, if the current last display line is temporary, it is deleted first; the new line then takes its place.
   - As a result, repeated `REUSELASTLINE` calls typically “update” a single line (useful for progress/timer displays).
 - If the resulting string is empty, the current console implementation prints nothing (and therefore does not overwrite an existing line).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintTemporaryLine(str)`
 
@@ -5758,9 +5226,6 @@ Compatibility notes:
 
 **Arguments**
 - None.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Reads:
@@ -5820,9 +5285,6 @@ UPCHECK
 **Arguments**
 - `charaIndex` (optional, int; default `0` with a warning if omitted): the character index to apply changes to.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Reads the target character’s per-character arrays:
   - `CUP` and `CDOWN`
@@ -5876,17 +5338,12 @@ CUPCHECK TARGET
 **Arguments**
 - Each `charaNo`: int expression selecting a character template.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
 - For each `charaNo` (evaluated left-to-right), the engine immediately appends one character to the current character list using the character template identified by that number.
 - `CHARANUM` increases by 1 for each successfully added character.
 - If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
 - This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.AddCharacter_UseSp(integer, isSp)`
   - `exm.VEvaluator.AddCharacter(integer)`
@@ -5924,9 +5381,6 @@ PRINTFORML {CHARANUM}
 **Arguments**
 - Each `charaNo`: int expression selecting a character template.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Requires the `CompatiSPChara` config option to be enabled; otherwise this instruction errors before evaluating any arguments.
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
@@ -5934,8 +5388,6 @@ PRINTFORML {CHARANUM}
 - `CHARANUM` increases by 1 for each successfully added character.
 - If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
 - This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.AddCharacter_UseSp(integer, isSp)`
   - `exm.VEvaluator.AddCharacter(integer)`
@@ -5971,9 +5423,6 @@ ADDSPCHARA 10
 
 **Arguments**
 - None.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Intended for use in `@SYSTEM_TITLE`.
@@ -6016,15 +5465,10 @@ ADDDEFCHARA
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Appends a new character record created from the engine’s pseudo-character template.
 - The new character’s variables start from the language defaults (`0` for numeric cells, `""` for string reads).
 - This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.AddPseudoCharacter()`
 
@@ -6057,9 +5501,6 @@ TARGET = CHARANUM - 1
 **Arguments**
 - Each `charaIndex`: int expression selecting an existing character index.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but a parse-time warning is emitted for multi-argument uses.
 - Evaluates all `charaIndex` arguments first (left-to-right), storing the integer results in an array.
@@ -6071,8 +5512,6 @@ TARGET = CHARANUM - 1
     - If an error occurs while processing a multi-delete list, some earlier listed characters may already have been deleted (no rollback).
 - Deleting characters shifts indices of later characters; after deletion, valid indices are always a dense range `0 <= i < CHARANUM`.
 - The engine does not automatically rebind `TARGET`/`MASTER`/`ASSI` after deletion.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.AddCharacter_UseSp(integer, isSp)`
   - `exm.VEvaluator.AddCharacter(integer)`
@@ -6111,9 +5550,6 @@ DELCHARA 1, 3
 **Arguments**
 - `<formString>` (optional): FORM/formatted string.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Evaluates `<formString>` to a string.
 - Appends it to the save-description buffer:
@@ -6150,9 +5586,6 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Requests the engine to quit the game.
 - Script execution stops immediately.
@@ -6187,9 +5620,6 @@ DELCHARA 1, 3
   - Must match one of the supported keywords exactly (see below).
   - The current engine compares this string literally (no automatic trim or case-folding).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Recognized keywords (engine-defined):
   - `SHOP`, `TRAIN`, `AFTERTRAIN`, `ABLUP`, `TURNEND`, `FIRST`, `TITLE`
@@ -6201,8 +5631,6 @@ DELCHARA 1, 3
   - Ends the current function immediately (as if returning) and continues unwinding until reaching the top-level.
   - After reaching the top-level, enters the requested system phase, clears the call stack, and continues execution in that phase.
   - Resets output style to defaults.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `state.SetBegin(keyword, true)`
   - `state.Return(0)`
@@ -6234,9 +5662,6 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Requires that the current system state allows saving; otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system save flow.
@@ -6250,8 +5675,6 @@ DELCHARA 1, 3
     - Saves the current state to the selected slot (as `save{slot:00}.sav` under `SavDir`) using `SAVEDATA_TEXT` as the slot description text.
   - Returns to the previous system state after completion or cancellation.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `if ((state.SystemState & SystemStateCode.__CAN_SAVE__) != SystemStateCode.__CAN_SAVE__)`
   - `string funcName = state.Scope`
@@ -6284,9 +5707,6 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Requires that the current system state allows saving/loading (same gate as `SAVEGAME`), otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system load flow.
@@ -6302,8 +5722,6 @@ DELCHARA 1, 3
       - `EVENTLOAD` (if present)
       - then returns to normal system flow (typically as if `BEGIN SHOP` occurred, unless `EVENTLOAD` performed a `BEGIN`).
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `if ((state.SystemState & SystemStateCode.__CAN_SAVE__) != SystemStateCode.__CAN_SAVE__)`
   - `string funcName = state.Scope`
@@ -6338,9 +5756,6 @@ DELCHARA 1, 3
 - `<slot>` (int): save slot number. Must satisfy `0 <= slot <= 2147483647` (32-bit signed non-negative).
 - `<saveText>` (string): saved into the file and shown by the built-in save/load UI.
   - Must not contain a newline (`'\n'`).
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates `<slot>` and `<saveText>`.
@@ -6390,9 +5805,6 @@ DELCHARA 1, 3
 
 **Arguments**
 - `<slot>` (optional, int; default `0` with a warning if omitted): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Validates the target save file; if the file is missing/corrupt/mismatched, raises a runtime error.
@@ -6445,9 +5857,6 @@ DELCHARA 1, 3
 **Arguments**
 - `<slot>` (optional, int; default `0` with a warning if omitted): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Computes the save file path under `SavDir` as `save{slot:00}.sav`.
 - If the file does not exist, does nothing.
@@ -6455,8 +5864,6 @@ DELCHARA 1, 3
   - If it has the read-only attribute, raises an error.
   - Otherwise deletes it.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `VariableEvaluator.DelData(target32)`
 
@@ -6486,9 +5893,6 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Writes the global save file under `SavDir`:
   - Path is `global.sav`.
@@ -6498,8 +5902,6 @@ DELCHARA 1, 3
   - Emuera-private global extension blocks may also be written.
 - If a system-level I/O exception occurs during saving, the engine raises a runtime error.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.SaveGlobal()`
 
@@ -6528,9 +5930,6 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Attempts to load `global.sav` under `SavDir`.
 - On success:
@@ -6540,8 +5939,6 @@ DELCHARA 1, 3
   - Sets `RESULT = 0`.
 - Before attempting to read, the loader removes certain Emuera-private global extension data; if loading then fails, this removal may still have occurred.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `if (exm.VEvaluator.LoadGlobal())`
   - `exm.VEvaluator.RESULT = 1`
@@ -6572,17 +5969,12 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Resets non-global variables to their default values (global variables are not reset).
 - Disposes and clears the character list.
 - Removes Emuera-private save-related extension data (e.g. XML/maps/data-table extensions).
 - Resets output style to defaults.
 - Does not assign `RESULT`/`RESULTS`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.ResetData()`
   - `exm.Console.ResetStyle()`
@@ -6612,15 +6004,10 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Resets global variables to their default values.
 - Removes Emuera-private global/static extension data (e.g. XML/maps global/static extensions).
 - Does not assign `RESULT`/`RESULTS`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.ResetGlobalData()`
 
@@ -6650,9 +6037,6 @@ DELCHARA 1, 3
 **Arguments**
 - `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.
 - If the condition is false (zero), the engine advances the program counter one extra time (skipping exactly one logical line).
@@ -6661,8 +6045,6 @@ DELCHARA 1, 3
   - If the following line is a `$label` line, the engine warns.
   - If there is no following executable line (EOF / next `@label`), the engine warns.
   - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.ShiftNextLine();//偽なら一行とばす。順に来たときと同じ扱いにする`
 
@@ -6704,9 +6086,6 @@ DELCHARA 1, 3
 **Arguments**
 - `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Evaluates its own condition and then each `ELSEIF` condition in order.
 - If a condition is true, that clause’s body is selected and executed.
@@ -6715,8 +6094,6 @@ DELCHARA 1, 3
   - Otherwise, the whole block is skipped.
 - After any selected clause body finishes, the rest of the `IF` block is skipped and execution continues after the matching `ENDIF`.
 - Jump behavior note (affects unstructured entry such as `GOTO` into blocks): when control transfers to an `IF`/`ELSEIF`/`ELSE` line as a jump target, execution begins at the **next** logical line (the clause body), not on the marker line itself. See `control-flow.md`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.CurrentLine = line`
   - `state.JumpTo(ifJumpto)`
@@ -6751,14 +6128,9 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - When reached **sequentially**, `ELSE` unconditionally jumps to the matching `ENDIF` marker, skipping the rest of the block.
 - When selected by the `IF` header, the engine jumps to the `ELSE` line as a **marker** and begins executing at the next line (the `ELSE` body).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -6787,14 +6159,9 @@ DELCHARA 1, 3
 **Arguments**
 - `<int expr>` is evaluated by the `IF` header’s clause-selection logic (not by the `ELSEIF` instruction itself).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - When reached **sequentially** (i.e., a previous clause already executed and control fell through), `ELSEIF` unconditionally jumps to the matching `ENDIF` marker, skipping the rest of the block.
 - When entered as the selected clause, the engine jumps to the `ELSEIF` line as a **marker** and begins executing at the next line (the clause body); the `ELSEIF` instruction itself is not executed in that path.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -6823,13 +6190,8 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Marker-only instruction (no runtime effect). The loader uses it to close the `IF` nesting and to set jump targets for `IF`/`ELSEIF`/`ELSE`.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 
 **Errors & validation**
 - `ENDIF` without a matching open `IF` is a load-time error (the line is marked as error).
@@ -6862,9 +6224,6 @@ DELCHARA 1, 3
 **Arguments**
 - `<expr>`: selector expression; may be int or string.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - The loader gathers all `CASE` / `CASEELSE` headers into an ordered list and links them to the matching `ENDSELECT`.
 - At runtime:
@@ -6873,8 +6232,6 @@ DELCHARA 1, 3
   - If no `CASE` matches and a `CASEELSE` exists, chooses `CASEELSE`.
   - Otherwise jumps to the `ENDSELECT` marker (skipping the whole block).
 - When a clause is chosen, the engine jumps to that `CASE`/`CASEELSE` header as a **marker** and begins executing at the next line (the clause body).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.CurrentLine = line`
   - `state.JumpTo(caseJumpto)`
@@ -6917,9 +6274,6 @@ DELCHARA 1, 3
   - Range: `<expr> TO <expr>` (inclusive range).
   - “IS form”: `IS <binaryOp> <expr>` (e.g. `IS >= 10`), using the engine’s binary-operator semantics.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - When reached **sequentially** (fall-through after another case body), `CASE` unconditionally jumps to the matching `ENDSELECT` marker, skipping the rest of the block.
 - When entered as the selected clause, the engine jumps to the `CASE` header as a **marker** and begins executing at the next line (the clause body).
@@ -6929,8 +6283,6 @@ DELCHARA 1, 3
     - int: `left <= selector && selector <= right`
     - string: uses `string.Compare(left, selector, SCExpression)` and `string.Compare(selector, right, SCExpression)` (where `SCExpression` is the engine’s configured string-comparison mode for expressions).
   - `IS <op> <expr>`: evaluates `(selector <op> expr)` using the engine’s binary operator reducer.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -6963,15 +6315,10 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Chosen only if no earlier `CASE` matches.
 - When reached **sequentially** (fall-through after another case body), `CASEELSE` unconditionally jumps to the matching `ENDSELECT` marker.
 - When selected, the engine jumps to the `CASEELSE` header as a **marker** and begins executing at the next line (the clause body).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -7001,13 +6348,8 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Marker-only instruction (no runtime effect). The loader uses it to close `SELECTCASE` nesting and to set jump targets for `SELECTCASE`/`CASE`/`CASEELSE`.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 
 **Errors & validation**
 - `ENDSELECT` without a matching open `SELECTCASE` is a load-time error (the line is marked as error).
@@ -7037,9 +6379,6 @@ DELCHARA 1, 3
 **Arguments**
 - `<countExpr>` (optional, int; default `0` with a warning if omitted): number of iterations.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - `REPEAT` is implemented as a FOR-like loop over `COUNT:0`:
   - Initializes `COUNT:0` to `0`.
@@ -7050,8 +6389,6 @@ DELCHARA 1, 3
 - Jump behavior note: control transfers between `REPEAT` and `REND` are done via their marker lines, and entering a marker line as a jump target begins execution at the following logical line:
   - Jumping to `REPEAT` re-enters at the first line of the body.
   - Jumping to `REND` exits to the first line after `REND`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -7084,16 +6421,11 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Increments the loop counter and decides whether to continue:
   - If more iterations remain, jumps back to the matching `REPEAT` marker (and thus continues at the first body line).
   - Otherwise falls through to the next line after `REND`.
 - Engine quirk: if the loop counter state is missing (e.g. due to invalid jumps into/out of the loop), `REND` exits the loop instead of throwing.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(jumpTo.JumpTo)`
   - `state.JumpTo(func.JumpTo)`
@@ -7130,17 +6462,12 @@ DELCHARA 1, 3
 - `<end>` (int): loop bound (exclusive).
 - `<step>` (optional, int; default `1`): increment applied at `NEXT` time.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Initializes the counter variable to `<start>`, then loops while:
   - `step > 0`: `<counter> < <end>`
   - `step < 0`: `<counter> > <end>`
 - If `step == 0`, the loop body executes zero times (execution jumps directly to `NEXT`).
 - The counter variable is incremented by `step` at `NEXT` time (and also by `BREAK`/`CONTINUE` for era-maker compatibility).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -7173,16 +6500,11 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Like `REND`, but paired with `FOR`.
 - Increments the loop counter by `step`, then:
   - If more iterations remain, jumps back to the matching `FOR` marker (and continues at the first body line).
   - Otherwise falls through to the next line after `NEXT`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(jumpTo.JumpTo)`
   - `state.JumpTo(func.JumpTo)`
@@ -7215,16 +6537,11 @@ DELCHARA 1, 3
 **Arguments**
 - `<int expr>` (optional, int; default `0` with a warning if omitted): loop condition (`0` = false, non-zero = true).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - At `WHILE`, evaluates the condition:
   - If true, enters the body (next line).
   - If false, jumps to the matching `WEND` marker (exiting the loop).
 - At `WEND`, the engine re-evaluates the `WHILE` condition and loops again if it is still true.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | FLOW_CONTROL | PARTIAL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -7256,15 +6573,10 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Re-evaluates the matching `WHILE` condition:
   - If true, jumps back to the `WHILE` marker (and continues at the first body line).
   - If false, falls through to the next line after `WEND`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | FLOW_CONTROL | PARTIAL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -7297,14 +6609,9 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Marker-only instruction (no runtime effect).
 - The loader links the `DO` marker with its matching `LOOP` condition line.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 
 **Errors & validation**
 - `LOOP` without a matching open `DO` is a load-time error (the `LOOP` line is marked as error).
@@ -7334,15 +6641,10 @@ DELCHARA 1, 3
 **Arguments**
 - `<int expr>` (optional, int; default `0` with a warning if omitted): loop condition (`0` = false, non-zero = true).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Evaluates the condition:
   - If true, jumps back to the matching `DO` marker (and continues at the first body line).
   - If false, falls through to the next line after `LOOP`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpTo)`
 
@@ -7371,9 +6673,6 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - The loader links `CONTINUE` to the nearest enclosing loop start marker.
 - `REPEAT`/`FOR`: increments the loop counter by `step`, then either:
@@ -7381,8 +6680,6 @@ DELCHARA 1, 3
   - jumps to the end marker (exit) if no iterations remain.
 - `WHILE`: re-evaluates the condition and either continues or exits.
 - `DO`: evaluates the matching `LOOP` condition and either continues or exits.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(jumpTo.JumpTo)`
   - `state.JumpTo(func.JumpTo)`
@@ -7417,15 +6714,10 @@ DELCHARA 1, 3
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - The loader links `BREAK` to the nearest enclosing loop start marker.
 - At runtime, `BREAK` jumps to that loop’s end marker (so execution continues after the loop).
 - For `REPEAT`/`FOR`, the engine also increments the loop counter once on `BREAK` (era-maker compatibility quirk).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(iLine)`
 
@@ -7455,17 +6747,12 @@ DELCHARA 1, 3
 **Arguments**
 - `<valueN>` (optional, int): each value is stored into `RESULT:<index>`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Evaluates all provided integer expressions (left-to-right), stores them into the `RESULT` integer array starting at index 0, then returns from the function.
 - The return value used by the call stack is `RESULT:0` after the assignment.
 - If no values are provided, behaves like `RETURN 0` (sets `RESULT:0` to `0` and returns `0`).
 - The engine does not clear unused `RESULT:<index>` slots; old values past the written prefix may remain.
 - Load-time diagnostics (non-fatal): the engine may emit compatibility warnings when `RETURN` is used with a non-constant expression/variable, or with multiple values.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = 0`
   - `state.Return(0)`
@@ -7499,17 +6786,12 @@ DELCHARA 1, 3
 **Arguments**
 - `<formString>` is evaluated to a string `s`, then `s` is re-lexed as one or more **comma-separated integer expressions**.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Evaluates the formatted string to a string `s`.
 - Parses `s` as `expr1, expr2, ...` using the engine’s expression lexer/parser.
 - Parsing detail: after each comma, the engine skips ASCII spaces (not tabs) before reading the next expression.
 - Stores the resulting integer values into `RESULT:0`, `RESULT:1`, ... and returns.
 - If `s` is empty, behaves like `RETURN 0`.
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.SetResultX(termList)`
   - `state.Return(exm.VEvaluator.RESULT)`
@@ -7541,9 +6823,6 @@ DELCHARA 1, 3
 **Arguments**
 - `<expr>` (optional): expression whose type should match the function’s declared return type.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Sets the method return value for the current expression-function call and exits the method body.
 - If `<expr>` is omitted:
@@ -7552,8 +6831,6 @@ DELCHARA 1, 3
 - Load-time validation:
   - `RETURNF` outside a `#FUNCTION/#FUNCTIONS` body is a load-time error (the line is marked as error).
   - A return-type mismatch (`RETURNF` returns string from an int method, or int from a string method) is a load-time error.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `state.ReturnF(ret)`
 
@@ -7583,16 +6860,11 @@ DELCHARA 1, 3
 **Arguments**
 - `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string expression).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Computes length via the engine’s language-aware length counter and assigns it to `RESULT`:
   - For ASCII-only strings: equals `str.Length`.
   - Otherwise: equals the current configured encoding’s `GetByteCount(str)` (often Shift-JIS in typical setups).
 - For normal expression-style string evaluation (quotes, `%...%`, `{...}`), use `STRLENFORM` instead.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = str.Length`
   - `exm.VEvaluator.RESULT = LangManager.GetStrlenLang(str)`
@@ -7621,14 +6893,9 @@ DELCHARA 1, 3
 **Arguments**
 - `<formString>` (optional, default `""`): FORM/formatted string expression (supports `%...%` and `{...}`).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Evaluates the formatted string to a string value, then computes its language/encoding length (see `STRLEN` for details).
 - Assigns the result to `RESULT`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = str.Length`
   - `exm.VEvaluator.RESULT = LangManager.GetStrlenLang(str)`
@@ -7657,13 +6924,8 @@ DELCHARA 1, 3
 **Arguments**
 - `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string expression).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Computes length as `str.Length` and assigns it to `RESULT`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = str.Length`
   - `exm.VEvaluator.RESULT = LangManager.GetStrlenLang(str)`
@@ -7692,13 +6954,8 @@ DELCHARA 1, 3
 **Arguments**
 - `<formString>` (optional, default `""`): FORM/formatted string expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Evaluates the formatted string to a string value, then assigns `str.Length` to `RESULT`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = str.Length`
   - `exm.VEvaluator.RESULT = LangManager.GetStrlenLang(str)`
@@ -7731,12 +6988,7 @@ DELCHARA 1, 3
 - Type pattern: `[typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.SwapChara(x, y)`
 
@@ -7769,12 +7021,7 @@ DELCHARA 1, 3
 - Type pattern: `[typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.CopyChara(x, y)`
 
@@ -7804,9 +7051,6 @@ DELCHARA 1, 3
 **Arguments**
 - Each `charaIndex`: int expression selecting an existing character index to copy from.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
 - For each `charaIndex` (evaluated and executed left-to-right), the engine:
@@ -7815,8 +7059,6 @@ DELCHARA 1, 3
   - Copies all character data from the source character into the newly appended last character.
 - `CHARANUM` increases by 1 for each successfully created copy.
 - This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.AddCopyChara(int64Term.GetIntValue(exm))`
 
@@ -7851,9 +7093,6 @@ ADDCOPYCHARA 0
 - Type pattern: `[typeof(string), typeof(string), typeof(string), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `3`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - (TODO)
 
@@ -7883,9 +7122,6 @@ ADDCOPYCHARA 0
 - Builder: `SP_COLOR_ArgumentBuilder()`
 - Type pattern: `[typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -7920,9 +7156,6 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `STR_ArgumentBuilder(false)`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(c)`
@@ -7956,12 +7189,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(Config.ForeColor)`
 
@@ -7991,9 +7219,6 @@ ADDCOPYCHARA 0
 - Builder: `SP_COLOR_ArgumentBuilder()`
 - Type pattern: `[typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -8028,12 +7253,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `FORM_STR_ANY_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.AddBackgroundImage(bgName, bgDepth, opacity)`
 
@@ -8063,9 +7283,6 @@ ADDCOPYCHARA 0
 
 **Arguments**
 - Builder: `STR_ArgumentBuilder(false)`
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -8100,12 +7317,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetBgColor(Config.BackColor)`
 
@@ -8136,12 +7348,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.ClearBackgroundImage()`
 
@@ -8172,12 +7379,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `FORM_STR_ANY_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.RemoveBackground(bgName)`
 
@@ -8208,12 +7410,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(exm.Console.StringStyle.FontStyle | FontStyle.Bold)`
 
@@ -8244,12 +7441,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(exm.Console.StringStyle.FontStyle | FontStyle.Italic)`
 
@@ -8280,12 +7472,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(FontStyle.Regular)`
 
@@ -8319,15 +7506,10 @@ ADDCOPYCHARA 0
 - Order: `FORWARD` = ascending, `BACK` = descending.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.
 - Stable sort: ties are broken by original order.
 - After sorting, `TARGET`/`ASSI` are updated to keep pointing at the same character objects; `MASTER` is kept at its fixed index.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.SortChara(sortKey.Identifier, elem, spSortArg.SortOrder, true)`
 
@@ -8363,9 +7545,6 @@ ADDCOPYCHARA 0
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(fs)`
@@ -8396,9 +7575,6 @@ ADDCOPYCHARA 0
 
 **Arguments**
 - Builder: `STR_ArgumentBuilder(false)`
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -8432,12 +7608,7 @@ ADDCOPYCHARA 0
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.NewLine()`
 
@@ -8466,9 +7637,6 @@ ADDCOPYCHARA 0
 
 **Arguments**
 - Builder: `FORM_STR_ArgumentBuilder(false)`
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -8502,9 +7670,6 @@ ADDCOPYCHARA 0
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `console.ClearText()`
@@ -8536,9 +7701,6 @@ ADDCOPYCHARA 0
 - Type pattern: `[typeof(string)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.Console.SetFont(str)`
@@ -8568,9 +7730,6 @@ ADDCOPYCHARA 0
 **Arguments**
 - `<var1>`: a changeable variable term (must not be `CONST`).
 - `<var2>`: a changeable variable term (same type as `<var1>`).
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - The engine first **fixes** both variable terms’ indices (important when indices contain expressions like `RAND`):
@@ -8613,17 +7772,12 @@ ADDCOPYCHARA 0
 **Arguments**
 - `<seed>` (optional): int. If omitted, the seed defaults to `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
   - Emits a warning and does nothing.
 - Otherwise:
   - Re-seeds the legacy RNG with `<seed>` truncated to 32 bits (i.e. low 32 bits used as an unsigned seed).
 - Does not assign `RESULT`/`RESULTS`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.Randomize(iValue)`
 
@@ -8653,9 +7807,6 @@ ADDCOPYCHARA 0
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
   - Emits a warning and does nothing.
@@ -8663,8 +7814,6 @@ ADDCOPYCHARA 0
   - Writes the legacy RNG state into `RANDDATA`.
   - `RANDDATA` must have length 625; otherwise a runtime error is raised.
 - Does not assign `RESULT`/`RESULTS`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.DumpRanddata()`
 
@@ -8693,9 +7842,6 @@ ADDCOPYCHARA 0
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If `UseNewRandom` is enabled in JSON config:
   - Emits a warning and does nothing.
@@ -8703,8 +7849,6 @@ ADDCOPYCHARA 0
   - Loads the legacy RNG state from `RANDDATA`.
   - `RANDDATA` must have length 625; otherwise a runtime error is raised.
 - Does not assign `RESULT`/`RESULTS`.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.InitRanddata()`
 
@@ -8736,9 +7880,6 @@ ADDCOPYCHARA 0
 - Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -8773,9 +7914,6 @@ ADDCOPYCHARA 0
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - (TODO)
 
@@ -8805,9 +7943,6 @@ ADDCOPYCHARA 0
 
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - (TODO)
@@ -8840,9 +7975,6 @@ ADDCOPYCHARA 0
 - Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -8881,9 +8013,6 @@ ADDCOPYCHARA 0
 - `<raw text>` (optional, default `""`): raw text, not an expression.
   - Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - At load time, the loader attaches `DATA` lines to the nearest surrounding block (`PRINTDATA*`, `STRDATA`, or `DATALIST`).
 - At runtime, `PRINTDATA*` / `STRDATA` evaluate the stored `DATA` line as a string and print/concatenate it when selected.
@@ -8917,9 +8046,6 @@ ENDDATA
 
 **Arguments**
 - Optional FORM/formatted string scanned to end-of-line.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.
@@ -8955,14 +8081,9 @@ ENDDATA
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
 - The loader wires `PRINTDATA*` / `STRDATA` to jump here after printing/selection.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | PARTIAL`
 
 **Errors & validation**
 - `ENDDATA` without an open `PRINTDATA*` / `STRDATA` is a load-time error (the line is marked as error).
@@ -8993,9 +8114,6 @@ ENDDATA
 
 **Arguments**
 - None.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.
@@ -9034,9 +8152,6 @@ ENDDATA
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Load-time only structural marker. At runtime it does nothing.
 
@@ -9065,9 +8180,6 @@ ENDDATA
 
 **Arguments**
 - `<strVarTerm>` (optional; default `RESULTS`): changeable string variable term to receive the result.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).
@@ -9117,12 +8229,8 @@ PRINTFORML RESULTS
 - Minimum args: `2`.
 - Variadic (`argAny`): `true`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - Engine-extracted notes (throws/errors):
@@ -9155,12 +8263,8 @@ PRINTFORML RESULTS
 - Minimum args: `2`.
 - Variadic (`argAny`): `true`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - Engine-extracted notes (throws/errors):
@@ -9193,12 +8297,8 @@ PRINTFORML RESULTS
 - Minimum args: `2`.
 - Variadic (`argAny`): `true`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - Engine-extracted notes (throws/errors):
@@ -9227,9 +8327,6 @@ PRINTFORML RESULTS
 
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -9264,9 +8361,6 @@ PRINTFORML RESULTS
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 - Variadic (`argAny`): `true`.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -9303,12 +8397,7 @@ PRINTFORML RESULTS
 - Type pattern: `[typeof(void), typeof(void), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `VariableEvaluator.SetValueAll(p, src, start, end)`
 
@@ -9341,12 +8430,7 @@ PRINTFORML RESULTS
 - Type pattern: `[typeof(void), typeof(void), typeof(void), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `int charaNum = (int)exm.VEvaluator.CHARANUM`
   - `exm.VEvaluator.SetValueAllEachChara(p, index, src, start, end)`
@@ -9384,9 +8468,6 @@ PRINTFORML RESULTS
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `vEvaluator.SetDefaultStain(iValue)`
@@ -9420,9 +8501,6 @@ PRINTFORML RESULTS
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.ForceKana(iValue)`
@@ -9452,9 +8530,6 @@ PRINTFORML RESULTS
 
 **Arguments**
 - `<int expr>`: `0` disables skip mode; non-zero enables skip mode.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.
@@ -9497,9 +8572,6 @@ PRINTFORML RESULTS
 
 **Arguments**
 - None.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - This is a structural block (`NOSKIP` pairs with `ENDNOSKIP`).
@@ -9548,9 +8620,6 @@ ENDNOSKIP
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Structural marker paired with `NOSKIP`.
 - See `NOSKIP` for the block’s runtime behavior (temporary disabling and restoration of output skipping).
@@ -9585,9 +8654,6 @@ ENDNOSKIP
 - `<default>`: expression of the same scalar type as the array element type.
 - `<start>` (optional, int; default `0`): start index of the shifted segment.
 - `<count>` (optional, int; default “to end”): number of elements in the segment. If explicitly `0`, this is a no-op.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Operates on the segment `[start, start+count)` (or `[start, end)` if count omitted).
@@ -9629,9 +8695,6 @@ ENDNOSKIP
 - `<arrayVar>`: changeable 1D array variable term.
 - `<start>` (int): start index (0-based).
 - `<count>` (int): number of elements to remove.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Works only on 1D arrays (int or string).
@@ -9682,9 +8745,6 @@ ENDNOSKIP
 - `<start>` (optional, int; default `0`): subrange start index (only parsed when `FORWARD|BACK` is present).
 - `<count>` (optional, int; default “to end”): subrange length (only parsed when `FORWARD|BACK` is present). If explicitly `0`, this is a no-op.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Order defaults to ascending.
 - Sorts the specified region of the array:
@@ -9734,9 +8794,6 @@ ENDNOSKIP
 - `<srcVarNameExpr>` (string): expression whose value is a variable name.
 - `<dstVarNameExpr>` (string): expression whose value is a variable name.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Resolves both variable names to variable tokens (early when literal, otherwise at runtime).
 - Requires both to be arrays (1D/2D/3D), non-character-data; destination must be non-const.
@@ -9783,9 +8840,6 @@ ENDNOSKIP
 **Arguments**
 - `<int expr>`: `0` clears message-skip; non-zero enables message-skip.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Evaluates `<int expr>` to `v`.
 - Sets the message-skip flag `MesSkip` to `(v != 0)`.
@@ -9822,14 +8876,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Enters the target function.
 - When the target function returns, the engine immediately returns again, effectively discarding the current function’s return address (tail-call-like behavior).
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -9867,17 +8916,12 @@ ENDNOSKIP
 - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
 - `<argN>`: expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Resolves the target label to a non-event function.
   - If `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
 - Evaluates arguments, binds them to the callee’s declared formals (including `REF` behavior), then enters the callee.
 - When the callee executes `RETURN` (or reaches end-of-function), control returns to the statement after the `CALL`.
 - Load-time behavior: if `<functionName>` is a compile-time constant, the loader tries to resolve the callee and may emit early diagnostics (e.g. unknown function, argument binding issues).
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -9918,14 +8962,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMP`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the target function exists: behaves like `JUMP`.
 - If the target function does not exist: does nothing (continues at the next line after `TRYJUMP`).
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -9959,14 +8998,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the target function exists: behaves like `CALL`.
 - If the target function does not exist: does nothing (continues at the next line after `TRYCALL`).
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10000,13 +9034,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Same as `JUMP`, with a runtime-evaluated function name.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10042,13 +9071,8 @@ ENDNOSKIP
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
 - `<argN>`: same as `CALL`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10082,14 +9106,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMPFORM`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the target function exists: behaves like `JUMPFORM`.
 - If not: does nothing (continues at the next line after `TRYJUMPFORM`).
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10123,14 +9142,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the target function exists: behaves like `CALLFORM`.
 - If not: does nothing (continues at the next line after `TRYCALLFORM`).
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10167,14 +9181,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMP`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the target function exists: behaves like `JUMP` (tail-call-like); the current function is discarded, so it does not return to reach `CATCH`.
 - If the function does not exist: jumps to the `CATCH` marker (entering the catch body).
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10214,14 +9223,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALL`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the target function exists: behaves like `CALL`, then control returns and reaches `CATCH` sequentially; `CATCH` skips the catch body.
 - If the function does not exist: jumps to the `CATCH` marker (so execution begins at the first line of the catch body).
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10262,13 +9266,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `JUMPFORM`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Same as `TRYCJUMP`, but with a runtime-evaluated function name.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10308,13 +9307,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `CALLFORM`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Same as `TRYCCALL`, but with a runtime-evaluated function name.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -10351,12 +9345,7 @@ ENDNOSKIP
 **Arguments**
 - Builder: `STR_ArgumentBuilder(false)`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | EXTENDED`
 - Engine-extracted notes (key operations):
   - `state.IntoFunction(call, null, null)`
 
@@ -10387,14 +9376,9 @@ ENDNOSKIP
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
 - `<argN>`: expressions passed to the method.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.
 - The return value is computed but not assigned to `RESULT/RESULTS` by this instruction (use statement-form method calls or assignment if you need the value).
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `if ((!func.Argument.IsConst) || exm.Console.RunERBFromMemory)`
 
@@ -10427,14 +9411,9 @@ ENDNOSKIP
 - `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
 - `<argN>`: expressions passed to the method.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.
 - The return value is computed but not assigned to `RESULT/RESULTS` by this instruction.
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `if ((!func.Argument.IsConst) || exm.Console.RunERBFromMemory)`
 
@@ -10464,12 +9443,8 @@ ENDNOSKIP
 **Arguments**
 - Builder: `SP_CALLSHARP_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE | FORCE_SETARG`
+- (TODO)
 
 **Errors & validation**
 - (TODO)
@@ -10498,12 +9473,7 @@ ENDNOSKIP
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | EXTENDED`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.ParentLabelLine)`
 
@@ -10532,9 +9502,6 @@ ENDNOSKIP
 **Arguments**
 - `<labelName>`: a raw string token; used to resolve a `$label` relative to the current function.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the label exists, jumps to the `$label` marker; execution continues at the line after the `$label`.
 - Compatibility parsing: after `<labelName>`, the engine also accepts an optional “call-like tail”:
@@ -10543,8 +9510,6 @@ ENDNOSKIP
   - These extra parts are parsed for compatibility but ignored by `GOTO`:
     - Only `<labelName>` is used to resolve the `$label`.
     - The ignored expressions are not evaluated and have no side effects (they only need to be syntactically valid).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label)`
   - `state.JumpTo(func.JumpToEndCatch)`
@@ -10586,14 +9551,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `GOTO`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the `$label` exists: behaves like `GOTO`.
 - If not: does nothing (continues at the next line after `TRYGOTO`).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label)`
   - `state.JumpTo(func.JumpToEndCatch)`
@@ -10627,13 +9587,8 @@ ENDNOSKIP
 **Arguments**
 - `<formString>`: FORM/formatted string; the evaluated result is used as the `$label` name.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Evaluates the label name and jumps if it resolves to a `$label` in the current function.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label)`
   - `state.JumpTo(func.JumpToEndCatch)`
@@ -10667,14 +9622,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `GOTOFORM`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the `$label` exists: behaves like `GOTOFORM`.
 - If not: does nothing (continues at the next line after `TRYGOTOFORM`).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label)`
   - `state.JumpTo(func.JumpToEndCatch)`
@@ -10712,14 +9662,9 @@ ENDNOSKIP
 **Arguments**
 - Same as `GOTO`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the `$label` exists: behaves like `GOTO` (jumps to the label). Whether the `CATCH` line is ever reached depends on subsequent control flow.
 - If the `$label` does not exist: jumps to the `CATCH` marker (entering the catch body).
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label)`
   - `state.JumpTo(func.JumpToEndCatch)`
@@ -10760,13 +9705,8 @@ ENDNOSKIP
 **Arguments**
 - Same as `GOTOFORM`.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Same as `TRYCGOTO`, but with a runtime-evaluated label name.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label)`
   - `state.JumpTo(func.JumpToEndCatch)`
@@ -10805,14 +9745,9 @@ ENDNOSKIP
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - When reached **sequentially** (i.e. the `TRYC*` succeeded and returned normally), `CATCH` jumps to the matching `ENDCATCH` marker, skipping the catch body.
 - When entered by a failed `TRYC*` instruction, execution jumps to the `CATCH` marker and (due to the engine’s advance-first model) begins executing at the first line of the catch body.
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | FLOW_CONTROL | PARTIAL`
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
 
@@ -10844,13 +9779,8 @@ ENDNOSKIP
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Marker-only instruction (no runtime effect). The loader links it to the matching `CATCH` so that `CATCH` can skip the catch body on the success path.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 
 **Errors & validation**
 - `ENDCATCH` without a matching open `CATCH` is a load-time error (the line is marked as error).
@@ -10884,9 +9814,6 @@ ENDNOSKIP
 - Each `FUNC` item provides:
   - a candidate function name as a **FORM/formatted string expression** (evaluated to a string at runtime)
   - optional call arguments (expressions)
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Structural notes:
@@ -10945,9 +9872,6 @@ ENDNOSKIP
 **Arguments**
 - Same as `TRYCALLLIST`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same selection rules as `TRYCALLLIST`.
 - If a candidate function is found:
@@ -10992,9 +9916,6 @@ ENDNOSKIP
 
 **Arguments**
 - Each `FUNC` item provides a label name as a **FORM/formatted string expression** (evaluated to a string at runtime).
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Structural notes:
@@ -11046,9 +9967,6 @@ ENDNOSKIP
 - `<formString>`: a FORM/formatted string expression evaluated to a function name or label name.
 - `<argN>`: optional call arguments (not allowed for `TRYGOTOLIST`).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Not executed as a standalone statement.
 - During load, Emuera collects `FUNC` lines into a list owned by the surrounding `TRY*LIST` instruction.
@@ -11082,13 +10000,8 @@ ENDNOSKIP
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Marker-only instruction (no runtime effect). The surrounding `TRY*LIST` uses it as the jump target when no candidate succeeds.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL | PARTIAL | FORCE_SETARG`
 
 **Errors & validation**
 - `ENDFUNC` without a matching open `TRY*LIST` is a load-time error (the line is marked as error).
@@ -11115,12 +10028,7 @@ ENDNOSKIP
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | DEBUG_FUNC`
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugPrint(str)`
   - `exm.Console.DebugNewLine()`
@@ -11149,12 +10057,7 @@ ENDNOSKIP
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | DEBUG_FUNC`
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugPrint(str)`
   - `exm.Console.DebugNewLine()`
@@ -11183,12 +10086,7 @@ ENDNOSKIP
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | DEBUG_FUNC`
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugPrint(str)`
   - `exm.Console.DebugNewLine()`
@@ -11217,12 +10115,7 @@ ENDNOSKIP
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | DEBUG_FUNC`
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugPrint(str)`
   - `exm.Console.DebugNewLine()`
@@ -11253,12 +10146,7 @@ ENDNOSKIP
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED | DEBUG_FUNC`
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugClear()`
 
@@ -11291,9 +10179,6 @@ ENDNOSKIP
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - (TODO)
 
@@ -11324,9 +10209,6 @@ ENDNOSKIP
 
 **Arguments**
 - Builder: `FORM_STR_ArgumentBuilder(true)`
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - (TODO)
@@ -11359,14 +10241,9 @@ ENDNOSKIP
 - `<saveText>` (string): intended description text.
 - `<var*>`: one or more changeable non-character variable terms (arrays are allowed; several variable categories are rejected).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 
 **Errors & validation**
 - Always errors at runtime.
@@ -11395,14 +10272,9 @@ ENDNOSKIP
 **Arguments**
 - `<name>` (string): intended file name component.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 
 **Errors & validation**
 - Always errors at runtime.
@@ -11433,9 +10305,6 @@ ENDNOSKIP
 - `<saveText>` (string): stored in the file as a description.
 - `<charaNo*>`: one or more integer expressions; character indices to save (0-based).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Writes a binary file under `Program.DatDir`:
   - Path is `chara_<name>.dat`.
@@ -11446,8 +10315,6 @@ ENDNOSKIP
   - All indices must be within `[0, CHARANUM-1]`.
   - Duplicate indices are rejected.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `int charanum = (int)exm.VEvaluator.CHARANUM`
   - `exm.VEvaluator.SaveChara(datFilename, savMes, savCharaList)`
@@ -11482,9 +10349,6 @@ ENDNOSKIP
 **Arguments**
 - `<name>` (string): the file name component.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Reads `Program.DatDir/chara_<name>.dat`.
 - If the file exists and passes validation (file type, unique code, version):
@@ -11493,8 +10357,6 @@ ENDNOSKIP
 - Otherwise:
   - Does nothing and sets `RESULT = 0`.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.LoadChara(datFilename)`
 
@@ -11523,12 +10385,7 @@ ENDNOSKIP
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = 0`
   - `exm.VEvaluator.RESULT = 1`
@@ -11558,12 +10415,7 @@ ENDNOSKIP
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = 0`
   - `exm.VEvaluator.RESULT = 1`
@@ -11596,9 +10448,6 @@ ENDNOSKIP
   - `0` (default): print as a complete logical output line (implicit line end).
   - non-zero: append the HTML output into the current print buffer (no implicit line end).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
 - Evaluates `<html>` to a string.
@@ -11611,8 +10460,6 @@ ENDNOSKIP
   - The HTML is converted to output segments and appended into the current print buffer.
   - `<br>` (and literal `'\n'` inside the HTML string) insert display line breaks, but no final line end is implied.
 - The output is not affected by non-HTML text style commands like `ALIGNMENT`, `SETFONT`, `SETCOLOR`, or `FONTSTYLE`; use HTML tags (`<p>`, `<font>`, `<b>`, etc.) instead.
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `if (arg.IsConst) exm.Console.PrintHtml(arg.ConstStr, arg.ConstInt != 0)`
   - `else exm.Console.PrintHtml(arg.Str.GetStrValue(exm), arg.Opt == null ? false : arg.Opt.GetIntValue(exm) != 0)`
@@ -11654,9 +10501,6 @@ PRINTL ""
 - `<outParts>` (optional; default `RESULTS`): changeable 1D **non-character** string array variable to receive parts.
 - `<outCount>` (optional; default `RESULT`): changeable integer variable to receive the part count.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Interprets `<html>` as an HTML string and splits it by scanning for `<...>` regions:
   - Each tag-like region from `<` through the next `>` (inclusive) is emitted as a single part.
@@ -11670,8 +10514,6 @@ PRINTL ""
 - On failure (e.g. a `<` is found but no matching `>` exists later in the string):
   - Writes `-1` to `<outCount>`.
   - Does not modify `<outParts>`.
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE`
 
 **Errors & validation**
 - Argument type/count errors follow the normal expression argument rules.
@@ -11705,12 +10547,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) }` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintImg(`
 
@@ -11742,12 +10579,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long), typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintShape("rect", param)`
 
@@ -11779,12 +10611,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long), typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintShape("space", param)`
 
@@ -11818,12 +10645,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `1`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipColor(fc, bc)`
 
@@ -11858,12 +10680,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipDelay((int)delay)`
 
@@ -11897,12 +10714,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipDuration((int)duration)`
 
@@ -11932,12 +10744,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -11969,12 +10776,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(void)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.Await((int)waittime)`
 
@@ -12008,9 +10810,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
   - `RAND` is rejected (even though it is 1D).
   - Compatibility parsing: any extra characters after the identifier are ignored (with a warning). For example, `VARSIZE ABL:TARGET:0` is treated like `VARSIZE ABL`.
     - The ignored tail is not parsed as expressions and is not evaluated (so it has no side effects).
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Resolves `<arrayVarName>` to a variable token.
@@ -12048,9 +10847,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Reads the current local time (`DateTime.Now`) and assigns:
   - `RESULT`: an integer of the form `yyyymmddHHMMSSmmm` (milliseconds included).
@@ -12086,9 +10882,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `<dest>`: changeable integer variable term (destination).
 - `<x>` (int): base.
 - `<y>` (int): exponent.
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Evaluates `<x>` and `<y>` as integers, converts them to `double`, then computes `pow = Math.Pow(x, y)`.
@@ -12133,9 +10926,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - (TODO)
 
@@ -12168,9 +10958,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - (TODO)
 
@@ -12200,9 +10987,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 **Arguments**
 - Builder: `FORM_STR_ArgumentBuilder(true)`
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -12236,12 +11020,8 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Builder: `SP_HTML_PRINT_ArgumentBuilder()`
 - Type pattern: `null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) }` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - Engine-extracted notes (throws/errors):
@@ -12271,12 +11051,8 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - (TODO)
@@ -12307,12 +11083,8 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(string)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - Engine-extracted notes (throws/errors):
@@ -12342,12 +11114,8 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - (TODO)
@@ -12378,12 +11146,8 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - (TODO)
@@ -12414,12 +11178,8 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
+- (TODO)
 
 **Errors & validation**
 - (TODO)
@@ -12446,12 +11206,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `if ((!func.Argument.IsConst) || exm.Console.RunERBFromMemory)`
 
@@ -12479,12 +11234,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE | FORCE_SETARG`
 - Engine-extracted notes (key operations):
   - `if ((!func.Argument.IsConst) || exm.Console.RunERBFromMemory)`
 
@@ -12514,12 +11264,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = 4`
   - `exm.VEvaluator.RESULT = 5`
@@ -12554,9 +11299,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.Console.Quit()`
@@ -12586,9 +11328,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
-
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
 - Engine-extracted notes (key operations):
@@ -12620,9 +11359,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.Console.ForceQuit()`
@@ -12652,13 +11388,8 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - Same as `BEGIN`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Same as `BEGIN` in the current engine implementation.
-- Engine-extracted notes (base flags from class):
-  - `flag = FLOW_CONTROL`
 - Engine-extracted notes (key operations):
   - `state.SetBegin(keyword, true)`
   - `state.Return(0)`
@@ -12691,12 +11422,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - Builder: `VOID_ArgumentBuilder()`
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -12729,12 +11455,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(string)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipFontName(fn.Term.GetStrValue(exm))`
 
@@ -12767,12 +11488,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipFontSize(fs.Term.GetIntValue(exm))`
 
@@ -12805,12 +11521,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.CustomToolTip(false)`
   - `exm.Console.CustomToolTip(true)`
@@ -12844,12 +11555,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipFormat(i.Term.GetIntValue(exm))`
 
@@ -12882,12 +11588,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.SetToolTipImg(i.Term.GetIntValue(exm) != 0)`
 
@@ -12920,12 +11621,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long), typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT`
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.PrintBuffer.IsEmpty)`
   - `exm.Console.NewLine()`
@@ -12966,12 +11662,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(string)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT`
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.PrintBuffer.IsEmpty)`
   - `exm.Console.NewLine()`
@@ -13012,12 +11703,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(long), typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT`
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.PrintBuffer.IsEmpty)`
   - `exm.Console.NewLine()`
@@ -13058,12 +11744,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Type pattern: `[typeof(string)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 - Minimum args: `0`.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT | IS_INPUT`
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.PrintBuffer.IsEmpty)`
   - `exm.Console.NewLine()`
@@ -13101,12 +11782,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Builder: `SP_DT_COLUMN_OPTIONS_ArgumentBuilder()`
 - Type pattern: `null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) }` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
   - `if (!dict.ContainsKey(key)) exm.VEvaluator.RESULT = -1`
@@ -13139,9 +11815,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -13168,9 +11841,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - (TODO)
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -13204,9 +11874,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
   - If provided, it must be a valid `int` expression (it is parsed and type-checked).
   - The value is ignored by `HTML_PRINT_ISLAND` and is not evaluated during execution.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
 - Evaluates `<html>` to a string and appends the rendered HTML output into a separate “island” layer.
@@ -13216,8 +11883,6 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
   - It is drawn from the top of the window, with each appended “logical line” placed on successive rows.
 - Note: `<div ...>...</div>` sub-areas are not rendered in the island layer.
 - Use `HTML_PRINT_ISLAND_CLEAR` to clear the island layer.
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintHTMLIsland(str)`
 
@@ -13250,14 +11915,9 @@ HTML_PRINT_ISLAND "<div width='300px' height='30px' color='#202020'><font color=
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- Optional/default behavior is builder-specific; see engine refs.
-
 **Semantics**
 - Clears the “HTML island” layer immediately.
 - This instruction is not skipped by output skipping; it always clears the island layer.
-- Engine-extracted notes (base flags from class):
-  - `flag = EXTENDED | METHOD_SAFE`
 - Engine-extracted notes (key operations):
   - `exm.Console.ClearHTMLIsland()`
 
@@ -13291,14 +11951,9 @@ HTML_PRINT_ISLAND_CLEAR
 **Arguments**
 - `<raw text>` (optional, default `""`): raw text, not an expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Waits for a key **without** ending the logical output line (see `PRINT`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -13335,15 +11990,10 @@ HTML_PRINT_ISLAND_CLEAR
 - One or more comma-separated expressions (each may be int or string).
 - Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Concatenates all arguments into a single output string, then prints it.
 - Waits for a key **without** ending the logical output line (see `PRINT`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -13379,15 +12029,10 @@ HTML_PRINT_ISLAND_CLEAR
 **Arguments**
 - A single string expression (must be present).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression and prints the result.
 - Waits for a key **without** ending the logical output line (see `PRINT`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -13424,15 +12069,10 @@ HTML_PRINT_ISLAND_CLEAR
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Waits for a key **without** ending the logical output line (see `PRINT`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -13469,16 +12109,11 @@ HTML_PRINT_ISLAND_CLEAR
 - A string expression (must be present).
 - The resulting string is then treated as a FORM/formatted string **at runtime**.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Evaluates the string expression to produce a format-string source.
 - Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.
 - Waits for a key **without** ending the logical output line (see `PRINT`).
-- Engine-extracted notes (base flags from class):
-  - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -13541,9 +12176,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetChara(integer)`
@@ -13577,9 +12209,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -13616,9 +12245,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterStrfromCSVData(x, charaStr, y != 0, 0)`
@@ -13651,9 +12277,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -13690,9 +12313,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterStrfromCSVData(x, charaStr, y != 0, 0)`
@@ -13725,9 +12345,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -13764,9 +12381,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterStrfromCSVData(x, CharacterStrData.CSTR, z != 0, y)`
@@ -13799,9 +12413,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -13838,9 +12449,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
@@ -13873,9 +12481,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -13912,9 +12517,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
@@ -13947,9 +12549,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -13986,9 +12585,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
@@ -14021,9 +12617,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14060,9 +12653,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
@@ -14095,9 +12685,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14140,9 +12727,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `value` (int|string; must match the selected cell type): scalar value to match.
 - `startIndex` (optional, int; default `0`): inclusive start chara index.
 - `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Reads the current `CHARANUM` and searches forward in the half-open range `[startIndex, lastIndex)`.
@@ -14202,9 +12786,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `startIndex` (optional, int; default `0`): inclusive start chara index.
 - `lastIndex` (optional, int; default `CHARANUM`): exclusive end chara index.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Reads the current `CHARANUM` and searches backward in the half-open range `[startIndex, lastIndex)`.
 - The search order is: `lastIndex - 1`, `lastIndex - 2`, ..., down to `startIndex`.
@@ -14257,9 +12838,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.ExistCsv(no, isSp)`
@@ -14298,9 +12876,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `dim` (optional, int; default `0`): dimension selector.
   - Default behavior: `0` selects the first dimension (0-based).
   - If `VarsizeDimConfig` is enabled and `dim > 0`, the engine subtracts `1` before selecting the dimension (i.e. `1` selects the first dimension).
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Resolves `varName` to a variable token using the normal variable-name lookup rules.
@@ -14345,9 +12920,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -14378,9 +12950,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14418,9 +12987,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.Process.SkipPrint ? 1L : 0L`
@@ -14451,9 +13017,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Argument rules: custom check (no `argumentTypeArray`/`argumentTypeArrayEx` assignment detected).
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14487,9 +13050,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -14519,9 +13079,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14555,9 +13112,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -14587,9 +13141,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14623,9 +13174,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -14655,9 +13203,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14691,9 +13236,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -14723,9 +13265,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14760,9 +13299,6 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - `value`: int expression (numerator).
 - `maxValue`: int expression (denominator); must evaluate to `> 0`.
 - `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Produces:
@@ -14805,9 +13341,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `if (exm.Console.Alignment == DisplayLineAlignment.LEFT)`
@@ -14839,9 +13372,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14877,9 +13407,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -14910,9 +13437,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -14949,9 +13473,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `EraDataResult result = exm.VEvaluator.CheckData(datFilename, type)`
@@ -14984,9 +13505,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.String }; OmitStart = 0.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15023,9 +13541,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15056,9 +13571,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15092,9 +13604,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15124,9 +13633,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15160,9 +13666,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15192,9 +13695,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15228,9 +13728,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15260,9 +13757,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15295,9 +13789,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15335,9 +13826,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15368,9 +13856,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.VariadicInt }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15404,9 +13889,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15438,9 +13920,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15477,9 +13956,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15510,9 +13986,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15546,9 +14019,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15587,9 +14057,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15626,9 +14093,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15663,9 +14127,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15695,9 +14156,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15731,9 +14189,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.CharacterData | ArgType.RefIntArray | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15774,9 +14229,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `long index2 = (arguments.Count == 3 && arguments[2] != null) ? arguments[2].GetIntValue(exm) : (isCharaRange ? exm.VEvaluator.CHARANUM : varTerm.GetLastLength())`
@@ -15814,9 +14266,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.Any, ArgType.SameAsFirst, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15860,9 +14309,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `long end = (arguments.Count > 3 && arguments[3] != null) ? arguments[3].GetIntValue(exm) : (isCharaRange ? exm.VEvaluator.CHARANUM : varTerm.GetLength())`
@@ -15902,9 +14348,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -15935,9 +14378,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.Any, ArgType.VariadicSameAsFirst }.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -15972,9 +14412,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -16007,9 +14444,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.CharacterData | ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -16051,9 +14485,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `long end = (arguments.Count > 2 && arguments[2] != null) ? arguments[2].GetIntValue(exm) : (isCharaRange ? exm.VEvaluator.CHARANUM : vTerm.GetLength())`
@@ -16091,9 +14522,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.CharacterData | ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -16135,9 +14563,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `long end = (arguments.Count > 2 && arguments[2] != null) ? arguments[2].GetIntValue(exm) : (isCharaRange ? exm.VEvaluator.CHARANUM : vTerm.GetLength())`
@@ -16174,9 +14599,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -16211,9 +14633,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `if (exm.VEvaluator.Constant.TryKeywordToInteger(out int ret, varCode, key, -1, varname))`
@@ -16244,9 +14663,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -16281,9 +14697,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.getExpLv(value, maxLv)`
@@ -16316,9 +14729,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.SameAsFirst, ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -16357,9 +14767,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return VariableEvaluator.FindElement(p, targetValue, start, end, isExact, isLast)`
@@ -16394,9 +14801,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -16428,9 +14832,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.CharacterData | ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 3.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -16471,9 +14872,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `long end = (arguments.Count > 4 && arguments[4] != null) ? arguments[4].GetIntValue(exm) : (isCharaRange ? exm.VEvaluator.CHARANUM : varTerm.GetLength())`
@@ -16511,9 +14909,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `if (exm.VEvaluator.Constant.TryKeywordToInteger(out int ret, var.Code, key, -1, arguments[0].GetStrValue(exm)))`
@@ -16548,9 +14943,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -16583,9 +14975,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -16615,9 +15004,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -16654,9 +15040,6 @@ PRINTFORML %S%
 - `str` (string): input string.
 - `start` (optional, int; default `0`): language-length offset; see Semantics.
 - `length` (optional, int; default `-1`): language-length count (`<0` means “to end”).
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Let `total = STRLEN(str)` (the engine’s “language length” of `str`).
@@ -16702,9 +15085,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -16735,9 +15115,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -16772,9 +15149,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -16804,9 +15178,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(string), typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -16842,9 +15213,6 @@ PRINTFORML %S%
 **Arguments**
 - `i`: int.
 - `format` (optional): string expression passed to `Int64.ToString(format)`. If omitted or `null`, uses default formatting.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - If `format` is omitted or null: returns `i.ToString()`.
@@ -16882,9 +15250,6 @@ PRINTFORML %S%
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Returns `0` if `str` is `null` or `""`.
@@ -16937,9 +15302,6 @@ PRINTFORML %S%
 **Arguments**
 - `str`: string expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If `str` is null/empty: returns `""`.
 - Otherwise: returns `str.ToUpper()` using the process `CurrentCulture`.
@@ -16972,9 +15334,6 @@ PRINTFORML %S%
 
 **Arguments**
 - `str`: string expression.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -17009,9 +15368,6 @@ PRINTFORML %S%
 **Arguments**
 - `str`: string expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If `str` is null/empty: returns `""`.
 - Otherwise: uses VisualBasic `Strings.StrConv(..., Narrow, <code page>)`, where `<code page>` is the engine’s current language code page (derived from `useLanguage`).
@@ -17045,9 +15401,6 @@ PRINTFORML %S%
 **Arguments**
 - `str`: string expression.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If `str` is null/empty: returns `""`.
 - Otherwise: uses VisualBasic `Strings.StrConv(..., Wide, <code page>)`, where `<code page>` is the engine’s current language code page (derived from `useLanguage`).
@@ -17079,9 +15432,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17117,9 +15467,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -17151,9 +15498,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17188,9 +15532,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -17220,9 +15561,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17257,9 +15595,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -17289,9 +15624,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17324,9 +15656,6 @@ PRINTFORML %S%
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17362,9 +15691,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -17394,9 +15720,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17430,9 +15753,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17469,9 +15789,6 @@ PRINTFORML %S%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return VariableEvaluator.GetJoinedStr(p, delimiter, index1, index2)`
@@ -17503,9 +15820,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17542,9 +15856,6 @@ PRINTFORML %S%
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17586,9 +15897,6 @@ PRINTFORML %S%
   - `0` = the most recent logical output line.
   - `1` = the second most recent logical output line.
   - And so on.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Interprets `<lineNo>` as a non-negative index into the current display log’s **logical lines**, counted from the end:
@@ -17640,9 +15948,6 @@ S = HTML_GETPRINTEDSTR(0)
 **Arguments**
 - None.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If the engine output is disabled or the print buffer is empty, returns `""`.
 - Otherwise:
@@ -17689,9 +15994,6 @@ S = HTML_POPPRINTINGSTR()
 **Arguments**
 - `html`: string expression interpreted as an HTML string.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Removes all tag-like regions of the form `<...>` (including button tags and comments).
 - Then expands character references in the remaining text (e.g. `&amp;` → `&`, `&#x41;` → `A`).
@@ -17727,9 +16029,6 @@ PRINTFORMW %HTML_TOPLAINTEXT("<b>AAA</b><i><b>BBB</b></i><s>CCC</s>")%
 
 **Arguments**
 - `text`: string expression.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Replaces:
@@ -17772,9 +16071,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -17806,9 +16102,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17844,9 +16137,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -17878,9 +16168,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(string), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17916,9 +16203,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -17950,9 +16234,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -17988,9 +16269,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18022,9 +16300,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18062,9 +16337,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.Console.ClientWidth`
@@ -18098,9 +16370,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18137,9 +16406,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.IsActive)//アクティブでないならスルー`
@@ -18172,9 +16438,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18212,9 +16475,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `case "MOUSEX": return exm.Console.GetMousePosition().X`
@@ -18247,9 +16507,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18294,9 +16551,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.Console.IsActive ? 1 : 0`
@@ -18328,9 +16582,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.Any, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18365,9 +16616,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18398,9 +16646,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18437,9 +16682,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18472,9 +16714,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18511,9 +16750,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18546,9 +16782,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18579,9 +16812,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18622,9 +16852,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18656,9 +16883,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18696,9 +16920,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18730,9 +16951,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18772,9 +16990,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18806,9 +17021,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18846,9 +17058,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18882,9 +17091,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18916,9 +17122,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -18955,9 +17158,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -18989,9 +17189,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19030,9 +17227,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -19066,9 +17260,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -19099,9 +17290,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19139,9 +17327,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.CBG_SetImage(img, p.X, p.Y, (int)z64))`
@@ -19174,9 +17359,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19212,9 +17394,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_ClearButton()`
@@ -19245,9 +17424,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19283,9 +17459,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_ClearBMap()`
@@ -19317,9 +17490,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19357,9 +17527,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.CBG_SetButtonImage((int)b64, imgN, imgB, p.X, p.Y, (int)z64, tooltip))`
@@ -19395,9 +17562,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -19431,9 +17595,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -19465,9 +17626,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(string), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19507,9 +17665,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -19540,9 +17695,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19577,9 +17729,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 0.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19617,9 +17766,6 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - `returnPixel` (optional, int; default `0`)
   - `0` (default): return in half-width character units.
   - non-zero: return in pixels.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Computes the rendered output for `html` using the same rules as `HTML_PRINT`.
@@ -19663,9 +17809,6 @@ PRINTFORML {HTML_STRINGLEN("<b>B</b>", 1)}
 **Arguments**
 - `html`: string expression interpreted as an HTML string.
 - `width`: integer expression, in half-width character units.
-
-**Defaults / optional arguments**
-- (TODO)
 
 **Semantics**
 - Returns the first part (the prefix) as an HTML string.
@@ -19720,9 +17863,6 @@ PRINTSL RESULTS:1
 - `html`: string expression interpreted as an HTML string.
 - `width`: integer expression, in half-width character units.
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - If `html` is null/empty, returns `0`.
 - Otherwise, repeatedly applies the same splitting rules as `HTML_SUBSTRING(html, width)`:
@@ -19762,9 +17902,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -19794,9 +17931,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19830,9 +17964,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -19863,9 +17994,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19901,9 +18029,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
@@ -19935,9 +18060,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -19973,9 +18095,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
@@ -20007,9 +18126,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20045,9 +18161,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
@@ -20079,9 +18192,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20117,9 +18227,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
@@ -20151,9 +18258,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20189,9 +18293,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
@@ -20222,9 +18323,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20258,9 +18356,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20297,9 +18392,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -20333,9 +18425,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.Any, ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20374,9 +18463,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -20410,9 +18496,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.RefInt, ArgType.RefString1D }.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20451,9 +18534,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -20487,9 +18567,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.Any }.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20526,9 +18603,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String, ArgType.RefString1D, ArgType.Int }; OmitStart = 3.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20568,9 +18642,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String, ArgType.RefString1D, ArgType.Int }; OmitStart = 3.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20613,9 +18684,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -20654,9 +18722,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -20693,9 +18758,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -20728,9 +18790,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.Any }.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20770,9 +18829,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20816,9 +18872,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -20857,9 +18910,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -20896,9 +18946,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -20940,9 +18987,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -20980,9 +19024,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 3.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21026,9 +19067,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -21070,9 +19108,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -21109,9 +19144,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21152,9 +19184,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
@@ -21189,9 +19218,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
@@ -21224,9 +19250,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
@@ -21257,9 +19280,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21297,9 +19317,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.Int }.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21340,9 +19357,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
@@ -21376,9 +19390,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21416,9 +19427,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
@@ -21452,9 +19460,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21492,9 +19497,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
@@ -21530,9 +19532,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.Int }.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21575,9 +19574,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
@@ -21611,9 +19607,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string), typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21651,9 +19644,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -21686,9 +19676,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21725,9 +19712,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -21760,9 +19744,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21799,9 +19780,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -21836,9 +19814,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21879,9 +19854,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -21918,9 +19890,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -21961,9 +19930,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -21996,9 +19962,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22035,9 +19998,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.RefString1D, ArgType.RefAny1D, ArgType.Int }.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22079,9 +20039,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -22119,9 +20076,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -22152,9 +20106,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22190,9 +20141,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -22224,9 +20172,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 3.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22262,9 +20207,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -22296,9 +20238,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Any, ArgType.Int }; OmitStart = 3.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22334,9 +20273,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -22368,9 +20304,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22405,9 +20338,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
@@ -22438,9 +20368,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22476,9 +20403,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `if (resume) exm.Console.Window.ResetTextBoxPos()`
@@ -22510,9 +20434,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22547,9 +20468,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -22581,9 +20499,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 3.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22620,9 +20535,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `long[] resultArray = exm.VEvaluator.RESULT_ARRAY`
@@ -22655,9 +20567,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22694,9 +20603,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -22729,9 +20635,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22769,9 +20672,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `long[] resultArray = exm.VEvaluator.RESULT_ARRAY`
@@ -22804,9 +20704,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22843,9 +20740,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -22878,9 +20772,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22916,9 +20807,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -22948,9 +20836,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -22984,9 +20869,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `return exm.Console.Window.TextBox.Text`
@@ -23017,9 +20899,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(string)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -23056,9 +20935,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `if (exm.VEvaluator.Constant.TryIntegerToKeyword(out string ret, value, varname))`
@@ -23089,9 +20965,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = [typeof(long)]`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -23126,9 +20999,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -23160,9 +21030,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.Int }.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -23199,9 +21066,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -23232,9 +21096,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: `argumentTypeArray = []`.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -23268,9 +21129,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -23309,9 +21167,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - Engine-extracted notes (key operations):
   - `exm.Process.flowinputString = arguments[0].GetIntValue(exm) != 0 ? true : false`
@@ -23344,9 +21199,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.VariadicAny }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -23383,9 +21235,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -23417,9 +21266,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Argument rules: custom check (no `argumentTypeArray`/`argumentTypeArrayEx` assignment detected).
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
@@ -23454,9 +21300,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -23489,9 +21332,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Arguments**
 - (TODO)
 
-**Defaults / optional arguments**
-- (TODO)
-
 **Semantics**
 - (TODO)
 
@@ -23522,9 +21362,6 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - ArgTypeList: ArgTypes = { ArgType.Int }; OmitStart = 1.
 
 **Arguments**
-- (TODO)
-
-**Defaults / optional arguments**
 - (TODO)
 
 **Semantics**

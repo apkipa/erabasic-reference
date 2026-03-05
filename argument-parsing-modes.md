@@ -40,6 +40,17 @@ Practical rule:
 
 From a compatibility perspective, most built-in instructions fall into one of these families:
 
+### 3.0 Identifier-only arguments (no expression parsing)
+
+Some instructions accept a single **identifier token** as their entire argument (for example, a variable name), and do not parse the rest of the line as expressions.
+
+Behavior:
+
+- The parser reads one identifier token (letters/digits/underscore; same identifier rules as normal keywords).
+- Any remaining characters after that identifier are not tokenized or reduced as expressions.
+  - The engine may emit a warning about extra trailing characters, but the tail is not evaluated and has no side effects.
+- This mode is distinct from “compatibility tails” such as `GOTO label, ...` where the tail is still lexed as expressions (syntactically) even if not evaluated.
+
 ### 3.1 Expression-argument builders (tokenized, `;` comments out remainder)
 
 These builders lex the argument slice into tokens and then reduce an expression / argument list:
