@@ -11,7 +11,7 @@
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.

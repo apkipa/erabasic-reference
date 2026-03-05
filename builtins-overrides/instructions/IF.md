@@ -6,7 +6,6 @@
 
 **Syntax**
 - `IF <int expr>`
-- `IF <int expr>`
   - `...`
   - `ELSEIF <int expr>`
   - `...`

@@ -10,14 +10,10 @@
 **Arguments**
 - `<timeMs>`: integer expression; time limit in milliseconds.
 - `<default>`: string expression; default value used on timeout (and also on empty input when the request is not running a timer).
-- `<displayTime>` (optional): integer expression; if non-zero, displays remaining time. Default `1`.
-- `<timeoutMessage>` (optional): string expression; timeout message. Default `Config.TimeupLabel`.
+- `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time.
+- `<timeoutMessage>` (optional, string; default `TimeupLabel`): timeout message.
 - `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
-
-- Omitted arguments / defaults:
-  - `<displayTime>` defaults to `1`.
-  - `<timeoutMessage>` defaults to `Config.TimeupLabel`.
 
 **Semantics**
 - Same model as `TINPUT`, but stores into `RESULTS` (string) rather than `RESULT` (int).
@@ -30,7 +26,7 @@
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 
 **Errors & validation**
-- Argument type/count errors are rejected by the argument builder.
+- Argument parsing/type-checking errors are engine errors.
 
 **Examples**
 - `TINPUTS 5000, "DEFAULT"`

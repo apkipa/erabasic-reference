@@ -17,7 +17,7 @@
   - `<toBuffer>` defaults to `0`.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output and no evaluation).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
 - Evaluates `<html>` to a string.
   - If it is null/empty, no output is produced.
 - Interprets the string as an HTML string and renders it according to `html-output.md` (tags, entities, comments, wrapping rules).

@@ -11,7 +11,7 @@
 - None.
 
 **Semantics**
-- Writes the global save file under `Config.SavDir`:
+- Writes the global save file under `SavDir`:
   - Path is `global.sav`.
 - Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Global`.

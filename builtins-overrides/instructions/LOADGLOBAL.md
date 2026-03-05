@@ -11,7 +11,7 @@
 - None.
 
 **Semantics**
-- Attempts to load `global.sav` under `Config.SavDir`.
+- Attempts to load `global.sav` under `SavDir`.
 - On success:
   - Loads the global variable data from the file (format depends on file type).
   - Sets `RESULT = 1`.

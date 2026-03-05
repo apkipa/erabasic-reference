@@ -12,7 +12,7 @@
 
 **Semantics**
 - If the label exists, jumps to the `$label` marker; execution continues at the line after the `$label`.
-- The argument builder accepts `(...)` / comma forms, but `GOTO` does not use argument lists; only the label name matters.
+- The parser accepts `(...)` / comma forms, but `GOTO` does not use argument lists; only the label name matters.
 
 **Errors & validation**
 - If the label name is a constant string and the label is missing:

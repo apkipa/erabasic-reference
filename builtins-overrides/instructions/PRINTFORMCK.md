@@ -11,7 +11,7 @@
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.

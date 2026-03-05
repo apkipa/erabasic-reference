@@ -13,7 +13,7 @@
 **Semantics**
 - Prints the same bar string as `BAR value, maxValue, length`.
 - Appends a newline after printing.
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped like other print-family instructions.
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped.
 
 **Errors & validation**
 - Same as `BAR`.

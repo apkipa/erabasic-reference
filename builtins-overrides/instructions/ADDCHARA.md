@@ -12,10 +12,8 @@
 - Each `charaNo`: int expression selecting a character template.
 
 **Semantics**
-- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
-- For each `charaNo` (evaluated left-to-right), the engine immediately appends one character to the current character list:
-  - If `Config.CompatiSPChara` is enabled: calls `AddCharacter_UseSp(charaNo, isSp=false)`.
-  - Otherwise: calls `AddCharacter(charaNo)`.
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
+- For each `charaNo` (evaluated left-to-right), the engine immediately appends one character to the current character list using the character template identified by that number.
 - `CHARANUM` increases by 1 for each successfully added character.
 - If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
 - This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.

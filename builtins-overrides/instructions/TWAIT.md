@@ -18,7 +18,7 @@
 - If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
-- Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
+- Skipped when output skipping is active (via `SKIPDISP`).
 
 **Errors & validation**
 - Argument type errors follow the normal integer-expression argument rules.

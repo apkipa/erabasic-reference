@@ -28,7 +28,7 @@
   - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (load-time error).
   - The block body only permits `DATA` / `DATAFORM` / `DATALIST` / `ENDLIST` / `ENDDATA`; any other instruction (and any label definition) inside is a load-time error.
 - Runtime behavior:
-  - If output skipping is active (script runner `skipPrint`), `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
+  - If output skipping is active (via `SKIPDISP`), `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
   - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.
   - Otherwise:
     - Choose `choice` uniformly such that `0 <= choice < count` (using the engine RNG).

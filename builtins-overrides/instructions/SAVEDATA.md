@@ -14,7 +14,7 @@
 
 **Semantics**
 - Evaluates `<slot>` and `<saveText>`.
-- Writes a save file under `Config.SavDir`:
+- Writes a save file under `SavDir`:
   - Path is `save{slot:00}.sav` (e.g. slot `0` -> `save00.sav`).
 - Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.

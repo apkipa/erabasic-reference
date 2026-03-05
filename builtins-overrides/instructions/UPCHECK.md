@@ -36,7 +36,7 @@
         - If `PALAMNAME[i]` is `null`, it is treated as `""` (so the line starts with a space).
         - Each printed change ends the line immediately (i.e. it is printed as its own line).
 - After finishing, clears **all elements** of `UP` and `DOWN` to `0`.
-- If output skipping is active (`SKIPDISP` / `skipPrint`), changes are still applied and `UP`/`DOWN` are still cleared, but nothing is printed.
+- If output skipping is active (via `SKIPDISP`), changes are still applied and `UP`/`DOWN` are still cleared, but nothing is printed.
 
 **Errors & validation**
 - None specific to this instruction.

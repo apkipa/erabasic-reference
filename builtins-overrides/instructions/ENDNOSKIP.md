@@ -12,7 +12,7 @@
 
 **Semantics**
 - Structural marker paired with `NOSKIP`.
-- Restores `skipPrint` to its saved value when the block was entered (see `NOSKIP`).
+- See `NOSKIP` for the block’s runtime behavior (temporary disabling and restoration of output skipping).
 
 **Errors & validation**
 - `ENDNOSKIP` without a matching open `NOSKIP` is a load-time error (the line is marked as error).

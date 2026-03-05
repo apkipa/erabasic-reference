@@ -1,5 +1,5 @@
 **Summary**
-- Begins a `NOSKIP ... ENDNOSKIP` block that temporarily disables `skipPrint` within the block body.
+- Begins a `NOSKIP ... ENDNOSKIP` block that temporarily disables output skipping within the block body.
 - Intended to force some output/wait behavior to run even if `SKIPDISP` is currently skipping print-family instructions.
 
 **Tags**
@@ -17,11 +17,11 @@
 - This is a structural block (`NOSKIP` pairs with `ENDNOSKIP`).
 - At runtime when `NOSKIP` is executed:
   - If the matching `ENDNOSKIP` was not linked by the loader, the engine throws an error.
-  - Saves the current `skipPrint` into an internal slot (`saveSkip`).
-  - If `skipPrint` is currently true, sets `skipPrint = false` for the duration of the block.
+  - Remembers whether output skipping is currently enabled.
+  - If output skipping is currently enabled, disables it for the duration of the block.
 - At runtime when `ENDNOSKIP` is executed:
-  - If `saveSkip` was true at the block entry, sets `skipPrint = true` (restoring skip mode).
-  - If `saveSkip` was false, does nothing (so if you enabled skip inside the block manually, it remains enabled).
+  - If output skipping was enabled at block entry, re-enables it (restoring skip mode).
+  - If output skipping was disabled at block entry, does nothing (so if you enabled skip inside the block manually, it remains enabled).
 
 **Errors & validation**
 - Load-time structure errors (the line is marked as error):

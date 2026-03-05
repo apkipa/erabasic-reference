@@ -14,11 +14,11 @@
 - Requires that the current system state allows saving/loading (same gate as `SAVEGAME`), otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system load flow.
 - The system load flow (high-level behavior):
-  - Displays save slots with indices `0 <= slot < Config.SaveDataNos` in pages of 20.
+  - Displays save slots with indices `0 <= slot < SaveDataNos` in pages of 20.
   - Includes a special autosave entry `99` when applicable.
   - Uses `100` as the “back/cancel” input.
   - After selecting a valid slot:
-    - Loads the slot file (as `save{slot:00}.sav` under `Config.SavDir`).
+    - Loads the slot file (as `save{slot:00}.sav` under `SavDir`).
     - Discards the previous saved process state.
     - Enters the same post-load system hook sequence as `LOADDATA`:
       - `SYSTEM_LOADEND` (if present)

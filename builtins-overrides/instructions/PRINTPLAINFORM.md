@@ -15,7 +15,7 @@
   - If omitted, the argument is treated as the empty string; empty output produces no output segment.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Evaluates the FORM argument to a string, then appends it as a “plain” segment (no automatic button conversion).
 - Does not add a newline and does not flush by itself.
 

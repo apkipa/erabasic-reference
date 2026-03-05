@@ -10,14 +10,10 @@
 - `PRINT_PALAM <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional): int expression; index into the current character list.
-  - If omitted, defaults to `0` and emits a warning.
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
 - For each parameter code `i` such that `0 <= i < 100`, it computes a cell string `s` and prints it if present:
   - Let `param = PALAM[charaIndex, i]`.
@@ -42,7 +38,7 @@
 - Each produced cell string is printed via `PRINTC`-style output with right alignment.
 - Keeps a per-line cell counter:
   - After each printed cell, `count += 1`.
-  - If `Config.PrintCPerLine > 0` and `count % Config.PrintCPerLine == 0`, it flushes pending output.
+  - If `PrintCPerLine > 0` and `count % PrintCPerLine == 0`, it flushes pending output.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.
 

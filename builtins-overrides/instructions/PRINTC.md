@@ -21,7 +21,7 @@
 - Writes one fixed-width cell; does not append a newline and does not flush immediately.
 - Cell formatting (right-aligned cell; observable behavior):
   - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
-  - Let `n = Config.PrintCLength`.
+  - Let `n = PrintCLength`.
   - Computes a target pixel width by measuring `n` spaces using the default font.
   - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
     - If font creation fails, returns `str` unchanged.

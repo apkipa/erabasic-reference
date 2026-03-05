@@ -11,9 +11,9 @@
 - None.
 
 **Semantics**
-- Enters a UI wait state for any-key input (`InputType.AnyKey`).
+- Enters a UI wait state for any-key input.
 - Does not assign `RESULT`/`RESULTS`.
-- Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
+- Skipped when output skipping is active (via `SKIPDISP`).
 
 **Errors & validation**
 - None.

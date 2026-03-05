@@ -10,14 +10,10 @@
 - `PRINT_EXP <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional): int expression; index into the current character list.
-  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
 - Builds a summary string `s` as follows:
   - Let `exp[]` be the target character’s `EXP` 1D array.

@@ -15,7 +15,7 @@
   - string (button produces that string as input; useful with `INPUTS`).
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Uses the current text style for output (and honors `SETCOLOR` color).
 - Evaluates `<text>` to a string, then removes any newline characters (`'\n'`) from it.
 - If the resulting label is empty, this instruction produces no output segment (no button is created).

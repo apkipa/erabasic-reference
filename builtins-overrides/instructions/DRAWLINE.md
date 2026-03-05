@@ -11,18 +11,18 @@
 - None.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - The engine prints a precomputed “draw line” string and then ends the line.
 - Pattern source:
-  - The base pattern comes from replace config `DrawLineString` (default `"-"`).
--  The engine precomputes an expanded line string from `DrawLineString` on initialization.
+  - The base pattern comes from config `DrawLineString` (default `"-"`).
+- The engine precomputes an expanded line string from `DrawLineString` on initialization.
 - Expansion algorithm:
-  - Uses `Config.DrawableWidth` as the target width in pixels and `Config.DefaultFont` for width measurement.
-  - Builds a string by repeating the pattern string until its measured display width is at least `DrawableWidth`.
-  - Then trims one character at a time from the end until the measured width is at most `DrawableWidth`.
+  - Uses the UI’s drawable width (in pixels) as the target, and measures display width using the default font metrics.
+  - Builds a string by repeating the pattern string until its measured display width is at least the target width.
+  - Then trims one character at a time from the end until the measured width is at most the target width.
   - Returns the resulting string.
 - Rendering:
-  - The line is printed using `FontStyle.Regular` regardless of the current font style (engine temporarily forces regular for this print).
+  - The line is printed using regular style regardless of the current font style.
   - The engine then ends the line (flushes the buffer and refreshes the display).
 - Important: `DRAWLINE` does not automatically flush existing buffered output *before* printing the line. If you need the line to start at the left edge, end the current logical line first (e.g. `PRINTL`) before calling `DRAWLINE`.
 

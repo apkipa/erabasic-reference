@@ -9,11 +9,7 @@
 - `CUPCHECK [charaIndex]`
 
 **Arguments**
-- `charaIndex` (optional): int expression; the character index to apply changes to.
-  - If omitted, defaults to `0` and emits a warning.
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): the character index to apply changes to.
 
 **Semantics**
 - Reads the target character’s per-character arrays:
@@ -35,7 +31,7 @@
       - `PALAMNAME[i] + " " + old + ("+" + CUP[i] if CUP[i] > 0) + ("-" + CDOWN[i] if CDOWN[i] > 0) + "=" + PALAM[i]`
       - Each printed change ends the line immediately (i.e. it is printed as its own line).
 - After finishing, clears **all elements** of that character’s `CUP` and `CDOWN` arrays to `0`.
-- If output skipping is active (`SKIPDISP` / `skipPrint`), changes are still applied and `CUP`/`CDOWN` are still cleared, but nothing is printed.
+- If output skipping is active (via `SKIPDISP`), changes are still applied and `CUP`/`CDOWN` are still cleared, but nothing is printed.
 
 **Errors & validation**
 - None specific to this instruction (out-of-range just returns).

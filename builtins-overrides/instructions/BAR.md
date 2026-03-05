@@ -20,7 +20,7 @@
   - `BarChar1` default `*`
   - `BarChar2` default `.`
 - Does **not** append a newline; use `BARL` if you want a newline.
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped like other print-family instructions.
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped.
 
 **Errors & validation**
 - Runtime errors if:

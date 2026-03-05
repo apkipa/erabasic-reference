@@ -15,7 +15,7 @@
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 
 **Errors & validation**
-- Always errors at runtime (`NotImplCodeEE`).
+- Always errors at runtime.
 
 **Examples**
 - `LOADVAR "vars"`

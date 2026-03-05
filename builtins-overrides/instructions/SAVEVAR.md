@@ -14,11 +14,10 @@
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
-- (Implementation note) The underlying variable evaluator contains binary save/load support for variable packs, but the instruction is disabled.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 
 **Errors & validation**
-- Always errors at runtime (`NotImplCodeEE`).
+- Always errors at runtime.
 
 **Examples**
 - `SAVEVAR "vars", "checkpoint", A, B, C`

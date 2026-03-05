@@ -11,7 +11,7 @@
 - None.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Builds a Japanese summary string `s` as follows:
   - Let `count[]` be the integer array `ITEM`.
   - Let `names[]` be the string array `ITEMNAME`.

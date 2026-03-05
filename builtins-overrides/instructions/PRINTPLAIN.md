@@ -15,7 +15,7 @@
   - If omitted, the argument is treated as the empty string; empty output produces no output segment.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Appends the raw string to the print buffer as a “plain” segment:
   - It is **not** scanned for numeric button patterns like `[0]`.
   - It still uses the current style (`SETCOLOR`, font style, etc.).

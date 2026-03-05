@@ -1,5 +1,5 @@
 **Summary**
-- Converts half-width characters to full-width (wide) form using the engine’s configured language setting.
+- Converts half-width characters to full-width (wide) form using the engine’s configured language encoding (`useLanguage`).
 
 **Tags**
 - text
@@ -15,7 +15,7 @@
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
-- Otherwise: uses VisualBasic `Strings.StrConv(..., Wide, Config.Language)`.
+- Otherwise: uses VisualBasic `Strings.StrConv(..., Wide, <code page>)`, where `<code page>` is the engine’s current language code page (derived from `useLanguage`).
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.

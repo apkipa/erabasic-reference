@@ -1,5 +1,5 @@
 **Summary**
-- Enables/disables Emuera’s “skip output” mode (`skipPrint`), which causes most print/wait/input built-ins to be skipped by the script runner.
+- Enables/disables the engine’s “skip output” mode, which causes most print/wait/input built-ins to be skipped.
 - Also sets `RESULT` to indicate whether skip mode is currently enabled.
 
 **Tags**
@@ -13,16 +13,16 @@
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.
-- Sets:
-  - `skipPrint = (v != 0)`
-  - `userDefinedSkip = (v != 0)` (used to distinguish “user requested skip” from internal engine skip states)
-  - `RESULT = (skipPrint ? 1 : 0)`
-- While `skipPrint` is true, the script execution loop *skips* any built-in instruction whose registration has the `IS_PRINT` flag (this includes `PRINT*`, `WAIT*`, `INPUT*`, etc.).
-- Special case (runtime error): if `skipPrint` is true **and** `userDefinedSkip` is true, then encountering an `IS_INPUT` instruction causes a runtime error rather than silently skipping.
+- If `v != 0`, enables output skipping; otherwise disables it.
+- Sets `RESULT` to:
+  - `1` when output skipping is enabled
+  - `0` when output skipping is disabled
+- While output skipping is enabled, the script runner skips most output-producing instructions (print/wait/input families).
+- Special case (runtime error): if output skipping was enabled by `SKIPDISP`, then encountering an input instruction (e.g. `INPUT*`) raises an error rather than being silently skipped.
 
 **Errors & validation**
 - Argument type errors follow the normal integer-expression argument rules.
-- Runtime error if an input instruction is reached while `skipPrint` is active due to `SKIPDISP`.
+- Runtime error if an input instruction is reached while output skipping is active due to `SKIPDISP`.
 
 **Examples**
 - `SKIPDISP 1` (enable skip)

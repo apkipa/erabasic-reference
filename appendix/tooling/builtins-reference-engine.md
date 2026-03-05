@@ -3455,7 +3455,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Writes one fixed-width cell; does not append a newline and does not flush immediately.
 - Cell formatting (right-aligned cell; observable behavior):
   - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
-  - Let `n = Config.PrintCLength`.
+  - Let `n = PrintCLength`.
   - Computes a target pixel width by measuring `n` spaces using the default font.
   - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
     - If font creation fails, returns `str` unchanged.
@@ -3511,7 +3511,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Writes one fixed-width cell; does not append a newline and does not flush immediately.
 - Cell formatting (left-aligned cell; observable behavior):
   - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
-  - Let `n = Config.PrintCLength`.
+  - Let `n = PrintCLength`.
   - Computes a target pixel width by measuring `n` spaces using the default font.
   - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
     - If font creation fails, returns `str` unchanged.
@@ -3554,7 +3554,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3603,7 +3603,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3652,7 +3652,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3701,7 +3701,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3750,7 +3750,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3800,7 +3800,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3850,7 +3850,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3899,7 +3899,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - Optional raw literal text (not an expression).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3948,7 +3948,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -3998,7 +3998,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Arguments**
 - A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 - The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 - Omitted arguments / defaults:
   - Omitted argument prints the empty string.
@@ -4068,7 +4068,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (load-time error).
   - The block body only permits `DATA` / `DATAFORM` / `DATALIST` / `ENDLIST` / `ENDDATA`; any other instruction (and any label definition) inside is a load-time error.
 - Runtime behavior:
-  - If output skipping is active (script runner `skipPrint`), `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
+  - If output skipping is active (via `SKIPDISP`), `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.
   - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.
   - Otherwise:
     - Choose `choice` uniformly such that `0 <= choice < count` (using the engine RNG).
@@ -4565,7 +4565,7 @@ ENDDATA
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Uses the current text style for output (and honors `SETCOLOR` color).
 - Evaluates `<text>` to a string, then removes any newline characters (`'\n'`) from it.
 - If the resulting label is empty, this instruction produces no output segment (no button is created).
@@ -4708,7 +4708,7 @@ INPUT
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Appends the raw string to the print buffer as a “plain” segment:
   - It is **not** scanned for numeric button patterns like `[0]`.
   - It still uses the current style (`SETCOLOR`, font style, etc.).
@@ -4755,7 +4755,7 @@ PRINTL
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Evaluates the FORM argument to a string, then appends it as a “plain” segment (no automatic button conversion).
 - Does not add a newline and does not flush by itself.
 - Engine-extracted notes (key operations):
@@ -4790,17 +4790,13 @@ PRINTL
 - `PRINT_ABL <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional): int expression; index into the current character list.
-  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
 - Builds a summary string `s` as follows:
   - Let `abl[]` be the target character’s `ABL` 1D array.
@@ -4843,17 +4839,13 @@ PRINT_ABL TARGET
 - `PRINT_TALENT <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional): int expression; index into the current character list.
-  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
 - Builds a summary string `s` as follows:
   - Let `talent[]` be the target character’s `TALENT` 1D array.
@@ -4896,17 +4888,13 @@ PRINT_TALENT TARGET
 - `PRINT_MARK <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional): int expression; index into the current character list.
-  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
 - Builds a summary string `s` as follows:
   - Let `mark[]` be the target character’s `MARK` 1D array.
@@ -4949,17 +4937,13 @@ PRINT_MARK TARGET
 - `PRINT_EXP <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional): int expression; index into the current character list.
-  - If omitted, the engine uses `0` and emits a warning (argument-builder behavior).
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
 - Builds a summary string `s` as follows:
   - Let `exp[]` be the target character’s `EXP` 1D array.
@@ -5002,17 +4986,13 @@ PRINT_EXP TARGET
 - `PRINT_PALAM <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional): int expression; index into the current character list.
-  - If omitted, defaults to `0` and emits a warning.
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Validates `charaIndex` at runtime; out-of-range raises an error.
 - For each parameter code `i` such that `0 <= i < 100`, it computes a cell string `s` and prints it if present:
   - Let `param = PALAM[charaIndex, i]`.
@@ -5037,7 +5017,7 @@ PRINT_EXP TARGET
 - Each produced cell string is printed via `PRINTC`-style output with right alignment.
 - Keeps a per-line cell counter:
   - After each printed cell, `count += 1`.
-  - If `Config.PrintCPerLine > 0` and `count % Config.PrintCPerLine == 0`, it flushes pending output.
+  - If `PrintCPerLine > 0` and `count % PrintCPerLine == 0`, it flushes pending output.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.
 - Engine-extracted notes (key operations):
@@ -5077,7 +5057,7 @@ PRINT_PALAM TARGET
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Builds a Japanese summary string `s` as follows:
   - Let `count[]` be the integer array `ITEM`.
   - Let `names[]` be the string array `ITEMNAME`.
@@ -5122,7 +5102,7 @@ PRINT_PALAM TARGET
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Let:
   - `sales = ITEMSALES` (numeric array)
   - `names = ITEMNAME` (CSV name list; string array)
@@ -5137,10 +5117,10 @@ PRINT_PALAM TARGET
   - Let `name = names[i]` (engine also guards against null by treating it as `""`, but the sale predicate rejects null names).
   - Let `price = prices[i]`.
   - Format the cell text as:
-    - If `Config.MoneyFirst` is true: `[{i}] {name}({Config.MoneyLabel}{price})`
-    - Otherwise: `[{i}] {name}({price}{Config.MoneyLabel})`
+    - If `MoneyFirst` is true: `[{i}] {name}({MoneyLabel}{price})`
+    - Otherwise: `[{i}] {name}({price}{MoneyLabel})`
   - Prints the cell using `PRINTC`-style formatting with left alignment.
-  - Increments a per-line cell counter and flushes every `Config.PrintCPerLine` cells when `Config.PrintCPerLine > 0`.
+  - Increments a per-line cell counter and flushes every `PrintCPerLine` cells when `PrintCPerLine > 0`.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.
 - Engine-extracted notes (key operations):
@@ -5184,18 +5164,18 @@ PRINT_PALAM TARGET
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - The engine prints a precomputed “draw line” string and then ends the line.
 - Pattern source:
-  - The base pattern comes from replace config `DrawLineString` (default `"-"`).
--  The engine precomputes an expanded line string from `DrawLineString` on initialization.
+  - The base pattern comes from config `DrawLineString` (default `"-"`).
+- The engine precomputes an expanded line string from `DrawLineString` on initialization.
 - Expansion algorithm:
-  - Uses `Config.DrawableWidth` as the target width in pixels and `Config.DefaultFont` for width measurement.
-  - Builds a string by repeating the pattern string until its measured display width is at least `DrawableWidth`.
-  - Then trims one character at a time from the end until the measured width is at most `DrawableWidth`.
+  - Uses the UI’s drawable width (in pixels) as the target, and measures display width using the default font metrics.
+  - Builds a string by repeating the pattern string until its measured display width is at least the target width.
+  - Then trims one character at a time from the end until the measured width is at most the target width.
   - Returns the resulting string.
 - Rendering:
-  - The line is printed using `FontStyle.Regular` regardless of the current font style (engine temporarily forces regular for this print).
+  - The line is printed using regular style regardless of the current font style.
   - The engine then ends the line (flushes the buffer and refreshes the display).
 - Important: `DRAWLINE` does not automatically flush existing buffered output *before* printing the line. If you need the line to start at the left edge, end the current logical line first (e.g. `PRINTL`) before calling `DRAWLINE`.
 - Engine-extracted notes (key operations):
@@ -5244,7 +5224,7 @@ DRAWLINE
   - `BarChar1` default `*`
   - `BarChar2` default `.`
 - Does **not** append a newline; use `BARL` if you want a newline.
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped like other print-family instructions.
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -5288,7 +5268,7 @@ PRINTL (2/10)
 **Semantics**
 - Prints the same bar string as `BAR value, maxValue, length`.
 - Appends a newline after printing.
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped like other print-family instructions.
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | METHOD_SAFE | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -5374,9 +5354,9 @@ PRINTFORML {X}  ; 125
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Enters a UI wait state for an Enter-style key/click (`InputType.EnterKey`).
+- Enters a UI wait state for an Enter-style key/click.
 - Does not assign `RESULT`/`RESULTS`.
-- If the script runner’s `skipPrint` mode is active (e.g. via `SKIPDISP`), `WAIT` is skipped as part of the print-family skip rule.
+- Skipped when output skipping is active (via `SKIPDISP`).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -5466,9 +5446,8 @@ Compatibility notes:
 - The mapping color uses the mapping sprite’s base size (the size defined by `resources/**/*.csv`), not the drawn size.
 - If the click is exactly on the image rectangle boundary, the mapping color is treated as `0` (the hit-test uses strict `>`/`<`).
 - Some other UI wait types (not `INPUT` itself) may write a mapping color to `RESULT:6` instead of `RESULT:3` (e.g. the “primitive mouse/key” wait used by `INPUTMOUSEKEY`).
-- If the script runner’s `skipPrint` mode is active (e.g. via `SKIPDISP`), `INPUT` is treated as a print-family instruction:
-  - In internal skip modes, it is skipped.
-  - If skip was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
+- When output skipping is enabled, the engine normally skips `INPUT`.
+  - Exception: if output skipping was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | IS_INPUT`
 - Engine-extracted notes (key operations):
@@ -5570,23 +5549,16 @@ Compatibility notes:
 **Arguments**
 - `<timeMs>`: integer expression; time limit in milliseconds.
 - `<default>`: integer expression; default value used on timeout (and also on empty input when the request is not running a timer).
-- `<displayTime>` (optional): integer expression; if non-zero, displays remaining time (UI behavior). Default `1`.
-- `<timeoutMessage>` (optional): string expression; message used on timeout. Default `Config.TimeupLabel`.
+- `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
+- `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
 - `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
-
-- Omitted arguments / defaults:
-  - `<displayTime>` defaults to `1`.
-  - `<timeoutMessage>` defaults to `Config.TimeupLabel`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Enters an integer-input UI wait with a timer:
-  - `InputType = IntValue`
-  - `Timelimit = <timeMs>`
-  - default value is always present (`HasDefValue = true`)
+- Enters an integer-input UI wait with a timer of `<timeMs>` milliseconds (a default is always present for timed input).
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
   - A timeout message is displayed (either by updating the last “remaining time” line, or by printing a single line, depending on `<displayTime>`).
@@ -5597,14 +5569,14 @@ Compatibility notes:
     - `RESULT_ARRAY[1]` if `<mouse> != 0`
   - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
-- Skip-print interaction is the same as `INPUT` (print-family skip rule + `SKIPDISP` input error case).
+- Output skipping interaction is the same as `INPUT`.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
 **Errors & validation**
-- Argument type/count errors are rejected by the argument builder.
+- Argument parsing/type-checking errors are engine errors.
 
 **Examples**
 - `TINPUT 5000, 0`
@@ -5629,14 +5601,10 @@ Compatibility notes:
 **Arguments**
 - `<timeMs>`: integer expression; time limit in milliseconds.
 - `<default>`: string expression; default value used on timeout (and also on empty input when the request is not running a timer).
-- `<displayTime>` (optional): integer expression; if non-zero, displays remaining time. Default `1`.
-- `<timeoutMessage>` (optional): string expression; timeout message. Default `Config.TimeupLabel`.
+- `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time.
+- `<timeoutMessage>` (optional, string; default `TimeupLabel`): timeout message.
 - `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
-
-- Omitted arguments / defaults:
-  - `<displayTime>` defaults to `1`.
-  - `<timeoutMessage>` defaults to `Config.TimeupLabel`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -5656,7 +5624,7 @@ Compatibility notes:
   - `exm.Console.WaitInput(req)`
 
 **Errors & validation**
-- Argument type/count errors are rejected by the argument builder.
+- Argument parsing/type-checking errors are engine errors.
 
 **Examples**
 - `TINPUTS 5000, "DEFAULT"`
@@ -5690,7 +5658,7 @@ Compatibility notes:
 **Semantics**
 - Same as `TINPUT`, but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.
-  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
+  - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -5730,7 +5698,7 @@ Compatibility notes:
 **Semantics**
 - Same as `TINPUTS`, but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.
-  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
+  - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -5772,7 +5740,7 @@ Compatibility notes:
 - If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
-- Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
+- Skipped when output skipping is active (via `SKIPDISP`).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -5809,9 +5777,9 @@ Compatibility notes:
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Enters a UI wait state for any-key input (`InputType.AnyKey`).
+- Enters a UI wait state for any-key input.
 - Does not assign `RESULT`/`RESULTS`.
-- Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
+- Skipped when output skipping is active (via `SKIPDISP`).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -5848,7 +5816,7 @@ Compatibility notes:
 **Semantics**
 - Waits for Enter/click, and stops “message skip” from auto-advancing past the wait.
 - Does not assign `RESULT`/`RESULTS`.
-- Skipped when the script runner’s `skipPrint` mode is active (print-family skip rule).
+- Skipped when output skipping is active (via `SKIPDISP`).
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT`
 - Engine-extracted notes (key operations):
@@ -5935,7 +5903,7 @@ Compatibility notes:
 **Semantics**
 - Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
   - If the entered text has length > 1, it is truncated to the first character.
-  - Exception: if `Config.AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
+  - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
 - Engine-extracted notes (base flags from class):
   - `flag = IS_PRINT | IS_INPUT | EXTENDED`
 - Engine-extracted notes (key operations):
@@ -6083,7 +6051,7 @@ Compatibility notes:
         - If `PALAMNAME[i]` is `null`, it is treated as `""` (so the line starts with a space).
         - Each printed change ends the line immediately (i.e. it is printed as its own line).
 - After finishing, clears **all elements** of `UP` and `DOWN` to `0`.
-- If output skipping is active (`SKIPDISP` / `skipPrint`), changes are still applied and `UP`/`DOWN` are still cleared, but nothing is printed.
+- If output skipping is active (via `SKIPDISP`), changes are still applied and `UP`/`DOWN` are still cleared, but nothing is printed.
 - Engine-extracted notes (key operations):
   - `vEvaluator.UpdateInUpcheck(exm.Console, skipPrint)`
 
@@ -6114,11 +6082,7 @@ UPCHECK
 - `CUPCHECK [charaIndex]`
 
 **Arguments**
-- `charaIndex` (optional): int expression; the character index to apply changes to.
-  - If omitted, defaults to `0` and emits a warning.
-
-- Omitted arguments / defaults:
-  - Omitted `charaIndex` defaults to `0` (with a warning).
+- `charaIndex` (optional, int; default `0` with a warning if omitted): the character index to apply changes to.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -6143,7 +6107,7 @@ UPCHECK
       - `PALAMNAME[i] + " " + old + ("+" + CUP[i] if CUP[i] > 0) + ("-" + CDOWN[i] if CDOWN[i] > 0) + "=" + PALAM[i]`
       - Each printed change ends the line immediately (i.e. it is printed as its own line).
 - After finishing, clears **all elements** of that character’s `CUP` and `CDOWN` arrays to `0`.
-- If output skipping is active (`SKIPDISP` / `skipPrint`), changes are still applied and `CUP`/`CDOWN` are still cleared, but nothing is printed.
+- If output skipping is active (via `SKIPDISP`), changes are still applied and `CUP`/`CDOWN` are still cleared, but nothing is printed.
 - Engine-extracted notes (key operations):
   - `vEvaluator.CUpdateInUpcheck(exm.Console, target, skipPrint)`
 
@@ -6180,10 +6144,8 @@ CUPCHECK TARGET
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
-- For each `charaNo` (evaluated left-to-right), the engine immediately appends one character to the current character list:
-  - If `Config.CompatiSPChara` is enabled: calls `AddCharacter_UseSp(charaNo, isSp=false)`.
-  - Otherwise: calls `AddCharacter(charaNo)`.
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
+- For each `charaNo` (evaluated left-to-right), the engine immediately appends one character to the current character list using the character template identified by that number.
 - `CHARANUM` increases by 1 for each successfully added character.
 - If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
 - This instruction does not print anything and does not automatically change `TARGET`/`MASTER`/`ASSI`.
@@ -6230,8 +6192,8 @@ PRINTFORML {CHARANUM}
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Requires `Config.CompatiSPChara` to be enabled; otherwise this instruction errors before evaluating any arguments.
-- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
+- Requires the `CompatiSPChara` config option to be enabled; otherwise this instruction errors before evaluating any arguments.
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
 - For each `charaNo` (evaluated left-to-right), immediately appends one character using the SP template lookup path.
 - `CHARANUM` increases by 1 for each successfully added character.
 - If a later argument fails (e.g. undefined template), earlier additions remain (no rollback).
@@ -6546,13 +6508,13 @@ DELCHARA 1, 3
 - Requires that the current system state allows saving; otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system save flow.
 - The system save flow (high-level behavior):
-  - Displays save slots with indices `0 <= slot < Config.SaveDataNos` in pages of 20.
+  - Displays save slots with indices `0 <= slot < SaveDataNos` in pages of 20.
   - Uses `100` as the “back/cancel” input.
   - After selecting a slot:
     - If it already contains data, prompts for overwrite confirmation.
     - Initializes `SAVEDATA_TEXT` with the current timestamp (`yyyy/MM/dd HH:mm:ss `).
     - Calls `@SAVEINFO` (if it exists), which can append to `SAVEDATA_TEXT` (commonly via `PUTFORM`).
-    - Saves the current state to the selected slot (as `save{slot:00}.sav` under `Config.SavDir`) using `SAVEDATA_TEXT` as the slot description text.
+    - Saves the current state to the selected slot (as `save{slot:00}.sav` under `SavDir`) using `SAVEDATA_TEXT` as the slot description text.
   - Returns to the previous system state after completion or cancellation.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 - Engine-extracted notes (base flags from class):
@@ -6596,11 +6558,11 @@ DELCHARA 1, 3
 - Requires that the current system state allows saving/loading (same gate as `SAVEGAME`), otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system load flow.
 - The system load flow (high-level behavior):
-  - Displays save slots with indices `0 <= slot < Config.SaveDataNos` in pages of 20.
+  - Displays save slots with indices `0 <= slot < SaveDataNos` in pages of 20.
   - Includes a special autosave entry `99` when applicable.
   - Uses `100` as the “back/cancel” input.
   - After selecting a valid slot:
-    - Loads the slot file (as `save{slot:00}.sav` under `Config.SavDir`).
+    - Loads the slot file (as `save{slot:00}.sav` under `SavDir`).
     - Discards the previous saved process state.
     - Enters the same post-load system hook sequence as `LOADDATA`:
       - `SYSTEM_LOADEND` (if present)
@@ -6649,7 +6611,7 @@ DELCHARA 1, 3
 
 **Semantics**
 - Evaluates `<slot>` and `<saveText>`.
-- Writes a save file under `Config.SavDir`:
+- Writes a save file under `SavDir`:
   - Path is `save{slot:00}.sav` (e.g. slot `0` -> `save00.sav`).
 - Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.
@@ -6752,17 +6714,13 @@ DELCHARA 1, 3
 - `DELDATA <slot>`
 
 **Arguments**
-- `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
-  - If omitted, the argument parser supplies `0` (with a warning); this deletes slot `0`.
-
-- Omitted arguments / defaults:
-  - None (but see omitted-argument behavior above).
+- `<slot>` (optional, int; default `0` with a warning if omitted): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Computes the save file path under `Config.SavDir` as `save{slot:00}.sav`.
+- Computes the save file path under `SavDir` as `save{slot:00}.sav`.
 - If the file does not exist, does nothing.
 - If the file exists:
   - If it has the read-only attribute, raises an error.
@@ -6803,7 +6761,7 @@ DELCHARA 1, 3
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Writes the global save file under `Config.SavDir`:
+- Writes the global save file under `SavDir`:
   - Path is `global.sav`.
 - Save format:
   - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Global`.
@@ -6845,7 +6803,7 @@ DELCHARA 1, 3
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Attempts to load `global.sav` under `Config.SavDir`.
+- Attempts to load `global.sav` under `SavDir`.
 - On success:
   - Loads the global variable data from the file (format depends on file type).
   - Sets `RESULT = 1`.
@@ -7009,7 +6967,6 @@ DELCHARA 1, 3
 - Structural match end: `ENDIF`
 
 **Syntax**
-- `IF <int expr>`
 - `IF <int expr>`
   - `...`
   - `ELSEIF <int expr>`
@@ -7443,19 +7400,14 @@ DELCHARA 1, 3
 
 **Syntax**
 - `FOR <intVarTerm>, <start>, <end> [, <step>]`
-- Start may be omitted by leaving an empty slot: `FOR <intVarTerm>, , <end> [, <step>]`
   - `...`
   - `NEXT`
 
 **Arguments**
 - `<intVarTerm>`: changeable integer variable term (must not be character-data).
-- `<start>`: int expression (defaults to `0` if omitted via an empty argument).
+- `<start>` (optional, int; default `0`): initial counter value.
 - `<end>`: int expression.
-- `<step>`: int expression (defaults to `1` if omitted).
-
-- Omitted arguments / defaults:
-  - `<start>` defaults to `0` when omitted as an empty argument.
-  - `<step>` defaults to `1` when omitted.
+- `<step>` (optional, int; default `1`): increment applied at `NEXT` time.
 
 **Defaults / optional arguments**
 - (TODO)
@@ -8156,7 +8108,7 @@ DELCHARA 1, 3
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses (argument-builder behavior for `INT_ANY`).
+- Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
 - For each `charaIndex` (evaluated and executed left-to-right), the engine:
   - Validates the source index is in range; otherwise errors.
   - Appends a new pseudo character.
@@ -9813,7 +9765,7 @@ PRINTFORML RESULTS
 
 ## SKIPDISP (instruction)
 **Summary**
-- Enables/disables Emuera’s “skip output” mode (`skipPrint`), which causes most print/wait/input built-ins to be skipped by the script runner.
+- Enables/disables the engine’s “skip output” mode, which causes most print/wait/input built-ins to be skipped.
 - Also sets `RESULT` to indicate whether skip mode is currently enabled.
 
 **Metadata**
@@ -9831,18 +9783,18 @@ PRINTFORML RESULTS
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.
-- Sets:
-  - `skipPrint = (v != 0)`
-  - `userDefinedSkip = (v != 0)` (used to distinguish “user requested skip” from internal engine skip states)
-  - `RESULT = (skipPrint ? 1 : 0)`
-- While `skipPrint` is true, the script execution loop *skips* any built-in instruction whose registration has the `IS_PRINT` flag (this includes `PRINT*`, `WAIT*`, `INPUT*`, etc.).
-- Special case (runtime error): if `skipPrint` is true **and** `userDefinedSkip` is true, then encountering an `IS_INPUT` instruction causes a runtime error rather than silently skipping.
+- If `v != 0`, enables output skipping; otherwise disables it.
+- Sets `RESULT` to:
+  - `1` when output skipping is enabled
+  - `0` when output skipping is disabled
+- While output skipping is enabled, the script runner skips most output-producing instructions (print/wait/input families).
+- Special case (runtime error): if output skipping was enabled by `SKIPDISP`, then encountering an input instruction (e.g. `INPUT*`) raises an error rather than being silently skipped.
 - Engine-extracted notes (key operations):
   - `vEvaluator.RESULT = skipPrint ? 1L : 0L`
 
 **Errors & validation**
 - Argument type errors follow the normal integer-expression argument rules.
-- Runtime error if an input instruction is reached while `skipPrint` is active due to `SKIPDISP`.
+- Runtime error if an input instruction is reached while output skipping is active due to `SKIPDISP`.
 
 **Examples**
 - `SKIPDISP 1` (enable skip)
@@ -9855,7 +9807,7 @@ PRINTFORML RESULTS
 
 ## NOSKIP (instruction)
 **Summary**
-- Begins a `NOSKIP ... ENDNOSKIP` block that temporarily disables `skipPrint` within the block body.
+- Begins a `NOSKIP ... ENDNOSKIP` block that temporarily disables output skipping within the block body.
 - Intended to force some output/wait behavior to run even if `SKIPDISP` is currently skipping print-family instructions.
 
 **Metadata**
@@ -9878,11 +9830,11 @@ PRINTFORML RESULTS
 - This is a structural block (`NOSKIP` pairs with `ENDNOSKIP`).
 - At runtime when `NOSKIP` is executed:
   - If the matching `ENDNOSKIP` was not linked by the loader, the engine throws an error.
-  - Saves the current `skipPrint` into an internal slot (`saveSkip`).
-  - If `skipPrint` is currently true, sets `skipPrint = false` for the duration of the block.
+  - Remembers whether output skipping is currently enabled.
+  - If output skipping is currently enabled, disables it for the duration of the block.
 - At runtime when `ENDNOSKIP` is executed:
-  - If `saveSkip` was true at the block entry, sets `skipPrint = true` (restoring skip mode).
-  - If `saveSkip` was false, does nothing (so if you enabled skip inside the block manually, it remains enabled).
+  - If output skipping was enabled at block entry, re-enables it (restoring skip mode).
+  - If output skipping was disabled at block entry, does nothing (so if you enabled skip inside the block manually, it remains enabled).
 
 **Errors & validation**
 - Load-time structure errors (the line is marked as error):
@@ -9926,7 +9878,7 @@ ENDNOSKIP
 
 **Semantics**
 - Structural marker paired with `NOSKIP`.
-- Restores `skipPrint` to its saved value when the block was entered (see `NOSKIP`).
+- See `NOSKIP` for the block’s runtime behavior (temporary disabling and restoration of output skipping).
 
 **Errors & validation**
 - `ENDNOSKIP` without a matching open `NOSKIP` is a load-time error (the line is marked as error).
@@ -10962,7 +10914,7 @@ ENDNOSKIP
 
 **Semantics**
 - If the label exists, jumps to the `$label` marker; execution continues at the line after the `$label`.
-- The argument builder accepts `(...)` / comma forms, but `GOTO` does not use argument lists; only the label name matters.
+- The parser accepts `(...)` / comma forms, but `GOTO` does not use argument lists; only the label name matters.
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG`
 - Engine-extracted notes (key operations):
@@ -11782,13 +11734,12 @@ ENDNOSKIP
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
-- (Implementation note) The underlying variable evaluator contains binary save/load support for variable packs, but the instruction is disabled.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | EXTENDED`
 
 **Errors & validation**
-- Always errors at runtime (`NotImplCodeEE`).
+- Always errors at runtime.
 - Engine-extracted notes (throws/errors):
   - `throw new NotImplCodeEE()`
 
@@ -11824,7 +11775,7 @@ ENDNOSKIP
   - `flag = METHOD_SAFE | EXTENDED`
 
 **Errors & validation**
-- Always errors at runtime (`NotImplCodeEE`).
+- Always errors at runtime.
 - Engine-extracted notes (throws/errors):
   - `throw new NotImplCodeEE()`
 
@@ -12022,7 +11973,7 @@ ENDNOSKIP
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output and no evaluation).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
 - Evaluates `<html>` to a string.
   - If it is null/empty, no output is produced.
 - Interprets the string as an HTML string and renders it according to `html-output.md` (tags, entities, comments, wrapping rules).
@@ -13625,7 +13576,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output and no evaluation).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
 - Evaluates `<html>` to a string and appends the rendered HTML output into a separate “island” layer.
 - The island layer is not counted by `LINECOUNT` and is not removed by `CLEARLINE`.
 - The island layer is drawn independently of the normal log:
@@ -17414,7 +17365,7 @@ PRINTFORML %S%
 
 ## TOHALF (expression function)
 **Summary**
-- Converts full-width characters to half-width (narrow) form using the engine’s configured language setting.
+- Converts full-width characters to half-width (narrow) form using the engine’s configured language encoding (`useLanguage`).
 
 **Metadata**
 - Implementor: `new StrChangeStyleMethod(StrFormType.Half)`
@@ -17435,7 +17386,7 @@ PRINTFORML %S%
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
-- Otherwise: uses VisualBasic `Strings.StrConv(..., Narrow, Config.Language)`.
+- Otherwise: uses VisualBasic `Strings.StrConv(..., Narrow, <code page>)`, where `<code page>` is the engine’s current language code page (derived from `useLanguage`).
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.
@@ -17450,7 +17401,7 @@ PRINTFORML %S%
 
 ## TOFULL (expression function)
 **Summary**
-- Converts half-width characters to full-width (wide) form using the engine’s configured language setting.
+- Converts half-width characters to full-width (wide) form using the engine’s configured language encoding (`useLanguage`).
 
 **Metadata**
 - Implementor: `new StrChangeStyleMethod(StrFormType.Full)`
@@ -17471,7 +17422,7 @@ PRINTFORML %S%
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
-- Otherwise: uses VisualBasic `Strings.StrConv(..., Wide, Config.Language)`.
+- Otherwise: uses VisualBasic `Strings.StrConv(..., Wide, <code page>)`, where `<code page>` is the engine’s current language code page (derived from `useLanguage`).
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.

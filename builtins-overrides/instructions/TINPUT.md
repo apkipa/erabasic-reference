@@ -10,20 +10,13 @@
 **Arguments**
 - `<timeMs>`: integer expression; time limit in milliseconds.
 - `<default>`: integer expression; default value used on timeout (and also on empty input when the request is not running a timer).
-- `<displayTime>` (optional): integer expression; if non-zero, displays remaining time (UI behavior). Default `1`.
-- `<timeoutMessage>` (optional): string expression; message used on timeout. Default `Config.TimeupLabel`.
+- `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
+- `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
 - `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
 - `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
 
-- Omitted arguments / defaults:
-  - `<displayTime>` defaults to `1`.
-  - `<timeoutMessage>` defaults to `Config.TimeupLabel`.
-
 **Semantics**
-- Enters an integer-input UI wait with a timer:
-  - `InputType = IntValue`
-  - `Timelimit = <timeMs>`
-  - default value is always present (`HasDefValue = true`)
+- Enters an integer-input UI wait with a timer of `<timeMs>` milliseconds (a default is always present for timed input).
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
   - A timeout message is displayed (either by updating the last “remaining time” line, or by printing a single line, depending on `<displayTime>`).
@@ -34,10 +27,10 @@
     - `RESULT_ARRAY[1]` if `<mouse> != 0`
   - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
 - Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
-- Skip-print interaction is the same as `INPUT` (print-family skip rule + `SKIPDISP` input error case).
+- Output skipping interaction is the same as `INPUT`.
 
 **Errors & validation**
-- Argument type/count errors are rejected by the argument builder.
+- Argument parsing/type-checking errors are engine errors.
 
 **Examples**
 - `TINPUT 5000, 0`

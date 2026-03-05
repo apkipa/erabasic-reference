@@ -11,9 +11,9 @@
 - None.
 
 **Semantics**
-- Enters a UI wait state for an Enter-style key/click (`InputType.EnterKey`).
+- Enters a UI wait state for an Enter-style key/click.
 - Does not assign `RESULT`/`RESULTS`.
-- If the script runner’s `skipPrint` mode is active (e.g. via `SKIPDISP`), `WAIT` is skipped as part of the print-family skip rule.
+- Skipped when output skipping is active (via `SKIPDISP`).
 
 **Errors & validation**
 - None.

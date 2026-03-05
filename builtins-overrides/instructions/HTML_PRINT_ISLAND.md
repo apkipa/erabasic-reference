@@ -12,7 +12,7 @@
 - `<ignored>` (optional): integer expression. Accepted by the argument parser but ignored by this instruction.
 
 **Semantics**
-- If output skipping is active (`SKIPDISP` / `skipPrint`), this instruction is skipped (no output and no evaluation).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
 - Evaluates `<html>` to a string and appends the rendered HTML output into a separate “island” layer.
 - The island layer is not counted by `LINECOUNT` and is not removed by `CLEARLINE`.
 - The island layer is drawn independently of the normal log:

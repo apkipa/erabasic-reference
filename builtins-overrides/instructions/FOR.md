@@ -6,19 +6,14 @@
 
 **Syntax**
 - `FOR <intVarTerm>, <start>, <end> [, <step>]`
-- Start may be omitted by leaving an empty slot: `FOR <intVarTerm>, , <end> [, <step>]`
   - `...`
   - `NEXT`
 
 **Arguments**
 - `<intVarTerm>`: changeable integer variable term (must not be character-data).
-- `<start>`: int expression (defaults to `0` if omitted via an empty argument).
+- `<start>` (optional, int; default `0`): initial counter value.
 - `<end>`: int expression.
-- `<step>`: int expression (defaults to `1` if omitted).
-
-- Omitted arguments / defaults:
-  - `<start>` defaults to `0` when omitted as an empty argument.
-  - `<step>` defaults to `1` when omitted.
+- `<step>` (optional, int; default `1`): increment applied at `NEXT` time.
 
 **Semantics**
 - Initializes the counter variable to `<start>`, then loops while:

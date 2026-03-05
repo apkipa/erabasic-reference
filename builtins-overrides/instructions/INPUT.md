@@ -65,9 +65,8 @@ Compatibility notes:
 - The mapping color uses the mapping sprite’s base size (the size defined by `resources/**/*.csv`), not the drawn size.
 - If the click is exactly on the image rectangle boundary, the mapping color is treated as `0` (the hit-test uses strict `>`/`<`).
 - Some other UI wait types (not `INPUT` itself) may write a mapping color to `RESULT:6` instead of `RESULT:3` (e.g. the “primitive mouse/key” wait used by `INPUTMOUSEKEY`).
-- If the script runner’s `skipPrint` mode is active (e.g. via `SKIPDISP`), `INPUT` is treated as a print-family instruction:
-  - In internal skip modes, it is skipped.
-  - If skip was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
+- When output skipping is enabled, the engine normally skips `INPUT`.
+  - Exception: if output skipping was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
 
 **Errors & validation**
 - Argument-type errors are raised if a provided argument is not an `int` expression (including `<canSkip>` and `<extra>`).
