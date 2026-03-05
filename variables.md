@@ -69,7 +69,7 @@ Other built-ins take a **variable name** (a single identifier token like `CFLAG`
 This difference is observable:
 
 - If a built-in takes a **variable name identifier**, writing `NAME:...` after it is just extra trailing text.
-  - The engine may warn, but the `:...` part is not treated as a character selector or element index.
+  - The engine may warn, but the `:...` part is not treated as a character selector or element index, and is not evaluated.
   - Example: `VARSIZE CFLAG:TARGET:0` is treated as `VARSIZE CFLAG`.
 - If a built-in takes a **variable name string** (e.g. a method like `VARSIZE("CFLAG")`), the lookup is done on the entire string.
   - A string that includes `:` indices (e.g. `"CFLAG:TARGET:0"`) does not match any variable name and is rejected.

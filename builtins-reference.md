@@ -6782,6 +6782,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
   - Must be a 1D/2D/3D array variable (character-data arrays are allowed).
   - `RAND` is rejected (even though it is 1D).
   - Compatibility parsing: any extra characters after the identifier are ignored (with a warning). For example, `VARSIZE ABL:TARGET:0` is treated like `VARSIZE ABL`.
+    - The ignored tail is not parsed as expressions and is not evaluated (so it has no side effects).
 
 **Semantics**
 - Resolves `<arrayVarName>` to a variable token.
