@@ -7600,31 +7600,36 @@ SPLIT "a,b,c", ",", PARTS
 
 ## FONTSTYLE (instruction)
 **Summary**
-- (TODO)
+- Sets the current font style flags (bold/italic/strikeout/underline) for subsequent text output.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION_NULLABLE` (see #argument-spec-int_expression_nullable)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): int expression
-- Hint (raw comment): `数式型`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `FONTSTYLE`
+- `FONTSTYLE <flags>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(true)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<flags>` (optional, int; default `0`): style bit flags.
+  - `1`: bold
+  - `2`: italic
+  - `4`: strikeout
+  - `8`: underline
+  - Other bits are ignored.
 
 **Semantics**
+- Computes the style as `Regular` plus any flags present in `<flags>`, then sets it as the current text style.
+- Does not change the font face (see `SETFONT`).
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(fs)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `FONTSTYLE 3` (bold + italic)
+- `FONTSTYLE` (reset to regular)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7633,32 +7638,35 @@ SPLIT "a,b,c", ",", PARTS
 
 ## ALIGNMENT (instruction)
 **Summary**
-- (TODO)
+- Sets the horizontal alignment (left/center/right) used when the engine lays out subsequent printed lines.
 
 **Metadata**
 - Arg spec: `STR` (see #argument-spec-str)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): raw string
-- Hint (raw comment): `単純文字列型`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `ALIGNMENT LEFT`
+- `ALIGNMENT CENTER`
+- `ALIGNMENT RIGHT`
 
 **Arguments**
-- Builder: `STR_ArgumentBuilder(false)`
+- Alignment keyword: raw token compared using the engine’s `IgnoreCase` setting.
+  - This is not a string expression/literal.
 
 **Semantics**
+- Sets the current alignment for subsequent lines.
 - Engine-extracted notes (key operations):
   - `exm.Console.Alignment = DisplayLineAlignment.LEFT`
   - `exm.Console.Alignment = DisplayLineAlignment.CENTER`
   - `exm.Console.Alignment = DisplayLineAlignment.RIGHT`
 
 **Errors & validation**
+- Runtime error if the keyword is not one of `LEFT`, `CENTER`, `RIGHT`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.InvalidAlignment.Text, str))`
 
 **Examples**
-- (TODO)
+- `ALIGNMENT CENTER`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7667,27 +7675,34 @@ SPLIT "a,b,c", ",", PARTS
 
 ## CUSTOMDRAWLINE (instruction)
 **Summary**
-- (TODO)
+- Draws a horizontal rule by repeating a raw pattern string across the drawable width, then prints a newline.
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new CUSTOMDRAWLINE_Instruction()`
 
 **Syntax**
-- (TODO)
+- `CUSTOMDRAWLINE <pattern>`
 
 **Arguments**
-- (TODO)
+- `<pattern>` (raw text): the remainder of the line after the keyword.
+  - This is not an expression.
 
 **Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Expands `<pattern>` to a full-width bar using the engine’s “custom bar” algorithm:
+  - Measure is based on rendered display width (using the configured default font and `DrawableWidth`).
+  - Repeats `<pattern>` until the measured width reaches/exceeds `DrawableWidth`, then removes characters from the end until it fits.
+- Prints the expanded bar with font style forced to `Regular`, then prints a newline.
 - Engine-extracted notes (key operations):
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- Load-time error if `<pattern>` is omitted.
 
 **Examples**
-- (TODO)
+- `CUSTOMDRAWLINE -`
+- `CUSTOMDRAWLINE =*=`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7695,30 +7710,32 @@ SPLIT "a,b,c", ",", PARTS
 
 ## DRAWLINEFORM (instruction)
 **Summary**
-- (TODO)
+- Draws a horizontal rule by repeating a runtime string expression across the drawable width, then prints a newline.
 
 **Metadata**
 - Arg spec: `FORM_STR` (see #argument-spec-form_str)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): FORM string型。
-- Hint (raw comment): `書式付文字列型。`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `DRAWLINEFORM <pattern>`
 
 **Arguments**
-- Builder: `FORM_STR_ArgumentBuilder(false)`
+- `<pattern>` (string expression): pattern to repeat.
 
 **Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Evaluates `<pattern>` to a string `s`.
+  - If `s` is non-empty, expands it to a full-width bar using the same algorithm as `CUSTOMDRAWLINE` (repeat until it reaches `DrawableWidth`, then trim to fit).
+- Prints the expanded bar with font style forced to `Regular`, then prints a newline.
 - Engine-extracted notes (key operations):
   - `exm.Console.printCustomBar(str, false)`
   - `exm.Console.NewLine()`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `<pattern>` evaluates to `""` (empty).
 
 **Examples**
-- (TODO)
+- `DRAWLINEFORM "-" + STRFORM("%02d", RAND:100)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7727,29 +7744,29 @@ SPLIT "a,b,c", ",", PARTS
 
 ## CLEARTEXTBOX (instruction)
 **Summary**
-- (TODO)
+- Clears the main output text box (removes all currently displayed lines).
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `CLEARTEXTBOX`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- Clears the UI’s main output area.
+- This instruction still executes even when output skipping is active.
 - Engine-extracted notes (key operations):
   - `console.ClearText()`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `CLEARTEXTBOX`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7758,29 +7775,31 @@ SPLIT "a,b,c", ",", PARTS
 
 ## SETFONT (instruction)
 **Summary**
-- (TODO)
+- Sets the current font face name used for subsequent text output.
 
 **Metadata**
 - Arg spec: `STR_EXPRESSION_NULLABLE` (see #argument-spec-str_expression_nullable)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SETFONT`
+- `SETFONT <fontName>`
 
 **Arguments**
-- Builder: `STR_EXPRESSION_ArgumentBuilder(true)`
-- Type pattern: `[typeof(string)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<fontName>` (optional, string expression; default `""`): font face name.
 
 **Semantics**
+- If `<fontName>` is non-empty, sets the current font face name to that value.
+- If `<fontName>` is empty (including when omitted), resets the current font face name to the configured default font.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetFont(str)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `SETFONT "MS Gothic"`
+- `SETFONT` (reset to default)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7936,31 +7955,35 @@ SPLIT "a,b,c", ",", PARTS
 
 ## REDRAW (instruction)
 **Summary**
-- (TODO)
+- Controls the console redraw mode and optionally forces an immediate redraw.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `REDRAW <flags>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<flags>` (int expression): redraw flags.
+  - Bit `0`:
+    - `0`: disable automatic redraw (`Redraw = None`)
+    - `1`: enable normal redraw (`Redraw = Normal`)
+  - Bit `1`:
+    - if set, forces an immediate redraw once (`RefreshStrings(true)`).
+  - Other bits are ignored.
 
 **Semantics**
+- Updates the console’s redraw mode according to `<flags>`.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetRedraw(iValue)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `REDRAW 0` (stop automatic redraw)
+- `REDRAW 3` (enable redraw + force immediate refresh)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7969,30 +7992,29 @@ SPLIT "a,b,c", ",", PARTS
 
 ## CALLTRAIN (instruction)
 **Summary**
-- (TODO)
+- Enables “continuous train command execution” using the commands pre-populated in `SELECTCOM`.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `EXTENDED`, `FLOW_CONTROL`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `CALLTRAIN <count>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<count>` (int expression): number of commands to take from `SELECTCOM`.
 
 **Semantics**
-- (TODO)
+- Reads the current `SELECTCOM` array and enqueues `SELECTCOM[1] .. SELECTCOM[count]` (inclusive) as a command list.
+- While this mode is active, the train loop consumes the queued commands automatically instead of waiting for user input.
+- When the queued command list is exhausted, the engine exits the mode and (if present) calls `@CALLTRAINEND`.
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `<count> >= length(SELECTCOM)`.
+- `<count> <= 0` is not explicitly rejected by the engine, but results in an empty queue and is not useful (avoid).
 
 **Examples**
-- (TODO)
+- `CALLTRAIN 3` (use `SELECTCOM[1]`, `SELECTCOM[2]`, `SELECTCOM[3]`)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -8001,28 +8023,29 @@ SPLIT "a,b,c", ",", PARTS
 
 ## STOPCALLTRAIN (instruction)
 **Summary**
-- (TODO)
+- Stops “continuous train command execution” mode (started by `CALLTRAIN`) and clears any remaining queued commands.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void)
 - Flags (registration): `EXTENDED`, `FLOW_CONTROL`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `STOPCALLTRAIN`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
-- (TODO)
+- If continuous-train mode is active:
+  - Clears the queued command list.
+  - Calls `@CALLTRAINEND` if it exists.
+- If not active, no-op.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `STOPCALLTRAIN`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -8031,36 +8054,36 @@ SPLIT "a,b,c", ",", PARTS
 
 ## DOTRAIN (instruction)
 **Summary**
-- (TODO)
+- Immediately executes a specific train command (by `TRAINNAME` index) within the train system phase.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
 - Flags (registration): `EXTENDED`, `FLOW_CONTROL`
 
 **Syntax**
-- Hint (translated, best-effort): int expression。optional
-- Hint (raw comment): `数式型。省略可能`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `DOTRAIN <trainIndex>`
 
 **Arguments**
-- Builder: `INT_EXPRESSION_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<trainIndex>` (int expression): index into `TRAINNAME` (from `train.csv`).
 
 **Semantics**
+- Valid only in specific train-phase internal states (e.g. during `@EVENTTRAIN`, `@SHOW_STATUS`, `@SHOW_USERCOM`, or `@EVENTCOMEND` processing).
+- Sets `SELECTCOM = <trainIndex>` and advances the train system state to execute that command as if it was selected.
 - Engine-extracted notes (key operations):
   - `switch (state.SystemState)`
   - `exm.Console.PrintSystemLine(state.SystemState.ToString())`
   - `state.SystemState = SystemStateCode.Train_DoTrain`
 
 **Errors & validation**
+- Runtime error if executed outside the allowed train-phase states.
+- Runtime error if `<trainIndex> < 0` or `<trainIndex> >= length(TRAINNAME)`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.CanNotUseDotrainHere.Text)`
   - `throw new CodeEE(trerror.DotrainArgLessThan0.Text)`
   - `throw new CodeEE(trerror.DotrainArgOverTrainnameArray.Text)`
 
 **Examples**
-- (TODO)
+- `DOTRAIN 5`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`

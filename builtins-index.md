@@ -350,8 +350,11 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`ADDDEFCHARA`](builtins-reference.md#adddefchara-instruction) (instruction)
 - [`BEGIN`](builtins-reference.md#begin-instruction) (instruction)
+- [`CALLTRAIN`](builtins-reference.md#calltrain-instruction) (instruction)
+- [`DOTRAIN`](builtins-reference.md#dotrain-instruction) (instruction)
 - [`FORCE_BEGIN`](builtins-reference.md#force_begin-instruction) (instruction)
 - [`QUIT`](builtins-reference.md#quit-instruction) (instruction)
+- [`STOPCALLTRAIN`](builtins-reference.md#stopcalltrain-instruction) (instruction)
 
 ## text
 
@@ -378,10 +381,16 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## ui
 
+- [`ALIGNMENT`](builtins-reference.md#alignment-instruction) (instruction)
 - [`CLEARBGIMAGE`](builtins-reference.md#clearbgimage-instruction) (instruction)
+- [`CLEARTEXTBOX`](builtins-reference.md#cleartextbox-instruction) (instruction)
+- [`CUSTOMDRAWLINE`](builtins-reference.md#customdrawline-instruction) (instruction)
+- [`DRAWLINEFORM`](builtins-reference.md#drawlineform-instruction) (instruction)
 - [`FONTBOLD`](builtins-reference.md#fontbold-instruction) (instruction)
 - [`FONTITALIC`](builtins-reference.md#fontitalic-instruction) (instruction)
 - [`FONTREGULAR`](builtins-reference.md#fontregular-instruction) (instruction)
+- [`FONTSTYLE`](builtins-reference.md#fontstyle-instruction) (instruction)
+- [`REDRAW`](builtins-reference.md#redraw-instruction) (instruction)
 - [`REMOVEBGIMAGE`](builtins-reference.md#removebgimage-instruction) (instruction)
 - [`RESETBGCOLOR`](builtins-reference.md#resetbgcolor-instruction) (instruction)
 - [`RESETCOLOR`](builtins-reference.md#resetcolor-instruction) (instruction)
@@ -390,6 +399,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`SETBGIMAGE`](builtins-reference.md#setbgimage-instruction) (instruction)
 - [`SETCOLOR`](builtins-reference.md#setcolor-instruction) (instruction)
 - [`SETCOLORBYNAME`](builtins-reference.md#setcolorbyname-instruction) (instruction)
+- [`SETFONT`](builtins-reference.md#setfont-instruction) (instruction)
 - [`CHKFONT`](builtins-reference.md#chkfont-expression-function) (method)
 - [`COLOR_FROMNAME`](builtins-reference.md#color_fromname-expression-function) (method)
 - [`COLOR_FROMRGB`](builtins-reference.md#color_fromrgb-expression-function) (method)

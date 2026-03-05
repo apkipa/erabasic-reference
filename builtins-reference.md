@@ -5440,28 +5440,166 @@ SPLIT "a,b,c", ",", PARTS
 - `SORTCHARA NAME, FORWARD`
 
 ## FONTSTYLE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the current font style flags (bold/italic/strikeout/underline) for subsequent text output.
+
+**Tags**
+- ui
+
+**Syntax**
+- `FONTSTYLE`
+- `FONTSTYLE <flags>`
+
+**Arguments**
+- `<flags>` (optional, int; default `0`): style bit flags.
+  - `1`: bold
+  - `2`: italic
+  - `4`: strikeout
+  - `8`: underline
+  - Other bits are ignored.
+
+**Semantics**
+- Computes the style as `Regular` plus any flags present in `<flags>`, then sets it as the current text style.
+- Does not change the font face (see `SETFONT`).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `FONTSTYLE 3` (bold + italic)
+- `FONTSTYLE` (reset to regular)
 
 ## ALIGNMENT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the horizontal alignment (left/center/right) used when the engine lays out subsequent printed lines.
+
+**Tags**
+- ui
+
+**Syntax**
+- `ALIGNMENT LEFT`
+- `ALIGNMENT CENTER`
+- `ALIGNMENT RIGHT`
+
+**Arguments**
+- Alignment keyword: raw token compared using the engine’s `IgnoreCase` setting.
+  - This is not a string expression/literal.
+
+**Semantics**
+- Sets the current alignment for subsequent lines.
+
+**Errors & validation**
+- Runtime error if the keyword is not one of `LEFT`, `CENTER`, `RIGHT`.
+
+**Examples**
+- `ALIGNMENT CENTER`
 
 ## CUSTOMDRAWLINE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Draws a horizontal rule by repeating a raw pattern string across the drawable width, then prints a newline.
+
+**Tags**
+- ui
+
+**Syntax**
+- `CUSTOMDRAWLINE <pattern>`
+
+**Arguments**
+- `<pattern>` (raw text): the remainder of the line after the keyword.
+  - This is not an expression.
+
+**Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Expands `<pattern>` to a full-width bar using the engine’s “custom bar” algorithm:
+  - Measure is based on rendered display width (using the configured default font and `DrawableWidth`).
+  - Repeats `<pattern>` until the measured width reaches/exceeds `DrawableWidth`, then removes characters from the end until it fits.
+- Prints the expanded bar with font style forced to `Regular`, then prints a newline.
+
+**Errors & validation**
+- Load-time error if `<pattern>` is omitted.
+
+**Examples**
+- `CUSTOMDRAWLINE -`
+- `CUSTOMDRAWLINE =*=`
 
 ## DRAWLINEFORM (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Draws a horizontal rule by repeating a runtime string expression across the drawable width, then prints a newline.
+
+**Tags**
+- ui
+
+**Syntax**
+- `DRAWLINEFORM <pattern>`
+
+**Arguments**
+- `<pattern>` (string expression): pattern to repeat.
+
+**Semantics**
+- Skipped when output skipping is active (via `SKIPDISP`).
+- Evaluates `<pattern>` to a string `s`.
+  - If `s` is non-empty, expands it to a full-width bar using the same algorithm as `CUSTOMDRAWLINE` (repeat until it reaches `DrawableWidth`, then trim to fit).
+- Prints the expanded bar with font style forced to `Regular`, then prints a newline.
+
+**Errors & validation**
+- Runtime error if `<pattern>` evaluates to `""` (empty).
+
+**Examples**
+- `DRAWLINEFORM "-" + STRFORM("%02d", RAND:100)`
 
 ## CLEARTEXTBOX (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Clears the main output text box (removes all currently displayed lines).
+
+**Tags**
+- ui
+
+**Syntax**
+- `CLEARTEXTBOX`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Clears the UI’s main output area.
+- This instruction still executes even when output skipping is active.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `CLEARTEXTBOX`
 
 ## SETFONT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the current font face name used for subsequent text output.
+
+**Tags**
+- ui
+
+**Syntax**
+- `SETFONT`
+- `SETFONT <fontName>`
+
+**Arguments**
+- `<fontName>` (optional, string expression; default `""`): font face name.
+
+**Semantics**
+- If `<fontName>` is non-empty, sets the current font face name to that value.
+- If `<fontName>` is empty (including when omitted), resets the current font face name to the configured default font.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `SETFONT "MS Gothic"`
+- `SETFONT` (reset to default)
 
 ## SWAP (instruction)
 
@@ -5582,20 +5720,111 @@ SPLIT "a,b,c", ",", PARTS
 - `INITRAND`
 
 ## REDRAW (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Controls the console redraw mode and optionally forces an immediate redraw.
+
+**Tags**
+- ui
+
+**Syntax**
+- `REDRAW <flags>`
+
+**Arguments**
+- `<flags>` (int expression): redraw flags.
+  - Bit `0`:
+    - `0`: disable automatic redraw (`Redraw = None`)
+    - `1`: enable normal redraw (`Redraw = Normal`)
+  - Bit `1`:
+    - if set, forces an immediate redraw once (`RefreshStrings(true)`).
+  - Other bits are ignored.
+
+**Semantics**
+- Updates the console’s redraw mode according to `<flags>`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `REDRAW 0` (stop automatic redraw)
+- `REDRAW 3` (enable redraw + force immediate refresh)
 
 ## CALLTRAIN (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Enables “continuous train command execution” using the commands pre-populated in `SELECTCOM`.
+
+**Tags**
+- system
+
+**Syntax**
+- `CALLTRAIN <count>`
+
+**Arguments**
+- `<count>` (int expression): number of commands to take from `SELECTCOM`.
+
+**Semantics**
+- Reads the current `SELECTCOM` array and enqueues `SELECTCOM[1] .. SELECTCOM[count]` (inclusive) as a command list.
+- While this mode is active, the train loop consumes the queued commands automatically instead of waiting for user input.
+- When the queued command list is exhausted, the engine exits the mode and (if present) calls `@CALLTRAINEND`.
+
+**Errors & validation**
+- Runtime error if `<count> >= length(SELECTCOM)`.
+- `<count> <= 0` is not explicitly rejected by the engine, but results in an empty queue and is not useful (avoid).
+
+**Examples**
+- `CALLTRAIN 3` (use `SELECTCOM[1]`, `SELECTCOM[2]`, `SELECTCOM[3]`)
 
 ## STOPCALLTRAIN (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Stops “continuous train command execution” mode (started by `CALLTRAIN`) and clears any remaining queued commands.
+
+**Tags**
+- system
+
+**Syntax**
+- `STOPCALLTRAIN`
+
+**Arguments**
+- None.
+
+**Semantics**
+- If continuous-train mode is active:
+  - Clears the queued command list.
+  - Calls `@CALLTRAINEND` if it exists.
+- If not active, no-op.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `STOPCALLTRAIN`
 
 ## DOTRAIN (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Immediately executes a specific train command (by `TRAINNAME` index) within the train system phase.
+
+**Tags**
+- system
+
+**Syntax**
+- `DOTRAIN <trainIndex>`
+
+**Arguments**
+- `<trainIndex>` (int expression): index into `TRAINNAME` (from `train.csv`).
+
+**Semantics**
+- Valid only in specific train-phase internal states (e.g. during `@EVENTTRAIN`, `@SHOW_STATUS`, `@SHOW_USERCOM`, or `@EVENTCOMEND` processing).
+- Sets `SELECTCOM = <trainIndex>` and advances the train system state to execute that command as if it was selected.
+
+**Errors & validation**
+- Runtime error if executed outside the allowed train-phase states.
+- Runtime error if `<trainIndex> < 0` or `<trainIndex> >= length(TRAINNAME)`.
+
+**Examples**
+- `DOTRAIN 5`
 
 ## DATA (instruction)
 

@@ -10,7 +10,7 @@ Legend:
 Notes:
 - To mark an entry complete, add a section `**Progress state**` with `- complete` to the override file.
 
-Instructions: `⛔ 65` / `🟡 0` / `✅ 238` (total `303`).
+Instructions: `⛔ 55` / `🟡 0` / `✅ 248` (total `303`).
 Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 
 ## Instructions
@@ -189,20 +189,20 @@ Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 - ✅ [`FONTITALIC`](../builtins-reference.md#fontitalic-instruction)
 - ✅ [`FONTREGULAR`](../builtins-reference.md#fontregular-instruction)
 - ✅ [`SORTCHARA`](../builtins-reference.md#sortchara-instruction)
-- ⛔ [`FONTSTYLE`](../builtins-reference.md#fontstyle-instruction)
-- ⛔ [`ALIGNMENT`](../builtins-reference.md#alignment-instruction)
-- ⛔ [`CUSTOMDRAWLINE`](../builtins-reference.md#customdrawline-instruction)
-- ⛔ [`DRAWLINEFORM`](../builtins-reference.md#drawlineform-instruction)
-- ⛔ [`CLEARTEXTBOX`](../builtins-reference.md#cleartextbox-instruction)
-- ⛔ [`SETFONT`](../builtins-reference.md#setfont-instruction)
+- ✅ [`FONTSTYLE`](../builtins-reference.md#fontstyle-instruction)
+- ✅ [`ALIGNMENT`](../builtins-reference.md#alignment-instruction)
+- ✅ [`CUSTOMDRAWLINE`](../builtins-reference.md#customdrawline-instruction)
+- ✅ [`DRAWLINEFORM`](../builtins-reference.md#drawlineform-instruction)
+- ✅ [`CLEARTEXTBOX`](../builtins-reference.md#cleartextbox-instruction)
+- ✅ [`SETFONT`](../builtins-reference.md#setfont-instruction)
 - ✅ [`SWAP`](../builtins-reference.md#swap-instruction)
 - ✅ [`RANDOMIZE`](../builtins-reference.md#randomize-instruction)
 - ✅ [`DUMPRAND`](../builtins-reference.md#dumprand-instruction)
 - ✅ [`INITRAND`](../builtins-reference.md#initrand-instruction)
-- ⛔ [`REDRAW`](../builtins-reference.md#redraw-instruction)
-- ⛔ [`CALLTRAIN`](../builtins-reference.md#calltrain-instruction)
-- ⛔ [`STOPCALLTRAIN`](../builtins-reference.md#stopcalltrain-instruction)
-- ⛔ [`DOTRAIN`](../builtins-reference.md#dotrain-instruction)
+- ✅ [`REDRAW`](../builtins-reference.md#redraw-instruction)
+- ✅ [`CALLTRAIN`](../builtins-reference.md#calltrain-instruction)
+- ✅ [`STOPCALLTRAIN`](../builtins-reference.md#stopcalltrain-instruction)
+- ✅ [`DOTRAIN`](../builtins-reference.md#dotrain-instruction)
 - ✅ [`DATA`](../builtins-reference.md#data-instruction)
 - ✅ [`DATAFORM`](../builtins-reference.md#dataform-instruction)
 - ✅ [`ENDDATA`](../builtins-reference.md#enddata-instruction)
