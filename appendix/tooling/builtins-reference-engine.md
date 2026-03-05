@@ -6972,31 +6972,33 @@ DELCHARA 1, 3
 
 ## SWAPCHARA (instruction)
 **Summary**
-- (TODO)
+- Swaps two entries in the engine’s current character list.
 
 **Metadata**
 - Arg spec: `SP_SWAP` (see #argument-spec-sp_swap) (inferred from `SWAPCHARA_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new SWAPCHARA_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): <int>,<int>
-- Hint (raw comment): `<数値>,<数値>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SWAPCHARA x, y`
 
 **Arguments**
-- Builder: `SP_SWAP_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- `x` (int): character index.
+- `y` (int): character index.
 
 **Semantics**
+- If `x == y`, no-op.
+- Otherwise, swaps the character objects at indices `x` and `y` in the current character list.
+- Does not adjust `TARGET` / `ASSI` / `MASTER`:
+  - they remain numeric indices, so after the swap they may refer to different character objects than before.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.SwapChara(x, y)`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `x` or `y` is out of range (`x < 0`, `y < 0`, or `>= CHARANUM`).
 
 **Examples**
-- (TODO)
+- `SWAPCHARA 1, 2`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7005,31 +7007,33 @@ DELCHARA 1, 3
 
 ## COPYCHARA (instruction)
 **Summary**
-- (TODO)
+- Copies all character data from one character to another (overwrite).
 
 **Metadata**
 - Arg spec: `SP_SWAP` (see #argument-spec-sp_swap) (inferred from `COPYCHARA_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new COPYCHARA_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): <int>,<int>
-- Hint (raw comment): `<数値>,<数値>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `COPYCHARA fromIndex, toIndex`
 
 **Arguments**
-- Builder: `SP_SWAP_ArgumentBuilder(false)`
-- Type pattern: `[typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- `fromIndex` (int): source character index.
+- `toIndex` (int): destination character index.
 
 **Semantics**
+- Copies the entire character-data record from `fromIndex` into `toIndex`.
+  - This overwrites all character variables for `toIndex`, including `NO`/`NAME`/etc and character arrays.
+- Does not change the character list length and does not move character indices.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.CopyChara(x, y)`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `fromIndex` is out of range.
+- Runtime error if `toIndex` is out of range.
 
 **Examples**
-- (TODO)
+- `COPYCHARA 0, 1`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7077,30 +7081,50 @@ ADDCOPYCHARA 0
 
 ## SPLIT (instruction)
 **Summary**
-- (TODO)
+- Splits a string by a separator string and writes the resulting parts into a string array.
 
 **Metadata**
 - Arg spec: `SP_SPLIT` (see #argument-spec-sp_split)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): <string expr>, <string expr>, <可変文字variable term>
-- Hint (raw comment): `<文字列式>, <文字列式>, <可変文字変数>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SPLIT <text>, <separator>, <outParts> [, <outCount>]`
 
 **Arguments**
-- Builder: `SP_SPLIT_ArgumentBuilder()`
-- Type pattern: `[typeof(string), typeof(string), typeof(string), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `3`.
+- `<text>` (string): string expression to split.
+- `<separator>` (string): string expression used as the separator (not a set of characters).
+- `<outParts>` (variable term): changeable array variable term to receive the parts.
+  - Must be a **string** array variable (1D/2D/3D; character-data arrays are accepted but behave specially).
+  - Any indices written in `<outParts>` are ignored for this instruction.
+- `<outCount>` (optional, variable term; default `RESULT`): changeable integer variable term to receive the number of split parts.
 
 **Semantics**
-- (TODO)
+- Computes `parts = text.Split(new[] { separator }, StringSplitOptions.None)` (equivalent .NET behavior).
+- Writes `parts.Length` into `<outCount>`.
+- Writes a prefix of `parts` into `<outParts>`:
+  - If `parts.Length > length0`, only the first `length0` parts are written, where `length0` is the destination array’s **first** dimension length.
+  - Otherwise, all parts are written.
+- Destination addressing rules:
+  - 1D array: writes `outParts[i]` starting at `i = 0`.
+  - 2D array: writes `outParts[0, i]` starting at `i = 0`.
+  - 3D array: writes `outParts[0, 0, i]` starting at `i = 0`.
+  - character-data string arrays: always write into character index `0` using the same “fixed earlier indices = 0” rule (e.g. `CVAR[0, i]`).
+- Does not clear elements outside the written prefix.
 
 **Errors & validation**
-- (TODO)
+- Argument parsing fails if `<outParts>` is not a changeable array variable term.
+- Argument parsing fails if `<outCount>` is provided but is not a changeable integer variable term.
+- Runtime error if `<outParts>` is not a string array variable.
 
 **Examples**
-- (TODO)
+```erabasic
+#DIM PARTS, 10
+SPLIT "a,b,c", ",", PARTS
+; RESULT == 3
+; PARTS:0 == "a"
+; PARTS:1 == "b"
+; PARTS:2 == "c"
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7109,31 +7133,45 @@ ADDCOPYCHARA 0
 
 ## SETCOLOR (instruction)
 **Summary**
-- (TODO)
+- Sets the current foreground (text) color.
 
 **Metadata**
 - Arg spec: `SP_COLOR` (see #argument-spec-sp_color)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SETCOLOR rgb`
+- `SETCOLOR r, g, b`
 
 **Arguments**
-- Builder: `SP_COLOR_ArgumentBuilder()`
-- Type pattern: `[typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- `rgb` (int): packed `0xRRGGBB` value. Only the low 24 bits are used.
+- `r`, `g`, `b` (int): color components.
+  - Must satisfy `0 <= component <= 255`.
 
 **Semantics**
+- One-argument form (`rgb`):
+  - Extracts components:
+    - `r = (rgb & 0xFF0000) >> 16`
+    - `g = (rgb & 0x00FF00) >> 8`
+    - `b = (rgb & 0x0000FF)`
+  - Sets the current text color to `(r, g, b)`.
+- Three-argument form (`r, g, b`):
+  - Validates that each component is within `0..255`.
+  - Sets the current text color to `(r, g, b)`.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(c)`
 
 **Errors & validation**
+- Parse-time warning + rejection if you pass exactly 2 arguments.
+- Runtime error in the three-argument form if any component is `< 0` or `> 255`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SetcolorArgLessThan0.Text)`
   - `throw new CodeEE(trerror.SetcolorArgOver255.Text)`
 
 **Examples**
-- (TODO)
+- `SETCOLOR 0xFF0000`      ; red
+- `SETCOLOR 255, 0, 0`     ; red
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7142,31 +7180,34 @@ ADDCOPYCHARA 0
 
 ## SETCOLORBYNAME (instruction)
 **Summary**
-- (TODO)
+- Sets the current foreground (text) color by a named color.
 
 **Metadata**
 - Arg spec: `STR` (see #argument-spec-str)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): raw string
-- Hint (raw comment): `単純文字列型`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SETCOLORBYNAME <name>`
 
 **Arguments**
-- Builder: `STR_ArgumentBuilder(false)`
+- `<name>` (raw string): a color name recognized by `System.Drawing.Color.FromName`.
+  - This is a raw string argument, not a string expression.
 
 **Semantics**
+- Resolves `<name>` via `Color.FromName(name)` and sets the current text color to the resolved RGB.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(c)`
 
 **Errors & validation**
+- Parse-time error if `<name>` is not a valid color name.
+- Parse-time error if `<name>` is `"transparent"` (case-insensitive).
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.TransparentUnsupported.Text)`
   - `throw new CodeEE(string.Format(trerror.InvalidColorName.Text, colorName))`
 
 **Examples**
-- (TODO)
+- `SETCOLORBYNAME Red`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7175,29 +7216,29 @@ ADDCOPYCHARA 0
 
 ## RESETCOLOR (instruction)
 **Summary**
-- (TODO)
+- Resets the current text color to the configured default foreground color.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `RESETCOLOR_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new RESETCOLOR_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `RESETCOLOR`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- Sets the current text color to the configured default (`ForeColor`).
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(Config.ForeColor)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `RESETCOLOR`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7206,31 +7247,37 @@ ADDCOPYCHARA 0
 
 ## SETBGCOLOR (instruction)
 **Summary**
-- (TODO)
+- Sets the current background color.
 
 **Metadata**
 - Arg spec: `SP_COLOR` (see #argument-spec-sp_color)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SETBGCOLOR rgb`
+- `SETBGCOLOR r, g, b`
 
 **Arguments**
-- Builder: `SP_COLOR_ArgumentBuilder()`
-- Type pattern: `[typeof(long), typeof(long), typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `1`.
+- `rgb` (int): packed `0xRRGGBB` value. Only the low 24 bits are used.
+- `r`, `g`, `b` (int): color components.
+  - Must satisfy `0 <= component <= 255`.
 
 **Semantics**
+- Same argument handling as `SETCOLOR`, but applies to the background color instead of the text color.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetBgColor(c)`
 
 **Errors & validation**
+- Parse-time warning + rejection if you pass exactly 2 arguments.
+- Runtime error in the three-argument form if any component is `< 0` or `> 255`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SetcolorArgLessThan0.Text)`
   - `throw new CodeEE(trerror.SetcolorArgOver255.Text)`
 
 **Examples**
-- (TODO)
+- `SETBGCOLOR 0x000000`    ; black background
+- `SETBGCOLOR 0, 0, 0`     ; black background
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7239,29 +7286,42 @@ ADDCOPYCHARA 0
 
 ## SETBGIMAGE (instruction)
 **Summary**
-- (TODO)
+- Adds a sprite-backed background image layer to the console.
 
 **Metadata**
 - Arg spec: `FORM_STR_ANY` (see #argument-spec-form_str_any) (inferred from `SETBGIMAGE_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new SETBGIMAGE_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): 1つ以上のFORMstringをvariadic
-- Hint (raw comment): `1つ以上のFORM文字列を任意数`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SETBGIMAGE <spriteName> [, <depth> [, <opacityByte> ]]`
 
 **Arguments**
-- Builder: `FORM_STR_ANY_ArgumentBuilder()`
+- `<spriteName>` (string): formatted string expression naming a sprite.
+  - Sprite lookup is case-insensitive (the engine uppercases before lookup).
+  - Only file-backed sprites loaded from `resources/**/*.csv` are accepted; other sprite kinds are ignored.
+- `<depth>` (optional, string; default `0`): formatted string expression parsed by `Int64.Parse`.
+- `<opacityByte>` (optional, string; default `255`): formatted string expression parsed by `Int64.Parse`, then converted to opacity as `value / 255.0`.
+  - Not clamped.
 
 **Semantics**
+- Resolves `<spriteName>` to a sprite:
+  - If the sprite does not exist or is not a file-backed sprite, the instruction is a no-op.
+  - Otherwise, it appends a new background entry `(depth, sprite, opacity)` to the background list.
+- The background list is sorted by `depth` descending (larger depth first).
+- The engine bakes a composite background image from the list:
+  - Each sprite is scaled to **cover** the client area while preserving aspect ratio.
+  - If horizontal padding is needed, it is centered; vertical alignment is top-aligned (extra height is cropped at the bottom).
+  - Each layer is alpha-multiplied by `opacity`.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.AddBackgroundImage(bgName, bgDepth, opacity)`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `<depth>` or `<opacityByte>` cannot be parsed by `Int64.Parse`.
 
 **Examples**
-- (TODO)
+- `SETBGIMAGE TITLE_BG`
+- `SETBGIMAGE TITLE_BG, 10, 128`  ; 50% opacity
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7270,31 +7330,34 @@ ADDCOPYCHARA 0
 
 ## SETBGCOLORBYNAME (instruction)
 **Summary**
-- (TODO)
+- Sets the current background color by a named color.
 
 **Metadata**
 - Arg spec: `STR` (see #argument-spec-str)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): raw string
-- Hint (raw comment): `単純文字列型`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SETBGCOLORBYNAME <name>`
 
 **Arguments**
-- Builder: `STR_ArgumentBuilder(false)`
+- `<name>` (raw string): a color name recognized by `System.Drawing.Color.FromName`.
+  - This is a raw string argument, not a string expression.
 
 **Semantics**
+- Resolves `<name>` via `Color.FromName(name)` and sets the background color to the resolved RGB.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetBgColor(c)`
 
 **Errors & validation**
+- Parse-time error if `<name>` is not a valid color name.
+- Parse-time error if `<name>` is `"transparent"` (case-insensitive).
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.TransparentUnsupported.Text)`
   - `throw new CodeEE(string.Format(trerror.InvalidColorName.Text, colorName))`
 
 **Examples**
-- (TODO)
+- `SETBGCOLORBYNAME Black`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7303,29 +7366,29 @@ ADDCOPYCHARA 0
 
 ## RESETBGCOLOR (instruction)
 **Summary**
-- (TODO)
+- Resets the current background color to the configured default background color.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `RESETBGCOLOR_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new RESETBGCOLOR_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `RESETBGCOLOR`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- Sets the current background color to the configured default (`BackColor`).
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetBgColor(Config.BackColor)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `RESETBGCOLOR`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7334,29 +7397,29 @@ ADDCOPYCHARA 0
 
 ## CLEARBGIMAGE (instruction)
 **Summary**
-- (TODO)
+- Removes all background image layers.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `CLEARBGIMAGE_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new CLEARBGIMAGE_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `CLEARBGIMAGE`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- Clears the background image list and re-bakes the composite background.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.ClearBackgroundImage()`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `CLEARBGIMAGE`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7365,29 +7428,30 @@ ADDCOPYCHARA 0
 
 ## REMOVEBGIMAGE (instruction)
 **Summary**
-- (TODO)
+- Removes one background image layer by sprite name.
 
 **Metadata**
 - Arg spec: `FORM_STR_ANY` (see #argument-spec-form_str_any) (inferred from `REMOVEBGIMAGE_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new REMOVEBGIMAGE_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): 1つ以上のFORMstringをvariadic
-- Hint (raw comment): `1つ以上のFORM文字列を任意数`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `REMOVEBGIMAGE <spriteName>`
 
 **Arguments**
-- Builder: `FORM_STR_ANY_ArgumentBuilder()`
+- `<spriteName>` (string): formatted string expression.
+  - Matching is **case-sensitive** against the stored sprite name (which is uppercased during resource loading).
 
 **Semantics**
+- Removes the first background entry whose sprite name equals `<spriteName>`, then re-bakes the composite background.
+- Does not print output.
 - Engine-extracted notes (key operations):
   - `exm.Console.RemoveBackground(bgName)`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if no matching background entry exists.
 
 **Examples**
-- (TODO)
+- `REMOVEBGIMAGE TITLE_BG`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7396,29 +7460,31 @@ ADDCOPYCHARA 0
 
 ## FONTBOLD (instruction)
 **Summary**
-- (TODO)
+- Enables bold font style for subsequent output (Windows only).
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `FONTBOLD_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new FONTBOLD_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `FONTBOLD`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- If running on Windows:
+  - Sets the current font style to `(currentStyle | Bold)`.
+- If not running on Windows:
+  - No-op.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(exm.Console.StringStyle.FontStyle | FontStyle.Bold)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `FONTBOLD`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7427,29 +7493,31 @@ ADDCOPYCHARA 0
 
 ## FONTITALIC (instruction)
 **Summary**
-- (TODO)
+- Enables italic font style for subsequent output (Windows only).
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `FONTITALIC_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new FONTITALIC_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `FONTITALIC`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- If running on Windows:
+  - Sets the current font style to `(currentStyle | Italic)`.
+- If not running on Windows:
+  - No-op.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(exm.Console.StringStyle.FontStyle | FontStyle.Italic)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `FONTITALIC`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7458,29 +7526,31 @@ ADDCOPYCHARA 0
 
 ## FONTREGULAR (instruction)
 **Summary**
-- (TODO)
+- Resets the font style to regular (clears bold/italic/etc) for subsequent output (Windows only).
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `FONTREGULAR_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new FONTREGULAR_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `FONTREGULAR`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- If running on Windows:
+  - Sets the current font style to `Regular` (clears all style flags).
+- If not running on Windows:
+  - No-op.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetStringStyle(FontStyle.Regular)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `FONTREGULAR`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10920,30 +10990,28 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## PRINTCPERLINE (instruction)
 **Summary**
-- (TODO)
+- Writes the configured `PrintCPerLine` value into an integer variable.
 
 **Metadata**
 - Arg spec: `SP_GETINT` (see #argument-spec-sp_getint)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): <changeable int variable term>(今までこれがないことに驚いた)
-- Hint (raw comment): `<可変数値変数>(今までこれがないことに驚いた)`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `PRINTCPERLINE [<dest>]`
 
 **Arguments**
-- Builder: `SP_GETINT_ArgumentBuilder()`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<dest>` (optional; default `RESULT`): changeable integer variable term to receive the value.
 
 **Semantics**
-- (TODO)
+- Assigns the configuration value `PrintCPerLine` to `<dest>`.
+- Does not print output.
 
 **Errors & validation**
-- (TODO)
+- Argument parsing fails if `<dest>` is provided but is not a changeable integer variable term.
 
 **Examples**
-- (TODO)
+- `PRINTCPERLINE`        ; writes into `RESULT`
+- `PRINTCPERLINE X`      ; writes into `X`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10952,30 +11020,28 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## SAVENOS (instruction)
 **Summary**
-- (TODO)
+- Writes the configured `SaveDataNos` value into an integer variable.
 
 **Metadata**
 - Arg spec: `SP_GETINT` (see #argument-spec-sp_getint)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): <changeable int variable term>(今までこれがないことに驚いた)
-- Hint (raw comment): `<可変数値変数>(今までこれがないことに驚いた)`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `SAVENOS [<dest>]`
 
 **Arguments**
-- Builder: `SP_GETINT_ArgumentBuilder()`
-- Type pattern: `[typeof(long)]` (`typeof(long)` = int expr, `typeof(string)` = string expr, `typeof(void)` = special/variable term depending on builder).
-- Minimum args: `0`.
+- `<dest>` (optional; default `RESULT`): changeable integer variable term to receive the value.
 
 **Semantics**
-- (TODO)
+- Assigns the configuration value `SaveDataNos` to `<dest>`.
+- Does not print output.
 
 **Errors & validation**
-- (TODO)
+- Argument parsing fails if `<dest>` is provided but is not a changeable integer variable term.
 
 **Examples**
-- (TODO)
+- `SAVENOS`        ; writes into `RESULT`
+- `SAVENOS X`      ; writes into `X`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -12833,7 +12899,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## EXISTCSV (expression function)
 **Summary**
-- (TODO)
+- Tests whether a character template exists for a given character `NO` in the CSV-backed character database.
 
 **Metadata**
 - Implementor: `new ExistCsvMethod()`
@@ -12841,25 +12907,30 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `EXISTCSV(charaNo [, isSp])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `EXISTCSV(charaNo)` → `long`
+- `EXISTCSV(charaNo, isSp)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to look up.
+- `isSp` (optional, int; default `0`): whether to look up in the SP-character template set.
+  - `0`: normal character templates
+  - non-zero: SP character templates
 
 **Semantics**
+- Returns `1` if a character template exists for `charaNo` in the selected template set, otherwise returns `0`.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.ExistCsv(no, isSp)`
 
 **Errors & validation**
+- Runtime error if `isSp != 0` while the compatibility option “use SP characters” is disabled (`CompatiSPChara = false`).
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `ok = EXISTCSV(100)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -12915,7 +12986,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CHKFONT (expression function)
 **Summary**
-- (TODO)
+- Tests whether a given font family name is available to the engine.
 
 **Metadata**
 - Implementor: `new CheckfontMethod()`
@@ -12924,22 +12995,25 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CHKFONT(name)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `CHKFONT(name)` → `long`
 
 **Arguments**
-- (TODO)
+- `name` (string): font family name to look up.
 
 **Semantics**
-- (TODO)
+- Returns `1` if `name` exactly matches (`==`) the `.Name` of:
+  - any system-installed font family, or
+  - any font family loaded into the engine’s private font collection.
+- Otherwise returns `0`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `ok = CHKFONT("Arial")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -12947,7 +13021,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CHKDATA (expression function)
 **Summary**
-- (TODO)
+- Checks whether a numbered save file exists and is loadable, and reports a short status message.
 
 **Metadata**
 - Implementor: `new CheckdataMethod(EraSaveFileType.Normal)`
@@ -12956,26 +13030,38 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CHKDATA(saveIndex)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `CHKDATA(saveIndex)` → `long`
 
 **Arguments**
-- (TODO)
+- `saveIndex` (int): save slot index used to form the file name `save<saveIndex>.sav` (with at least 2 digits) under the save directory.
 
 **Semantics**
+- Checks the save file and returns a status code:
+  - `0`: OK (loadable)
+  - `1`: file not found
+  - `2`: different game
+  - `3`: different version
+  - `4`: other error (corrupt / read error / type mismatch)
+- Also writes a message string to `RESULTS:0`:
+  - for OK: the save message stored in the file
+  - for not found: `"----"`
+  - for errors: a human-readable error message
 - Engine-extracted notes (key operations):
   - `EraDataResult result = exm.VEvaluator.CheckData((int)target, type)`
   - `exm.VEvaluator.RESULTS = result.DataMes`
 
 **Errors & validation**
+- Runtime error if `saveIndex < 0` or `saveIndex > 2147483647`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, target))`
   - `throw new CodeEE(string.Format(trerror.ArgIsTooLarge.Text, Name, 1, target))`
 
 **Examples**
-- (TODO)
+- `state = CHKDATA(0)`   ; checks `save00.sav`
+- `msg = RESULTS:0`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -12983,7 +13069,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## ISSKIP (expression function)
 **Summary**
-- (TODO)
+- Reports whether the script runner is currently in “skip output” mode.
 
 **Metadata**
 - Implementor: `new IsSkipMethod()`
@@ -12991,23 +13077,24 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ISSKIP()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `ISSKIP()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
+- Returns `1` if skip-print mode is active, otherwise returns `0`.
 - Engine-extracted notes (key operations):
   - `return exm.Process.SkipPrint ? 1L : 0L`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `if ISSKIP() == 0: PRINTFORML "not skipping"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13015,7 +13102,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## MOUSESKIP (expression function)
 **Summary**
-- (TODO)
+- Deprecated alias of `MESSKIP()`.
 
 **Metadata**
 - Implementor: `new MesSkipMethod(true)`
@@ -13023,22 +13110,22 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MOUSESKIP()`
 
 **Signatures / argument rules**
-- Argument rules: custom check (no `argumentTypeArray`/`argumentTypeArrayEx` assignment detected).
+- `MOUSESKIP()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Same return value as `MESSKIP()`.
 
 **Errors & validation**
-- (TODO)
+- Parse-time warning: calling `MOUSESKIP()` emits a deprecation warning recommending `MESSKIP()`.
 
 **Examples**
-- (TODO)
+- `skipping = MOUSESKIP()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13046,7 +13133,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## MESSKIP (expression function)
 **Summary**
-- (TODO)
+- Reports whether message-skip mode is currently active in the UI.
 
 **Metadata**
 - Implementor: `new MesSkipMethod(false)`
@@ -13054,22 +13141,22 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MESSKIP()`
 
 **Signatures / argument rules**
-- Argument rules: custom check (no `argumentTypeArray`/`argumentTypeArrayEx` assignment detected).
+- `MESSKIP()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns `1` if message-skip mode is active, otherwise returns `0`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `skipping = MESSKIP()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13077,7 +13164,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETCOLOR (expression function)
 **Summary**
-- (TODO)
+- Returns the current foreground text color as a 24-bit RGB integer.
 
 **Metadata**
 - Implementor: `new GetColorMethod(false)`
@@ -13085,22 +13172,23 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `isDef`
 
 **Syntax**
-- (TODO)
+- `GETCOLOR()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETCOLOR()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the current text color as `0xRRGGBB`:
+  - `ConsoleStringColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `c = GETCOLOR()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13108,7 +13196,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETDEFCOLOR (expression function)
 **Summary**
-- (TODO)
+- Returns the configured default foreground text color as a 24-bit RGB integer.
 
 **Metadata**
 - Implementor: `new GetColorMethod(true)`
@@ -13116,22 +13204,23 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `isDef`
 
 **Syntax**
-- (TODO)
+- `GETDEFCOLOR()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETDEFCOLOR()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the configured default text color (`ForeColor`) as `0xRRGGBB`:
+  - `ForeColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `c = GETDEFCOLOR()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13139,7 +13228,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETFOCUSCOLOR (expression function)
 **Summary**
-- (TODO)
+- Returns the configured focus highlight color as a 24-bit RGB integer.
 
 **Metadata**
 - Implementor: `new GetFocusColorMethod()`
@@ -13147,22 +13236,23 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `GETFOCUSCOLOR()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETFOCUSCOLOR()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the configured focus color (`FocusColor`) as `0xRRGGBB`:
+  - `FocusColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `c = GETFOCUSCOLOR()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13170,7 +13260,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETBGCOLOR (expression function)
 **Summary**
-- (TODO)
+- Returns the current background color as a 24-bit RGB integer.
 
 **Metadata**
 - Implementor: `new GetBGColorMethod(false)`
@@ -13178,22 +13268,23 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `isDef`
 
 **Syntax**
-- (TODO)
+- `GETBGCOLOR()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETBGCOLOR()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the current background color as `0xRRGGBB`:
+  - `ConsoleBgColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `c = GETBGCOLOR()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13201,7 +13292,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETDEFBGCOLOR (expression function)
 **Summary**
-- (TODO)
+- Returns the configured default background color as a 24-bit RGB integer.
 
 **Metadata**
 - Implementor: `new GetBGColorMethod(true)`
@@ -13209,22 +13300,23 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `isDef`
 
 **Syntax**
-- (TODO)
+- `GETDEFBGCOLOR()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETDEFBGCOLOR()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the configured default background color (`BackColor`) as `0xRRGGBB`:
+  - `BackColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `c = GETDEFBGCOLOR()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13232,7 +13324,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETSTYLE (expression function)
 **Summary**
-- (TODO)
+- Returns the current text style (bold/italic/strikeout/underline) as a bitmask.
 
 **Metadata**
 - Implementor: `new GetStyleMethod()`
@@ -13240,22 +13332,27 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETSTYLE()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETSTYLE()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns a bitmask where:
+  - bit `0` (`1`): bold
+  - bit `1` (`2`): italic
+  - bit `2` (`4`): strikeout
+  - bit `3` (`8`): underline
+- The return value is the OR of all currently enabled bits.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `style = GETSTYLE()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13263,7 +13360,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETFONT (expression function)
 **Summary**
-- (TODO)
+- Returns the current font name used for console output.
 
 **Metadata**
 - Implementor: `new GetFontMethod()`
@@ -13271,22 +13368,22 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETFONT()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETFONT()` → `string`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the current font name string.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `font = GETFONT()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13337,7 +13434,7 @@ PRINTFORML %S%
 
 ## CURRENTALIGN (expression function)
 **Summary**
-- (TODO)
+- Returns the current line alignment mode of the console output.
 
 **Metadata**
 - Implementor: `new CurrentAlignMethod()`
@@ -13345,24 +13442,28 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `CURRENTALIGN()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `CURRENTALIGN()` → `string`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
+- Returns one of:
+  - `"LEFT"`
+  - `"CENTER"`
+  - `"RIGHT"`
 - Engine-extracted notes (key operations):
   - `if (exm.Console.Alignment == DisplayLineAlignment.LEFT)`
   - `else if (exm.Console.Alignment == DisplayLineAlignment.CENTER)`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `align = CURRENTALIGN()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13370,7 +13471,7 @@ PRINTFORML %S%
 
 ## CURRENTREDRAW (expression function)
 **Summary**
-- (TODO)
+- Reports whether the console is currently in an auto-redraw mode.
 
 **Metadata**
 - Implementor: `new CurrentRedrawMethod()`
@@ -13378,23 +13479,24 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `CURRENTREDRAW()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `CURRENTREDRAW()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
+- Returns `0` if redraw mode is off, otherwise returns `1`.
 - Engine-extracted notes (key operations):
   - `return (exm.Console.Redraw == GameView.ConsoleRedraw.None) ? 0L : 1L`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `isRedrawing = CURRENTREDRAW()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13402,7 +13504,7 @@ PRINTFORML %S%
 
 ## COLOR_FROMNAME (expression function)
 **Summary**
-- (TODO)
+- Converts a named color to a 24-bit RGB integer.
 
 **Metadata**
 - Implementor: `new ColorFromNameMethod()`
@@ -13411,23 +13513,27 @@ PRINTFORML %S%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `COLOR_FROMNAME(name)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `COLOR_FROMNAME(name)` → `long`
 
 **Arguments**
-- (TODO)
+- `name` (string): a color name recognized by `System.Drawing.Color.FromName`.
 
 **Semantics**
-- (TODO)
+- If `name` resolves to a non-transparent color, returns `0xRRGGBB` as an integer:
+  - `(R << 16) + (G << 8) + B`.
+- If `name` is not a valid color name, returns `-1`.
 
 **Errors & validation**
+- Runtime error if `name` is `"transparent"` (case-insensitive). This special name is treated as “unsupported”.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.TransparentUnsupported.Text)`
 
 **Examples**
-- (TODO)
+- `c = COLOR_FROMNAME("Red")` returns `0xFF0000`.
+- `c = COLOR_FROMNAME("not_a_color")` returns `-1`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13435,7 +13541,7 @@ PRINTFORML %S%
 
 ## COLOR_FROMRGB (expression function)
 **Summary**
-- (TODO)
+- Builds a 24-bit RGB integer from separate color components.
 
 **Metadata**
 - Implementor: `new ColorFromRGBMethod()`
@@ -13443,25 +13549,29 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `COLOR_FROMRGB(r, g, b)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
+- `COLOR_FROMRGB(r, g, b)` → `long`
 
 **Arguments**
-- (TODO)
+- `r` (int): red component, must satisfy `0 <= r <= 255`.
+- `g` (int): green component, must satisfy `0 <= g <= 255`.
+- `b` (int): blue component, must satisfy `0 <= b <= 255`.
 
 **Semantics**
-- (TODO)
+- Returns `0xRRGGBB` as an integer:
+  - `(r << 16) + (g << 8) + b`.
 
 **Errors & validation**
+- Runtime error if any component is outside `0..255`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, r, 0, 255))`
   - `throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 2, g, 0, 255))`
   - `throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 3, b, 0, 255))`
 
 **Examples**
-- (TODO)
+- `c = COLOR_FROMRGB(255, 0, 0)` returns `0xFF0000`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13469,7 +13579,7 @@ PRINTFORML %S%
 
 ## CHKCHARADATA (expression function)
 **Summary**
-- (TODO)
+- Checks whether a character-variable save file exists and is loadable, and reports a short status message.
 
 **Metadata**
 - Implementor: `new CheckdataStrMethod(EraSaveFileType.CharVar)`
@@ -13477,24 +13587,35 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `CHKCHARADATA(name)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `CHKCHARADATA(name)` → `long`
 
 **Arguments**
-- (TODO)
+- `name` (string): the save “name” suffix used to form the file name `chara_<name>.dat` under the engine’s data directory.
 
 **Semantics**
+- Checks the file `chara_<name>.dat` and returns a status code:
+  - `0`: OK (loadable)
+  - `1`: file not found
+  - `2`: different game
+  - `3`: different version
+  - `4`: other error (corrupt / read error / type mismatch)
+- Also writes a message string to `RESULTS:0`:
+  - for OK: the save message stored in the file
+  - for not found: `"----"`
+  - for errors: a human-readable error message
 - Engine-extracted notes (key operations):
   - `EraDataResult result = exm.VEvaluator.CheckData(datFilename, type)`
   - `exm.VEvaluator.RESULTS = result.DataMes`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `state = CHKCHARADATA("00")`
+- `msg = RESULTS:0`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13502,7 +13623,7 @@ PRINTFORML %S%
 
 ## FIND_CHARADATA (expression function)
 **Summary**
-- (TODO)
+- Lists character-variable save files matching a wildcard pattern.
 
 **Metadata**
 - Implementor: `new FindFilesMethod(EraSaveFileType.CharVar)`
@@ -13510,25 +13631,33 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `FIND_CHARADATA([pattern])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String }; OmitStart = 0.
+- `FIND_CHARADATA()` → `long`
+- `FIND_CHARADATA(pattern)` → `long`
 
 **Arguments**
-- (TODO)
+- `pattern` (optional, string; default `*`): wildcard pattern applied to the `<name>` part of `chara_<name>.dat`.
 
 **Semantics**
+- Searches the engine’s data directory for files matching `chara_<pattern>.dat`.
+- Extracts each match’s `<name>` (the part after `chara_` and before the `.dat` extension).
+- Writes the extracted names into the `RESULTS` string array starting at `RESULTS:0`:
+  - If there are more matches than the `RESULTS` array length, only the first `length(RESULTS)` names are written.
+  - If there are fewer matches than the `RESULTS` array length, entries past the written prefix are left unchanged.
+- Returns the total number of matches found (including any not written due to truncation).
 - Engine-extracted notes (key operations):
   - `List<string> filepathes = VariableEvaluator.GetDatFiles(type == EraSaveFileType.CharVar, pattern)`
   - `string[] results = exm.VEvaluator.VariableData.DataStringArray[(int)(VariableCode.RESULTS & VariableCode.__LOWERCASE__)]`
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `n = FIND_CHARADATA()`               ; list all `chara_*.dat`
+- `n = FIND_CHARADATA("foo*")`         ; list `chara_foo*.dat`
+- `first = RESULTS:0`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13536,7 +13665,7 @@ PRINTFORML %S%
 
 ## MONEYSTR (expression function)
 **Summary**
-- (TODO)
+- Formats an integer as a currency string using the engine’s configured currency label and placement.
 
 **Metadata**
 - Implementor: `new MoneyStrMethod()`
@@ -13544,24 +13673,32 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `MONEYSTR(money [, format])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String }; OmitStart = 1.
+- `MONEYSTR(money)` → `string`
+- `MONEYSTR(money, format)` → `string`
 
 **Arguments**
-- (TODO)
+- `money` (int)
+- `format` (optional, string; default = no custom formatting): passed to `Int64.ToString(format)`.
 
 **Semantics**
-- (TODO)
+- Formats `money`:
+  - if `format` is omitted: uses `money.ToString()`
+  - otherwise: uses `money.ToString(format)`
+- Then attaches the currency label (`MoneyLabel`) either as a prefix or suffix depending on `MoneyFirst`:
+  - `MoneyFirst = true`: `MoneyLabel + formatted`
+  - `MoneyFirst = false`: `formatted + MoneyLabel`
 
 **Errors & validation**
+- Runtime error if `format` is not a valid `Int64.ToString` format string.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.InvalidFormat.Text, Name, 2))`
 
 **Examples**
-- (TODO)
+- `MONEYSTR(123)` → `"$123"` if `MoneyLabel="$"` and `MoneyFirst=true`.
+- `MONEYSTR(123, \"D6\")` → `"$000123"` under the same config.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13569,7 +13706,7 @@ PRINTFORML %S%
 
 ## PRINTCPERLINE (expression function)
 **Summary**
-- (TODO)
+- Returns the configured “items per line” setting used by `PRINTC`.
 
 **Metadata**
 - Implementor: `new GetPrintCPerLineMethod()`
@@ -13577,22 +13714,22 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `PRINTCPERLINE()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `PRINTCPERLINE()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the configuration item `PrintCPerLine`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `n = PRINTCPERLINE()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13600,7 +13737,7 @@ PRINTFORML %S%
 
 ## PRINTCLENGTH (expression function)
 **Summary**
-- (TODO)
+- Returns the configured “item character length” setting used by `PRINTC`.
 
 **Metadata**
 - Implementor: `new PrintCLengthMethod()`
@@ -13608,22 +13745,22 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `PRINTCLENGTH()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `PRINTCLENGTH()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the configuration item `PrintCLength`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `n = PRINTCLENGTH()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13631,7 +13768,7 @@ PRINTFORML %S%
 
 ## SAVENOS (expression function)
 **Summary**
-- (TODO)
+- Returns the configured number of save slots shown per page in the save UI.
 
 **Metadata**
 - Implementor: `new GetSaveNosMethod()`
@@ -13639,22 +13776,22 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `SAVENOS()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `SAVENOS()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns the configuration item `SaveDataNos`.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `n = SAVENOS()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13662,7 +13799,7 @@ PRINTFORML %S%
 
 ## GETTIME (expression function)
 **Summary**
-- (TODO)
+- Returns a numeric timestamp encoding of the current local time.
 
 **Metadata**
 - Implementor: `new GettimeMethod()`
@@ -13670,22 +13807,26 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETTIME()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETTIME()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns a base-10 integer encoding:
+  - `YYYYMMDDHHMMSSmmm` (year, month, day, hour, minute, second, millisecond; local time).
+- Components are combined as:
+  - `(((((year * 100 + month) * 100 + day) * 100 + hour) * 100 + minute) * 100 + second) * 1000 + millisecond`.
+- Note: the engine reads each component from `DateTime.Now` separately; if the system clock crosses a boundary while evaluating, different components may come from different instants.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `GETTIME()` at `2026-03-05 09:07:02.004` returns `20260305090702004`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13693,7 +13834,7 @@ PRINTFORML %S%
 
 ## GETTIMES (expression function)
 **Summary**
-- (TODO)
+- Returns a formatted timestamp string for the current local time.
 
 **Metadata**
 - Implementor: `new GettimesMethod()`
@@ -13701,22 +13842,22 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETTIMES()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETTIMES()` → `string`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns `DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")` (local time).
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `GETTIMES()` might return `2026/03/05 09:07:02`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13724,7 +13865,7 @@ PRINTFORML %S%
 
 ## GETMILLISECOND (expression function)
 **Summary**
-- (TODO)
+- Returns the number of milliseconds elapsed since `0001-01-01 00:00:00` (local time).
 
 **Metadata**
 - Implementor: `new GetmsMethod()`
@@ -13732,22 +13873,22 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETMILLISECOND()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETMILLISECOND()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns `DateTime.Now.Ticks / 10000` (ticks are 100-nanosecond units).
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `ms = GETMILLISECOND()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13755,7 +13896,7 @@ PRINTFORML %S%
 
 ## GETSECOND (expression function)
 **Summary**
-- (TODO)
+- Returns the number of seconds elapsed since `0001-01-01 00:00:00` (local time).
 
 **Metadata**
 - Implementor: `new GetSecondMethod()`
@@ -13763,22 +13904,22 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETSECOND()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETSECOND()` → `long`
 
 **Arguments**
-- (TODO)
+- (none)
 
 **Semantics**
-- (TODO)
+- Returns `DateTime.Now.Ticks / 10000000` (ticks are 100-nanosecond units).
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `sec = GETSECOND()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13786,7 +13927,7 @@ PRINTFORML %S%
 
 ## RAND (expression function)
 **Summary**
-- (TODO)
+- Returns a uniformly distributed random integer in a half-open range.
 
 **Metadata**
 - Implementor: `new RandMethod()`
@@ -13794,26 +13935,32 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `RAND(max)`
+- `RAND(min, max)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `RAND(max)` → `long`
+- `RAND(min, max)` → `long`
 
 **Arguments**
-- (TODO)
+- `min` (optional, int; default `0`): inclusive lower bound.
+- `max` (int): exclusive upper bound.
 
 **Semantics**
+- Returns a random integer `r` such that `min <= r < max`.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetNextRand(max - min) + min`
 
 **Errors & validation**
+- Runtime error if `max <= min`.
+  - In particular, `RAND(0)` and `RAND(<negative>)` are errors.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.NegativeMaximum.Text, Name, max))`
   - `throw new CodeEE(string.Format(trerror.MaximumLowerThanMinimum.Text, Name, max))`
 
 **Examples**
-- (TODO)
+- `RAND(10)` returns a value in `0 <= r < 10`.
+- `RAND(5, 8)` returns `5`, `6`, or `7`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13821,7 +13968,7 @@ PRINTFORML %S%
 
 ## MIN (expression function)
 **Summary**
-- (TODO)
+- Returns the minimum of one or more integers.
 
 **Metadata**
 - Implementor: `new MaxMethod(false)`
@@ -13829,23 +13976,25 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `MIN(x [, y ...])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.VariadicInt }; OmitStart = 1.
+- `MIN(x [, y ...])` → `long`
+  - Requires at least 1 argument.
 
 **Arguments**
-- (TODO)
+- `x` (int)
+- `y...` (optional, int)
 
 **Semantics**
-- (TODO)
+- Returns the minimum value among all provided arguments.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `MIN(1)` returns `1`.
+- `MIN(1, 5, 2)` returns `1`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13853,7 +14002,7 @@ PRINTFORML %S%
 
 ## MAX (expression function)
 **Summary**
-- (TODO)
+- Returns the maximum of one or more integers.
 
 **Metadata**
 - Implementor: `new MaxMethod(true)`
@@ -13861,23 +14010,25 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `MAX(x [, y ...])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.VariadicInt }; OmitStart = 1.
+- `MAX(x [, y ...])` → `long`
+  - Requires at least 1 argument.
 
 **Arguments**
-- (TODO)
+- `x` (int)
+- `y...` (optional, int)
 
 **Semantics**
-- (TODO)
+- Returns the maximum value among all provided arguments.
 
 **Errors & validation**
-- (TODO)
+- (none)
 
 **Examples**
-- (TODO)
+- `MAX(1)` returns `1`.
+- `MAX(1, 5, 2)` returns `5`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13885,7 +14036,7 @@ PRINTFORML %S%
 
 ## ABS (expression function)
 **Summary**
-- (TODO)
+- Returns the absolute value of an integer.
 
 **Metadata**
 - Implementor: `new AbsMethod()`
@@ -13893,23 +14044,25 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `ABS(x)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `ABS(x)` → `long`
 
 **Arguments**
-- (TODO)
+- `x` (int)
 
 **Semantics**
-- (TODO)
+- Returns `Math.Abs(x)`.
 
 **Errors & validation**
+- Runtime error if `x == -9223372036854775808` (the minimum `Int64`), because `ABS(x)` would overflow.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.MinInt64CanNotApplyABS.Text, Name, long.MinValue))`
 
 **Examples**
-- (TODO)
+- `ABS(-3)` returns `3`.
+- `ABS(3)` returns `3`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13917,7 +14070,7 @@ PRINTFORML %S%
 
 ## POWER (expression function)
 **Summary**
-- (TODO)
+- Returns `x^y` (x to the power y), truncated to an integer.
 
 **Metadata**
 - Implementor: `new PowerMethod()`
@@ -13926,25 +14079,28 @@ PRINTFORML %S%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `POWER(x, y)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
+- `POWER(x, y)` → `long`
 
 **Arguments**
-- (TODO)
+- `x` (int)
+- `y` (int)
 
 **Semantics**
-- (TODO)
+- Computes `Math.Pow((double)x, (double)y)` and returns it truncated toward `0` as an integer.
 
 **Errors & validation**
+- Runtime error if the computed value is NaN, Infinity, or outside the `Int64` range.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name))`
   - `throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name))`
   - `throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, pow))`
 
 **Examples**
-- (TODO)
+- `POWER(2, 10)` returns `1024`.
+- `POWER(2, -1)` returns `0`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13952,7 +14108,7 @@ PRINTFORML %S%
 
 ## SQRT (expression function)
 **Summary**
-- (TODO)
+- Returns the square root of an integer, truncated to an integer.
 
 **Metadata**
 - Implementor: `new SqrtMethod()`
@@ -13960,23 +14116,26 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `SQRT(x)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `SQRT(x)` → `long`
 
 **Arguments**
-- (TODO)
+- `x` (int): must be non-negative.
 
 **Semantics**
-- (TODO)
+- Computes `Math.Sqrt((double)x)` and returns it truncated toward `0` as an integer.
 
 **Errors & validation**
+- Runtime error if `x < 0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret))`
 
 **Examples**
-- (TODO)
+- `SQRT(0)` returns `0`.
+- `SQRT(2)` returns `1`.
+- `SQRT(4)` returns `2`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13984,7 +14143,7 @@ PRINTFORML %S%
 
 ## CBRT (expression function)
 **Summary**
-- (TODO)
+- Returns the cube root of an integer, truncated to an integer.
 
 **Metadata**
 - Implementor: `new CbrtMethod()`
@@ -13992,23 +14151,26 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CBRT(x)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `CBRT(x)` → `long`
 
 **Arguments**
-- (TODO)
+- `x` (int): must be non-negative.
 
 **Semantics**
-- (TODO)
+- Computes `Math.Pow((double)x, 1.0 / 3.0)` and returns it truncated toward `0` as an integer.
 
 **Errors & validation**
+- Runtime error if `x < 0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret))`
 
 **Examples**
-- (TODO)
+- `CBRT(0)` returns `0`.
+- `CBRT(7)` returns `1`.
+- `CBRT(8)` returns `2`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)

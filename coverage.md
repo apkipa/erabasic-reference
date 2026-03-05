@@ -296,6 +296,8 @@ Typical-game compatibility requires a subset of “UI-ish” built-ins to be spe
 - ✅ Sprite lookup contract used by `<img src='...'>` / `PRINT_IMG` / sprite built-ins:
   - sprite names are defined by `resources/**/*.csv` and resolved case-insensitively
   - missing sprites fall back to literal-tag text in HTML output
+- ✅ Console background image stack:
+  - `SETBGIMAGE` / `REMOVEBGIMAGE` / `CLEARBGIMAGE` (sprite requirements, depth ordering, opacity handling, and removal key matching)
 - 🟡 Supported formats (as an observable contract):
   - image loading supports `.webp` in addition to the platform’s default image formats; requires native `libwebp.dll` / `libwebp_x86.dll`
   - sound playback supports `.wav` and `.ogg`

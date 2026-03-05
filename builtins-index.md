@@ -57,6 +57,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`ADDDEFCHARA`](builtins-reference.md#adddefchara-instruction) (instruction)
 - [`ADDSPCHARA`](builtins-reference.md#addspchara-instruction) (instruction)
 - [`ADDVOIDCHARA`](builtins-reference.md#addvoidchara-instruction) (instruction)
+- [`COPYCHARA`](builtins-reference.md#copychara-instruction) (instruction)
 - [`CUPCHECK`](builtins-reference.md#cupcheck-instruction) (instruction)
 - [`DELCHARA`](builtins-reference.md#delchara-instruction) (instruction)
 - [`LOADCHARA`](builtins-reference.md#loadchara-instruction) (instruction)
@@ -67,14 +68,27 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`PRINT_TALENT`](builtins-reference.md#print_talent-instruction) (instruction)
 - [`SAVECHARA`](builtins-reference.md#savechara-instruction) (instruction)
 - [`SORTCHARA`](builtins-reference.md#sortchara-instruction) (instruction)
+- [`SWAPCHARA`](builtins-reference.md#swapchara-instruction) (instruction)
 - [`UPCHECK`](builtins-reference.md#upcheck-instruction) (instruction)
 - [`CMATCH`](builtins-reference.md#cmatch-expression-function) (method)
+- [`EXISTCSV`](builtins-reference.md#existcsv-expression-function) (method)
 - [`FINDCHARA`](builtins-reference.md#findchara-expression-function) (method)
 - [`FINDLASTCHARA`](builtins-reference.md#findlastchara-expression-function) (method)
 - [`INRANGECARRAY`](builtins-reference.md#inrangecarray-expression-function) (method)
 - [`MAXCARRAY`](builtins-reference.md#maxcarray-expression-function) (method)
 - [`MINCARRAY`](builtins-reference.md#mincarray-expression-function) (method)
 - [`SUMCARRAY`](builtins-reference.md#sumcarray-expression-function) (method)
+
+## config
+
+- [`PRINTCPERLINE`](builtins-reference.md#printcperline-instruction) (instruction)
+- [`SAVENOS`](builtins-reference.md#savenos-instruction) (instruction)
+- [`GETDEFBGCOLOR`](builtins-reference.md#getdefbgcolor-expression-function) (method)
+- [`GETDEFCOLOR`](builtins-reference.md#getdefcolor-expression-function) (method)
+- [`GETFOCUSCOLOR`](builtins-reference.md#getfocuscolor-expression-function) (method)
+- [`PRINTCLENGTH`](builtins-reference.md#printclength-expression-function) (method)
+- [`PRINTCPERLINE`](builtins-reference.md#printcperline-expression-function) (method)
+- [`SAVENOS`](builtins-reference.md#savenos-expression-function) (method)
 
 ## control-flow
 
@@ -120,6 +134,10 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`CATCH`](builtins-reference.md#catch-instruction) (instruction)
 - [`ENDCATCH`](builtins-reference.md#endcatch-instruction) (instruction)
+
+## formatting
+
+- [`MONEYSTR`](builtins-reference.md#moneystr-expression-function) (method)
 
 ## functions
 
@@ -260,7 +278,9 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`POWER`](builtins-reference.md#power-instruction) (instruction)
 - [`TIMES`](builtins-reference.md#times-instruction) (instruction)
+- [`ABS`](builtins-reference.md#abs-expression-function) (method)
 - [`ALLSAMES`](builtins-reference.md#allsames-expression-function) (method)
+- [`CBRT`](builtins-reference.md#cbrt-expression-function) (method)
 - [`EXPONENT`](builtins-reference.md#exponent-expression-function) (method)
 - [`GETBIT`](builtins-reference.md#getbit-expression-function) (method)
 - [`GROUPMATCH`](builtins-reference.md#groupmatch-expression-function) (method)
@@ -268,14 +288,34 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`LIMIT`](builtins-reference.md#limit-expression-function) (method)
 - [`LOG`](builtins-reference.md#log-expression-function) (method)
 - [`LOG10`](builtins-reference.md#log10-expression-function) (method)
+- [`MAX`](builtins-reference.md#max-expression-function) (method)
+- [`MIN`](builtins-reference.md#min-expression-function) (method)
 - [`NOSAMES`](builtins-reference.md#nosames-expression-function) (method)
+- [`POWER`](builtins-reference.md#power-expression-function) (method)
+- [`RAND`](builtins-reference.md#rand-expression-function) (method)
 - [`SIGN`](builtins-reference.md#sign-expression-function) (method)
+- [`SQRT`](builtins-reference.md#sqrt-expression-function) (method)
 
 ## random
 
 - [`DUMPRAND`](builtins-reference.md#dumprand-instruction) (instruction)
 - [`INITRAND`](builtins-reference.md#initrand-instruction) (instruction)
 - [`RANDOMIZE`](builtins-reference.md#randomize-instruction) (instruction)
+
+## resources
+
+- [`REMOVEBGIMAGE`](builtins-reference.md#removebgimage-instruction) (instruction)
+- [`SETBGIMAGE`](builtins-reference.md#setbgimage-instruction) (instruction)
+
+## runtime
+
+- [`ISSKIP`](builtins-reference.md#isskip-expression-function) (method)
+
+## save-files
+
+- [`CHKCHARADATA`](builtins-reference.md#chkcharadata-expression-function) (method)
+- [`CHKDATA`](builtins-reference.md#chkdata-expression-function) (method)
+- [`FIND_CHARADATA`](builtins-reference.md#find_charadata-expression-function) (method)
 
 ## save-system
 
@@ -315,6 +355,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## text
 
+- [`SPLIT`](builtins-reference.md#split-instruction) (instruction)
 - [`STRLEN`](builtins-reference.md#strlen-instruction) (instruction)
 - [`STRLENFORM`](builtins-reference.md#strlenform-instruction) (instruction)
 - [`STRLENFORMU`](builtins-reference.md#strlenformu-instruction) (instruction)
@@ -330,6 +371,39 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 ## time
 
 - [`GETTIME`](builtins-reference.md#gettime-instruction) (instruction)
+- [`GETMILLISECOND`](builtins-reference.md#getmillisecond-expression-function) (method)
+- [`GETSECOND`](builtins-reference.md#getsecond-expression-function) (method)
+- [`GETTIME`](builtins-reference.md#gettime-expression-function) (method)
+- [`GETTIMES`](builtins-reference.md#gettimes-expression-function) (method)
+
+## ui
+
+- [`CLEARBGIMAGE`](builtins-reference.md#clearbgimage-instruction) (instruction)
+- [`FONTBOLD`](builtins-reference.md#fontbold-instruction) (instruction)
+- [`FONTITALIC`](builtins-reference.md#fontitalic-instruction) (instruction)
+- [`FONTREGULAR`](builtins-reference.md#fontregular-instruction) (instruction)
+- [`REMOVEBGIMAGE`](builtins-reference.md#removebgimage-instruction) (instruction)
+- [`RESETBGCOLOR`](builtins-reference.md#resetbgcolor-instruction) (instruction)
+- [`RESETCOLOR`](builtins-reference.md#resetcolor-instruction) (instruction)
+- [`SETBGCOLOR`](builtins-reference.md#setbgcolor-instruction) (instruction)
+- [`SETBGCOLORBYNAME`](builtins-reference.md#setbgcolorbyname-instruction) (instruction)
+- [`SETBGIMAGE`](builtins-reference.md#setbgimage-instruction) (instruction)
+- [`SETCOLOR`](builtins-reference.md#setcolor-instruction) (instruction)
+- [`SETCOLORBYNAME`](builtins-reference.md#setcolorbyname-instruction) (instruction)
+- [`CHKFONT`](builtins-reference.md#chkfont-expression-function) (method)
+- [`COLOR_FROMNAME`](builtins-reference.md#color_fromname-expression-function) (method)
+- [`COLOR_FROMRGB`](builtins-reference.md#color_fromrgb-expression-function) (method)
+- [`CURRENTALIGN`](builtins-reference.md#currentalign-expression-function) (method)
+- [`CURRENTREDRAW`](builtins-reference.md#currentredraw-expression-function) (method)
+- [`GETBGCOLOR`](builtins-reference.md#getbgcolor-expression-function) (method)
+- [`GETCOLOR`](builtins-reference.md#getcolor-expression-function) (method)
+- [`GETDEFBGCOLOR`](builtins-reference.md#getdefbgcolor-expression-function) (method)
+- [`GETDEFCOLOR`](builtins-reference.md#getdefcolor-expression-function) (method)
+- [`GETFOCUSCOLOR`](builtins-reference.md#getfocuscolor-expression-function) (method)
+- [`GETFONT`](builtins-reference.md#getfont-expression-function) (method)
+- [`GETSTYLE`](builtins-reference.md#getstyle-expression-function) (method)
+- [`MESSKIP`](builtins-reference.md#messkip-expression-function) (method)
+- [`MOUSESKIP`](builtins-reference.md#mouseskip-expression-function) (method)
 
 ## variables
 

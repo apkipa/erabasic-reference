@@ -4939,12 +4939,60 @@ DELCHARA 1, 3
 - `STRLENFORMU NAME=%NAME%` sets `RESULT` to the character length of the expanded string.
 
 ## SWAPCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Swaps two entries in the engine’s current character list.
+
+**Tags**
+- characters
+
+**Syntax**
+- `SWAPCHARA x, y`
+
+**Arguments**
+- `x` (int): character index.
+- `y` (int): character index.
+
+**Semantics**
+- If `x == y`, no-op.
+- Otherwise, swaps the character objects at indices `x` and `y` in the current character list.
+- Does not adjust `TARGET` / `ASSI` / `MASTER`:
+  - they remain numeric indices, so after the swap they may refer to different character objects than before.
+- Does not print output.
+
+**Errors & validation**
+- Runtime error if `x` or `y` is out of range (`x < 0`, `y < 0`, or `>= CHARANUM`).
+
+**Examples**
+- `SWAPCHARA 1, 2`
 
 ## COPYCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Copies all character data from one character to another (overwrite).
+
+**Tags**
+- characters
+
+**Syntax**
+- `COPYCHARA fromIndex, toIndex`
+
+**Arguments**
+- `fromIndex` (int): source character index.
+- `toIndex` (int): destination character index.
+
+**Semantics**
+- Copies the entire character-data record from `fromIndex` into `toIndex`.
+  - This overwrites all character variables for `toIndex`, including `NO`/`NAME`/etc and character arrays.
+- Does not change the character list length and does not move character indices.
+- Does not print output.
+
+**Errors & validation**
+- Runtime error if `fromIndex` is out of range.
+- Runtime error if `toIndex` is out of range.
+
+**Examples**
+- `COPYCHARA 0, 1`
 
 ## ADDCOPYCHARA (instruction)
 
@@ -4979,56 +5027,383 @@ ADDCOPYCHARA 0
 ```
 
 ## SPLIT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Splits a string by a separator string and writes the resulting parts into a string array.
+
+**Tags**
+- text
+
+**Syntax**
+- `SPLIT <text>, <separator>, <outParts> [, <outCount>]`
+
+**Arguments**
+- `<text>` (string): string expression to split.
+- `<separator>` (string): string expression used as the separator (not a set of characters).
+- `<outParts>` (variable term): changeable array variable term to receive the parts.
+  - Must be a **string** array variable (1D/2D/3D; character-data arrays are accepted but behave specially).
+  - Any indices written in `<outParts>` are ignored for this instruction.
+- `<outCount>` (optional, variable term; default `RESULT`): changeable integer variable term to receive the number of split parts.
+
+**Semantics**
+- Computes `parts = text.Split(new[] { separator }, StringSplitOptions.None)` (equivalent .NET behavior).
+- Writes `parts.Length` into `<outCount>`.
+- Writes a prefix of `parts` into `<outParts>`:
+  - If `parts.Length > length0`, only the first `length0` parts are written, where `length0` is the destination array’s **first** dimension length.
+  - Otherwise, all parts are written.
+- Destination addressing rules:
+  - 1D array: writes `outParts[i]` starting at `i = 0`.
+  - 2D array: writes `outParts[0, i]` starting at `i = 0`.
+  - 3D array: writes `outParts[0, 0, i]` starting at `i = 0`.
+  - character-data string arrays: always write into character index `0` using the same “fixed earlier indices = 0” rule (e.g. `CVAR[0, i]`).
+- Does not clear elements outside the written prefix.
+
+**Errors & validation**
+- Argument parsing fails if `<outParts>` is not a changeable array variable term.
+- Argument parsing fails if `<outCount>` is provided but is not a changeable integer variable term.
+- Runtime error if `<outParts>` is not a string array variable.
+
+**Examples**
+```erabasic
+#DIM PARTS, 10
+SPLIT "a,b,c", ",", PARTS
+; RESULT == 3
+; PARTS:0 == "a"
+; PARTS:1 == "b"
+; PARTS:2 == "c"
+```
 
 ## SETCOLOR (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the current foreground (text) color.
+
+**Tags**
+- ui
+
+**Syntax**
+- `SETCOLOR rgb`
+- `SETCOLOR r, g, b`
+
+**Arguments**
+- `rgb` (int): packed `0xRRGGBB` value. Only the low 24 bits are used.
+- `r`, `g`, `b` (int): color components.
+  - Must satisfy `0 <= component <= 255`.
+
+**Semantics**
+- One-argument form (`rgb`):
+  - Extracts components:
+    - `r = (rgb & 0xFF0000) >> 16`
+    - `g = (rgb & 0x00FF00) >> 8`
+    - `b = (rgb & 0x0000FF)`
+  - Sets the current text color to `(r, g, b)`.
+- Three-argument form (`r, g, b`):
+  - Validates that each component is within `0..255`.
+  - Sets the current text color to `(r, g, b)`.
+- Does not print output.
+
+**Errors & validation**
+- Parse-time warning + rejection if you pass exactly 2 arguments.
+- Runtime error in the three-argument form if any component is `< 0` or `> 255`.
+
+**Examples**
+- `SETCOLOR 0xFF0000`      ; red
+- `SETCOLOR 255, 0, 0`     ; red
 
 ## SETCOLORBYNAME (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the current foreground (text) color by a named color.
+
+**Tags**
+- ui
+
+**Syntax**
+- `SETCOLORBYNAME <name>`
+
+**Arguments**
+- `<name>` (raw string): a color name recognized by `System.Drawing.Color.FromName`.
+  - This is a raw string argument, not a string expression.
+
+**Semantics**
+- Resolves `<name>` via `Color.FromName(name)` and sets the current text color to the resolved RGB.
+- Does not print output.
+
+**Errors & validation**
+- Parse-time error if `<name>` is not a valid color name.
+- Parse-time error if `<name>` is `"transparent"` (case-insensitive).
+
+**Examples**
+- `SETCOLORBYNAME Red`
 
 ## RESETCOLOR (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Resets the current text color to the configured default foreground color.
+
+**Tags**
+- ui
+
+**Syntax**
+- `RESETCOLOR`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Sets the current text color to the configured default (`ForeColor`).
+- Does not print output.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `RESETCOLOR`
 
 ## SETBGCOLOR (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the current background color.
+
+**Tags**
+- ui
+
+**Syntax**
+- `SETBGCOLOR rgb`
+- `SETBGCOLOR r, g, b`
+
+**Arguments**
+- `rgb` (int): packed `0xRRGGBB` value. Only the low 24 bits are used.
+- `r`, `g`, `b` (int): color components.
+  - Must satisfy `0 <= component <= 255`.
+
+**Semantics**
+- Same argument handling as `SETCOLOR`, but applies to the background color instead of the text color.
+- Does not print output.
+
+**Errors & validation**
+- Parse-time warning + rejection if you pass exactly 2 arguments.
+- Runtime error in the three-argument form if any component is `< 0` or `> 255`.
+
+**Examples**
+- `SETBGCOLOR 0x000000`    ; black background
+- `SETBGCOLOR 0, 0, 0`     ; black background
 
 ## SETBGIMAGE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Adds a sprite-backed background image layer to the console.
+
+**Tags**
+- ui
+- resources
+
+**Syntax**
+- `SETBGIMAGE <spriteName> [, <depth> [, <opacityByte> ]]`
+
+**Arguments**
+- `<spriteName>` (string): formatted string expression naming a sprite.
+  - Sprite lookup is case-insensitive (the engine uppercases before lookup).
+  - Only file-backed sprites loaded from `resources/**/*.csv` are accepted; other sprite kinds are ignored.
+- `<depth>` (optional, string; default `0`): formatted string expression parsed by `Int64.Parse`.
+- `<opacityByte>` (optional, string; default `255`): formatted string expression parsed by `Int64.Parse`, then converted to opacity as `value / 255.0`.
+  - Not clamped.
+
+**Semantics**
+- Resolves `<spriteName>` to a sprite:
+  - If the sprite does not exist or is not a file-backed sprite, the instruction is a no-op.
+  - Otherwise, it appends a new background entry `(depth, sprite, opacity)` to the background list.
+- The background list is sorted by `depth` descending (larger depth first).
+- The engine bakes a composite background image from the list:
+  - Each sprite is scaled to **cover** the client area while preserving aspect ratio.
+  - If horizontal padding is needed, it is centered; vertical alignment is top-aligned (extra height is cropped at the bottom).
+  - Each layer is alpha-multiplied by `opacity`.
+- Does not print output.
+
+**Errors & validation**
+- Runtime error if `<depth>` or `<opacityByte>` cannot be parsed by `Int64.Parse`.
+
+**Examples**
+- `SETBGIMAGE TITLE_BG`
+- `SETBGIMAGE TITLE_BG, 10, 128`  ; 50% opacity
 
 ## SETBGCOLORBYNAME (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the current background color by a named color.
+
+**Tags**
+- ui
+
+**Syntax**
+- `SETBGCOLORBYNAME <name>`
+
+**Arguments**
+- `<name>` (raw string): a color name recognized by `System.Drawing.Color.FromName`.
+  - This is a raw string argument, not a string expression.
+
+**Semantics**
+- Resolves `<name>` via `Color.FromName(name)` and sets the background color to the resolved RGB.
+- Does not print output.
+
+**Errors & validation**
+- Parse-time error if `<name>` is not a valid color name.
+- Parse-time error if `<name>` is `"transparent"` (case-insensitive).
+
+**Examples**
+- `SETBGCOLORBYNAME Black`
 
 ## RESETBGCOLOR (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Resets the current background color to the configured default background color.
+
+**Tags**
+- ui
+
+**Syntax**
+- `RESETBGCOLOR`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Sets the current background color to the configured default (`BackColor`).
+- Does not print output.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `RESETBGCOLOR`
 
 ## CLEARBGIMAGE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Removes all background image layers.
+
+**Tags**
+- ui
+
+**Syntax**
+- `CLEARBGIMAGE`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Clears the background image list and re-bakes the composite background.
+- Does not print output.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `CLEARBGIMAGE`
 
 ## REMOVEBGIMAGE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Removes one background image layer by sprite name.
+
+**Tags**
+- ui
+- resources
+
+**Syntax**
+- `REMOVEBGIMAGE <spriteName>`
+
+**Arguments**
+- `<spriteName>` (string): formatted string expression.
+  - Matching is **case-sensitive** against the stored sprite name (which is uppercased during resource loading).
+
+**Semantics**
+- Removes the first background entry whose sprite name equals `<spriteName>`, then re-bakes the composite background.
+- Does not print output.
+
+**Errors & validation**
+- Runtime error if no matching background entry exists.
+
+**Examples**
+- `REMOVEBGIMAGE TITLE_BG`
 
 ## FONTBOLD (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Enables bold font style for subsequent output (Windows only).
+
+**Tags**
+- ui
+
+**Syntax**
+- `FONTBOLD`
+
+**Arguments**
+- None.
+
+**Semantics**
+- If running on Windows:
+  - Sets the current font style to `(currentStyle | Bold)`.
+- If not running on Windows:
+  - No-op.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `FONTBOLD`
 
 ## FONTITALIC (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Enables italic font style for subsequent output (Windows only).
+
+**Tags**
+- ui
+
+**Syntax**
+- `FONTITALIC`
+
+**Arguments**
+- None.
+
+**Semantics**
+- If running on Windows:
+  - Sets the current font style to `(currentStyle | Italic)`.
+- If not running on Windows:
+  - No-op.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `FONTITALIC`
 
 ## FONTREGULAR (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Resets the font style to regular (clears bold/italic/etc) for subsequent output (Windows only).
+
+**Tags**
+- ui
+
+**Syntax**
+- `FONTREGULAR`
+
+**Arguments**
+- None.
+
+**Semantics**
+- If running on Windows:
+  - Sets the current font style to `Regular` (clears all style flags).
+- If not running on Windows:
+  - No-op.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `FONTREGULAR`
 
 ## SORTCHARA (instruction)
 
@@ -6869,12 +7244,54 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `POWER A, 2, -1` (sets `A` to `0` due to truncation of `0.5`)
 
 ## PRINTCPERLINE (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Writes the configured `PrintCPerLine` value into an integer variable.
+
+**Tags**
+- config
+
+**Syntax**
+- `PRINTCPERLINE [<dest>]`
+
+**Arguments**
+- `<dest>` (optional; default `RESULT`): changeable integer variable term to receive the value.
+
+**Semantics**
+- Assigns the configuration value `PrintCPerLine` to `<dest>`.
+- Does not print output.
+
+**Errors & validation**
+- Argument parsing fails if `<dest>` is provided but is not a changeable integer variable term.
+
+**Examples**
+- `PRINTCPERLINE`        ; writes into `RESULT`
+- `PRINTCPERLINE X`      ; writes into `X`
 
 ## SAVENOS (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Writes the configured `SaveDataNos` value into an integer variable.
+
+**Tags**
+- config
+
+**Syntax**
+- `SAVENOS [<dest>]`
+
+**Arguments**
+- `<dest>` (optional; default `RESULT`): changeable integer variable term to receive the value.
+
+**Semantics**
+- Assigns the configuration value `SaveDataNos` to `<dest>`.
+- Does not print output.
+
+**Errors & validation**
+- Argument parsing fails if `<dest>` is provided but is not a changeable integer variable term.
+
+**Examples**
+- `SAVENOS`        ; writes into `RESULT`
+- `SAVENOS X`      ; writes into `X`
 
 ## ENCODETOUNI (instruction)
 **Summary**
@@ -7359,8 +7776,34 @@ HTML_PRINT_ISLAND_CLEAR
 - `idx = FINDLASTCHARA(CFLAG:3, 1, 10)`
 
 ## EXISTCSV (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Tests whether a character template exists for a given character `NO` in the CSV-backed character database.
+
+**Tags**
+- characters
+
+**Syntax**
+- `EXISTCSV(charaNo [, isSp])`
+
+**Signatures / argument rules**
+- `EXISTCSV(charaNo)` → `long`
+- `EXISTCSV(charaNo, isSp)` → `long`
+
+**Arguments**
+- `charaNo` (int): character template `NO` to look up.
+- `isSp` (optional, int; default `0`): whether to look up in the SP-character template set.
+  - `0`: normal character templates
+  - non-zero: SP character templates
+
+**Semantics**
+- Returns `1` if a character template exists for `charaNo` in the selected template set, otherwise returns `0`.
+
+**Errors & validation**
+- Runtime error if `isSp != 0` while the compatibility option “use SP characters” is disabled (`CompatiSPChara = false`).
+
+**Examples**
+- `ok = EXISTCSV(100)`
 
 ## VARSIZE (expression function)
 
@@ -7403,52 +7846,342 @@ HTML_PRINT_ISLAND_CLEAR
 - `w = VARSIZE("CFLAG", 1)` (first dimension when `VarsizeDimConfig` is enabled)
 
 ## CHKFONT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Tests whether a given font family name is available to the engine.
+
+**Tags**
+- ui
+
+**Syntax**
+- `CHKFONT(name)`
+
+**Signatures / argument rules**
+- `CHKFONT(name)` → `long`
+
+**Arguments**
+- `name` (string): font family name to look up.
+
+**Semantics**
+- Returns `1` if `name` exactly matches (`==`) the `.Name` of:
+  - any system-installed font family, or
+  - any font family loaded into the engine’s private font collection.
+- Otherwise returns `0`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `ok = CHKFONT("Arial")`
 
 ## CHKDATA (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Checks whether a numbered save file exists and is loadable, and reports a short status message.
+
+**Tags**
+- save-files
+
+**Syntax**
+- `CHKDATA(saveIndex)`
+
+**Signatures / argument rules**
+- `CHKDATA(saveIndex)` → `long`
+
+**Arguments**
+- `saveIndex` (int): save slot index used to form the file name `save<saveIndex>.sav` (with at least 2 digits) under the save directory.
+
+**Semantics**
+- Checks the save file and returns a status code:
+  - `0`: OK (loadable)
+  - `1`: file not found
+  - `2`: different game
+  - `3`: different version
+  - `4`: other error (corrupt / read error / type mismatch)
+- Also writes a message string to `RESULTS:0`:
+  - for OK: the save message stored in the file
+  - for not found: `"----"`
+  - for errors: a human-readable error message
+
+**Errors & validation**
+- Runtime error if `saveIndex < 0` or `saveIndex > 2147483647`.
+
+**Examples**
+- `state = CHKDATA(0)`   ; checks `save00.sav`
+- `msg = RESULTS:0`
 
 ## ISSKIP (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Reports whether the script runner is currently in “skip output” mode.
+
+**Tags**
+- runtime
+
+**Syntax**
+- `ISSKIP()`
+
+**Signatures / argument rules**
+- `ISSKIP()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns `1` if skip-print mode is active, otherwise returns `0`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `if ISSKIP() == 0: PRINTFORML "not skipping"`
 
 ## MOUSESKIP (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Deprecated alias of `MESSKIP()`.
+
+**Tags**
+- ui
+
+**Syntax**
+- `MOUSESKIP()`
+
+**Signatures / argument rules**
+- `MOUSESKIP()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Same return value as `MESSKIP()`.
+
+**Errors & validation**
+- Parse-time warning: calling `MOUSESKIP()` emits a deprecation warning recommending `MESSKIP()`.
+
+**Examples**
+- `skipping = MOUSESKIP()`
 
 ## MESSKIP (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Reports whether message-skip mode is currently active in the UI.
+
+**Tags**
+- ui
+
+**Syntax**
+- `MESSKIP()`
+
+**Signatures / argument rules**
+- `MESSKIP()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns `1` if message-skip mode is active, otherwise returns `0`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `skipping = MESSKIP()`
 
 ## GETCOLOR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the current foreground text color as a 24-bit RGB integer.
+
+**Tags**
+- ui
+
+**Syntax**
+- `GETCOLOR()`
+
+**Signatures / argument rules**
+- `GETCOLOR()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the current text color as `0xRRGGBB`:
+  - `ConsoleStringColor.ToArgb() & 0xFFFFFF`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `c = GETCOLOR()`
 
 ## GETDEFCOLOR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the configured default foreground text color as a 24-bit RGB integer.
+
+**Tags**
+- ui
+- config
+
+**Syntax**
+- `GETDEFCOLOR()`
+
+**Signatures / argument rules**
+- `GETDEFCOLOR()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the configured default text color (`ForeColor`) as `0xRRGGBB`:
+  - `ForeColor.ToArgb() & 0xFFFFFF`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `c = GETDEFCOLOR()`
 
 ## GETFOCUSCOLOR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the configured focus highlight color as a 24-bit RGB integer.
+
+**Tags**
+- ui
+- config
+
+**Syntax**
+- `GETFOCUSCOLOR()`
+
+**Signatures / argument rules**
+- `GETFOCUSCOLOR()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the configured focus color (`FocusColor`) as `0xRRGGBB`:
+  - `FocusColor.ToArgb() & 0xFFFFFF`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `c = GETFOCUSCOLOR()`
 
 ## GETBGCOLOR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the current background color as a 24-bit RGB integer.
+
+**Tags**
+- ui
+
+**Syntax**
+- `GETBGCOLOR()`
+
+**Signatures / argument rules**
+- `GETBGCOLOR()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the current background color as `0xRRGGBB`:
+  - `ConsoleBgColor.ToArgb() & 0xFFFFFF`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `c = GETBGCOLOR()`
 
 ## GETDEFBGCOLOR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the configured default background color as a 24-bit RGB integer.
+
+**Tags**
+- ui
+- config
+
+**Syntax**
+- `GETDEFBGCOLOR()`
+
+**Signatures / argument rules**
+- `GETDEFBGCOLOR()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the configured default background color (`BackColor`) as `0xRRGGBB`:
+  - `BackColor.ToArgb() & 0xFFFFFF`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `c = GETDEFBGCOLOR()`
 
 ## GETSTYLE (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the current text style (bold/italic/strikeout/underline) as a bitmask.
+
+**Tags**
+- ui
+
+**Syntax**
+- `GETSTYLE()`
+
+**Signatures / argument rules**
+- `GETSTYLE()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns a bitmask where:
+  - bit `0` (`1`): bold
+  - bit `1` (`2`): italic
+  - bit `2` (`4`): strikeout
+  - bit `3` (`8`): underline
+- The return value is the OR of all currently enabled bits.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `style = GETSTYLE()`
 
 ## GETFONT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the current font name used for console output.
+
+**Tags**
+- ui
+
+**Syntax**
+- `GETFONT()`
+
+**Signatures / argument rules**
+- `GETFONT()` → `string`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the current font name string.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `font = GETFONT()`
 
 ## BARSTR (expression function)
 
@@ -7489,88 +8222,607 @@ PRINTFORML %S%
 ```
 
 ## CURRENTALIGN (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the current line alignment mode of the console output.
+
+**Tags**
+- ui
+
+**Syntax**
+- `CURRENTALIGN()`
+
+**Signatures / argument rules**
+- `CURRENTALIGN()` → `string`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns one of:
+  - `"LEFT"`
+  - `"CENTER"`
+  - `"RIGHT"`
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `align = CURRENTALIGN()`
 
 ## CURRENTREDRAW (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Reports whether the console is currently in an auto-redraw mode.
+
+**Tags**
+- ui
+
+**Syntax**
+- `CURRENTREDRAW()`
+
+**Signatures / argument rules**
+- `CURRENTREDRAW()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns `0` if redraw mode is off, otherwise returns `1`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `isRedrawing = CURRENTREDRAW()`
 
 ## COLOR_FROMNAME (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Converts a named color to a 24-bit RGB integer.
+
+**Tags**
+- ui
+
+**Syntax**
+- `COLOR_FROMNAME(name)`
+
+**Signatures / argument rules**
+- `COLOR_FROMNAME(name)` → `long`
+
+**Arguments**
+- `name` (string): a color name recognized by `System.Drawing.Color.FromName`.
+
+**Semantics**
+- If `name` resolves to a non-transparent color, returns `0xRRGGBB` as an integer:
+  - `(R << 16) + (G << 8) + B`.
+- If `name` is not a valid color name, returns `-1`.
+
+**Errors & validation**
+- Runtime error if `name` is `"transparent"` (case-insensitive). This special name is treated as “unsupported”.
+
+**Examples**
+- `c = COLOR_FROMNAME("Red")` returns `0xFF0000`.
+- `c = COLOR_FROMNAME("not_a_color")` returns `-1`.
 
 ## COLOR_FROMRGB (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Builds a 24-bit RGB integer from separate color components.
+
+**Tags**
+- ui
+
+**Syntax**
+- `COLOR_FROMRGB(r, g, b)`
+
+**Signatures / argument rules**
+- `COLOR_FROMRGB(r, g, b)` → `long`
+
+**Arguments**
+- `r` (int): red component, must satisfy `0 <= r <= 255`.
+- `g` (int): green component, must satisfy `0 <= g <= 255`.
+- `b` (int): blue component, must satisfy `0 <= b <= 255`.
+
+**Semantics**
+- Returns `0xRRGGBB` as an integer:
+  - `(r << 16) + (g << 8) + b`.
+
+**Errors & validation**
+- Runtime error if any component is outside `0..255`.
+
+**Examples**
+- `c = COLOR_FROMRGB(255, 0, 0)` returns `0xFF0000`.
 
 ## CHKCHARADATA (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Checks whether a character-variable save file exists and is loadable, and reports a short status message.
+
+**Tags**
+- save-files
+
+**Syntax**
+- `CHKCHARADATA(name)`
+
+**Signatures / argument rules**
+- `CHKCHARADATA(name)` → `long`
+
+**Arguments**
+- `name` (string): the save “name” suffix used to form the file name `chara_<name>.dat` under the engine’s data directory.
+
+**Semantics**
+- Checks the file `chara_<name>.dat` and returns a status code:
+  - `0`: OK (loadable)
+  - `1`: file not found
+  - `2`: different game
+  - `3`: different version
+  - `4`: other error (corrupt / read error / type mismatch)
+- Also writes a message string to `RESULTS:0`:
+  - for OK: the save message stored in the file
+  - for not found: `"----"`
+  - for errors: a human-readable error message
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `state = CHKCHARADATA("00")`
+- `msg = RESULTS:0`
 
 ## FIND_CHARADATA (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Lists character-variable save files matching a wildcard pattern.
+
+**Tags**
+- save-files
+
+**Syntax**
+- `FIND_CHARADATA([pattern])`
+
+**Signatures / argument rules**
+- `FIND_CHARADATA()` → `long`
+- `FIND_CHARADATA(pattern)` → `long`
+
+**Arguments**
+- `pattern` (optional, string; default `*`): wildcard pattern applied to the `<name>` part of `chara_<name>.dat`.
+
+**Semantics**
+- Searches the engine’s data directory for files matching `chara_<pattern>.dat`.
+- Extracts each match’s `<name>` (the part after `chara_` and before the `.dat` extension).
+- Writes the extracted names into the `RESULTS` string array starting at `RESULTS:0`:
+  - If there are more matches than the `RESULTS` array length, only the first `length(RESULTS)` names are written.
+  - If there are fewer matches than the `RESULTS` array length, entries past the written prefix are left unchanged.
+- Returns the total number of matches found (including any not written due to truncation).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `n = FIND_CHARADATA()`               ; list all `chara_*.dat`
+- `n = FIND_CHARADATA("foo*")`         ; list `chara_foo*.dat`
+- `first = RESULTS:0`
 
 ## MONEYSTR (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Formats an integer as a currency string using the engine’s configured currency label and placement.
+
+**Tags**
+- formatting
+
+**Syntax**
+- `MONEYSTR(money [, format])`
+
+**Signatures / argument rules**
+- `MONEYSTR(money)` → `string`
+- `MONEYSTR(money, format)` → `string`
+
+**Arguments**
+- `money` (int)
+- `format` (optional, string; default = no custom formatting): passed to `Int64.ToString(format)`.
+
+**Semantics**
+- Formats `money`:
+  - if `format` is omitted: uses `money.ToString()`
+  - otherwise: uses `money.ToString(format)`
+- Then attaches the currency label (`MoneyLabel`) either as a prefix or suffix depending on `MoneyFirst`:
+  - `MoneyFirst = true`: `MoneyLabel + formatted`
+  - `MoneyFirst = false`: `formatted + MoneyLabel`
+
+**Errors & validation**
+- Runtime error if `format` is not a valid `Int64.ToString` format string.
+
+**Examples**
+- `MONEYSTR(123)` → `"$123"` if `MoneyLabel="$"` and `MoneyFirst=true`.
+- `MONEYSTR(123, \"D6\")` → `"$000123"` under the same config.
 
 ## PRINTCPERLINE (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the configured “items per line” setting used by `PRINTC`.
+
+**Tags**
+- config
+
+**Syntax**
+- `PRINTCPERLINE()`
+
+**Signatures / argument rules**
+- `PRINTCPERLINE()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the configuration item `PrintCPerLine`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `n = PRINTCPERLINE()`
 
 ## PRINTCLENGTH (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the configured “item character length” setting used by `PRINTC`.
+
+**Tags**
+- config
+
+**Syntax**
+- `PRINTCLENGTH()`
+
+**Signatures / argument rules**
+- `PRINTCLENGTH()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the configuration item `PrintCLength`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `n = PRINTCLENGTH()`
 
 ## SAVENOS (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the configured number of save slots shown per page in the save UI.
+
+**Tags**
+- config
+
+**Syntax**
+- `SAVENOS()`
+
+**Signatures / argument rules**
+- `SAVENOS()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns the configuration item `SaveDataNos`.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `n = SAVENOS()`
 
 ## GETTIME (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns a numeric timestamp encoding of the current local time.
+
+**Tags**
+- time
+
+**Syntax**
+- `GETTIME()`
+
+**Signatures / argument rules**
+- `GETTIME()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns a base-10 integer encoding:
+  - `YYYYMMDDHHMMSSmmm` (year, month, day, hour, minute, second, millisecond; local time).
+- Components are combined as:
+  - `(((((year * 100 + month) * 100 + day) * 100 + hour) * 100 + minute) * 100 + second) * 1000 + millisecond`.
+- Note: the engine reads each component from `DateTime.Now` separately; if the system clock crosses a boundary while evaluating, different components may come from different instants.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `GETTIME()` at `2026-03-05 09:07:02.004` returns `20260305090702004`.
 
 ## GETTIMES (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns a formatted timestamp string for the current local time.
+
+**Tags**
+- time
+
+**Syntax**
+- `GETTIMES()`
+
+**Signatures / argument rules**
+- `GETTIMES()` → `string`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns `DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")` (local time).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `GETTIMES()` might return `2026/03/05 09:07:02`.
 
 ## GETMILLISECOND (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the number of milliseconds elapsed since `0001-01-01 00:00:00` (local time).
+
+**Tags**
+- time
+
+**Syntax**
+- `GETMILLISECOND()`
+
+**Signatures / argument rules**
+- `GETMILLISECOND()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns `DateTime.Now.Ticks / 10000` (ticks are 100-nanosecond units).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `ms = GETMILLISECOND()`
 
 ## GETSECOND (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the number of seconds elapsed since `0001-01-01 00:00:00` (local time).
+
+**Tags**
+- time
+
+**Syntax**
+- `GETSECOND()`
+
+**Signatures / argument rules**
+- `GETSECOND()` → `long`
+
+**Arguments**
+- (none)
+
+**Semantics**
+- Returns `DateTime.Now.Ticks / 10000000` (ticks are 100-nanosecond units).
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `sec = GETSECOND()`
 
 ## RAND (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns a uniformly distributed random integer in a half-open range.
+
+**Tags**
+- math
+
+**Syntax**
+- `RAND(max)`
+- `RAND(min, max)`
+
+**Signatures / argument rules**
+- `RAND(max)` → `long`
+- `RAND(min, max)` → `long`
+
+**Arguments**
+- `min` (optional, int; default `0`): inclusive lower bound.
+- `max` (int): exclusive upper bound.
+
+**Semantics**
+- Returns a random integer `r` such that `min <= r < max`.
+
+**Errors & validation**
+- Runtime error if `max <= min`.
+  - In particular, `RAND(0)` and `RAND(<negative>)` are errors.
+
+**Examples**
+- `RAND(10)` returns a value in `0 <= r < 10`.
+- `RAND(5, 8)` returns `5`, `6`, or `7`.
 
 ## MIN (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the minimum of one or more integers.
+
+**Tags**
+- math
+
+**Syntax**
+- `MIN(x [, y ...])`
+
+**Signatures / argument rules**
+- `MIN(x [, y ...])` → `long`
+  - Requires at least 1 argument.
+
+**Arguments**
+- `x` (int)
+- `y...` (optional, int)
+
+**Semantics**
+- Returns the minimum value among all provided arguments.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `MIN(1)` returns `1`.
+- `MIN(1, 5, 2)` returns `1`.
 
 ## MAX (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the maximum of one or more integers.
+
+**Tags**
+- math
+
+**Syntax**
+- `MAX(x [, y ...])`
+
+**Signatures / argument rules**
+- `MAX(x [, y ...])` → `long`
+  - Requires at least 1 argument.
+
+**Arguments**
+- `x` (int)
+- `y...` (optional, int)
+
+**Semantics**
+- Returns the maximum value among all provided arguments.
+
+**Errors & validation**
+- (none)
+
+**Examples**
+- `MAX(1)` returns `1`.
+- `MAX(1, 5, 2)` returns `5`.
 
 ## ABS (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the absolute value of an integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `ABS(x)`
+
+**Signatures / argument rules**
+- `ABS(x)` → `long`
+
+**Arguments**
+- `x` (int)
+
+**Semantics**
+- Returns `Math.Abs(x)`.
+
+**Errors & validation**
+- Runtime error if `x == -9223372036854775808` (the minimum `Int64`), because `ABS(x)` would overflow.
+
+**Examples**
+- `ABS(-3)` returns `3`.
+- `ABS(3)` returns `3`.
 
 ## POWER (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns `x^y` (x to the power y), truncated to an integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `POWER(x, y)`
+
+**Signatures / argument rules**
+- `POWER(x, y)` → `long`
+
+**Arguments**
+- `x` (int)
+- `y` (int)
+
+**Semantics**
+- Computes `Math.Pow((double)x, (double)y)` and returns it truncated toward `0` as an integer.
+
+**Errors & validation**
+- Runtime error if the computed value is NaN, Infinity, or outside the `Int64` range.
+
+**Examples**
+- `POWER(2, 10)` returns `1024`.
+- `POWER(2, -1)` returns `0`.
 
 ## SQRT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the square root of an integer, truncated to an integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `SQRT(x)`
+
+**Signatures / argument rules**
+- `SQRT(x)` → `long`
+
+**Arguments**
+- `x` (int): must be non-negative.
+
+**Semantics**
+- Computes `Math.Sqrt((double)x)` and returns it truncated toward `0` as an integer.
+
+**Errors & validation**
+- Runtime error if `x < 0`.
+
+**Examples**
+- `SQRT(0)` returns `0`.
+- `SQRT(2)` returns `1`.
+- `SQRT(4)` returns `2`.
 
 ## CBRT (expression function)
+
 **Summary**
-- (TODO: not yet documented)
+- Returns the cube root of an integer, truncated to an integer.
+
+**Tags**
+- math
+
+**Syntax**
+- `CBRT(x)`
+
+**Signatures / argument rules**
+- `CBRT(x)` → `long`
+
+**Arguments**
+- `x` (int): must be non-negative.
+
+**Semantics**
+- Computes `Math.Pow((double)x, 1.0 / 3.0)` and returns it truncated toward `0` as an integer.
+
+**Errors & validation**
+- Runtime error if `x < 0`.
+
+**Examples**
+- `CBRT(0)` returns `0`.
+- `CBRT(7)` returns `1`.
+- `CBRT(8)` returns `2`.
 
 ## LOG (expression function)
 
