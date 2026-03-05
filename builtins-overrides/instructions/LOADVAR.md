@@ -8,7 +8,7 @@
 - `LOADVAR <name>`
 
 **Arguments**
-- `<name>`: string expression; intended file name component.
+- `<name>` (string): intended file name component.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.

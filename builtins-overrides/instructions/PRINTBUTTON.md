@@ -9,7 +9,7 @@
 - `PRINTBUTTON <text>, <buttonValue>`
 
 **Arguments**
-- `<text>`: string expression (button label).
+- `<text>` (string): button label.
 - `<buttonValue>`: expression whose runtime type is either:
   - integer (button produces that integer as input), or
   - string (button produces that string as input; useful with `INPUTS`).

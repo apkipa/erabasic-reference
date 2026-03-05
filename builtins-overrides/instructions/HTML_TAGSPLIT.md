@@ -8,7 +8,7 @@
 - `HTML_TAGSPLIT <html> [, <outParts> [, <outCount>]]`
 
 **Arguments**
-- `<html>`: string expression.
+- `<html>` (string): HTML string.
 - `<outParts>` (optional; default `RESULTS`): changeable 1D **non-character** string array variable to receive parts.
 - `<outCount>` (optional; default `RESULT`): changeable integer variable to receive the part count.
 

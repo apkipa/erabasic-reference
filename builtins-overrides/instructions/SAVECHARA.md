@@ -9,8 +9,8 @@
 - `SAVECHARA <name>, <saveText>, <charaNo1> [, <charaNo2> ...]`
 
 **Arguments**
-- `<name>`: string expression; the file name component.
-- `<saveText>`: string expression stored in the file as a description.
+- `<name>` (string): the file name component.
+- `<saveText>` (string): stored in the file as a description.
 - `<charaNo*>`: one or more integer expressions; character indices to save (0-based).
 
 **Semantics**

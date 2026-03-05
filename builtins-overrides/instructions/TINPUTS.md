@@ -8,12 +8,12 @@
 - `TINPUTS <timeMs>, <default> [, <displayTime> [, <timeoutMessage> [, <mouse> [, <canSkip>]]]]`
 
 **Arguments**
-- `<timeMs>`: integer expression; time limit in milliseconds.
-- `<default>`: string expression; default value used on timeout (and also on empty input when the request is not running a timer).
+- `<timeMs>` (int): time limit in milliseconds.
+- `<default>` (string): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time.
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): timeout message.
-- `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
-- `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
+- `<mouse>` (optional, int; default `0`): enables mouse input when equal to `1`.
+- `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Semantics**
 - Same model as `TINPUT`, but stores into `RESULTS` (string) rather than `RESULT` (int).

@@ -8,7 +8,7 @@
 - `HTML_PRINT_ISLAND <html>(, <ignored>)`
 
 **Arguments**
-- `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
+- `<html>` (string): HTML string (see `html-output.md`).
 - `<ignored>` (optional): integer expression. Accepted by the argument parser but ignored by this instruction.
 
 **Semantics**

@@ -8,8 +8,8 @@
 - `SAVEDATA <slot>, <saveText>`
 
 **Arguments**
-- `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
-- `<saveText>`: string expression; saved into the file and shown by the built-in save/load UI.
+- `<slot>` (int): save slot number. Must satisfy `0 <= slot <= 2147483647` (32-bit signed non-negative).
+- `<saveText>` (string): saved into the file and shown by the built-in save/load UI.
   - Must not contain a newline (`'\n'`).
 
 **Semantics**

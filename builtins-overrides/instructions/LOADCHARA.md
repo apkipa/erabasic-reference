@@ -9,7 +9,7 @@
 - `LOADCHARA <name>`
 
 **Arguments**
-- `<name>`: string expression; the file name component.
+- `<name>` (string): the file name component.
 
 **Semantics**
 - Reads `Program.DatDir/chara_<name>.dat`.

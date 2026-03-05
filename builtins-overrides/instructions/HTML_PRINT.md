@@ -8,7 +8,7 @@
 - `HTML_PRINT <html> [, <toBuffer>]`
 
 **Arguments**
-- `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
+- `<html>` (string): HTML string (see `html-output.md`).
 - `<toBuffer>` (optional, int; default `0`)
   - `0` (default): print as a complete logical output line (implicit line end).
   - non-zero: append the HTML output into the current print buffer (no implicit line end).

@@ -29,7 +29,7 @@
 **Errors & validation**
 - Error if load is not allowed in the current system state.
 - Selecting an empty slot prints a “no data” message and reopens the load prompt.
-- If loading fails unexpectedly after selection, the engine throws an internal execution error.
+- If loading fails unexpectedly after selection, raises a runtime error.
 
 **Examples**
 - `LOADGAME`

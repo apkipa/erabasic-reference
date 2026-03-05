@@ -9,8 +9,8 @@
 
 **Arguments**
 - `<dest>`: changeable integer variable term (destination).
-- `<x>`: integer expression (base).
-- `<y>`: integer expression (exponent).
+- `<x>` (int): base.
+- `<y>` (int): exponent.
 
 **Semantics**
 - Evaluates `<x>` and `<y>` as integers, converts them to `double`, then computes `pow = Math.Pow(x, y)`.

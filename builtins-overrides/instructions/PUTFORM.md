@@ -13,7 +13,7 @@
 
 **Semantics**
 - Evaluates `<formString>` to a string.
-- Appends it to the internal save-description buffer:
+- Appends it to the save-description buffer:
   - If `SAVEDATA_TEXT` is non-null, `SAVEDATA_TEXT += <string>`.
   - Otherwise, `SAVEDATA_TEXT = <string>`.
 - Does not print to the console.

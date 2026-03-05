@@ -8,8 +8,8 @@
 - `SAVEVAR <name>, <saveText>, <var1> [, <var2> ...]`
 
 **Arguments**
-- `<name>`: string expression; intended file name component.
-- `<saveText>`: string expression; intended description text.
+- `<name>` (string): intended file name component.
+- `<saveText>` (string): intended description text.
 - `<var*>`: one or more changeable non-character variable terms (arrays are allowed; several variable categories are rejected).
 
 **Semantics**

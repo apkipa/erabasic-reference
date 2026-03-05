@@ -8,7 +8,7 @@
 - `CLEARLINE <n>`
 
 **Arguments**
-- `<n>`: integer expression.
+- `<n>` (int): number of logical output lines to delete.
   - The evaluated value is converted to a 32-bit signed integer by truncation (i.e. low 32 bits interpreted as signed).
 
 **Semantics**

@@ -4315,7 +4315,7 @@ ENDDATA
 - `PRINTBUTTON <text>, <buttonValue>`
 
 **Arguments**
-- `<text>`: string expression (button label).
+- `<text>` (string): button label.
 - `<buttonValue>`: expression whose runtime type is either:
   - integer (button produces that integer as input), or
   - string (button produces that string as input; useful with `INPUTS`).
@@ -5297,12 +5297,12 @@ Compatibility notes:
 - `TINPUT <timeMs>, <default> [, <displayTime> [, <timeoutMessage> [, <mouse> [, <canSkip>]]]]`
 
 **Arguments**
-- `<timeMs>`: integer expression; time limit in milliseconds.
-- `<default>`: integer expression; default value used on timeout (and also on empty input when the request is not running a timer).
+- `<timeMs>` (int): time limit in milliseconds.
+- `<default>` (int): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
-- `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
-- `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
+- `<mouse>` (optional, int; default `0`): enables mouse input when equal to `1`.
+- `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -5349,12 +5349,12 @@ Compatibility notes:
 - `TINPUTS <timeMs>, <default> [, <displayTime> [, <timeoutMessage> [, <mouse> [, <canSkip>]]]]`
 
 **Arguments**
-- `<timeMs>`: integer expression; time limit in milliseconds.
-- `<default>`: string expression; default value used on timeout (and also on empty input when the request is not running a timer).
+- `<timeMs>` (int): time limit in milliseconds.
+- `<default>` (string): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time.
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): timeout message.
-- `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
-- `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
+- `<mouse>` (optional, int; default `0`): enables mouse input when equal to `1`.
+- `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -5471,8 +5471,8 @@ Compatibility notes:
 - `TWAIT <timeMs>, <mode>`
 
 **Arguments**
-- `<timeMs>`: integer expression; time limit in milliseconds.
-- `<mode>`: integer expression:
+- `<timeMs>` (int): time limit in milliseconds.
+- `<mode>` (int):
   - `0`: wait for Enter/click, but time out after `<timeMs>`.
   - non-zero: disallow input and simply wait `<timeMs>` (or be affected by macro/skip behavior).
 
@@ -5671,7 +5671,7 @@ Compatibility notes:
 - `CLEARLINE <n>`
 
 **Arguments**
-- `<n>`: integer expression.
+- `<n>` (int): number of logical output lines to delete.
   - The evaluated value is converted to a 32-bit signed integer by truncation (i.e. low 32 bits interpreted as signed).
 
 **Defaults / optional arguments**
@@ -6115,7 +6115,7 @@ DELCHARA 1, 3
 
 **Semantics**
 - Evaluates `<formString>` to a string.
-- Appends it to the internal save-description buffer:
+- Appends it to the save-description buffer:
   - If `SAVEDATA_TEXT` is non-null, `SAVEDATA_TEXT += <string>`.
   - Otherwise, `SAVEDATA_TEXT = <string>`.
 - Does not print to the console.
@@ -6310,7 +6310,7 @@ DELCHARA 1, 3
 **Errors & validation**
 - Error if load is not allowed in the current system state.
 - Selecting an empty slot prints a “no data” message and reopens the load prompt.
-- If loading fails unexpectedly after selection, the engine throws an internal execution error.
+- If loading fails unexpectedly after selection, raises a runtime error.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.CanNotUseInstruction.Text, funcName, "SAVEGAME/LOADGAME"))`
 
@@ -6334,8 +6334,8 @@ DELCHARA 1, 3
 - `SAVEDATA <slot>, <saveText>`
 
 **Arguments**
-- `<slot>`: integer expression. Must be in `[0, 2147483647]` (32-bit signed non-negative).
-- `<saveText>`: string expression; saved into the file and shown by the built-in save/load UI.
+- `<slot>` (int): save slot number. Must satisfy `0 <= slot <= 2147483647` (32-bit signed non-negative).
+- `<saveText>` (string): saved into the file and shown by the built-in save/load UI.
   - Must not contain a newline (`'\n'`).
 
 **Defaults / optional arguments**
@@ -7126,7 +7126,7 @@ DELCHARA 1, 3
 **Arguments**
 - `<intVarTerm>`: changeable integer variable term (must not be character-data).
 - `<start>` (optional, int; default `0`): initial counter value.
-- `<end>`: int expression.
+- `<end>` (int): loop bound (exclusive).
 - `<step>` (optional, int; default `1`): increment applied at `NEXT` time.
 
 **Defaults / optional arguments**
@@ -7136,6 +7136,7 @@ DELCHARA 1, 3
 - Initializes the counter variable to `<start>`, then loops while:
   - `step > 0`: `<counter> < <end>`
   - `step < 0`: `<counter> > <end>`
+- If `step == 0`, the loop body executes zero times (execution jumps directly to `NEXT`).
 - The counter variable is incremented by `step` at `NEXT` time (and also by `BREAK`/`CONTINUE` for era-maker compatibility).
 - Engine-extracted notes (base flags from class):
   - `flag = METHOD_SAFE | FLOW_CONTROL | PARTIAL`
@@ -9568,7 +9569,7 @@ ENDNOSKIP
 
 ## ARRAYSHIFT (instruction)
 **Summary**
-- Shifts elements in a mutable 1D array variable by a signed offset and fills new slots with a default value.
+- Shifts elements in a mutable 1D array variable by an offset (can be negative) and fills new slots with a default value.
 
 **Metadata**
 - Arg spec: `SP_SHIFT_ARRAY` (see #argument-spec-sp_shift_array)
@@ -9579,7 +9580,7 @@ ENDNOSKIP
 
 **Arguments**
 - `<arrayVar>`: changeable 1D array variable term.
-- `<shift>`: int (signed). `0` is a no-op.
+- `<shift>` (int): shift offset (can be negative). `0` is a no-op.
 - `<default>`: expression of the same scalar type as the array element type.
 - `<start>` (optional, int; default `0`): start index of the shifted segment.
 - `<count>` (optional, int; default “to end”): number of elements in the segment. If explicitly `0`, this is a no-op.
@@ -9625,8 +9626,8 @@ ENDNOSKIP
 
 **Arguments**
 - `<arrayVar>`: changeable 1D array variable term.
-- `<start>`: integer expression; start index (0-based).
-- `<count>`: integer expression; number of elements to remove.
+- `<start>` (int): start index (0-based).
+- `<count>` (int): number of elements to remove.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -9729,8 +9730,8 @@ ENDNOSKIP
 - `ARRAYCOPY <srcVarNameExpr>, <dstVarNameExpr>`
 
 **Arguments**
-- `<srcVarNameExpr>`: string expression whose value is a variable name.
-- `<dstVarNameExpr>`: string expression whose value is a variable name.
+- `<srcVarNameExpr>` (string): expression whose value is a variable name.
+- `<dstVarNameExpr>` (string): expression whose value is a variable name.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -11353,8 +11354,8 @@ ENDNOSKIP
 - `SAVEVAR <name>, <saveText>, <var1> [, <var2> ...]`
 
 **Arguments**
-- `<name>`: string expression; intended file name component.
-- `<saveText>`: string expression; intended description text.
+- `<name>` (string): intended file name component.
+- `<saveText>` (string): intended description text.
 - `<var*>`: one or more changeable non-character variable terms (arrays are allowed; several variable categories are rejected).
 
 **Defaults / optional arguments**
@@ -11391,7 +11392,7 @@ ENDNOSKIP
 - `LOADVAR <name>`
 
 **Arguments**
-- `<name>`: string expression; intended file name component.
+- `<name>` (string): intended file name component.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -11427,8 +11428,8 @@ ENDNOSKIP
 - `SAVECHARA <name>, <saveText>, <charaNo1> [, <charaNo2> ...]`
 
 **Arguments**
-- `<name>`: string expression; the file name component.
-- `<saveText>`: string expression stored in the file as a description.
+- `<name>` (string): the file name component.
+- `<saveText>` (string): stored in the file as a description.
 - `<charaNo*>`: one or more integer expressions; character indices to save (0-based).
 
 **Defaults / optional arguments**
@@ -11478,7 +11479,7 @@ ENDNOSKIP
 - `LOADCHARA <name>`
 
 **Arguments**
-- `<name>`: string expression; the file name component.
+- `<name>` (string): the file name component.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -11589,7 +11590,7 @@ ENDNOSKIP
 - `HTML_PRINT <html> [, <toBuffer>]`
 
 **Arguments**
-- `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
+- `<html>` (string): HTML string (see `html-output.md`).
 - `<toBuffer>` (optional, int; default `0`)
   - `0` (default): print as a complete logical output line (implicit line end).
   - non-zero: append the HTML output into the current print buffer (no implicit line end).
@@ -11648,7 +11649,7 @@ PRINTL ""
 - `HTML_TAGSPLIT <html> [, <outParts> [, <outCount>]]`
 
 **Arguments**
-- `<html>`: string expression.
+- `<html>` (string): HTML string.
 - `<outParts>` (optional; default `RESULTS`): changeable 1D **non-character** string array variable to receive parts.
 - `<outCount>` (optional; default `RESULT`): changeable integer variable to receive the part count.
 
@@ -12073,8 +12074,8 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 **Arguments**
 - `<dest>`: changeable integer variable term (destination).
-- `<x>`: integer expression (base).
-- `<y>`: integer expression (exponent).
+- `<x>` (int): base.
+- `<y>` (int): exponent.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
@@ -13188,7 +13189,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `HTML_PRINT_ISLAND <html>(, <ignored>)`
 
 **Arguments**
-- `<html>`: string expression interpreted as an HTML string (see `html-output.md`).
+- `<html>` (string): HTML string (see `html-output.md`).
 - `<ignored>` (optional): integer expression. Accepted by the argument parser but ignored by this instruction.
 
 **Defaults / optional arguments**

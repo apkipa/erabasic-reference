@@ -8,8 +8,8 @@
 - `ARRAYCOPY <srcVarNameExpr>, <dstVarNameExpr>`
 
 **Arguments**
-- `<srcVarNameExpr>`: string expression whose value is a variable name.
-- `<dstVarNameExpr>`: string expression whose value is a variable name.
+- `<srcVarNameExpr>` (string): expression whose value is a variable name.
+- `<dstVarNameExpr>` (string): expression whose value is a variable name.
 
 **Semantics**
 - Resolves both variable names to variable tokens (early when literal, otherwise at runtime).

@@ -8,8 +8,8 @@
 - `TWAIT <timeMs>, <mode>`
 
 **Arguments**
-- `<timeMs>`: integer expression; time limit in milliseconds.
-- `<mode>`: integer expression:
+- `<timeMs>` (int): time limit in milliseconds.
+- `<mode>` (int):
   - `0`: wait for Enter/click, but time out after `<timeMs>`.
   - non-zero: disallow input and simply wait `<timeMs>` (or be affected by macro/skip behavior).
 

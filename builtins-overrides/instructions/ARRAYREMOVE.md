@@ -9,8 +9,8 @@
 
 **Arguments**
 - `<arrayVar>`: changeable 1D array variable term.
-- `<start>`: integer expression; start index (0-based).
-- `<count>`: integer expression; number of elements to remove.
+- `<start>` (int): start index (0-based).
+- `<count>` (int): number of elements to remove.
 
 **Semantics**
 - Works only on 1D arrays (int or string).

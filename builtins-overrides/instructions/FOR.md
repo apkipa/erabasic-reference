@@ -12,13 +12,14 @@
 **Arguments**
 - `<intVarTerm>`: changeable integer variable term (must not be character-data).
 - `<start>` (optional, int; default `0`): initial counter value.
-- `<end>`: int expression.
+- `<end>` (int): loop bound (exclusive).
 - `<step>` (optional, int; default `1`): increment applied at `NEXT` time.
 
 **Semantics**
 - Initializes the counter variable to `<start>`, then loops while:
   - `step > 0`: `<counter> < <end>`
   - `step < 0`: `<counter> > <end>`
+- If `step == 0`, the loop body executes zero times (execution jumps directly to `NEXT`).
 - The counter variable is incremented by `step` at `NEXT` time (and also by `BREAK`/`CONTINUE` for era-maker compatibility).
 
 **Errors & validation**

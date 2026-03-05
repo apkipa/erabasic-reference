@@ -8,12 +8,12 @@
 - `TINPUT <timeMs>, <default> [, <displayTime> [, <timeoutMessage> [, <mouse> [, <canSkip>]]]]`
 
 **Arguments**
-- `<timeMs>`: integer expression; time limit in milliseconds.
-- `<default>`: integer expression; default value used on timeout (and also on empty input when the request is not running a timer).
+- `<timeMs>` (int): time limit in milliseconds.
+- `<default>` (int): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
-- `<mouse>` (optional): integer expression; enables mouse input when equal to `1`.
-- `<canSkip>` (optional): integer expression; if present, allows `MesSkip` to auto-accept the default without waiting.
+- `<mouse>` (optional, int; default `0`): enables mouse input when equal to `1`.
+- `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Semantics**
 - Enters an integer-input UI wait with a timer of `<timeMs>` milliseconds (a default is always present for timed input).
