@@ -12,7 +12,12 @@
 
 **Semantics**
 - If the label exists, jumps to the `$label` marker; execution continues at the line after the `$label`.
-- The parser accepts `(...)` / comma forms, but `GOTO` does not use argument lists; only the label name matters.
+- Compatibility parsing: after `<labelName>`, the engine also accepts an optional “call-like tail”:
+  - `GOTO <labelName>(...)`
+  - `GOTO <labelName>, ...`
+  - These extra parts are parsed for compatibility but ignored by `GOTO`:
+    - Only `<labelName>` is used to resolve the `$label`.
+    - The ignored expressions are not evaluated and have no side effects (they only need to be syntactically valid).
 
 **Errors & validation**
 - If the label name is a constant string and the label is missing:
@@ -25,6 +30,8 @@
 
 **Examples**
 - `GOTO LOOP_START`
+- `GOTO LOOP_START(1, 2)` (equivalent to `GOTO LOOP_START`)
+- `GOTO LOOP_START, 1, 2` (equivalent to `GOTO LOOP_START`)
 
 **Progress state**
 - complete
