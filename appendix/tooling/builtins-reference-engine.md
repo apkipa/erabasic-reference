@@ -11992,32 +11992,40 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 ## VARSIZE (instruction)
 **Summary**
-- (TODO)
+- Writes the size of an array variable into `RESULT` / `RESULT:1` / `RESULT:2`.
 
 **Metadata**
 - Arg spec: `SP_VAR` (see #argument-spec-sp_var)
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- Hint (translated, best-effort): <variable term>
-- Hint (raw comment): `<変数>`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `VARSIZE <arrayVarName>`
 
 **Arguments**
-- Builder: `SP_VAR_ArgumentBuilder()`
+- `<arrayVarName>`: an identifier token naming an array variable (not an expression).
+  - Must be a 1D/2D/3D array variable (character-data arrays are allowed).
+  - `RAND` is rejected (even though it is 1D).
+  - Compatibility parsing: any extra characters after the identifier are ignored (with a warning). For example, `VARSIZE ABL:TARGET:0` is treated like `VARSIZE ABL`.
 
 **Defaults / optional arguments**
 - Optional/default behavior is builder-specific; see engine refs.
 
 **Semantics**
+- Resolves `<arrayVarName>` to a variable token.
+- Writes array lengths into `RESULT_ARRAY`:
+  - 1D array: `RESULT = length0`
+  - 2D array: `RESULT = length0`, `RESULT:1 = length1`
+  - 3D array: `RESULT = length0`, `RESULT:1 = length1`, `RESULT:2 = length2`
+- Does not clear other `RESULT:*` slots.
 - Engine-extracted notes (key operations):
   - `vEvaluator.VarSize(varID)`
 
 **Errors & validation**
-- (TODO)
+- Errors if `<arrayVarName>` is missing, is not a variable identifier, is not an array variable, or is `RAND`.
 
 **Examples**
-- (TODO)
+- `VARSIZE ABL` (writes the `ABL` dimensions to `RESULT*`)
+- `VARSIZE ITEM` (writes the `ITEM` length to `RESULT`)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -14265,7 +14273,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## VARSIZE (expression function)
 **Summary**
-- (TODO)
+- Returns the length of an array variable’s dimension.
 
 **Metadata**
 - Implementor: `new VarsizeMethod()`
@@ -14274,27 +14282,40 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `VARSIZE(varName [, dim])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 1.
+- `VARSIZE(varName)` → `int`
+- `VARSIZE(varName, dim)` → `int`
 
 **Arguments**
-- (TODO)
+- `varName` (string): variable name to resolve.
+- `dim` (optional, int; default `0`): dimension selector.
+  - Default behavior: `0` selects the first dimension (0-based).
+  - If `VarsizeDimConfig` is enabled and `dim > 0`, the engine subtracts `1` before selecting the dimension (i.e. `1` selects the first dimension).
 
 **Defaults / optional arguments**
 - (TODO)
 
 **Semantics**
-- (TODO)
+- Resolves `varName` to a variable token using the normal variable-name lookup rules.
+- Returns `GetLength(dim)` of that variable token.
+  - For a 1D array, valid `dim` is `0`.
+  - For a 2D array, valid `dim` is `0` or `1`.
+  - For a 3D array, valid `dim` is `0`, `1`, or `2`.
+- Reference variables (`REF`) are supported as long as they currently refer to an array; otherwise it errors.
 
 **Errors & validation**
+- Runtime error if `varName` does not resolve to a variable.
+- Runtime error if the resolved variable is not an array variable.
+- Runtime error if `dim` is out of range for that variable’s dimension count (including negative values).
+- Runtime error if the resolved variable is a `REF` variable that is currently unbound.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.NotVariableName.Text, Name, 1, arguments[0].GetStrValue(exm)))`
 
 **Examples**
-- (TODO)
+- `n = VARSIZE("ITEM")` (length of `ITEM`)
+- `w = VARSIZE("CFLAG", 1)` (first dimension when `VarsizeDimConfig` is enabled)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)

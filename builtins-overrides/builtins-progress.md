@@ -10,8 +10,8 @@ Legend:
 Notes:
 - To mark an entry complete, add a section `**Progress state**` with `- complete` to the override file.
 
-Instructions: `⛔ 83` / `🟡 0` / `✅ 220` (total `303`).
-Expression functions: `⛔ 249` / `🟡 0` / `✅ 17` (total `266`).
+Instructions: `⛔ 82` / `🟡 0` / `✅ 221` (total `303`).
+Expression functions: `⛔ 248` / `🟡 0` / `✅ 18` (total `266`).
 
 ## Instructions
 
@@ -279,7 +279,7 @@ Expression functions: `⛔ 249` / `🟡 0` / `✅ 17` (total `266`).
 - ⛔ [`TOOLTIP_SETDURATION`](../builtins-reference.md#tooltip_setduration-instruction)
 - ⛔ [`INPUTMOUSEKEY`](../builtins-reference.md#inputmousekey-instruction)
 - ⛔ [`AWAIT`](../builtins-reference.md#await-instruction)
-- ⛔ [`VARSIZE`](../builtins-reference.md#varsize-instruction)
+- ✅ [`VARSIZE`](../builtins-reference.md#varsize-instruction)
 - ✅ [`GETTIME`](../builtins-reference.md#gettime-instruction)
 - ✅ [`POWER`](../builtins-reference.md#power-instruction)
 - ⛔ [`PRINTCPERLINE`](../builtins-reference.md#printcperline-instruction)
@@ -340,7 +340,7 @@ Expression functions: `⛔ 249` / `🟡 0` / `✅ 17` (total `266`).
 - ✅ [`FINDCHARA`](../builtins-reference.md#findchara-expression-function)
 - ✅ [`FINDLASTCHARA`](../builtins-reference.md#findlastchara-expression-function)
 - ⛔ [`EXISTCSV`](../builtins-reference.md#existcsv-expression-function)
-- ⛔ [`VARSIZE`](../builtins-reference.md#varsize-expression-function)
+- ✅ [`VARSIZE`](../builtins-reference.md#varsize-expression-function)
 - ⛔ [`CHKFONT`](../builtins-reference.md#chkfont-expression-function)
 - ⛔ [`CHKDATA`](../builtins-reference.md#chkdata-expression-function)
 - ⛔ [`ISSKIP`](../builtins-reference.md#isskip-expression-function)

@@ -310,3 +310,5 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`SET`](builtins-reference.md#set-instruction) (instruction)
 - [`SWAP`](builtins-reference.md#swap-instruction) (instruction)
+- [`VARSIZE`](builtins-reference.md#varsize-instruction) (instruction)
+- [`VARSIZE`](builtins-reference.md#varsize-expression-function) (method)
