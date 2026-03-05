@@ -7363,6 +7363,7 @@ HTML_PRINT_ISLAND_CLEAR
 
 **Arguments**
 - `varName` (string): variable name to resolve.
+  - This is a variable **name**, not a variable term. Do not include `:` indices (for example, `"CFLAG:TARGET:0"` does not resolve as a variable name).
 - `dim` (optional, int; default `0`): dimension selector.
   - Default behavior: `0` selects the first dimension (0-based).
   - If `VarsizeDimConfig` is enabled and `dim > 0`, the engine subtracts `1` before selecting the dimension (i.e. `1` selects the first dimension).

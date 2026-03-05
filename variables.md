@@ -61,6 +61,19 @@ Special forms that matter for compatibility:
   - Evaluating it as a value (or assigning to it) throws a “missing variable argument” error.
   - Some built-ins accept this form only via instruction-specific special cases. Do not assume it behaves like “the whole array”.
 
+## Variable names vs variable terms (important for built-ins)
+
+Some built-ins take a **variable term** (a parsed variable reference like `CFLAG:TARGET:0`) so they can operate on the underlying storage.
+Other built-ins take a **variable name** (a single identifier token like `CFLAG`) and do not parse any `:` indices.
+
+This difference is observable:
+
+- If a built-in takes a **variable name identifier**, writing `NAME:...` after it is just extra trailing text.
+  - The engine may warn, but the `:...` part is not treated as a character selector or element index.
+  - Example: `VARSIZE CFLAG:TARGET:0` is treated as `VARSIZE CFLAG`.
+- If a built-in takes a **variable name string** (e.g. a method like `VARSIZE("CFLAG")`), the lookup is done on the entire string.
+  - A string that includes `:` indices (e.g. `"CFLAG:TARGET:0"`) does not match any variable name and is rejected.
+
 ## Variable sizes and prohibiting variables
 
 In Emuera, the element count of many built-in array variables is configurable via `csv/VariableSize.csv`.
