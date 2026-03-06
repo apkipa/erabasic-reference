@@ -2,6 +2,10 @@
 
 Generated from engine source on `2026-03-06`.
 
+> [!WARNING]
+> This file is generated. Do **not** edit `appendix/tooling/builtins-reference-engine.md` by hand.
+> Change the generator/tooling inputs, then regenerate this file.
+
 This file is **not user-facing**.
 It exists for doc authors and fact-checking, and includes engine-extracted skeletons, validation structures, and file/line references.
 
@@ -7863,8 +7867,10 @@ SPLIT "a,b,c", ",", PARTS
 - `<seed>` (optional): int. If omitted, the seed defaults to `0`.
 
 **Semantics**
+- The legacy RNG used here is SFMT with the MT19937 parameter set.
 - If `UseNewRandom` is enabled in JSON config:
   - Emits a warning and does nothing.
+  - The new-mode RNG used by `RAND` remains the host `.NET System.Random` instance.
 - Otherwise:
   - Re-seeds the legacy RNG with `<seed>` truncated to 32 bits (i.e. low 32 bits used as an unsigned seed).
 - Does not assign `RESULT`/`RESULTS`.
@@ -7898,17 +7904,19 @@ SPLIT "a,b,c", ",", PARTS
 - None.
 
 **Semantics**
+- The legacy RNG used here is SFMT with the MT19937 parameter set.
 - If `UseNewRandom` is enabled in JSON config:
   - Emits a warning and does nothing.
 - Otherwise:
   - Writes the legacy RNG state into `RANDDATA`.
-  - `RANDDATA` must have length 625; otherwise a runtime error is raised.
+  - `RANDDATA` must have length `625`.
+  - Layout: elements `0..623` receive the 624 state words; element `624` receives the current index.
 - Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.DumpRanddata()`
 
 **Errors & validation**
-- None.
+- Runtime error if `RANDDATA` does not have length `625`.
 
 **Examples**
 - `DUMPRAND`
@@ -7933,17 +7941,20 @@ SPLIT "a,b,c", ",", PARTS
 - None.
 
 **Semantics**
+- The legacy RNG used here is SFMT with the MT19937 parameter set.
 - If `UseNewRandom` is enabled in JSON config:
   - Emits a warning and does nothing.
 - Otherwise:
   - Loads the legacy RNG state from `RANDDATA`.
-  - `RANDDATA` must have length 625; otherwise a runtime error is raised.
+  - `RANDDATA` must have length `625`.
+  - Layout: elements `0..623` are the 624 state words; element `624` is the current index.
+  - On load, elements `0..623` are interpreted as unsigned 32-bit values.
 - Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.InitRanddata()`
 
 **Errors & validation**
-- None.
+- Runtime error if `RANDDATA` does not have length `625`.
 
 **Examples**
 - `INITRAND`
@@ -9568,7 +9579,7 @@ ENDNOSKIP
 **Errors & validation**
 - If `<methodName>` is empty: load-time error.
 - If `<methodName>` does not match any registered plugin method:
-  - The engine emits a load-time warning for constant `<methodName>`.
+  - The engine emits a load-time warning.
   - Executing the instruction still fails at runtime (missing method binding).
 - If an argument position is left empty (e.g. `CALLSHARP M, , 1`): runtime error.
 - If the plugin throws an exception: runtime error.
@@ -14223,7 +14234,7 @@ PRINTFORML %S%
 
 ## RAND (expression function)
 **Summary**
-- Returns a uniformly distributed random integer in a half-open range.
+- Returns a random integer in a half-open range using the engine's current RNG mode.
 
 **Metadata**
 - Implementor: `new RandMethod()`
@@ -14244,6 +14255,10 @@ PRINTFORML %S%
 
 **Semantics**
 - Returns a random integer `r` such that `min <= r < max`.
+- RNG engine selection depends on JSON `UseNewRandom`:
+  - `UseNewRandom=NO` (legacy mode): uses the legacy SFMT generator with the MT19937 parameter set. The returned value is computed as `min + (nextUInt64 % (max - min))`. This is deterministic for a given seed/state, but it is not perfectly unbiased when `(max - min)` does not divide `2^64`.
+  - `UseNewRandom=YES` (new mode): uses a host `.NET System.Random` instance and its `NextInt64(max - min)` behavior, then adds `min`. `RANDOMIZE`, `INITRAND`, and `DUMPRAND` do not control this mode.
+- In new mode, the host `System.Random` instance is created when the runtime creates its variable-evaluator state; scripts have no built-in way to reseed or snapshot it.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetNextRand(max - min) + min`
 

@@ -239,6 +239,7 @@ Where described today:
 ## 11) Built-in commands/functions
 
 - ✅ Signature catalog for lookup: `appendix/tooling/builtins.md` and `appendix/tooling/builtins-signatures.md`.
+- ✅ RNG contract for `RAND` / `RANDOMIZE` / `INITRAND` / `DUMPRAND`: legacy SFMT(MT19937) path, `RANDDATA` snapshot layout, legacy modulo-based range reduction, and the `UseNewRandom` switch to host `.NET System.Random`.
 
 Typical-game compatibility requires a subset of “UI-ish” built-ins to be specified as **observable contracts**.
 

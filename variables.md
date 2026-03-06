@@ -271,6 +271,20 @@ For non-character arrays:
   - a constant `0` argument (`RAND:0`) is an error
 - If `CompatiRAND` is `true`, the parser allows omission (it becomes `RAND:0`).
 
+## `RANDDATA` RNG snapshot (legacy mode)
+
+`RANDDATA` is the script-visible snapshot variable for the legacy random engine:
+
+- It is a 1D integer array of length `625`.
+- In legacy mode (`UseNewRandom=NO`), `RAND` uses an SFMT generator with the MT19937 parameter set.
+- `DUMPRAND` writes the current legacy RNG state into `RANDDATA`.
+- `INITRAND` reads `RANDDATA` back into that legacy RNG state.
+- Layout:
+  - elements `0..623`: the generator's 624 state words
+  - element `624`: the generator's current index
+- On `INITRAND`, elements `0..623` are interpreted as unsigned 32-bit values and element `624` as an integer index.
+- In new-random mode (`UseNewRandom=YES`), `RANDDATA` no longer controls `RAND`; `INITRAND` and `DUMPRAND` only warn and do nothing.
+
 ## String arguments to `:` are not “string indices”
 
 If a `:` argument expression is of string type, the parser converts it into a numeric term that resolves the string key to an integer index via engine tables at runtime.

@@ -12,8 +12,10 @@
 - `<seed>` (optional): int. If omitted, the seed defaults to `0`.
 
 **Semantics**
+- The legacy RNG used here is SFMT with the MT19937 parameter set.
 - If `UseNewRandom` is enabled in JSON config:
   - Emits a warning and does nothing.
+  - The new-mode RNG used by `RAND` remains the host `.NET System.Random` instance.
 - Otherwise:
   - Re-seeds the legacy RNG with `<seed>` truncated to 32 bits (i.e. low 32 bits used as an unsigned seed).
 - Does not assign `RESULT`/`RESULTS`.

@@ -2,6 +2,10 @@
 
 Generated on `2026-03-06`.
 
+> [!WARNING]
+> This file is generated. Do **not** edit `builtins-index.md` by hand.
+> Update `erabasic-reference/builtins-overrides/**` or the generator/tooling inputs, then regenerate this file.
+
 This index is built from `builtins-overrides/**` tags and links into `builtins-reference.md`.
 
 ## arrays

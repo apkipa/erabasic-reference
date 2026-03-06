@@ -104,7 +104,7 @@ Current fields include:
 - `UseScopedVariableInstruction`
 - `UseButtonFocusBackgroundColor` (UI-related)
 
-These flags can affect runtime semantics and warning behavior. In particular, when `UseNewRandom=YES`, the script loader warns on `RANDOMIZE`, `DUMPRAND`, and `INITRAND`.
+These flags can affect runtime semantics and warning behavior. In particular, `UseNewRandom` switches `RAND` from the legacy SFMT(MT19937)-based engine (with `RANDDATA` snapshot support) to a host `.NET System.Random` instance, and makes `RANDOMIZE`, `DUMPRAND`, and `INITRAND` warning-only no-ops.
 
 ## 3) `_Replace.csv` (replace settings)
 

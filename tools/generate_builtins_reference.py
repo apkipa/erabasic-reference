@@ -1339,6 +1339,12 @@ def generate_builtins_index_md(
     out.append("")
     out.append(f"Generated on `{gen_date}`.")
     out.append("")
+    out.append("> [!WARNING]")
+    out.append("> This file is generated. Do **not** edit `builtins-index.md` by hand.")
+    out.append(
+        f"> Update `{OVERRIDES_DIR.relative_to(REPO_ROOT)}/**` or the generator/tooling inputs, then regenerate this file."
+    )
+    out.append("")
     out.append("This index is built from `builtins-overrides/**` tags and links into `builtins-reference.md`.")
     out.append("")
 
@@ -1699,6 +1705,12 @@ def main(argv: list[str] | None = None) -> int:
     md_user.append("")
     md_user.append(f"Generated on `{gen_date}`.")
     md_user.append("")
+    md_user.append("> [!WARNING]")
+    md_user.append("> This file is generated. Do **not** edit `builtins-reference.md` by hand.")
+    md_user.append(
+        f"> Make persistent content changes in `{OVERRIDES_DIR.relative_to(REPO_ROOT)}/**` or the generator/tooling inputs, then regenerate this file."
+    )
+    md_user.append("")
     md_user.append("This file is **user-facing**: it contains only human-written documentation overrides.")
     md_user.append("Undocumented built-ins are listed but contain only a `(TODO)` placeholder.")
     md_user.append("")
@@ -1773,6 +1785,10 @@ def main(argv: list[str] | None = None) -> int:
     md.append("# EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)")
     md.append("")
     md.append(f"Generated from engine source on `{gen_date}`.")
+    md.append("")
+    md.append("> [!WARNING]")
+    md.append("> This file is generated. Do **not** edit `appendix/tooling/builtins-reference-engine.md` by hand.")
+    md.append("> Change the generator/tooling inputs, then regenerate this file.")
     md.append("")
     md.append("This file is **not user-facing**.")
     md.append("It exists for doc authors and fact-checking, and includes engine-extracted skeletons, validation structures, and file/line references.")
@@ -1886,6 +1902,12 @@ def main(argv: list[str] | None = None) -> int:
     prog.append("# EraBasic Built-ins Writing Progress (Emuera / EvilMask)")
     prog.append("")
     prog.append(f"Generated on `{gen_date}`.")
+    prog.append("")
+    prog.append("> [!WARNING]")
+    prog.append("> This file is generated. Do **not** edit `builtins-progress.md` by hand.")
+    prog.append(
+        f"> Update `{OVERRIDES_DIR.relative_to(REPO_ROOT)}/**` or the generator/tooling inputs, then regenerate this file."
+    )
     prog.append("")
     prog.append("Legend:")
     prog.append("- `⛔` none: no manual override yet")
