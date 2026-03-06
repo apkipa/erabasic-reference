@@ -6,7 +6,7 @@ Scope (current phase): **typical-game compatibility**.
 
 - Included: loading order, preprocessing, lexing, parsing, expression evaluation, variables/scopes, user functions, control flow, runtime model for execution.
 - Included (host/runtime contract): the **system phase state machine** (TITLE/SHOP/TRAIN/ABLUP/...) and its script entry points (`@SYSTEM_*`, `@EVENT*`, etc.), to the extent needed to run typical games.
-- Included (UI/runtime contract): the **observable console output + input model** that typical games depend on (text buffering/flush, buttons/choices, and HTML output used by the UI layer).
+- Included (UI/runtime contract): the **observable console output + input model** that typical games depend on (pending-buffer vs visible-line behavior, buttons/choices, and HTML output used by the UI layer).
 - Deferred: niche host features and tooling that are not required by most games (hotkeys, debug tooling, localization/tooling, etc.), tracked explicitly below. The plugin system is already specified separately in `plugins.md`.
 
 This document tracks what is already specified vs what still needs to be written.
@@ -245,22 +245,45 @@ Typical-game compatibility requires a subset of “UI-ish” built-ins to be spe
 
 ### 11.1 Output model (console)
 
+- ✅ Shared output-state model:
+  - pending print buffer vs visible display-line array vs logical-line grouping
+  - separate HTML-island layer outside the normal output/log model
+  - temporary trailing line as a distinct visible state rather than just buffered text
 - 🟡 Output buffers and flush points:
   - which instructions append to the main buffer vs write a “temporary line” vs “system line”
   - `PRINTFLUSH` behavior (what is flushed, and whether it forces redraw)
   - newline behavior (what counts as a line break for display and for later retrieval)
   - alignment and layout behaviors used by typical scripts (`PRINTC`, right-align flags, fixed-width assumptions if any)
   - display width and wrapping/clipping rules (half-width vs full-width, combining marks/surrogates, and how line breaks are computed)
-- 🟡 Output skipping contracts:
-  - define “print-like” vs “non-print-like” built-ins for skip modes (e.g. `SKIPDISP` / message-skip)
-  - whether skipped output instructions still evaluate arguments / cause side effects (baseline rule lives in `agents.md`)
-- 🟡 Buttons and choice presentation:
-  - how button labels are rendered (plain vs FORM vs HTML)
-  - mapping from printed “button ids” to what input returns
-  - rules for duplicated ids and ordering when multiple buttons are printed
-- 🟡 Output history / buffer-introspection built-ins:
-  - `GETLINESTR` contract (what it returns, indexing, and whether temporary/system lines are included)
-  - interaction between history retrieval and buffering/flush (when output becomes observable to getters)
+- ✅ Output skipping baseline:
+  - `SKIPDISP` suppresses output producers at the producer side rather than merely hiding already-produced output
+  - reaching input while `SKIPDISP`-driven skipping is active is an error boundary, not a hidden auto-input path
+  - default “skipped means no evaluation / no side effects” rule is centralized in `agents.md`; document only built-in exceptions
+- ✅ Buttons as output objects:
+  - button regions are part of visible output before later waits consume them
+  - HTML history export preserves button vs nonbutton regions
+- ✅ Buttons and choice presentation baseline:
+  - button labels vs accepted values are separated explicitly
+  - duplicated accepted values are observable as value-based typed acceptance, while mouse clicks still identify the clicked region
+  - older visible buttons can remain rendered after they stop being selectable because the active generation advanced
+- ✅ Output history / buffer-introspection layer split:
+  - display-row getter vs logical-line getter vs pending-buffer export are now separated explicitly
+  - `GETDISPLAYLINE` / `HTML_GETPRINTEDSTR` / `HTML_POPPRINTINGSTR` now share one cross-document model
+- ✅ Output history / buffer-introspection built-ins:
+  - `GETDISPLAYLINE` vs `HTML_GETPRINTEDSTR` vs `HTML_POPPRINTINGSTR` layer split is specified
+  - retained-row/logical-line boundaries and excluded layers are specified
+- ✅ `DRAWLINE` helper string expansion:
+  - `GETLINESTR` returns the width-fitted line string for an arbitrary pattern using the same host-width rule as runtime `DRAWLINE` expansion
+- ✅ HTML-island model and redraw coupling:
+  - `HTML_PRINT_ISLAND*` accumulation / clear / exclusion from normal getters and counters are specified
+  - `REDRAW` / `CURRENTREDRAW` are tied to repaint scheduling rather than stored output state
+
+Where described today:
+
+- ✅ `output-flow.md` (shared output-state model, temporary lines, button generations, island model, redraw/readback boundaries)
+- ✅ `html-output.md` (logical line vs display lines for HTML rendering)
+- ✅ `builtins-reference.md` (individual producer/readback entries for the shared output/readback surface)
+- ✅ `system-flow.md` (temporary-line-dependent reprompt paths)
 
 ### 11.2 Input model (console)
 

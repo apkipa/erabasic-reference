@@ -1,5 +1,5 @@
 **Summary**
-- Like `WAIT`, but stops “message skip” from auto-advancing past the wait.
+- Like `WAIT`, but stops `MesSkip` from auto-advancing past the wait.
 
 **Tags**
 - io
@@ -11,7 +11,8 @@
 - None.
 
 **Semantics**
-- Waits for Enter/click, and stops “message skip” from auto-advancing past the wait.
+- Observable visibility rule: by the time the instruction has put the console into its wait state, any pending print-buffer content from the current execution pass has already been materialized to retained normal output, so the current output is visible to the user.
+- Then waits for Enter/click, and stops `MesSkip` from auto-advancing past the wait.
 - See also: `input-flow.md` (shared wait-state lifecycle and `MesSkip` auto-advance model).
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).

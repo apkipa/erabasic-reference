@@ -1,5 +1,5 @@
 **Summary**
-- Returns the HTML-formatted representation of a previously displayed **logical output line**.
+- Returns the HTML-formatted representation of one currently visible **logical output line** in the normal output area.
 
 **Tags**
 - io
@@ -7,37 +7,38 @@
 **Syntax**
 - `HTML_GETPRINTEDSTR(<lineNo>)`
 
-**Arguments**
-- `<lineNo>` (optional, int; default `0`): index from the end of the logical-line log.
-  - `0` = the most recent logical output line.
-  - `1` = the second most recent logical output line.
-  - And so on.
-
 **Signatures / argument rules**
 - Signature: `string HTML_GETPRINTEDSTR(int lineNo = 0)`.
 - `<lineNo>` is evaluated as an integer expression.
 
+**Arguments**
+- `<lineNo>` (optional, int; default `0`): zero-based index from the newest visible logical line backward.
+  - `0` = the most recent currently visible logical output line.
+  - `1` = the second most recent currently visible logical output line.
+  - And so on.
+
 **Semantics**
-- Interprets `<lineNo>` as a non-negative index into the current display log’s **logical lines**, counted from the end:
-  - `HTML_GETPRINTEDSTR(0)` returns the most recently produced logical output line.
-- Returns `""` if the requested line does not exist.
-- The returned HTML is a normalized representation of the displayed line:
-  - It always wraps the line in `<p align='...'><nobr> ... </nobr></p>`.
-  - It uses `<br>` between display-wrapped lines within the same logical line.
-  - Button segments are represented with `<button ...>` / `<nonbutton ...>` tags (including `title` and `pos` when present).
-  - Inline images and shapes are represented by their tag-like alt text (e.g. `<img ...>` / `<shape ...>`).
+- Interprets `<lineNo>` as a non-negative index into the current visible **logical-line** history of the normal output area.
+- Returns `""` if the requested logical line does not exist.
+- The returned HTML is a normalized representation of that visible logical line:
+  - it always wraps the line in `<p align='...'><nobr> ... </nobr></p>`,
+  - it uses `<br>` between display rows that belong to the same logical line,
+  - button segments are represented with `<button ...>` / `<nonbutton ...>` tags (including `title` and `pos` when present),
+  - inline images and shapes are represented by their tag-like alt text (for example `<img ...>` / `<shape ...>`),
   - `<div ...>` sub-area elements are omitted.
 - This function does not modify the display.
+- Layer boundary:
+  - pending buffered output is not included,
+  - the `HTML_PRINT_ISLAND` layer is not included,
+  - while a temporary line remains visible, it can be returned here like any other visible logical line.
 
 **Errors & validation**
-- If `<lineNo> < 0`, this is a runtime error.
+- Runtime error if `<lineNo> < 0`.
 
 **Examples**
 ```erabasic
 PRINTL "Hello"
 PRINTL "World"
-
-; Gets the most recent logical line (the "World" line)
 S = HTML_GETPRINTEDSTR(0)
 ```
 

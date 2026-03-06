@@ -12,6 +12,7 @@
 
 **Semantics**
 - Same button-matching and default rules as `BINPUTS`.
+- Clicking a selectable button can satisfy this wait by itself; when `<mouse> != 0`, the same extra mouse side channels as `BINPUTS` / `INPUTS` are also written.
 - Exact one-input rule:
   - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
   - Each submitted segment is normally truncated to its first character.

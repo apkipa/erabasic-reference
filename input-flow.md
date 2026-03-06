@@ -113,14 +113,20 @@ Practical reading rule:
 
 ### 3.2 Mouse-click completion path
 
-When a wait enables mouse completion and the user completes input by clicking a selectable button:
+For non-primitive value waits, clicking a selectable **normal-output button** can submit that button's string/value as input.
+
+Shared properties of this path:
 
 - the engine uses the **mouse-click completion path**,
-- the clicked button contributes one submitted string/value,
+- the clicked normal-output button contributes one submitted string/value,
 - that submission is treated as a single segment,
 - the keyboard-only debug-command interception and input-expansion transform do not run on this path.
 
-This path is also where mouse side-channel metadata is written for `INPUT` / `INPUTS` / `TINPUT*` / `BINPUT*` families; see the corresponding built-in entries for exact `RESULT*` slots.
+Important boundary distinctions:
+
+- This path is about **normal-output button regions** embedded in the ordinary output model; it is not the same as the separate `CBG` button-map layer.
+- For `INPUT` / `INPUTS` / `INPUTANY`-style value waits, clickable normal-output buttons can satisfy the wait even when the instruction did not request the extra mouse side-channel mode.
+- The optional `mouse` argument on `INPUT` / `INPUTS` / `TINPUT*` / `BINPUT*` families mainly controls whether the UI also writes the extra mouse side-channel metadata; see the corresponding built-in entries for exact `RESULT*` slots.
 
 On this host, a right-click completion path can also request `MesSkip`, so one mouse completion can both satisfy the current wait and enable immediate skip-driven continuation of later waits in the same handling pass.
 

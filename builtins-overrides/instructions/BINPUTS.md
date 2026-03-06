@@ -9,12 +9,16 @@
 
 **Arguments**
 - `<default>` (optional, string expression): default string used only when the submitted text is empty.
-- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based completion and the same mouse side channels as `INPUTS`.
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable button can still satisfy `BINPUTS` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 
 **Semantics**
 - Ensures the current output is drawn before waiting (flushes any pending buffer and forces a refresh).
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
+- Selectable-button scope:
+  - only buttons in the current active button generation are eligible for typed/button matching,
+  - older retained buttons may remain visible in output but are not accepted once the active generation has advanced.
 - If there is no selectable button available:
   - If `<default>` is omitted: runtime error.
   - Otherwise: immediately accepts `<default>` (writes it to `RESULTS`) and returns without waiting.
@@ -37,8 +41,8 @@
       - `RESULTS` if `<mouse> == 0`
       - `RESULTS_ARRAY[1]` if `<mouse> != 0`
     - The input string is not echoed.
-- Mouse side channels:
-  - When `<mouse> != 0` and the input is completed via a mouse click, the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` side channels as `INPUTS` are written (see `INPUT`).
+- Mouse side channels when `<mouse> != 0`:
+  - When the input is completed via a mouse click, the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` side channels as `INPUTS` are written (see `INPUT`).
 - Output skipping (`SKIPDISP`):
   - Same interaction as `INPUTS` (runtime error).
 

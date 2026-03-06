@@ -11,11 +11,13 @@
 
 **Arguments**
 - `<defaultFormString>` (optional): FORM/formatted string expression used as the default string. If omitted, there is no default.
-- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input.
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable **normal-output button** can still submit its string as `INPUTS` even when this argument is omitted or `0`.
 - `<canSkip>` (optional, any): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
 
 **Semantics**
 - Enters a string-input UI wait.
+- Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one input string on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - If `<defaultFormString>` is provided, it is evaluated to a string and used as the default when the input is empty and the request is not running a timer.
 - On successful completion:
@@ -33,7 +35,7 @@
 - Note: if `<canSkip>` is present, `<mouse>` must also be present (it is read in the `MesSkip` no-wait path).
 - Note: if `<canSkip>` is present and `MesSkip` is true at runtime, `<defaultFormString>` must be present.
   - If it is omitted, the engine throws a runtime error when taking the `MesSkip` no-wait path.
-- Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
+- Mouse side channels when `<mouse> != 0`: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 - Output skipping interaction is the same as `INPUT`.
 
 **Errors & validation**

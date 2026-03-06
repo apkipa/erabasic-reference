@@ -7,22 +7,28 @@
 **Syntax**
 - `HTML_POPPRINTINGSTR()`
 
-**Arguments**
-- None.
-
 **Signatures / argument rules**
 - Signature: `string HTML_POPPRINTINGSTR()`.
 
+**Arguments**
+- None.
+
 **Semantics**
-- If the engine output is disabled or the print buffer is empty, returns `""`.
+- If output is disabled or the pending print buffer is empty, returns `""`.
 - Otherwise:
-  - Flushes the current print buffer into display-line structures **without displaying them**.
-  - Clears the print buffer.
-  - Converts the flushed content to an HTML string and returns it.
+  - converts the current pending print buffer into the same internal display-line structures that normal flushing would use,
+  - clears the pending print buffer,
+  - returns the converted content as HTML,
+  - does **not** append that content to the visible normal output area.
 - The returned HTML:
-  - uses `<br>` between display-wrapped lines within the flushed buffer
-  - does **not** include `<p ...>` or `<nobr>` wrappers (so it does not reflect `ALIGNMENT`).
-  - omits `<div ...>` sub-area elements
+  - preserves structured button/nonbutton regions,
+  - uses `<br>` between internal display-row breaks within the flushed buffer,
+  - does **not** include outer `<p ...>` / `<nobr>` wrappers, so `ALIGNMENT` is not reflected,
+  - omits `<div ...>` sub-area elements.
+- Layer boundary:
+  - this reads the pending print buffer,
+  - it does not read committed visible history,
+  - it does not read the `HTML_PRINT_ISLAND` layer.
 
 **Errors & validation**
 - None.
@@ -30,9 +36,9 @@
 **Examples**
 ```erabasic
 PRINT "A"
-PRINT "B"
+PRINTBUTTON "[B]", "B"
 S = HTML_POPPRINTINGSTR()
-; At this point, the pending buffer is cleared and nothing was displayed.
+; The buffer is now cleared and nothing was added to visible output.
 ```
 
 **Progress state**

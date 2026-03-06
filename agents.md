@@ -40,6 +40,35 @@ Rule of thumb:
 - If a behavior matches a stable external spec (e.g. a .NET formatting API), it is OK to reference that external spec directly (example: “equivalent to `Int64.ToString(format)`”).
 - Do **not** justify behavior by pointing at internal call chains or internal helper names (e.g. “because `SomeInternalClass.SomeMethod()` does X”).
 
+## Topic completion discipline
+
+Do not describe a topic as `complete`, `done`, or `reimplementation-grade` unless **all major submodels within that topic** have been checked and brought to the same standard.
+
+Guardrails:
+- Do **not** treat “the main path is documented” as equivalent to “the whole topic is complete”.
+- If a topic includes multiple layers/subsystems (for example: normal output, temporary lines, island layers, readback APIs, or button objects), explicitly verify each layer before claiming completion.
+- If one important submodel is still only partially specified, describe the **whole topic** as partial, even if the main path is already strong.
+- When a shared topic mentions a built-in family as part of the contract surface, re-check the corresponding built-in entries before calling the topic complete.
+- If `coverage.md` still marks the relevant surface as `🟡`, do not claim the topic is complete unless you also update `coverage.md` and can justify the status change.
+
+## Mandatory self-review before claiming reimplementation grade
+
+Before claiming that a topic or built-in group is reimplementation-grade, run an explicit self-check against the questions below.
+
+Checklist:
+- **Surface inventory**: Have all major layers / submodels / related built-in surfaces been enumerated?
+- **Positive definition**: For each important submodel, did the docs explain how it works, not merely what it is excluded from?
+- **Boundary triggers**: Are entry / exit / visibility / overwrite / deletion / persistence triggers stated as concrete rules?
+- **Getter / helper classification**: Are helper APIs and getters grouped under the correct state model, rather than inferred from name similarity?
+- **Cross-doc sync**: If a shared topic relies on certain built-ins, were those built-in entries updated to the same precision level?
+- **Coverage sync**: Does `coverage.md` still expose any major unresolved hole for this exact surface?
+- **Reader burden**: Would an independent implementer still need to guess any important branch or lifecycle step? If yes, the topic is not done.
+
+When reporting status after such a review, explicitly distinguish:
+- what is complete,
+- what remains partial,
+- and whether the overall topic is therefore still partial or can genuinely be called complete.
+
 ## Public contract fidelity
 
 When a type, method, helper surface, or signature is part of the externally observable contract, prefer preserving it rather than paraphrasing it away.

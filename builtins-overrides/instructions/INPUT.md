@@ -9,14 +9,16 @@
 
 **Arguments**
 - `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
-- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input (e.g. selecting buttons can fill the input).
-  - `0`: accepted value is written to `RESULT`.
-  - Note: mouse mode does not change where the accepted integer is stored on the normal wait path (it is still stored into `RESULT`).
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable **normal-output button** can still submit its value as `INPUT` even when this argument is omitted or `0`.
+  - If non-zero, the UI additionally writes the mouse side-channel metadata described below.
+  - `0`: accepted integer values on the normal completion path are written to `RESULT`.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 - `<extra>` (optional, int): accepted by the argument parser but ignored by the runtime (not read/evaluated).
 
 **Semantics**
 - Enters an integer-input UI wait.
+- Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one input value on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
 - On successful completion:
@@ -36,8 +38,8 @@
       - `RESULT` if `<mouse> == 0`
       - `RESULT_ARRAY[1]` if `<mouse> != 0`
     - The input string is not echoed (because the UI wait is skipped entirely).
-- Mouse-enabled input side channels (UI behavior):
-  - If mouse input is enabled and the user completes input via a mouse click, the UI also writes metadata into:
+- Mouse side channels (UI behavior when `<mouse> != 0`):
+  - If the instruction requested mouse side-channel mode and the user completes input via a mouse click, the UI also writes metadata into:
     - `RESULT_ARRAY[1]`: mouse button (`1`=left, `2`=right, `3`=middle).
     - `RESULT_ARRAY[2]`: a modifier-key bitfield (Shift=`2^16`, Ctrl=`2^17`, Alt=`2^18`).
     - `RESULTS_ARRAY[1]`: the clicked button’s string (if any).
@@ -46,7 +48,7 @@
 
 #### Mapped “button color” (`RESULT:3`) from `<img srcm='...'>`
 
-When a click completes mouse-enabled input, the UI computes `RESULT:3` as follows:
+When a click completes input **and** `<mouse> != 0`, the UI computes `RESULT:3` as follows:
 
 - If the clicked button contains at least one HTML `<img ...>` segment, take the **last** `<img ...>` in that button.
 - If that `<img>` has a `srcm` mapping sprite that exists and is loaded:

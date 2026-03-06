@@ -14,7 +14,11 @@
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Waits for a key **without** ending the logical output line (see `PRINT`).
+- `PRINTN` appends its text to the pending print buffer, then materializes the current buffered content to retained normal output, then waits for a key **without** ending the logical line.
+- Observable consequence:
+  - the current content becomes part of retained normal output before the wait,
+  - but the next later flush is still merged into that same logical line rather than starting a new one.
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped before execution.
 
 **Errors & validation**
 - Argument parsing/type-checking errors follow the underlying argument mode for this variant.

@@ -1,5 +1,5 @@
 **Summary**
-- Prints an HTML string into the “HTML island” layer, which is not tied to the normal scrollback/logical line list.
+- Appends HTML-rendered rows into the separate `HTML_PRINT_ISLAND` layer rather than the normal output/log model.
 
 **Tags**
 - io
@@ -10,17 +10,28 @@
 **Arguments**
 - `<html>` (string): HTML string (see `html-output.md`).
 - `<ignored>` (optional, int): compatibility-only argument.
-  - If provided, it must be a valid `int` expression (it is parsed and type-checked).
-  - The value is ignored by `HTML_PRINT_ISLAND` and is not evaluated during execution.
+  - If provided, it must parse/type-check as an `int` expression.
+  - Its value is ignored at runtime.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
-- Evaluates `<html>` to a string and appends the rendered HTML output into a separate “island” layer.
-- The island layer is not counted by `LINECOUNT` and is not removed by `CLEARLINE`.
-- The island layer is drawn independently of the normal log:
-  - It does not scroll with the log.
-  - It is drawn from the top of the window, with each appended “logical line” placed on successive rows.
-- Note: `<div ...>...</div>` sub-areas are not rendered in the island layer.
+- Evaluates `<html>` to a string and parses it with the same HTML mini-language used by `HTML_PRINT`.
+- Appends the resulting display rows to the retained `HTML_PRINT_ISLAND` layer in order.
+  - `<br>` and literal `\n` create separate appended island rows.
+  - Automatic wrapping can also create additional appended island rows.
+- Layer boundary:
+  - the island layer is not part of the normal display-line array,
+  - it is not counted by `LINECOUNT`,
+  - it is not removed by `CLEARLINE`,
+  - it is not returned by `GETDISPLAYLINE` or `HTML_GETPRINTEDSTR`.
+- Painting model:
+  - island rows are painted from the top of the window downward,
+  - they do not scroll together with the normal backlog.
+- Repaint timing:
+  - this instruction updates island-layer state immediately,
+  - but it does not itself force an immediate repaint,
+  - so the changed island content becomes visible on the next repaint allowed/forced by the redraw schedule.
+- `<div ...>` sub-area elements are not rendered in the island layer.
 - Use `HTML_PRINT_ISLAND_CLEAR` to clear the island layer.
 
 **Errors & validation**
@@ -29,7 +40,7 @@
 
 **Examples**
 ```erabasic
-HTML_PRINT_ISLAND "<div width='300px' height='30px' color='#202020'><font color='white'>Status</font></div>"
+HTML_PRINT_ISLAND "<font color='white'>Status</font><br>HP: 10"
 ```
 
 **Progress state**

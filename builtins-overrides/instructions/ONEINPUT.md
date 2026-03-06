@@ -13,7 +13,9 @@
 - Same as `INPUT`.
 
 **Semantics**
-- Like `INPUT` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
+- Like `INPUT`, but sets `OneInput = true` on the input request.
+- The same ordinary normal-output-button click path still exists here: clicking a selectable **normal-output button** can submit one value even when the extra mouse side-channel mode was not requested.
+- When `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
 - Exact one-input rule:
   - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
   - Each submitted segment is normally truncated to its first character.

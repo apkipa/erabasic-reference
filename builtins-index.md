@@ -1,6 +1,6 @@
 # EraBasic Built-ins Index (by tag)
 
-Generated on `2026-03-06`.
+Generated on `2026-03-07`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `builtins-index.md` by hand.
@@ -136,10 +136,23 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`PRINTDATAW`](builtins-reference.md#printdataw-instruction) (instruction)
 - [`STRDATA`](builtins-reference.md#strdata-instruction) (instruction)
 
+## debug
+
+- [`DEBUGCLEAR`](builtins-reference.md#debugclear-instruction) (instruction)
+- [`DEBUGPRINT`](builtins-reference.md#debugprint-instruction) (instruction)
+- [`DEBUGPRINTFORM`](builtins-reference.md#debugprintform-instruction) (instruction)
+- [`DEBUGPRINTFORML`](builtins-reference.md#debugprintforml-instruction) (instruction)
+- [`DEBUGPRINTL`](builtins-reference.md#debugprintl-instruction) (instruction)
+
 ## error-handling
 
 - [`CATCH`](builtins-reference.md#catch-instruction) (instruction)
 - [`ENDCATCH`](builtins-reference.md#endcatch-instruction) (instruction)
+
+## files
+
+- [`GCREATEFROMFILE`](builtins-reference.md#gcreatefromfile-expression-function) (method)
+- [`OUTPUTLOG`](builtins-reference.md#outputlog-expression-function) (method)
 
 ## formatting
 
@@ -150,6 +163,41 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`ENDFUNC`](builtins-reference.md#endfunc-instruction) (instruction)
 - [`FUNC`](builtins-reference.md#func-instruction) (instruction)
 
+## graphics
+
+- [`CBGCLEAR`](builtins-reference.md#cbgclear-expression-function) (method)
+- [`CBGCLEARBUTTON`](builtins-reference.md#cbgclearbutton-expression-function) (method)
+- [`CBGREMOVEBMAP`](builtins-reference.md#cbgremovebmap-expression-function) (method)
+- [`CBGREMOVERANGE`](builtins-reference.md#cbgremoverange-expression-function) (method)
+- [`CBGSETBMAPG`](builtins-reference.md#cbgsetbmapg-expression-function) (method)
+- [`CBGSETBUTTONSPRITE`](builtins-reference.md#cbgsetbuttonsprite-expression-function) (method)
+- [`CBGSETG`](builtins-reference.md#cbgsetg-expression-function) (method)
+- [`CBGSETSPRITE`](builtins-reference.md#cbgsetsprite-expression-function) (method)
+- [`GCREATE`](builtins-reference.md#gcreate-expression-function) (method)
+- [`GCREATED`](builtins-reference.md#gcreated-expression-function) (method)
+- [`GCREATEFROMFILE`](builtins-reference.md#gcreatefromfile-expression-function) (method)
+- [`GDISPOSE`](builtins-reference.md#gdispose-expression-function) (method)
+- [`GDRAWLINE`](builtins-reference.md#gdrawline-expression-function) (method)
+- [`GHEIGHT`](builtins-reference.md#gheight-expression-function) (method)
+- [`GWIDTH`](builtins-reference.md#gwidth-expression-function) (method)
+- [`SPRITECREATE`](builtins-reference.md#spritecreate-expression-function) (method)
+- [`SPRITECREATED`](builtins-reference.md#spritecreated-expression-function) (method)
+- [`SPRITEDISPOSE`](builtins-reference.md#spritedispose-expression-function) (method)
+- [`SPRITEDISPOSEALL`](builtins-reference.md#spritedisposeall-expression-function) (method)
+- [`SPRITEGETCOLOR`](builtins-reference.md#spritegetcolor-expression-function) (method)
+- [`SPRITEHEIGHT`](builtins-reference.md#spriteheight-expression-function) (method)
+- [`SPRITEMOVE`](builtins-reference.md#spritemove-expression-function) (method)
+- [`SPRITEPOSX`](builtins-reference.md#spriteposx-expression-function) (method)
+- [`SPRITEPOSY`](builtins-reference.md#spriteposy-expression-function) (method)
+- [`SPRITESETPOS`](builtins-reference.md#spritesetpos-expression-function) (method)
+- [`SPRITEWIDTH`](builtins-reference.md#spritewidth-expression-function) (method)
+
+## input
+
+- [`MOUSEB`](builtins-reference.md#mouseb-expression-function) (method)
+- [`MOUSEX`](builtins-reference.md#mousex-expression-function) (method)
+- [`MOUSEY`](builtins-reference.md#mousey-expression-function) (method)
+
 ## io
 
 - [`BAR`](builtins-reference.md#bar-instruction) (instruction)
@@ -158,6 +206,11 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`BINPUTS`](builtins-reference.md#binputs-instruction) (instruction)
 - [`CLEARLINE`](builtins-reference.md#clearline-instruction) (instruction)
 - [`CUPCHECK`](builtins-reference.md#cupcheck-instruction) (instruction)
+- [`DEBUGCLEAR`](builtins-reference.md#debugclear-instruction) (instruction)
+- [`DEBUGPRINT`](builtins-reference.md#debugprint-instruction) (instruction)
+- [`DEBUGPRINTFORM`](builtins-reference.md#debugprintform-instruction) (instruction)
+- [`DEBUGPRINTFORML`](builtins-reference.md#debugprintforml-instruction) (instruction)
+- [`DEBUGPRINTL`](builtins-reference.md#debugprintl-instruction) (instruction)
 - [`DRAWLINE`](builtins-reference.md#drawline-instruction) (instruction)
 - [`FORCEWAIT`](builtins-reference.md#forcewait-instruction) (instruction)
 - [`HTML_PRINT`](builtins-reference.md#html_print-instruction) (instruction)
@@ -286,11 +339,14 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`WAIT`](builtins-reference.md#wait-instruction) (instruction)
 - [`WAITANYKEY`](builtins-reference.md#waitanykey-instruction) (instruction)
 - [`BARSTR`](builtins-reference.md#barstr-expression-function) (method)
+- [`GETDISPLAYLINE`](builtins-reference.md#getdisplayline-expression-function) (method)
+- [`GETLINESTR`](builtins-reference.md#getlinestr-expression-function) (method)
 - [`HTML_GETPRINTEDSTR`](builtins-reference.md#html_getprintedstr-expression-function) (method)
 - [`HTML_POPPRINTINGSTR`](builtins-reference.md#html_popprintingstr-expression-function) (method)
 - [`HTML_STRINGLEN`](builtins-reference.md#html_stringlen-expression-function) (method)
 - [`HTML_STRINGLINES`](builtins-reference.md#html_stringlines-expression-function) (method)
 - [`HTML_SUBSTRING`](builtins-reference.md#html_substring-expression-function) (method)
+- [`OUTPUTLOG`](builtins-reference.md#outputlog-expression-function) (method)
 
 ## math
 
@@ -328,6 +384,18 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`REMOVEBGIMAGE`](builtins-reference.md#removebgimage-instruction) (instruction)
 - [`SETBGIMAGE`](builtins-reference.md#setbgimage-instruction) (instruction)
+- [`CBGSETSPRITE`](builtins-reference.md#cbgsetsprite-expression-function) (method)
+- [`SPRITECREATE`](builtins-reference.md#spritecreate-expression-function) (method)
+- [`SPRITECREATED`](builtins-reference.md#spritecreated-expression-function) (method)
+- [`SPRITEDISPOSE`](builtins-reference.md#spritedispose-expression-function) (method)
+- [`SPRITEDISPOSEALL`](builtins-reference.md#spritedisposeall-expression-function) (method)
+- [`SPRITEGETCOLOR`](builtins-reference.md#spritegetcolor-expression-function) (method)
+- [`SPRITEHEIGHT`](builtins-reference.md#spriteheight-expression-function) (method)
+- [`SPRITEMOVE`](builtins-reference.md#spritemove-expression-function) (method)
+- [`SPRITEPOSX`](builtins-reference.md#spriteposx-expression-function) (method)
+- [`SPRITEPOSY`](builtins-reference.md#spriteposy-expression-function) (method)
+- [`SPRITESETPOS`](builtins-reference.md#spritesetpos-expression-function) (method)
+- [`SPRITEWIDTH`](builtins-reference.md#spritewidth-expression-function) (method)
 
 ## runtime
 
@@ -366,6 +434,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`ENCODETOUNI`](builtins-reference.md#encodetouni-instruction) (instruction)
 - [`HTML_TAGSPLIT`](builtins-reference.md#html_tagsplit-instruction) (instruction)
+- [`GETLINESTR`](builtins-reference.md#getlinestr-expression-function) (method)
 - [`HTML_ESCAPE`](builtins-reference.md#html_escape-expression-function) (method)
 - [`HTML_TOPLAINTEXT`](builtins-reference.md#html_toplaintext-expression-function) (method)
 
@@ -439,11 +508,24 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`TOOLTIP_SETDURATION`](builtins-reference.md#tooltip_setduration-instruction) (instruction)
 - [`TOOLTIP_SETFONT`](builtins-reference.md#tooltip_setfont-instruction) (instruction)
 - [`TOOLTIP_SETFONTSIZE`](builtins-reference.md#tooltip_setfontsize-instruction) (instruction)
+- [`CBGCLEAR`](builtins-reference.md#cbgclear-expression-function) (method)
+- [`CBGCLEARBUTTON`](builtins-reference.md#cbgclearbutton-expression-function) (method)
+- [`CBGREMOVEBMAP`](builtins-reference.md#cbgremovebmap-expression-function) (method)
+- [`CBGREMOVERANGE`](builtins-reference.md#cbgremoverange-expression-function) (method)
+- [`CBGSETBMAPG`](builtins-reference.md#cbgsetbmapg-expression-function) (method)
+- [`CBGSETBUTTONSPRITE`](builtins-reference.md#cbgsetbuttonsprite-expression-function) (method)
+- [`CBGSETG`](builtins-reference.md#cbgsetg-expression-function) (method)
+- [`CBGSETSPRITE`](builtins-reference.md#cbgsetsprite-expression-function) (method)
 - [`CHKFONT`](builtins-reference.md#chkfont-expression-function) (method)
 - [`COLOR_FROMNAME`](builtins-reference.md#color_fromname-expression-function) (method)
 - [`COLOR_FROMRGB`](builtins-reference.md#color_fromrgb-expression-function) (method)
 - [`CURRENTALIGN`](builtins-reference.md#currentalign-expression-function) (method)
 - [`CURRENTREDRAW`](builtins-reference.md#currentredraw-expression-function) (method)
+- [`GCREATE`](builtins-reference.md#gcreate-expression-function) (method)
+- [`GCREATED`](builtins-reference.md#gcreated-expression-function) (method)
+- [`GCREATEFROMFILE`](builtins-reference.md#gcreatefromfile-expression-function) (method)
+- [`GDISPOSE`](builtins-reference.md#gdispose-expression-function) (method)
+- [`GDRAWLINE`](builtins-reference.md#gdrawline-expression-function) (method)
 - [`GETBGCOLOR`](builtins-reference.md#getbgcolor-expression-function) (method)
 - [`GETCOLOR`](builtins-reference.md#getcolor-expression-function) (method)
 - [`GETDEFBGCOLOR`](builtins-reference.md#getdefbgcolor-expression-function) (method)
@@ -451,8 +533,24 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`GETFOCUSCOLOR`](builtins-reference.md#getfocuscolor-expression-function) (method)
 - [`GETFONT`](builtins-reference.md#getfont-expression-function) (method)
 - [`GETSTYLE`](builtins-reference.md#getstyle-expression-function) (method)
+- [`GHEIGHT`](builtins-reference.md#gheight-expression-function) (method)
+- [`GWIDTH`](builtins-reference.md#gwidth-expression-function) (method)
 - [`MESSKIP`](builtins-reference.md#messkip-expression-function) (method)
+- [`MOUSEB`](builtins-reference.md#mouseb-expression-function) (method)
 - [`MOUSESKIP`](builtins-reference.md#mouseskip-expression-function) (method)
+- [`MOUSEX`](builtins-reference.md#mousex-expression-function) (method)
+- [`MOUSEY`](builtins-reference.md#mousey-expression-function) (method)
+- [`SPRITECREATE`](builtins-reference.md#spritecreate-expression-function) (method)
+- [`SPRITECREATED`](builtins-reference.md#spritecreated-expression-function) (method)
+- [`SPRITEDISPOSE`](builtins-reference.md#spritedispose-expression-function) (method)
+- [`SPRITEDISPOSEALL`](builtins-reference.md#spritedisposeall-expression-function) (method)
+- [`SPRITEGETCOLOR`](builtins-reference.md#spritegetcolor-expression-function) (method)
+- [`SPRITEHEIGHT`](builtins-reference.md#spriteheight-expression-function) (method)
+- [`SPRITEMOVE`](builtins-reference.md#spritemove-expression-function) (method)
+- [`SPRITEPOSX`](builtins-reference.md#spriteposx-expression-function) (method)
+- [`SPRITEPOSY`](builtins-reference.md#spriteposy-expression-function) (method)
+- [`SPRITESETPOS`](builtins-reference.md#spritesetpos-expression-function) (method)
+- [`SPRITEWIDTH`](builtins-reference.md#spritewidth-expression-function) (method)
 
 ## variables
 

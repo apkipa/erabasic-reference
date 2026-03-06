@@ -1,6 +1,5 @@
 **Summary**
-- Prints a clickable button with a script-provided input value.
-- Unlike automatic button conversion (e.g. `[0] ...` inside normal `PRINT` output), this instruction forces the output segment to be a button.
+- Appends a clickable button region to the current output.
 
 **Tags**
 - io
@@ -9,20 +8,27 @@
 - `PRINTBUTTON <text>, <buttonValue>`
 
 **Arguments**
-- `<text>` (string): button label.
-- `<buttonValue>`: expression whose runtime type is either:
-  - integer (button produces that integer as input), or
-  - string (button produces that string as input; useful with `INPUTS`).
+- `<text>` (string expression): label shown in the output.
+- `<buttonValue>` (int or string expression): value associated with the button.
+  - Integer values are accepted by integer button waits (`BINPUT` / `ONEBINPUT`).
+  - String values are accepted by string button waits (`BINPUTS` / `ONEBINPUTS`).
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Uses the current text style for output (and honors `SETCOLOR` color).
 - Evaluates `<text>` to a string, then removes any newline characters (`'\n'`) from it.
 - If the resulting label is empty, this instruction produces no output segment (no button is created).
-- Appends one button segment to the print buffer:
-  - If `<buttonValue>` is an integer, the button produces that integer when clicked.
-  - If `<buttonValue>` is a string, the button produces that string when clicked.
-- This instruction does **not** add a newline and does not flush by itself (it behaves like other non-`...L` print-family commands).
+- Appends one button region to the pending print buffer:
+  - if `<buttonValue>` is an integer, the button’s input value is that integer,
+  - if `<buttonValue>` is a string, the button’s input value is that string.
+- This instruction does **not** add a newline and does not flush by itself.
+- Selectability lifecycle:
+  - after the containing output becomes retained, the button can be shown by the normal output model,
+  - later button waits only accept buttons in the current active selectable generation,
+  - so an older retained button may remain visible but no longer be selectable.
+- Output/readback boundary:
+  - `GETDISPLAYLINE` later sees only the rendered label text,
+  - `HTML_GETPRINTEDSTR` / `HTML_POPPRINTINGSTR` preserve button structure as `<button ...>` markup.
 
 **Errors & validation**
 - Argument type/count errors follow the normal expression argument rules.

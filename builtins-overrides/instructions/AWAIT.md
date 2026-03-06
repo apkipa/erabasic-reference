@@ -14,10 +14,11 @@
   - Otherwise must satisfy `0 <= timeMs <= 10000`.
 
 **Semantics**
-- Forces a redraw, sets an internal “sleep” state, processes UI events, and then:
-  - if `timeMs > 0`, sleeps for `timeMs` milliseconds
-  - otherwise returns immediately after event processing
-- Does not assign `RESULT`/`RESULTS`.
+- Forces a repaint, sets an internal “sleep” state, processes UI events, and then:
+  - if `timeMs > 0`, sleeps for `timeMs` milliseconds,
+  - otherwise returns immediately after event processing.
+- This is a redraw/UI-yield primitive, not a normal input wait and not a normal output producer.
+- It does not assign `RESULT`/`RESULTS`.
 - This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
 
 **Errors & validation**

@@ -1,5 +1,5 @@
 **Summary**
-- Prints a **temporary single line** that is intended to be overwritten by the next printed line.
+- Prints a **temporary single line** that is overwritten by the next later visible normal line append.
 
 **Tags**
 - io
@@ -12,18 +12,24 @@
 - `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
 
 **Semantics**
-- Evaluates `<formString>` to a string and prints it as a temporary line.
-- A “temporary line” has a special overwrite behavior:
-  - When the engine later adds a new display line, if the current last display line is temporary, it is deleted first; the new line then takes its place.
-  - As a result, repeated `REUSELASTLINE` calls typically “update” a single line (useful for progress/timer displays).
-- If the resulting string is empty, the current console implementation prints nothing (and therefore does not overwrite an existing line).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
+- If ordinary buffered output is currently pending, that buffered content is flushed first as normal visible output.
+- Evaluates `<formString>` to a string and, if the result is non-empty, appends it as a **temporary visible line**.
+- Temporary-line behavior:
+  - while it remains visible, it occupies a normal visible logical-line slot,
+  - the next operation that appends a new normal visible display line removes the trailing temporary line first,
+  - repeated `REUSELASTLINE` calls therefore replace one another instead of accumulating.
+- If the resulting string is empty, this instruction prints nothing.
+  - In that empty-result case, it does not clear or replace an already-visible temporary line.
 
 **Errors & validation**
 - None.
 
 **Examples**
-- `REUSELASTLINE Now loading...`
-- `REUSELASTLINE %TIME%`
+```erabasic
+REUSELASTLINE "Now loading..."
+REUSELASTLINE %TIME%
+```
 
 **Progress state**
 - complete

@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)
 
-Generated from engine source on `2026-03-06`.
+Generated from engine source on `2026-03-07`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `appendix/tooling/builtins-reference-engine.md` by hand.
@@ -552,10 +552,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - `PRINT;X` prints `X` (no leading whitespace in the argument).
 
 **Semantics**
-- Output is appended to the engine’s **print buffer** (it is not necessarily flushed to the UI immediately).
+- Output is appended to the engine’s **pending print buffer**; see `output-flow.md` for the shared layer model.
+- Appending buffered `PRINT*` output does **not** immediately create a visible display-line entry.
 - If output skipping is active (`SKIPDISP`):
-  - These instructions are skipped before execution by the interpreter.
-  - Arguments are not evaluated and there are no side effects.
+  - these instructions are skipped before execution by the interpreter,
+  - arguments are not evaluated and there are no side effects.
 - Argument/evaluation modes by base variant (before suffix letters):
   - `PRINT*` (raw): uses the raw literal remainder-of-line (not an expression).
   - `PRINTS*`: evaluates one string expression.
@@ -563,24 +564,28 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
   - `PRINTFORM*`: parses its argument as a FORM/formatted string at load/parse time, then evaluates it at runtime.
   - `PRINTFORMS*`: evaluates one string expression to obtain a format-string source, then parses and evaluates it as a FORM string at runtime (see below).
 - Suffix letters and their meaning (parser order is important):
-  - `C` / `LC` (cell output): after building the output string, outputs a fixed-width cell:
+  - `C` / `LC` (cell output): after building the output string, outputs a fixed-width cell.
     - `...C` uses right alignment, `...LC` uses left alignment.
     - This is **not** the same as the newline suffix `L`; for example, `PRINTLC` means “left-aligned cell”, not “PRINTL + C”.
     - Cell formatting rules are defined by the console implementation; see `PRINTC` / `PRINTLC`.
     - Cell variants do not use the `...L / ...W / ...N` newline/wait handling; they only append a cell to the buffer.
   - `K` (kana conversion): applies kana conversion as configured by `FORCEKANA`.
-  - `D` (ignore SETCOLOR color): ignores `SETCOLOR`’s *color* for this output (font name/style still apply).
-  - `L` (newline): after printing, flushes the current buffer and appends a newline.
-  - `W` (wait): like `L`, then waits for a key.
-  - `N` (wait without ending the logical line): prints without ending the logical line, then flushes and waits like `W`.
-    - The *next* flushed output will be merged onto the same logical line.
+  - `D` (ignore `SETCOLOR` color): ignores `SETCOLOR`’s *color* for this output (font name/style still apply).
+  - `L` (line end): after printing, flushes the current buffer as visible output and ends the logical line.
+  - `W` (line end + wait): like `L`, then waits for a key.
+  - `N` (flush + wait without line end): flushes current buffered content to visible output, then waits **without** ending the logical line.
+    - the next later flush is merged into the same logical line.
 - FORM-at-runtime behavior (`PRINTFORMS*`):
-  - Evaluates the string expression to `src`.
-  - Normalizes escapes (the same escape-handling used by FORM strings).
-  - Parses `src` as a FORM string up to end-of-line, then evaluates it and prints the result.
+  - evaluates the string expression to `src`,
+  - normalizes escapes using the FORM escape rules,
+  - parses `src` as a FORM string up to end-of-line,
+  - evaluates it and prints the result.
 - `PRINT` itself:
-  - Uses the raw literal argument as the output string.
-  - Treats the output as ending a logical line (even though it does not insert a newline by itself).
+  - uses the raw literal argument as the output string,
+  - appends it with `lineEnd = true`, so when the buffer is later flushed it belongs to a logical line that ends at that point.
+- Buffer/temporary-line boundary:
+  - appending `PRINT*` content to the pending print buffer does not by itself remove a trailing temporary line,
+  - the temporary line is only replaced when later visible output is actually appended.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3900,8 +3905,7 @@ ENDDATA
 
 ## PRINTBUTTON (instruction)
 **Summary**
-- Prints a clickable button with a script-provided input value.
-- Unlike automatic button conversion (e.g. `[0] ...` inside normal `PRINT` output), this instruction forces the output segment to be a button.
+- Appends a clickable button region to the current output.
 
 **Metadata**
 - Arg spec: `SP_BUTTON` (see #argument-spec-sp_button)
@@ -3911,20 +3915,27 @@ ENDDATA
 - `PRINTBUTTON <text>, <buttonValue>`
 
 **Arguments**
-- `<text>` (string): button label.
-- `<buttonValue>`: expression whose runtime type is either:
-  - integer (button produces that integer as input), or
-  - string (button produces that string as input; useful with `INPUTS`).
+- `<text>` (string expression): label shown in the output.
+- `<buttonValue>` (int or string expression): value associated with the button.
+  - Integer values are accepted by integer button waits (`BINPUT` / `ONEBINPUT`).
+  - String values are accepted by string button waits (`BINPUTS` / `ONEBINPUTS`).
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - Uses the current text style for output (and honors `SETCOLOR` color).
 - Evaluates `<text>` to a string, then removes any newline characters (`'\n'`) from it.
 - If the resulting label is empty, this instruction produces no output segment (no button is created).
-- Appends one button segment to the print buffer:
-  - If `<buttonValue>` is an integer, the button produces that integer when clicked.
-  - If `<buttonValue>` is a string, the button produces that string when clicked.
-- This instruction does **not** add a newline and does not flush by itself (it behaves like other non-`...L` print-family commands).
+- Appends one button region to the pending print buffer:
+  - if `<buttonValue>` is an integer, the button’s input value is that integer,
+  - if `<buttonValue>` is a string, the button’s input value is that string.
+- This instruction does **not** add a newline and does not flush by itself.
+- Selectability lifecycle:
+  - after the containing output becomes retained, the button can be shown by the normal output model,
+  - later button waits only accept buttons in the current active selectable generation,
+  - so an older retained button may remain visible but no longer be selectable.
+- Output/readback boundary:
+  - `GETDISPLAYLINE` later sees only the rendered label text,
+  - `HTML_GETPRINTEDSTR` / `HTML_POPPRINTINGSTR` preserve button structure as `<button ...>` markup.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = true`
@@ -4475,19 +4486,22 @@ PRINT_PALAM TARGET
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
-- The engine prints a precomputed “draw line” string and then ends the line.
+- The engine appends the precomputed default draw-line string to the current pending print buffer and then ends the line.
 - Pattern source:
-  - The base pattern comes from config `DrawLineString` (default `"-"`).
-- The engine precomputes an expanded line string from `DrawLineString` on initialization.
-- Expansion algorithm:
-  - Uses the UI’s drawable width (in pixels) as the target, and measures display width using the default font metrics.
-  - Builds a string by repeating the pattern string until its measured display width is at least the target width.
-  - Then trims one character at a time from the end until the measured width is at most the target width.
-  - Returns the resulting string.
+  - the base pattern comes from config `DrawLineString` (default `"-"`),
+  - the runtime precomputes a width-fitted expanded string from that pattern during initialization.
+- Width-fitting rule:
+  - repeat the pattern until the measured display width reaches or exceeds the current drawable width,
+  - then trim one character at a time from the end until the measured width is less than or equal to the drawable width.
 - Rendering:
-  - The line is printed using regular style regardless of the current font style.
-  - The engine then ends the line (flushes the buffer and refreshes the display).
-- Important: `DRAWLINE` does not automatically flush existing buffered output *before* printing the line. If you need the line to start at the left edge, end the current logical line first (e.g. `PRINTL`) before calling `DRAWLINE`.
+  - the line text is printed using regular font style regardless of the current font style,
+  - the instruction then ends the line and refreshes the display.
+- Important boundary behavior:
+  - `DRAWLINE` does **not** automatically flush earlier buffered output before appending the line string,
+  - so if buffered text already exists, the draw-line string is appended to that same pending line and the combined result is what gets committed when the line is ended.
+- Related helpers:
+  - `GETLINESTR(pattern)` exposes the same width-fitting algorithm for an arbitrary pattern string,
+  - `DRAWLINEFORM` uses the same expansion rule for its runtime string argument.
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintBar()`
   - `exm.Console.NewLine()`
@@ -4646,7 +4660,8 @@ PRINTFORML {X}  ; 125
 - None.
 
 **Semantics**
-- Enters a UI wait state for an Enter-style key/click.
+- Observable visibility rule: by the time the instruction has put the console into its wait state, any pending print-buffer content from the current execution pass has already been materialized to retained normal output, so the current output is visible to the user.
+- Then enters an Enter-style confirmation wait. On this host, that wait can be satisfied by Enter and by the same left/right-click UI path used for ordinary `WAIT` continuation.
 - See also: `input-flow.md` (shared wait-state lifecycle and `MesSkip` auto-advance model).
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -4678,14 +4693,16 @@ PRINTFORML {X}  ; 125
 
 **Arguments**
 - `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
-- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input (e.g. selecting buttons can fill the input).
-  - `0`: accepted value is written to `RESULT`.
-  - Note: mouse mode does not change where the accepted integer is stored on the normal wait path (it is still stored into `RESULT`).
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable **normal-output button** can still submit its value as `INPUT` even when this argument is omitted or `0`.
+  - If non-zero, the UI additionally writes the mouse side-channel metadata described below.
+  - `0`: accepted integer values on the normal completion path are written to `RESULT`.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 - `<extra>` (optional, int): accepted by the argument parser but ignored by the runtime (not read/evaluated).
 
 **Semantics**
 - Enters an integer-input UI wait.
+- Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one input value on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
 - On successful completion:
@@ -4705,8 +4722,8 @@ PRINTFORML {X}  ; 125
       - `RESULT` if `<mouse> == 0`
       - `RESULT_ARRAY[1]` if `<mouse> != 0`
     - The input string is not echoed (because the UI wait is skipped entirely).
-- Mouse-enabled input side channels (UI behavior):
-  - If mouse input is enabled and the user completes input via a mouse click, the UI also writes metadata into:
+- Mouse side channels (UI behavior when `<mouse> != 0`):
+  - If the instruction requested mouse side-channel mode and the user completes input via a mouse click, the UI also writes metadata into:
     - `RESULT_ARRAY[1]`: mouse button (`1`=left, `2`=right, `3`=middle).
     - `RESULT_ARRAY[2]`: a modifier-key bitfield (Shift=`2^16`, Ctrl=`2^17`, Alt=`2^18`).
     - `RESULTS_ARRAY[1]`: the clicked button’s string (if any).
@@ -4715,7 +4732,7 @@ PRINTFORML {X}  ; 125
 
 #### Mapped “button color” (`RESULT:3`) from `<img srcm='...'>`
 
-When a click completes mouse-enabled input, the UI computes `RESULT:3` as follows:
+When a click completes input **and** `<mouse> != 0`, the UI computes `RESULT:3` as follows:
 
 - If the clicked button contains at least one HTML `<img ...>` segment, take the **last** `<img ...>` in that button.
 - If that `<img>` has a `srcm` mapping sprite that exists and is loaded:
@@ -4771,11 +4788,13 @@ Compatibility notes:
 
 **Arguments**
 - `<defaultFormString>` (optional): FORM/formatted string expression used as the default string. If omitted, there is no default.
-- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based input.
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable **normal-output button** can still submit its string as `INPUTS` even when this argument is omitted or `0`.
 - `<canSkip>` (optional, any): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
 
 **Semantics**
 - Enters a string-input UI wait.
+- Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one input string on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - If `<defaultFormString>` is provided, it is evaluated to a string and used as the default when the input is empty and the request is not running a timer.
 - On successful completion:
@@ -4793,7 +4812,7 @@ Compatibility notes:
 - Note: if `<canSkip>` is present, `<mouse>` must also be present (it is read in the `MesSkip` no-wait path).
 - Note: if `<canSkip>` is present and `MesSkip` is true at runtime, `<defaultFormString>` must be present.
   - If it is omitted, the engine throws a runtime error when taking the `MesSkip` no-wait path.
-- Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
+- Mouse side channels when `<mouse> != 0`: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 - Output skipping interaction is the same as `INPUT`.
 - Engine-extracted notes (key operations):
   - `exm.Console.Window.ApplyTextBoxChanges()`
@@ -4832,11 +4851,13 @@ Compatibility notes:
 - `<default>` (int): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
-- `<mouse>` (optional, int; default `0`): enables mouse input when equal to `1`.
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable **normal-output button** can still submit its value as `TINPUT` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Semantics**
 - Enters an integer-input UI wait with a timer of `<timeMs>` milliseconds (a default is always present for timed input).
+- Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one input value on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, timed completion model, segment draining/discard rules, and `MesSkip` interaction).
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
@@ -4847,7 +4868,7 @@ Compatibility notes:
     - `RESULT` if `<mouse> == 0`
     - `RESULT_ARRAY[1]` if `<mouse> != 0`
   - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
-- Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
+- Mouse side channels when `<mouse> != 0`: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 - Output skipping interaction is the same as `INPUT`.
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
@@ -4880,11 +4901,13 @@ Compatibility notes:
 - `<default>` (string): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time.
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): timeout message.
-- `<mouse>` (optional, int; default `0`): enables mouse input when equal to `1`.
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable **normal-output button** can still submit its string as `TINPUTS` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Semantics**
 - Same model as `TINPUT`, but stores into `RESULTS` (string) rather than `RESULT` (int).
+- Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one input string on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, timed completion model, segment draining/discard rules, and `MesSkip` interaction).
 - `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
@@ -4892,7 +4915,7 @@ Compatibility notes:
     - `RESULTS` if `<mouse> == 0`
     - `RESULTS_ARRAY[1]` if `<mouse> != 0`
   - In that no-wait path, the input string is not echoed (because the UI wait is skipped entirely).
-- Mouse-enabled input side channels: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
+- Mouse side channels when `<mouse> != 0`: see `INPUT` (the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` behaviors apply).
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -4923,7 +4946,10 @@ Compatibility notes:
 - Same as `TINPUT`.
 
 **Semantics**
-- Same as `TINPUT`, but with “one input” mode enabled:
+- Same as `TINPUT`, but with “one input” mode enabled.
+- The same ordinary normal-output-button click path still exists here: clicking a selectable **normal-output button** can submit one value even when the extra mouse side-channel mode was not requested.
+- When `<mouse> != 0`, the same extra mouse side channels as `TINPUT` / `INPUT` are also written.
+- Exact one-input rule:
   - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
   - Each submitted segment is normally truncated to its first character.
   - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
@@ -4957,7 +4983,10 @@ Compatibility notes:
 - Same as `TINPUTS`.
 
 **Semantics**
-- Same as `TINPUTS`, but with “one input” mode enabled:
+- Same as `TINPUTS`, but with “one input” mode enabled.
+- The same ordinary normal-output-button click path still exists here: clicking a selectable **normal-output button** can submit one string even when the extra mouse side-channel mode was not requested.
+- When `<mouse> != 0`, the same extra mouse side channels as `TINPUTS` / `INPUTS` are also written.
+- Exact one-input rule:
   - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
   - Each submitted segment is normally truncated to its first character.
   - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
@@ -4994,9 +5023,10 @@ Compatibility notes:
   - non-zero: disallow input and simply wait `<timeMs>` (or be affected by macro/skip behavior).
 
 **Semantics**
-- If `<mode> == 0`: waits for Enter/click, but times out after `<timeMs>`.
+- Observable visibility rule: by the time the instruction has put the console into its timed wait state, any pending print-buffer content from the current execution pass has already been materialized to retained normal output, so the current output is visible to the user.
 - See also: `input-flow.md` (shared wait-state lifecycle, timed completion model, and `MesSkip` auto-advance behavior).
-- If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
+- If `<mode> == 0`: enters the same Enter/click confirmation wait surface as `WAIT`, but with a time limit.
+- If `<mode> != 0`: enters a no-input timed wait. Ordinary textbox/button submission does not satisfy it; execution continues only when the time limit expires or when skip/macro-driven continuation bypasses the wait under the shared non-value-wait rules.
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -5031,7 +5061,8 @@ Compatibility notes:
 - None.
 
 **Semantics**
-- Enters a UI wait state for any-key input.
+- Observable visibility rule: by the time the instruction has put the console into its wait state, any pending print-buffer content from the current execution pass has already been materialized to retained normal output, so the current output is visible to the user.
+- Then enters an any-key confirmation wait. On this host, mouse left/right click can also satisfy that wait through the same UI continuation path.
 - See also: `input-flow.md` (shared wait-state lifecycle and `MesSkip` auto-advance model).
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -5051,7 +5082,7 @@ Compatibility notes:
 
 ## FORCEWAIT (instruction)
 **Summary**
-- Like `WAIT`, but stops “message skip” from auto-advancing past the wait.
+- Like `WAIT`, but stops `MesSkip` from auto-advancing past the wait.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `WAIT_Instruction` ArgBuilder assignment)
@@ -5064,7 +5095,8 @@ Compatibility notes:
 - None.
 
 **Semantics**
-- Waits for Enter/click, and stops “message skip” from auto-advancing past the wait.
+- Observable visibility rule: by the time the instruction has put the console into its wait state, any pending print-buffer content from the current execution pass has already been materialized to retained normal output, so the current output is visible to the user.
+- Then waits for Enter/click, and stops `MesSkip` from auto-advancing past the wait.
 - See also: `input-flow.md` (shared wait-state lifecycle and `MesSkip` auto-advance model).
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -5100,7 +5132,9 @@ Compatibility notes:
 - Same as `INPUT`.
 
 **Semantics**
-- Like `INPUT` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
+- Like `INPUT`, but sets `OneInput = true` on the input request.
+- The same ordinary normal-output-button click path still exists here: clicking a selectable **normal-output button** can submit one value even when the extra mouse side-channel mode was not requested.
+- When `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
 - Exact one-input rule:
   - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
   - Each submitted segment is normally truncated to its first character.
@@ -5138,7 +5172,10 @@ Compatibility notes:
 - Same as `INPUTS`.
 
 **Semantics**
-- Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
+- Like `INPUTS`, but with “one input” mode enabled.
+- The same ordinary normal-output-button click path still exists here: clicking a selectable **normal-output button** can submit one string even when the extra mouse side-channel mode was not requested.
+- When `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
+- Exact one-input rule:
   - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
   - Each submitted segment is normally truncated to its first character.
   - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
@@ -5160,7 +5197,7 @@ Compatibility notes:
 
 ## CLEARLINE (instruction)
 **Summary**
-- Deletes the last *N logical output lines* from the console display/log.
+- Deletes the last *N logical output lines* from the current visible normal output area.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression) (inferred from `CLEARLINE_Instruction` ArgBuilder assignment)
@@ -5171,14 +5208,19 @@ Compatibility notes:
 
 **Arguments**
 - `<n>` (int): number of logical output lines to delete.
-  - The evaluated value is converted to a 32-bit signed integer by truncation (i.e. low 32 bits interpreted as signed).
+  - The evaluated value is converted to a 32-bit signed integer by truncation (low 32 bits interpreted as signed).
 
 **Semantics**
-- Evaluates `<n>` and deletes the last `n` logical output lines from the console display/log.
-- The deletion count is in **logical lines**, not raw display lines:
-  - One logical line can occupy multiple display lines (e.g. word wrapping).
-  - Deletion walks backward from the end of the display list and counts only entries marked as “logical line” boundaries; all associated display lines are removed.
+- Evaluates `<n>` and deletes the last `n` logical lines from the current visible normal output area.
+- The deletion count is in **logical lines**, not visible display rows:
+  - one logical line can occupy multiple visible display rows,
+  - deleting one logical line removes all of its visible rows.
+- If the current trailing visible line is temporary and it falls within the deleted suffix, it is deleted like any other currently visible logical line.
 - If `n <= 0`, nothing is deleted.
+- Layer boundary:
+  - this affects only the current visible normal output area,
+  - it does not clear or flush the pending print buffer,
+  - it does not affect the separate `HTML_PRINT_ISLAND` layer.
 - After deleting, the display is refreshed.
 - Engine-extracted notes (key operations):
   - `exm.Console.deleteLine(delNum)`
@@ -5186,7 +5228,7 @@ Compatibility notes:
 
 **Errors & validation**
 - No explicit validation in the instruction.
-- No error is raised for negative or overflowed values (after the 32-bit conversion).
+- No error is raised for negative or overflowed values after the 32-bit conversion.
 
 **Examples**
 - `CLEARLINE 1`
@@ -5199,7 +5241,7 @@ Compatibility notes:
 
 ## REUSELASTLINE (instruction)
 **Summary**
-- Prints a **temporary single line** that is intended to be overwritten by the next printed line.
+- Prints a **temporary single line** that is overwritten by the next later visible normal line append.
 
 **Metadata**
 - Arg spec: `FORM_STR_NULLABLE` (see #argument-spec-form_str_nullable) (inferred from `REUSELASTLINE_Instruction` ArgBuilder assignment)
@@ -5213,11 +5255,15 @@ Compatibility notes:
 - `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
 
 **Semantics**
-- Evaluates `<formString>` to a string and prints it as a temporary line.
-- A “temporary line” has a special overwrite behavior:
-  - When the engine later adds a new display line, if the current last display line is temporary, it is deleted first; the new line then takes its place.
-  - As a result, repeated `REUSELASTLINE` calls typically “update” a single line (useful for progress/timer displays).
-- If the resulting string is empty, the current console implementation prints nothing (and therefore does not overwrite an existing line).
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
+- If ordinary buffered output is currently pending, that buffered content is flushed first as normal visible output.
+- Evaluates `<formString>` to a string and, if the result is non-empty, appends it as a **temporary visible line**.
+- Temporary-line behavior:
+  - while it remains visible, it occupies a normal visible logical-line slot,
+  - the next operation that appends a new normal visible display line removes the trailing temporary line first,
+  - repeated `REUSELASTLINE` calls therefore replace one another instead of accumulating.
+- If the resulting string is empty, this instruction prints nothing.
+  - In that empty-result case, it does not clear or replace an already-visible temporary line.
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintTemporaryLine(str)`
 
@@ -5225,8 +5271,10 @@ Compatibility notes:
 - None.
 
 **Examples**
-- `REUSELASTLINE Now loading...`
-- `REUSELASTLINE %TIME%`
+```erabasic
+REUSELASTLINE "Now loading..."
+REUSELASTLINE %TIME%
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7982,7 +8030,7 @@ SPLIT "a,b,c", ",", PARTS
 
 ## REDRAW (instruction)
 **Summary**
-- Controls the console redraw mode and optionally forces an immediate redraw.
+- Controls automatic repaint scheduling for the output window and can optionally force an immediate repaint.
 
 **Metadata**
 - Arg spec: `INT_EXPRESSION` (see #argument-spec-int_expression)
@@ -7994,23 +8042,32 @@ SPLIT "a,b,c", ",", PARTS
 **Arguments**
 - `<flags>` (int expression): redraw flags.
   - Bit `0`:
-    - `0`: disable automatic redraw (`Redraw = None`)
+    - `0`: disable non-forced automatic redraw (`Redraw = None`)
     - `1`: enable normal redraw (`Redraw = Normal`)
   - Bit `1`:
-    - if set, forces an immediate redraw once (`RefreshStrings(true)`).
+    - if set, forces an immediate repaint once.
   - Other bits are ignored.
 
 **Semantics**
-- Updates the console’s redraw mode according to `<flags>`.
+- Updates the console redraw mode according to bit `0`.
+- If bit `1` is set, immediately repaints the current stored output state once.
+- This instruction affects **paint timing**, not stored output state:
+  - pending buffered output, retained normal output, and the retained HTML-island layer are not erased or rebuilt by changing redraw mode,
+  - getters such as `GETDISPLAYLINE` / `HTML_GETPRINTEDSTR` still read the current stored state even if redraw is off.
+- With redraw disabled:
+  - non-forced repaint work is suppressed while the window is at the live bottom,
+  - forced repaints still show the current stored state,
+  - backlog-mode repainting is still allowed.
+- The repaint applies to the whole output surface, including both the normal output area and the retained HTML-island layer.
 - Engine-extracted notes (key operations):
   - `exm.Console.SetRedraw(iValue)`
 
 **Errors & validation**
-- (none)
+- None.
 
 **Examples**
-- `REDRAW 0` (stop automatic redraw)
-- `REDRAW 3` (enable redraw + force immediate refresh)
+- `REDRAW 0` (stop non-forced automatic redraw)
+- `REDRAW 3` (enable redraw and force an immediate repaint)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10175,28 +10232,37 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 ## DEBUGPRINT (instruction)
 **Summary**
-- (TODO)
+- Appends raw literal text to the separate debug-output buffer.
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new DEBUGPRINT_Instruction(false, false)`
 
 **Syntax**
-- (TODO)
+- `DEBUGPRINT`
+- `DEBUGPRINT <raw text>`
+- `DEBUGPRINT;<raw text>`
 
 **Arguments**
-- (TODO)
+- `<raw text>` (optional, default `""`): raw literal text, not an expression.
 
 **Semantics**
+- Appends the raw literal text to the host's **debug-output buffer**, not to the normal output model.
+- Layer boundary:
+  - this does not add normal display lines,
+  - `GETDISPLAYLINE`, `HTML_GETPRINTEDSTR`, `HTML_POPPRINTINGSTR`, `LINECOUNT`, and `OUTPUTLOG` do not read it.
+- If debug mode is disabled, the instruction still executes but produces no visible effect.
+- This instruction is **not** skipped by output skipping (`SKIPDISP`).
+- Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugPrint(str)`
   - `exm.Console.DebugNewLine()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `DEBUGPRINT trace=`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10204,28 +10270,35 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 ## DEBUGPRINTL (instruction)
 **Summary**
-- (TODO)
+- Like `DEBUGPRINT`, but also appends a newline to the debug-output buffer.
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new DEBUGPRINT_Instruction(false, true)`
 
 **Syntax**
-- (TODO)
+- `DEBUGPRINTL`
+- `DEBUGPRINTL <raw text>`
+- `DEBUGPRINTL;<raw text>`
 
 **Arguments**
-- (TODO)
+- `<raw text>` (optional, default `""`): raw literal text, not an expression.
 
 **Semantics**
+- Same destination and isolation rules as `DEBUGPRINT`: it writes only to the separate debug-output buffer, not to the normal output model.
+- After appending the raw literal text, appends one newline to the debug-output buffer.
+- If debug mode is disabled, the instruction still executes but produces no visible effect.
+- This instruction is **not** skipped by output skipping (`SKIPDISP`).
+- Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugPrint(str)`
   - `exm.Console.DebugNewLine()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `DEBUGPRINTL init ok`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10233,28 +10306,38 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 ## DEBUGPRINTFORM (instruction)
 **Summary**
-- (TODO)
+- Appends a FORM/formatted string result to the separate debug-output buffer.
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new DEBUGPRINT_Instruction(true, false)`
 
 **Syntax**
-- (TODO)
+- `DEBUGPRINTFORM`
+- `DEBUGPRINTFORM <formString>`
 
 **Arguments**
-- (TODO)
+- `<formString>` (optional, default `""`): FORM/formatted string, parsed like `PRINTFORM*`.
 
 **Semantics**
+- Evaluates `<formString>` using the normal FORM/formatted-string rules, then appends the resulting string to the host's separate debug-output buffer.
+- Layer boundary:
+  - this does not add normal display lines,
+  - `GETDISPLAYLINE`, `HTML_GETPRINTEDSTR`, `HTML_POPPRINTINGSTR`, `LINECOUNT`, and `OUTPUTLOG` do not read it.
+- If debug mode is disabled, the formatted string is still parsed/evaluated, but the resulting text is not shown anywhere visible.
+- This instruction is **not** skipped by output skipping (`SKIPDISP`).
+- Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugPrint(str)`
   - `exm.Console.DebugNewLine()`
 
 **Errors & validation**
-- (TODO)
+- FORM parsing/evaluation errors follow the normal `PRINTFORM*` rules.
 
 **Examples**
-- (TODO)
+```erabasic
+DEBUGPRINTFORM "X={VALUE}"
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10262,28 +10345,36 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 ## DEBUGPRINTFORML (instruction)
 **Summary**
-- (TODO)
+- Like `DEBUGPRINTFORM`, but also appends a newline to the debug-output buffer.
 
 **Metadata**
 - Arg spec: (instruction-defined)
 - Implementor (registration): `new DEBUGPRINT_Instruction(true, true)`
 
 **Syntax**
-- (TODO)
+- `DEBUGPRINTFORML`
+- `DEBUGPRINTFORML <formString>`
 
 **Arguments**
-- (TODO)
+- `<formString>` (optional, default `""`): FORM/formatted string, parsed like `PRINTFORM*`.
 
 **Semantics**
+- Evaluates `<formString>` using the normal FORM/formatted-string rules, appends the resulting string to the separate debug-output buffer, then appends one newline there.
+- It does not affect the normal output model or any normal output readback helper.
+- If debug mode is disabled, the formatted string is still parsed/evaluated, but the resulting text is not shown anywhere visible.
+- This instruction is **not** skipped by output skipping (`SKIPDISP`).
+- Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugPrint(str)`
   - `exm.Console.DebugNewLine()`
 
 **Errors & validation**
-- (TODO)
+- FORM parsing/evaluation errors follow the normal `PRINTFORM*` rules.
 
 **Examples**
-- (TODO)
+```erabasic
+DEBUGPRINTFORML "phase={PHASE}"
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10291,29 +10382,31 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 ## DEBUGCLEAR (instruction)
 **Summary**
-- (TODO)
+- Clears the separate debug-output buffer.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `DEBUGCLEAR_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new DEBUGCLEAR_Instruction()`
 
 **Syntax**
-- Hint (translated, best-effort): no arguments
-- Hint (raw comment): `引数なし`
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `DEBUGCLEAR`
 
 **Arguments**
-- Builder: `VOID_ArgumentBuilder()`
+- None.
 
 **Semantics**
+- Clears the host's debug-output buffer.
+- This does not affect the normal output model, the pending print buffer, or the HTML-island layer.
+- This instruction is **not** skipped by output skipping (`SKIPDISP`).
+- Does not assign `RESULT`/`RESULTS`.
 - Engine-extracted notes (key operations):
   - `exm.Console.DebugClear()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `DEBUGCLEAR`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10600,7 +10693,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 ## HTML_PRINT (instruction)
 **Summary**
-- Prints an HTML string (Emuera’s HTML-like mini language) as console output.
+- Prints an HTML string (Emuera’s HTML-like mini language) into the normal output model.
 
 **Metadata**
 - Arg spec: `SP_HTML_PRINT` (see #argument-spec-sp_html_print) (inferred from `HTML_PRINT_Instruction` ArgBuilder assignment)
@@ -10612,37 +10705,42 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 **Arguments**
 - `<html>` (string): HTML string (see `html-output.md`).
 - `<toBuffer>` (optional, int; default `0`)
-  - `0` (default): print as a complete logical output line (implicit line end).
-  - non-zero: append the HTML output into the current print buffer (no implicit line end).
+  - `0` (default): append directly to the visible normal output area as one logical line.
+  - non-zero: append the parsed HTML segments to the pending print buffer (no immediate visible line append).
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
 - Evaluates `<html>` to a string.
   - If it is null/empty, no output is produced.
-- Interprets the string as an HTML string and renders it according to `html-output.md` (tags, entities, comments, wrapping rules).
+- Interprets the string as HTML according to `html-output.md`.
 - If `<toBuffer> = 0` (or omitted):
-  - Any pending print buffer content is flushed first (as with other “line-ending” print operations).
-  - The HTML is rendered into one logical output line (it may still occupy multiple display lines due to `<br>` or wrapping).
+  - any pending print-buffer content is flushed first as normal visible output,
+  - the HTML output is then appended directly to the visible normal output area,
+  - the entire `HTML_PRINT` call constitutes one logical line, even if it occupies multiple visible display rows because of `<br>` or wrapping.
 - If `<toBuffer> != 0`:
-  - The HTML is converted to output segments and appended into the current print buffer.
-  - `<br>` (and literal `'\n'` inside the HTML string) insert display line breaks, but no final line end is implied.
-- The output is not affected by non-HTML text style commands like `ALIGNMENT`, `SETFONT`, `SETCOLOR`, or `FONTSTYLE`; use HTML tags (`<p>`, `<font>`, `<b>`, etc.) instead.
+  - the HTML output is converted to output segments and appended to the pending print buffer,
+  - `<br>` (and literal `\n` inside the HTML string) create internal display-row breaks for the future flush,
+  - but no visible line is appended yet and no final logical-line end is implied.
+- Style boundary:
+  - non-HTML text style commands such as `ALIGNMENT`, `SETFONT`, `SETCOLOR`, or `FONTSTYLE` do not style the HTML output,
+  - use HTML tags (`<p>`, `<font>`, `<b>`, etc.) instead.
+- Layer boundary:
+  - `HTML_PRINT(..., 0)` affects the normal visible output area,
+  - `HTML_PRINT(..., nonZero)` affects only the pending print buffer until some later flush/line-end operation.
 - Engine-extracted notes (key operations):
   - `if (arg.IsConst) exm.Console.PrintHtml(arg.ConstStr, arg.ConstInt != 0)`
   - `else exm.Console.PrintHtml(arg.Str.GetStrValue(exm), arg.Opt == null ? false : arg.Opt.GetIntValue(exm) != 0)`
 
 **Errors & validation**
 - Argument type/count errors follow the normal expression argument rules.
-- Invalid HTML strings raise runtime errors (unsupported tags, invalid attributes, invalid character references, tag structure violations), except where a tag explicitly specifies a fallback-to-text behavior (e.g. unresolved `<img>` resources).
+- Invalid HTML strings raise runtime errors (unsupported tags, invalid attributes, invalid character references, or invalid tag structure), except where a tag explicitly defines fallback-to-text behavior.
 
 **Examples**
 ```erabasic
-; Prints one logical line (with HTML styling)
 HTML_PRINT "<p align='center'><b>Hello</b> <font color='red'>world</font></p>"
 ```
 
 ```erabasic
-; Appends into the current print buffer (no implicit newline)
 HTML_PRINT "<b>HP:</b> 10", 1
 PRINTL ""
 ```
@@ -11029,10 +11127,11 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
   - Otherwise must satisfy `0 <= timeMs <= 10000`.
 
 **Semantics**
-- Forces a redraw, sets an internal “sleep” state, processes UI events, and then:
-  - if `timeMs > 0`, sleeps for `timeMs` milliseconds
-  - otherwise returns immediately after event processing
-- Does not assign `RESULT`/`RESULTS`.
+- Forces a repaint, sets an internal “sleep” state, processes UI events, and then:
+  - if `timeMs > 0`, sleeps for `timeMs` milliseconds,
+  - otherwise returns immediately after event processing.
+- This is a redraw/UI-yield primitive, not a normal input wait and not a normal output producer.
+- It does not assign `RESULT`/`RESULTS`.
 - This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
 - Engine-extracted notes (key operations):
   - `exm.Console.Await((int)waittime)`
@@ -11732,10 +11831,12 @@ ENCODETOUNI "ABC"
 
 **Semantics**
 - Enters an input wait (`InputType = AnyValue`).
+- Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one value/text on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - On completion:
   - If the submitted text parses as a signed 64-bit integer, assigns it to `RESULT`.
   - Otherwise assigns the submitted text to `RESULTS`.
+  - This same rule is used when the submitted text came from a clicked normal-output button.
 - Does **not** clear the “other” result:
   - If an integer is accepted, `RESULTS` remains unchanged.
   - If a string is accepted, `RESULT` remains unchanged.
@@ -11937,13 +12038,17 @@ ENDIF
 
 **Arguments**
 - `<default>` (optional, int expression): used only when the submitted text is empty (not used for invalid integer text).
-- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based completion and the same mouse side channels as `INPUT`.
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable button can still satisfy `BINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 - Extra arguments after `<canSkip>` are accepted by the argument parser but ignored by the runtime.
 
 **Semantics**
 - Ensures the current output is drawn before waiting (flushes any pending buffer and forces a refresh).
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
+- Selectable-button scope:
+  - only buttons in the current active button generation are eligible for typed/button matching,
+  - older retained buttons may remain visible in output but are not accepted once the active generation has advanced.
 - If there is no selectable integer button available:
   - If `<default>` is omitted: runtime error.
   - Otherwise: immediately accepts `<default>` (writes it to `RESULT`) and returns without waiting.
@@ -11964,8 +12069,8 @@ ENDIF
       - `RESULT` if `<mouse> == 0`
       - `RESULT_ARRAY[1]` if `<mouse> != 0`
     - The input string is not echoed.
-- Mouse side channels:
-  - When `<mouse> != 0` and the input is completed via a mouse click, the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` side channels as `INPUT` are written (see `INPUT`).
+- Mouse side channels when `<mouse> != 0`:
+  - When the input is completed via a mouse click, the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` side channels as `INPUT` are written (see `INPUT`).
 - Output skipping (`SKIPDISP`):
   - Same interaction as `INPUT` (reaching input while output skipping is active due to `SKIPDISP` is a runtime error).
 - Engine-extracted notes (key operations):
@@ -12011,12 +12116,16 @@ PRINTFORML "picked=" + RESULT
 
 **Arguments**
 - `<default>` (optional, string expression): default string used only when the submitted text is empty.
-- `<mouse>` (optional, int; default `0`): if non-zero, enables mouse-based completion and the same mouse side channels as `INPUTS`.
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable button can still satisfy `BINPUTS` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 
 **Semantics**
 - Ensures the current output is drawn before waiting (flushes any pending buffer and forces a refresh).
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
+- Selectable-button scope:
+  - only buttons in the current active button generation are eligible for typed/button matching,
+  - older retained buttons may remain visible in output but are not accepted once the active generation has advanced.
 - If there is no selectable button available:
   - If `<default>` is omitted: runtime error.
   - Otherwise: immediately accepts `<default>` (writes it to `RESULTS`) and returns without waiting.
@@ -12039,8 +12148,8 @@ PRINTFORML "picked=" + RESULT
       - `RESULTS` if `<mouse> == 0`
       - `RESULTS_ARRAY[1]` if `<mouse> != 0`
     - The input string is not echoed.
-- Mouse side channels:
-  - When `<mouse> != 0` and the input is completed via a mouse click, the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` side channels as `INPUTS` are written (see `INPUT`).
+- Mouse side channels when `<mouse> != 0`:
+  - When the input is completed via a mouse click, the same UI-side `RESULT_ARRAY[...]` / `RESULTS_ARRAY[...]` side channels as `INPUTS` are written (see `INPUT`).
 - Output skipping (`SKIPDISP`):
   - Same interaction as `INPUTS` (runtime error).
 - Engine-extracted notes (key operations):
@@ -12092,6 +12201,7 @@ PRINTFORML "picked=" + RESULTS
 
 **Semantics**
 - Same button-matching and default rules as `BINPUT`.
+- Clicking a selectable integer button can satisfy this wait by itself; when `<mouse> != 0`, the same extra mouse side channels as `BINPUT` / `INPUT` are also written.
 - Exact one-input rule:
   - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
   - Each submitted segment is normally truncated to its first character.
@@ -12141,6 +12251,7 @@ ONEBINPUT
 
 **Semantics**
 - Same button-matching and default rules as `BINPUTS`.
+- Clicking a selectable button can satisfy this wait by itself; when `<mouse> != 0`, the same extra mouse side channels as `BINPUTS` / `INPUTS` are also written.
 - Exact one-input rule:
   - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
   - Each submitted segment is normally truncated to its first character.
@@ -12265,7 +12376,7 @@ ONEBINPUTS
 
 ## HTML_PRINT_ISLAND (instruction)
 **Summary**
-- Prints an HTML string into the “HTML island” layer, which is not tied to the normal scrollback/logical line list.
+- Appends HTML-rendered rows into the separate `HTML_PRINT_ISLAND` layer rather than the normal output/log model.
 
 **Metadata**
 - Arg spec: `SP_HTML_PRINT` (see #argument-spec-sp_html_print) (inferred from `HTML_PRINT_ISLAND_Instruction` ArgBuilder assignment)
@@ -12278,17 +12389,28 @@ ONEBINPUTS
 **Arguments**
 - `<html>` (string): HTML string (see `html-output.md`).
 - `<ignored>` (optional, int): compatibility-only argument.
-  - If provided, it must be a valid `int` expression (it is parsed and type-checked).
-  - The value is ignored by `HTML_PRINT_ISLAND` and is not evaluated during execution.
+  - If provided, it must parse/type-check as an `int` expression.
+  - Its value is ignored at runtime.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output and no evaluation).
-- Evaluates `<html>` to a string and appends the rendered HTML output into a separate “island” layer.
-- The island layer is not counted by `LINECOUNT` and is not removed by `CLEARLINE`.
-- The island layer is drawn independently of the normal log:
-  - It does not scroll with the log.
-  - It is drawn from the top of the window, with each appended “logical line” placed on successive rows.
-- Note: `<div ...>...</div>` sub-areas are not rendered in the island layer.
+- Evaluates `<html>` to a string and parses it with the same HTML mini-language used by `HTML_PRINT`.
+- Appends the resulting display rows to the retained `HTML_PRINT_ISLAND` layer in order.
+  - `<br>` and literal `\n` create separate appended island rows.
+  - Automatic wrapping can also create additional appended island rows.
+- Layer boundary:
+  - the island layer is not part of the normal display-line array,
+  - it is not counted by `LINECOUNT`,
+  - it is not removed by `CLEARLINE`,
+  - it is not returned by `GETDISPLAYLINE` or `HTML_GETPRINTEDSTR`.
+- Painting model:
+  - island rows are painted from the top of the window downward,
+  - they do not scroll together with the normal backlog.
+- Repaint timing:
+  - this instruction updates island-layer state immediately,
+  - but it does not itself force an immediate repaint,
+  - so the changed island content becomes visible on the next repaint allowed/forced by the redraw schedule.
+- `<div ...>` sub-area elements are not rendered in the island layer.
 - Use `HTML_PRINT_ISLAND_CLEAR` to clear the island layer.
 - Engine-extracted notes (key operations):
   - `exm.Console.PrintHTMLIsland(str)`
@@ -12299,7 +12421,7 @@ ONEBINPUTS
 
 **Examples**
 ```erabasic
-HTML_PRINT_ISLAND "<div width='300px' height='30px' color='#202020'><font color='white'>Status</font></div>"
+HTML_PRINT_ISLAND "<font color='white'>Status</font><br>HP: 10"
 ```
 
 **Engine references (fact-check)**
@@ -12309,7 +12431,7 @@ HTML_PRINT_ISLAND "<div width='300px' height='30px' color='#202020'><font color=
 
 ## HTML_PRINT_ISLAND_CLEAR (instruction)
 **Summary**
-- Clears all content previously added by `HTML_PRINT_ISLAND`.
+- Clears all rows currently retained in the `HTML_PRINT_ISLAND` layer.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `HTML_PRINT_ISLAND_CLEAR_Instruction` ArgBuilder assignment)
@@ -12323,8 +12445,15 @@ HTML_PRINT_ISLAND "<div width='300px' height='30px' color='#202020'><font color=
 - None.
 
 **Semantics**
-- Clears the “HTML island” layer immediately.
-- This instruction is not skipped by output skipping; it always clears the island layer.
+- Clears the retained island-layer state immediately.
+- This affects only the island layer:
+  - the normal output model is unchanged,
+  - the pending print buffer is unchanged.
+- This instruction is not skipped by output skipping; it always clears the island layer when executed.
+- Repaint timing:
+  - like `HTML_PRINT_ISLAND`, clearing changes stored state immediately,
+  - but it does not itself force an immediate repaint,
+  - so the disappearance becomes visible on the next repaint allowed/forced by the redraw schedule.
 - Engine-extracted notes (key operations):
   - `exm.Console.ClearHTMLIsland()`
 
@@ -12360,7 +12489,11 @@ HTML_PRINT_ISLAND_CLEAR
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Waits for a key **without** ending the logical output line (see `PRINT`).
+- `PRINTN` appends its text to the pending print buffer, then materializes the current buffered content to retained normal output, then waits for a key **without** ending the logical line.
+- Observable consequence:
+  - the current content becomes part of retained normal output before the wait,
+  - but the next later flush is still merged into that same logical line rather than starting a new one.
+- If output skipping is active (via `SKIPDISP`), this instruction is skipped before execution.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -13802,7 +13935,7 @@ PRINTFORML %S%
 
 ## CURRENTREDRAW (expression function)
 **Summary**
-- Reports whether the console is currently in an auto-redraw mode.
+- Reports whether non-forced automatic redraw is currently enabled.
 
 **Metadata**
 - Implementor: `new CurrentRedrawMethod()`
@@ -13816,15 +13949,19 @@ PRINTFORML %S%
 - `CURRENTREDRAW()` → `long`
 
 **Arguments**
-- (none)
+- None.
 
 **Semantics**
-- Returns `0` if redraw mode is off, otherwise returns `1`.
+- Returns `0` if redraw mode is currently off (`REDRAW` bit `0` disabled).
+- Returns `1` if redraw mode is currently on.
+- This reflects only the persistent redraw mode flag.
+  - It does not report whether a one-shot forced repaint just happened.
+  - It does not report whether stored output state exists; redraw mode and stored output state are separate concerns.
 - Engine-extracted notes (key operations):
   - `return (exm.Console.Redraw == GameView.ConsoleRedraw.None) ? 0L : 1L`
 
 **Errors & validation**
-- (none)
+- None.
 
 **Examples**
 - `isRedrawing = CURRENTREDRAW()`
@@ -16464,7 +16601,7 @@ ARRAYMSORT(A, B, C)
 
 ## GETLINESTR (expression function)
 **Summary**
-- (TODO)
+- Expands a pattern string to the current drawable width using the same width-fitting rule used by `DRAWLINE`-style output.
 
 **Metadata**
 - Implementor: `new GetLineStrMethod()`
@@ -16472,24 +16609,38 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `GETLINESTR(<pattern>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `string GETLINESTR(string pattern)`.
+- `<pattern>` is evaluated as a string expression.
 
 **Arguments**
-- (TODO)
+- `<pattern>` (string): the pattern string to expand.
 
 **Semantics**
+- Evaluates `<pattern>` to a string.
+- Returns the width-fitted line string that the runtime would use for a dynamic `DRAWLINE`-style expansion of that pattern:
+  - repeat the pattern until the measured display width reaches or exceeds the current drawable width,
+  - then trim one character at a time from the end until the measured width is less than or equal to the drawable width.
+- The result depends on the current host layout metrics (drawable width and font measurement), so its character count is **not** a stable “one visible line = N characters” value.
+- This helper does not print anything and does not modify output state.
+- Contract relation:
+  - it matches the runtime width-expansion rule used by non-constant `DRAWLINEFORM`,
+  - and it matches the already-expanded string produced for `CUSTOMDRAWLINE` / `DRAWLINE`-style line patterns.
 - Engine-extracted notes (key operations):
   - `return exm.Console.getStBar(str)`
 
 **Errors & validation**
+- Runtime error if `<pattern>` evaluates to `""`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsEmptyString.Text, Name, 1))`
 
 **Examples**
-- (TODO)
+```erabasic
+S = GETLINESTR("-=")
+PRINTL S
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16636,7 +16787,7 @@ ARRAYMSORT(A, B, C)
 
 ## HTML_GETPRINTEDSTR (expression function)
 **Summary**
-- Returns the HTML-formatted representation of a previously displayed **logical output line**.
+- Returns the HTML-formatted representation of one currently visible **logical output line** in the normal output area.
 
 **Metadata**
 - Implementor: `new HtmlGetPrintedStrMethod()`
@@ -16651,27 +16802,30 @@ ARRAYMSORT(A, B, C)
 - `<lineNo>` is evaluated as an integer expression.
 
 **Arguments**
-- `<lineNo>` (optional, int; default `0`): index from the end of the logical-line log.
-  - `0` = the most recent logical output line.
-  - `1` = the second most recent logical output line.
+- `<lineNo>` (optional, int; default `0`): zero-based index from the newest visible logical line backward.
+  - `0` = the most recent currently visible logical output line.
+  - `1` = the second most recent currently visible logical output line.
   - And so on.
 
 **Semantics**
-- Interprets `<lineNo>` as a non-negative index into the current display log’s **logical lines**, counted from the end:
-  - `HTML_GETPRINTEDSTR(0)` returns the most recently produced logical output line.
-- Returns `""` if the requested line does not exist.
-- The returned HTML is a normalized representation of the displayed line:
-  - It always wraps the line in `<p align='...'><nobr> ... </nobr></p>`.
-  - It uses `<br>` between display-wrapped lines within the same logical line.
-  - Button segments are represented with `<button ...>` / `<nonbutton ...>` tags (including `title` and `pos` when present).
-  - Inline images and shapes are represented by their tag-like alt text (e.g. `<img ...>` / `<shape ...>`).
+- Interprets `<lineNo>` as a non-negative index into the current visible **logical-line** history of the normal output area.
+- Returns `""` if the requested logical line does not exist.
+- The returned HTML is a normalized representation of that visible logical line:
+  - it always wraps the line in `<p align='...'><nobr> ... </nobr></p>`,
+  - it uses `<br>` between display rows that belong to the same logical line,
+  - button segments are represented with `<button ...>` / `<nonbutton ...>` tags (including `title` and `pos` when present),
+  - inline images and shapes are represented by their tag-like alt text (for example `<img ...>` / `<shape ...>`),
   - `<div ...>` sub-area elements are omitted.
 - This function does not modify the display.
+- Layer boundary:
+  - pending buffered output is not included,
+  - the `HTML_PRINT_ISLAND` layer is not included,
+  - while a temporary line remains visible, it can be returned here like any other visible logical line.
 - Engine-extracted notes (key operations):
   - `ConsoleDisplayLine[] dispLines = exm.Console.GetDisplayLines(lineNo)`
 
 **Errors & validation**
-- If `<lineNo> < 0`, this is a runtime error.
+- Runtime error if `<lineNo> < 0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, lineNo))`
 
@@ -16679,8 +16833,6 @@ ARRAYMSORT(A, B, C)
 ```erabasic
 PRINTL "Hello"
 PRINTL "World"
-
-; Gets the most recent logical line (the "World" line)
 S = HTML_GETPRINTEDSTR(0)
 ```
 
@@ -16707,15 +16859,21 @@ S = HTML_GETPRINTEDSTR(0)
 - None.
 
 **Semantics**
-- If the engine output is disabled or the print buffer is empty, returns `""`.
+- If output is disabled or the pending print buffer is empty, returns `""`.
 - Otherwise:
-  - Flushes the current print buffer into display-line structures **without displaying them**.
-  - Clears the print buffer.
-  - Converts the flushed content to an HTML string and returns it.
+  - converts the current pending print buffer into the same internal display-line structures that normal flushing would use,
+  - clears the pending print buffer,
+  - returns the converted content as HTML,
+  - does **not** append that content to the visible normal output area.
 - The returned HTML:
-  - uses `<br>` between display-wrapped lines within the flushed buffer
-  - does **not** include `<p ...>` or `<nobr>` wrappers (so it does not reflect `ALIGNMENT`).
-  - omits `<div ...>` sub-area elements
+  - preserves structured button/nonbutton regions,
+  - uses `<br>` between internal display-row breaks within the flushed buffer,
+  - does **not** include outer `<p ...>` / `<nobr>` wrappers, so `ALIGNMENT` is not reflected,
+  - omits `<div ...>` sub-area elements.
+- Layer boundary:
+  - this reads the pending print buffer,
+  - it does not read committed visible history,
+  - it does not read the `HTML_PRINT_ISLAND` layer.
 - Engine-extracted notes (key operations):
   - `ConsoleDisplayLine[] dispLines = exm.Console.PopDisplayingLines()`
 
@@ -16725,9 +16883,9 @@ S = HTML_GETPRINTEDSTR(0)
 **Examples**
 ```erabasic
 PRINT "A"
-PRINT "B"
+PRINTBUTTON "[B]", "B"
 S = HTML_POPPRINTINGSTR()
-; At this point, the pending buffer is cleared and nothing was displayed.
+; The buffer is now cleared and nothing was added to visible output.
 ```
 
 **Engine references (fact-check)**
@@ -16812,7 +16970,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITECREATED (expression function)
 **Summary**
-- (TODO)
+- Returns whether a created sprite currently exists under the given name.
 
 **Metadata**
 - Implementor: `new SpriteStateMethod()`
@@ -16821,23 +16979,26 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITECREATED(<spriteName>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `int SPRITECREATED(string spriteName)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
 
 **Semantics**
-- (TODO)
+- Returns `1` if a created sprite exists under `<spriteName>`.
+- Returns `0` otherwise.
+- Name matching is effectively case-insensitive for lookup/use.
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("SpriteStateMethod:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `R = SPRITECREATED("ICON")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16845,7 +17006,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITEWIDTH (expression function)
 **Summary**
-- (TODO)
+- Returns the base width of a created sprite.
 
 **Metadata**
 - Implementor: `new SpriteStateMethod()`
@@ -16854,23 +17015,26 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITEWIDTH(<spriteName>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `int SPRITEWIDTH(string spriteName)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
 
 **Semantics**
-- (TODO)
+- Returns the sprite's base width.
+- If no created sprite exists under that name, returns `0`.
+- Name matching is effectively case-insensitive for lookup/use.
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("SpriteStateMethod:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `W = SPRITEWIDTH("ICON")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16878,7 +17042,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITEHEIGHT (expression function)
 **Summary**
-- (TODO)
+- Returns the base height of a created sprite.
 
 **Metadata**
 - Implementor: `new SpriteStateMethod()`
@@ -16887,23 +17051,26 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITEHEIGHT(<spriteName>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `int SPRITEHEIGHT(string spriteName)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
 
 **Semantics**
-- (TODO)
+- Returns the sprite's base height.
+- If no created sprite exists under that name, returns `0`.
+- Name matching is effectively case-insensitive for lookup/use.
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("SpriteStateMethod:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `H = SPRITEHEIGHT("ICON")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16911,7 +17078,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITEMOVE (expression function)
 **Summary**
-- (TODO)
+- Offsets the base position of a created sprite by a relative amount.
 
 **Metadata**
 - Implementor: `new SpriteSetPosMethod()`
@@ -16920,23 +17087,32 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITEMOVE(<spriteName>, <dx>, <dy>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long), typeof(long)]`.
+- Signature: `int SPRITEMOVE(string spriteName, int dx, int dy)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
+- `<dx>`, `<dy>` (int): relative offset.
 
 **Semantics**
-- (TODO)
+- If a created sprite exists under `<spriteName>`, offsets its current base position by `(<dx>, <dy>)` and returns `1`.
+- If no created sprite exists under that name, returns `0` and does nothing.
+- Name matching is effectively case-insensitive for lookup/use.
+- Layer boundary:
+  - this changes later rendering of that sprite,
+  - but does not itself print anything or modify the normal output model.
 
 **Errors & validation**
+- Runtime error if `<dx>` or `<dy>` is outside the 32-bit signed integer range.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("SpriteStateMethod:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+```erabasic
+R = SPRITEMOVE("ICON", 8, -4)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16944,7 +17120,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITESETPOS (expression function)
 **Summary**
-- (TODO)
+- Sets the base position of a created sprite.
 
 **Metadata**
 - Implementor: `new SpriteSetPosMethod()`
@@ -16953,23 +17129,32 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITESETPOS(<spriteName>, <x>, <y>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long), typeof(long)]`.
+- Signature: `int SPRITESETPOS(string spriteName, int x, int y)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
+- `<x>`, `<y>` (int): new base position.
 
 **Semantics**
-- (TODO)
+- If a created sprite exists under `<spriteName>`, sets its base position to exactly `(<x>, <y>)` and returns `1`.
+- If no created sprite exists under that name, returns `0` and does nothing.
+- Name matching is effectively case-insensitive for lookup/use.
+- Layer boundary:
+  - this changes later rendering of that sprite,
+  - but does not itself print anything or modify the normal output model.
 
 **Errors & validation**
+- Runtime error if `<x>` or `<y>` is outside the 32-bit signed integer range.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("SpriteStateMethod:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+```erabasic
+R = SPRITESETPOS("ICON", 100, 50)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16977,7 +17162,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITEPOSX (expression function)
 **Summary**
-- (TODO)
+- Returns the current base X position of a created sprite.
 
 **Metadata**
 - Implementor: `new SpriteStateMethod()`
@@ -16986,23 +17171,26 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITEPOSX(<spriteName>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `int SPRITEPOSX(string spriteName)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
 
 **Semantics**
-- (TODO)
+- Returns the sprite's current base X position.
+- If no created sprite exists under that name, returns `0`.
+- Name matching is effectively case-insensitive for lookup/use.
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("SpriteStateMethod:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `X = SPRITEPOSX("ICON")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17010,7 +17198,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITEPOSY (expression function)
 **Summary**
-- (TODO)
+- Returns the current base Y position of a created sprite.
 
 **Metadata**
 - Implementor: `new SpriteStateMethod()`
@@ -17019,23 +17207,26 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITEPOSY(<spriteName>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `int SPRITEPOSY(string spriteName)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
 
 **Semantics**
-- (TODO)
+- Returns the sprite's current base Y position.
+- If no created sprite exists under that name, returns `0`.
+- Name matching is effectively case-insensitive for lookup/use.
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("SpriteStateMethod:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `Y = SPRITEPOSY("ICON")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17181,7 +17372,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## MOUSEX (expression function)
 **Summary**
-- (TODO)
+- Returns the current mouse X coordinate in the engine's client-coordinate system.
 
 **Metadata**
 - Implementor: `new MousePosMethod()`
@@ -17190,25 +17381,31 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `MOUSEX()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- Signature: `int MOUSEX()`.
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Returns the current mouse X coordinate relative to the client area.
+- If the main window does not currently exist, returns `0`.
+- Coordinate convention:
+  - this uses the same client-coordinate conversion used by the engine's mouse event pipeline,
+  - X is measured from the left edge.
 - Engine-extracted notes (key operations):
   - `case "MOUSEX": return exm.Console.GetMousePosition().X`
   - `case "MOUSEY": return exm.Console.GetMousePosition().Y`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("異常な名前")`
 
 **Examples**
-- (TODO)
+- `X = MOUSEX()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17216,7 +17413,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## MOUSEY (expression function)
 **Summary**
-- (TODO)
+- Returns the current mouse Y coordinate in the engine's client-coordinate system.
 
 **Metadata**
 - Implementor: `new MousePosMethod()`
@@ -17225,25 +17422,32 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `MOUSEY()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- Signature: `int MOUSEY()`.
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Returns the current mouse Y coordinate in the engine's converted client-coordinate system.
+- If the main window does not currently exist, returns `0`.
+- Coordinate convention:
+  - this is **not** the raw top-left-based window Y,
+  - it uses the engine's shared conversion `clientY - clientHeight`,
+  - so values inside the client area are typically non-positive, with the bottom edge near `0`.
 - Engine-extracted notes (key operations):
   - `case "MOUSEX": return exm.Console.GetMousePosition().X`
   - `case "MOUSEY": return exm.Console.GetMousePosition().Y`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("異常な名前")`
 
 **Examples**
-- (TODO)
+- `Y = MOUSEY()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17251,7 +17455,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## MOUSEB (expression function)
 **Summary**
-- (TODO)
+- Returns the input value of the currently pointed normal-output button, as a string.
 
 **Metadata**
 - Implementor: `new MouseButtonMethod()`
@@ -17259,15 +17463,25 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MOUSEB()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- Signature: `string MOUSEB()`.
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Recomputes the current hover state from the actual mouse position, then inspects the currently pointed **normal-output button**.
+- If the pointed output object is a button:
+  - string button → returns its string input,
+  - integer button → returns its integer input converted to decimal text.
+- Returns `""` if:
+  - no normal-output button is currently pointed,
+  - the pointed object is not a button.
+- Boundary note:
+  - this follows the normal output-button hover model,
+  - it does **not** expose CBG button-map values.
 - Engine-extracted notes (key operations):
   - `bool b = exm.Console.AlwaysRefresh`
   - `Point point = exm.Console.Window.MainPicBox.PointToClient(Control.MousePosition)`
@@ -17282,10 +17496,10 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
   - `return exm.Console.PointingSring.Inputs`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `S = MOUSEB()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17389,7 +17603,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## GCREATED (expression function)
 **Summary**
-- (TODO)
+- Returns whether a graphics surface currently exists at the given graphics ID.
 
 **Metadata**
 - Implementor: `new GraphicsStateMethod()`
@@ -17398,24 +17612,27 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GCREATED(<graphicsId>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- Signature: `int GCREATED(int graphicsId)`.
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): graphics-surface ID.
 
 **Semantics**
-- (TODO)
+- Returns `1` if the referenced graphics surface is currently created.
+- Returns `0` otherwise.
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `R = GCREATED(GID)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17423,7 +17640,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## GWIDTH (expression function)
 **Summary**
-- (TODO)
+- Returns the width of a created graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsStateMethod()`
@@ -17432,24 +17649,27 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GWIDTH(<graphicsId>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- Signature: `int GWIDTH(int graphicsId)`.
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): graphics-surface ID.
 
 **Semantics**
-- (TODO)
+- Returns the width of the referenced graphics surface.
+- If the graphics surface is not currently created, returns `0`.
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `W = GWIDTH(GID)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17457,7 +17677,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## GHEIGHT (expression function)
 **Summary**
-- (TODO)
+- Returns the height of a created graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsStateMethod()`
@@ -17466,24 +17686,27 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GHEIGHT(<graphicsId>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- Signature: `int GHEIGHT(int graphicsId)`.
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): graphics-surface ID.
 
 **Semantics**
-- (TODO)
+- Returns the height of the referenced graphics surface.
+- If the graphics surface is not currently created, returns `0`.
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `H = GHEIGHT(GID)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17524,7 +17747,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITEGETCOLOR (expression function)
 **Summary**
-- (TODO)
+- Returns the ARGB color of one pixel in a sprite.
 
 **Metadata**
 - Implementor: `new SpriteGetColorMethod()`
@@ -17532,22 +17755,30 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `SPRITEGETCOLOR(<spriteName>, <x>, <y>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long), typeof(long)]`.
+- Signature: `int SPRITEGETCOLOR(string spriteName, int x, int y)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
+- `<x>`, `<y>` (int): pixel coordinates in the sprite's base size.
 
 **Semantics**
-- (TODO)
+- If the sprite exists and the point lies inside `0 <= x < width`, `0 <= y < height`, returns that pixel's ARGB value as an unsigned 32-bit pattern carried in an integer return value.
+- Returns `-1` if:
+  - the sprite does not exist,
+  - the sprite is not created,
+  - the point is outside the sprite bounds.
+- Name matching is effectively case-insensitive for lookup/use.
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `<x>` or `<y>` is outside the 32-bit signed integer range.
 
 **Examples**
-- (TODO)
+```erabasic
+C = SPRITEGETCOLOR("ICON", 0, 0)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17555,7 +17786,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## GCREATE (expression function)
 **Summary**
-- (TODO)
+- Creates a graphics surface with the given size at an existing graphics ID handle.
 
 **Metadata**
 - Implementor: `new GraphicsCreateMethod()`
@@ -17564,18 +17795,30 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GCREATE(<graphicsId>, <width>, <height>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
+- Signature: `int GCREATE(int graphicsId, int width, int height)`.
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): graphics-surface ID.
+- `<width>` (int): surface width.
+- `<height>` (int): surface height.
 
 **Semantics**
-- (TODO)
+- Creates a new graphics surface at `<graphicsId>`.
+- Success/failure boundary:
+  - if that graphics ID already refers to a created graphics surface, returns `0` and does nothing,
+  - otherwise creates the surface and returns `1`.
+- The created surface is initially blank and becomes available to later `G*` drawing operations.
+- Layer boundary:
+  - this does not itself print anything or modify the normal output model.
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
+- Runtime error if `<width> <= 0` or `<height> <= 0`.
+- Runtime error if `<width>` or `<height>` exceeds the graphics engine's maximum supported image size.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Width", width))`
@@ -17584,7 +17827,9 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
   - `throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Height", AbstractImage.MAX_IMAGESIZE, height))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = GCREATE(GID, 640, 480)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17592,7 +17837,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## GCREATEFROMFILE (expression function)
 **Summary**
-- (TODO)
+- Creates a graphics surface by loading an image file.
 
 **Metadata**
 - Implementor: `new GraphicsCreateFromFileMethod()`
@@ -17601,24 +17846,42 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GCREATEFROMFILE(<graphicsId>, <filename>)`
+- `GCREATEFROMFILE(<graphicsId>, <filename>, <isRelative>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 2.
+- `int GCREATEFROMFILE(int graphicsId, string filename)`
+- `int GCREATEFROMFILE(int graphicsId, string filename, int isRelative)`
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): destination graphics-surface ID.
+- `<filename>` (string): image path text.
+- `<isRelative>` (optional, int; default `0`): path-base mode for non-rooted paths.
+  - `0`: resolve non-rooted paths relative to `ContentDir`.
+  - non-zero: use the given non-rooted path text as-is.
 
 **Semantics**
-- (TODO)
+- Loads an image file and creates the graphics surface at `<graphicsId>` from that image.
+- Success/failure boundary:
+  - if that graphics ID already refers to a created graphics surface, returns `0` and does nothing,
+  - if the file does not exist, is not loadable as an image, or exceeds the graphics engine's maximum supported image size, returns `0`,
+  - otherwise creates the graphics surface from the loaded image and returns `1`.
+- Absolute paths are used directly.
+- Layer boundary:
+  - this does not itself print anything or modify the normal output model.
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
+- Other load failures are reported by returning `0` rather than by a detailed script-visible error code.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = GCREATEFROMFILE(GID, "face.png")
+R = GCREATEFROMFILE(GID, "mods\face.png", 1)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17626,7 +17889,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## GDISPOSE (expression function)
 **Summary**
-- (TODO)
+- Disposes a created graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsDisposeMethod()`
@@ -17635,23 +17898,33 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GDISPOSE(<graphicsId>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- Signature: `int GDISPOSE(int graphicsId)`.
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): graphics-surface ID.
 
 **Semantics**
-- (TODO)
+- Disposes the graphics surface currently stored at `<graphicsId>`.
+- Success/failure boundary:
+  - if the graphics surface is not currently created, returns `0`,
+  - otherwise disposes it and returns `1`.
+- After disposal, the handle may still exist conceptually, but it no longer has a created bitmap/surface.
+- Layer boundary:
+  - this does not itself print anything or modify the normal output model.
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = GDISPOSE(GID)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17965,7 +18238,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITECREATE (expression function)
 **Summary**
-- (TODO)
+- Creates or replaces a sprite name by referencing a whole graphics surface or a rectangle crop from it.
 
 **Metadata**
 - Implementor: `new SpriteCreateMethod()`
@@ -17974,27 +18247,49 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITECREATE(<spriteName>, <graphicsId>)`
+- `SPRITECREATE(<spriteName>, <graphicsId>, <x>, <y>, <width>, <height>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }.
+- `int SPRITECREATE(string spriteName, int graphicsId)`
+- `int SPRITECREATE(string spriteName, int graphicsId, int x, int y, int width, int height)`
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name to create/update.
+- `<graphicsId>` (int): source graphics-surface ID.
+- `<x>`, `<y>`, `<width>`, `<height>` (optional, ints): source rectangle within the graphics surface.
 
 **Semantics**
-- (TODO)
+- Creates a sprite named `<spriteName>` from the source graphics surface.
+- Two-argument form:
+  - uses the entire source graphics surface.
+- Six-argument form:
+  - uses the specified source rectangle.
+- Success/failure boundary:
+  - if a created sprite already exists under `<spriteName>`, returns `0` and leaves it unchanged,
+  - if the source graphics surface is not created, returns `0`,
+  - otherwise creates/replaces the sprite and returns `1`.
+- Rectangle boundary in the six-argument form:
+  - the rectangle may extend outside the source bounds,
+  - but it must still intersect the source graphics area somewhere,
+  - otherwise the call raises a runtime error.
+- Name matching is effectively case-insensitive for lookup/use.
+- Layer boundary:
+  - creating a sprite does not itself draw it or modify the normal output model.
 
 **Errors & validation**
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
+- Runtime error if any rectangle coordinate/dimension argument is outside the 32-bit signed integer range.
+- Runtime error if the six-argument source rectangle does not intersect the source graphics area.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new CodeEE(string.Format(trerror.ImgRefOutOfRange.Text, Name))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = SPRITECREATE("ICON", GID)
+R = SPRITECREATE("ICON_CROP", GID, 10, 20, 64, 64)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18002,7 +18297,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## SPRITEDISPOSE (expression function)
 **Summary**
-- (TODO)
+- Disposes one sprite by name.
 
 **Metadata**
 - Implementor: `new SpriteDisposeMethod()`
@@ -18010,22 +18305,29 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `SPRITEDISPOSE(<spriteName>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- Signature: `int SPRITEDISPOSE(string spriteName)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name.
 
 **Semantics**
-- (TODO)
+- If a created sprite exists under `<spriteName>`, disposes it and returns `1`.
+- If no created sprite exists under that name, returns `0`.
+- Name matching is effectively case-insensitive for lookup/use.
+- Layer boundary:
+  - disposing a sprite does not itself modify the normal output model,
+  - but later rendering that depended on that sprite may stop drawing it.
 
 **Errors & validation**
-- (TODO)
+- None beyond normal string-expression evaluation.
 
 **Examples**
-- (TODO)
+```erabasic
+R = SPRITEDISPOSE("ICON")
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18033,7 +18335,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## CBGSETG (expression function)
 **Summary**
-- (TODO)
+- Adds a graphics surface to the CBG layer at a given position and depth.
 
 **Metadata**
 - Implementor: `new CBGSetGraphicsMethod()`
@@ -18042,25 +18344,40 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CBGSETG(<graphicsId>, <x>, <y>, <zDepth>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long)]`.
+- Signature: `int CBGSETG(int graphicsId, int x, int y, int zDepth)`.
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): graphics-surface ID.
+- `<x>`, `<y>` (int): CBG placement coordinates.
+- `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 
 **Semantics**
+- Wraps the referenced graphics surface as a CBG image entry and adds it to the client-background layer at `(<x>, <y>, zDepth)`.
+- Layer boundary:
+  - this affects only the CBG/background layer,
+  - it does not modify the normal output model, pending print buffer, or HTML-island layer.
+- Success/failure boundary:
+  - if the referenced graphics surface is not created or has no bitmap, returns `0` and does not add an entry,
+  - otherwise returns `1` after adding the entry.
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_SetGraphics(g, p.X, p.Y, (int)z64)`
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
+- Runtime error if `<x>` or `<y>` is outside the 32-bit signed integer range.
+- Runtime error if `<zDepth>` is outside the 32-bit signed integer range or equals `0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new CodeEE(string.Format(trerror.ArgIsOutOfRangeExcept.Text, Name, 4, z64, int.MinValue, int.MaxValue, 0))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = CBGSETG(GID, 0, 0, 10)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18068,7 +18385,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## CBGSETSPRITE (expression function)
 **Summary**
-- (TODO)
+- Adds an existing sprite to the CBG layer at a given position and depth.
 
 **Metadata**
 - Implementor: `new CBGSetCIMGMethod()`
@@ -18077,24 +18394,37 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CBGSETSPRITE(<spriteName>, <x>, <y>, <zDepth>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long), typeof(long), typeof(long)]`.
+- Signature: `int CBGSETSPRITE(string spriteName, int x, int y, int zDepth)`.
 
 **Arguments**
-- (TODO)
+- `<spriteName>` (string): sprite name to place on the CBG layer.
+- `<x>`, `<y>` (int): CBG placement coordinates.
+- `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 
 **Semantics**
+- Looks up `<spriteName>` in the sprite table and, if it exists and is created, adds that sprite to the client-background layer at `(<x>, <y>, zDepth)`.
+- Layer boundary:
+  - this affects only the CBG/background layer,
+  - it does not modify the normal output model, pending print buffer, or HTML-island layer.
+- Success/failure boundary:
+  - if the sprite does not exist or is not created, returns `0` and does not add an entry,
+  - otherwise returns `1` after adding the entry.
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.CBG_SetImage(img, p.X, p.Y, (int)z64))`
 
 **Errors & validation**
+- Runtime error if `<x>` or `<y>` is outside the 32-bit signed integer range.
+- Runtime error if `<zDepth>` is outside the 32-bit signed integer range or equals `0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsOutOfRangeExcept.Text, Name, 4, z64, int.MinValue, int.MaxValue, 0))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = CBGSETSPRITE("BG_ICON", 32, 16, 10)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18102,7 +18432,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## CBGCLEAR (expression function)
 **Summary**
-- (TODO)
+- Clears the entire CBG layer and also clears the current CBG button-hit map.
 
 **Metadata**
 - Implementor: `new CBGClearMethod()`
@@ -18111,23 +18441,29 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CBGCLEAR()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- Signature: `int CBGCLEAR()`.
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Removes all currently registered CBG entries from the client-background layer, including ordinary CBG images and CBG button sprites.
+- Also clears the current CBG button-hit map and resets current CBG button selection state.
+- Layer boundary:
+  - this affects only the CBG/background layer,
+  - it does not modify the normal output model, pending print buffer, or HTML-island layer.
+- Return value: always returns `1`.
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_Clear()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `R = CBGCLEAR()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18135,7 +18471,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## CBGCLEARBUTTON (expression function)
 **Summary**
-- (TODO)
+- Removes all CBG button sprites and also clears the current CBG button-hit map.
 
 **Metadata**
 - Implementor: `new CBGClearButtonMethod()`
@@ -18144,23 +18480,32 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CBGCLEARBUTTON()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- Signature: `int CBGCLEARBUTTON()`.
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Removes every currently registered **CBG button sprite** from the client-background (`CBG`) layer.
+- Also clears the current CBG button-hit map and resets current CBG button selection state.
+- Layer boundary:
+  - this affects only the CBG/background-button layer,
+  - it does not modify the normal output model, pending print buffer, or HTML-island layer.
+- Observable consequence:
+  - any CBG buttons disappear,
+  - CBG mouse hit-testing no longer finds those buttons.
+- Return value: always returns `1`.
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_ClearButton()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `R = CBGCLEARBUTTON()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18168,7 +18513,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## CBGREMOVERANGE (expression function)
 **Summary**
-- (TODO)
+- Removes CBG entries whose `zDepth` lies within an inclusive range.
 
 **Metadata**
 - Implementor: `new CBGRemoveRangeMethod()`
@@ -18176,23 +18521,36 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `CBGREMOVERANGE(<zMin>, <zMax>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
+- Signature: `int CBGREMOVERANGE(int zMin, int zMax)`.
+- Both arguments are evaluated as integer expressions, then converted to 32-bit signed integers by truncation.
 
 **Arguments**
-- (TODO)
+- `<zMin>` (int): inclusive lower bound of the removal range after 32-bit conversion.
+- `<zMax>` (int): inclusive upper bound of the removal range after 32-bit conversion.
 
 **Semantics**
+- Removes every current CBG entry whose `zDepth` satisfies `zMin <= zDepth <= zMax`.
+- The reserved internal depth-`0` dummy entry is never removed.
+- If `zMin > zMax`, nothing is removed.
+- This operation does **not** clear the current CBG button-hit map.
+- Observable consequence:
+  - removed CBG images/button sprites disappear,
+  - but the hit map and current CBG selection machinery remain installed unless changed separately.
+- Layer boundary:
+  - this affects only the CBG/background layer,
+  - it does not modify the normal output model, pending print buffer, or HTML-island layer.
+- Return value: always returns `1`.
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_ClearRange((int)x64, (int)y64)`
 
 **Errors & validation**
-- (TODO)
+- No explicit range validation is performed after the 32-bit conversion.
 
 **Examples**
-- (TODO)
+- `R = CBGREMOVERANGE(10, 20)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18200,7 +18558,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## CBGREMOVEBMAP (expression function)
 **Summary**
-- (TODO)
+- Clears the current CBG button-hit map without removing the CBG button sprites themselves.
 
 **Metadata**
 - Implementor: `new CBGRemoveBMapMethod()`
@@ -18209,23 +18567,32 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CBGREMOVEBMAP()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- Signature: `int CBGREMOVEBMAP()`.
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Clears the current CBG button-hit map and resets current CBG button selection state.
+- It does **not** remove existing CBG button sprites from the visual CBG layer.
+- Observable consequence:
+  - previously placed CBG button sprites can remain visible,
+  - but CBG hit-testing/hover selection no longer finds them until a new button-hit map is installed.
+- Layer boundary:
+  - this affects only the CBG/background-button interaction state,
+  - it does not modify the normal output model, pending print buffer, or HTML-island layer.
+- Return value: always returns `1`.
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_ClearBMap()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `R = CBGREMOVEBMAP()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18233,7 +18600,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## CBGSETBMAPG (expression function)
 **Summary**
-- (TODO)
+- Installs a graphics surface as the current CBG button-hit map.
 
 **Metadata**
 - Implementor: `new CBGSetBMapGMethod()`
@@ -18242,24 +18609,43 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CBGSETBMAPG(<graphicsId>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- Signature: `int CBGSETBMAPG(int graphicsId)`.
+- `<graphicsId>` is evaluated as an integer expression.
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): graphics-surface ID used as the CBG hit-test map.
 
 **Semantics**
+- Selects one graphics surface as the current **CBG button-hit map**.
+- The map is used for CBG mouse hit-testing by reading the pixel under the mouse:
+  - if the pixel alpha is `255`, its low 24-bit RGB value becomes the selected CBG button value,
+  - otherwise no CBG button is considered selected at that point.
+- Layer boundary:
+  - this does not add/remove normal output,
+  - it only changes CBG-side hit-testing state.
+- Success/failure boundary:
+  - if the referenced graphics surface is not created (or has no bitmap), the method returns `0` and leaves the current hit map unchanged,
+  - otherwise the method returns `1`.
+- Compatibility quirk:
+  - the public return value does **not** report whether the installed map is actually different from the previous one,
+  - so re-setting the same already-installed map still returns `1`.
+- On successful installation, current CBG hover/selection state is reset.
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_SetButtonMap(g)`
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = CBGSETBMAPG(GID)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18267,7 +18653,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## CBGSETBUTTONSPRITE (expression function)
 **Summary**
-- (TODO)
+- Adds one CBG button sprite entry, optionally with a hover/selected sprite and tooltip text.
 
 **Metadata**
 - Implementor: `new CBGSETButtonSpriteMethod()`
@@ -18276,26 +18662,54 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CBGSETBUTTONSPRITE(<buttonValue>, <normalSprite>, <hoverSprite>, <x>, <y>, <zDepth>)`
+- `CBGSETBUTTONSPRITE(<buttonValue>, <normalSprite>, <hoverSprite>, <x>, <y>, <zDepth>, <tooltip>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.String }; OmitStart = 6.
+- Signature: `int CBGSETBUTTONSPRITE(int buttonValue, string normalSprite, string hoverSprite, int x, int y, int zDepth, string tooltip = omitted)`.
 
 **Arguments**
-- (TODO)
+- `<buttonValue>` (int): logical CBG button value associated with this sprite.
+- `<normalSprite>` (string): sprite name used in the normal state.
+- `<hoverSprite>` (string): sprite name used while this button value is currently selected by the CBG hit map.
+- `<x>`, `<y>` (int): CBG placement coordinates.
+- `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
+- `<tooltip>` (optional, string): tooltip text associated with this button sprite.
 
 **Semantics**
+- Adds one CBG button sprite entry to the client-background layer.
+- The entry is associated with `<buttonValue>`.
+- When the current CBG hit map selects that same button value, the runtime draws the hover/selected sprite in place of the normal sprite for this entry.
+- If multiple CBG button sprites share the same `<buttonValue>`, they all participate by value rather than by unique object identity.
+- Tooltip boundary:
+  - the optional tooltip text is stored on the CBG button sprite entry,
+  - when this button value is the currently selected CBG value, that tooltip can be surfaced by the host UI.
+- Sprite-existence boundary:
+  - missing/uncreated sprite names do **not** make the call fail by themselves,
+  - the entry is still registered,
+  - but an uncreated/missing sprite simply does not draw.
+- Layer boundary:
+  - this affects only the CBG/background-button layer,
+  - it does not modify the normal output model, pending print buffer, or HTML-island layer.
+- Return value:
+  - returns `0` if `<buttonValue>` is outside `0 .. 0xFFFFFF`,
+  - otherwise returns `1` after registering the entry.
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.CBG_SetButtonImage((int)b64, imgN, imgB, p.X, p.Y, (int)z64, tooltip))`
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<x>` or `<y>` is outside the 32-bit signed integer range.
+- Runtime error if `<zDepth>` is outside the 32-bit signed integer range or equals `0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new CodeEE(string.Format(trerror.ArgIsOutOfRangeExcept.Text, Name, 6, z64, int.MinValue, int.MaxValue, 0))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10)
+R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18472,7 +18886,7 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 
 ## OUTPUTLOG (expression function)
 **Summary**
-- (TODO)
+- Writes the current retained normal output log to a UTF-8-with-BOM text file under the executable-root directory.
 
 **Metadata**
 - Implementor: `new OutputlogMethod()`
@@ -18480,24 +18894,57 @@ PRINTFORMW %HTML_ESCAPE("A&B<C>D'E")%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `OUTPUTLOG()`
+- `OUTPUTLOG(<filename>)`
+- `OUTPUTLOG(<filename>, <hideInfo>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 0.
+- Signature: `int OUTPUTLOG(string filename = "", int hideInfo = 0)`.
+- `<hideInfo>` is treated as “hide headers” only when it is exactly `1`.
 
 **Arguments**
-- (TODO)
+- `<filename>` (optional, string; default `""`): output path text.
+  - If omitted or `""`, the file name is `emuera.log` in the executable-root directory.
+  - Otherwise the engine prepends the executable-root directory to the given text as a raw relative-path string.
+- `<hideInfo>` (optional, int; default `0`): whether to suppress the environment/title header block.
+  - `1`: hide the header block.
+  - any other value: include the header block.
 
 **Semantics**
+- Exports the current retained **normal output** to a text file encoded as UTF-8 with BOM.
+- Log source boundary:
+  - it reads only the currently retained normal display-line log,
+  - pending buffered output is **not** flushed first and is therefore not included,
+  - the separate `HTML_PRINT_ISLAND` layer is not included,
+  - debug-output-buffer content is not included.
+- Output text is plain text:
+  - HTML/button markup is stripped,
+  - one retained display row becomes one output file line.
+- If `<hideInfo> != 1`, the file begins with environment/title/log header text before the retained output lines.
+- Path restriction model:
+  - output is restricted to the executable-root directory tree,
+  - if the effective path text contains `../`, the call is rejected,
+  - if the effective path is judged outside the executable-root tree, the call is rejected.
+- On successful file creation while the window exists, the host appends a normal **system line** announcing the created log file.
+  - That announcement happens **after** the file has already been written, so the just-written file does not contain its own success message.
+  - Because that success path uses the normal system-line path, any pending print buffer may become visible on screen at that point even though it was not included in the file.
+- Return value:
+  - returns `1` after the method call completes,
+  - this return value does **not** distinguish success from failure.
+  - Failure is instead signaled by host dialog/error UI and by the absence of the success system line.
 - Engine-extracted notes (key operations):
   - `exm.Console.OutputLog(filename, hideInfo)`
 
 **Errors & validation**
-- (TODO)
+- Invalid path destinations are rejected by host error UI.
+- File-write failures are rejected by host error UI.
+- No exception-style success/failure code is exposed through the return value.
 
 **Examples**
-- (TODO)
+```erabasic
+R = OUTPUTLOG()
+R = OUTPUTLOG("logs\\scene.txt", 1)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21749,7 +22196,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## SPRITEDISPOSEALL (expression function)
 **Summary**
-- (TODO)
+- Disposes multiple sprites and returns how many were removed.
 
 **Metadata**
 - Implementor: `new SpriteDisposeAllMethod()`
@@ -21757,22 +22204,37 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `SPRITEDISPOSEALL(<includeCsvSprites>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- Signature: `int SPRITEDISPOSEALL(int includeCsvSprites)`.
 
 **Arguments**
-- (TODO)
+- `<includeCsvSprites>` (int): controls whether sprites loaded from content/resource CSVs are also disposed.
+  - `0`: keep CSV/resource sprites.
+  - non-zero: dispose all sprites, including CSV/resource sprites.
 
 **Semantics**
-- (TODO)
+- Disposes sprite entries in bulk.
+- If `<includeCsvSprites> == 0`:
+  - disposes only non-resource sprites,
+  - preserves the sprites that come from the resource/content tables,
+  - returns the number of sprites removed by that selective disposal.
+- If `<includeCsvSprites> != 0`:
+  - disposes all sprites,
+  - returns the total number of sprites that were present before clearing.
+- Layer boundary:
+  - this does not itself print anything or modify the normal output model,
+  - but later rendering that depended on disposed sprites may stop drawing them.
 
 **Errors & validation**
-- (TODO)
+- None beyond normal integer-expression evaluation.
 
 **Examples**
-- (TODO)
+```erabasic
+R = SPRITEDISPOSEALL(0)
+R = SPRITEDISPOSEALL(1)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21780,7 +22242,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GDRAWLINE (expression function)
 **Summary**
-- (TODO)
+- Draws one straight line onto a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsDrawLineMethod()`
@@ -21789,23 +22251,38 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GDRAWLINE(<graphicsId>, <fromX>, <fromY>, <toX>, <toY>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)]`.
+- Signature: `int GDRAWLINE(int graphicsId, int fromX, int fromY, int toX, int toY)`.
+- All five arguments are evaluated as integer expressions.
 
 **Arguments**
-- (TODO)
+- `<graphicsId>` (int): target graphics-surface ID.
+- `<fromX>`, `<fromY>` (int): line start point.
+- `<toX>`, `<toY>` (int): line end point.
 
 **Semantics**
-- (TODO)
+- Draws a straight line from `(<fromX>, <fromY>)` to `(<toX>, <toY>)` on the target graphics surface.
+- This affects only that graphics surface; it does not itself print to the console or modify the normal output model.
+- Drawing state:
+  - if the target graphics surface currently has an explicit drawing pen/configuration, that pen is used,
+  - otherwise the line is drawn with the host's default foreground-color pen.
+- Return value:
+  - returns `1` when the draw operation is performed,
+  - returns `0` when the target graphics object exists only as an uncreated handle/surface and therefore no drawing occurs.
 
 **Errors & validation**
+- Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
+- Runtime error if `<graphicsId> < 0` or `<graphicsId> > 2147483647`.
+- Runtime error if any coordinate is outside the 32-bit signed integer range.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+```erabasic
+R = GDRAWLINE(GID, 0, 0, 100, 100)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21813,7 +22290,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GETDISPLAYLINE (expression function)
 **Summary**
-- (TODO)
+- Returns the plain-text content of one currently visible **display line** in the normal output area.
 
 **Metadata**
 - Implementor: `new GetDisplayLineMethod()`
@@ -21821,25 +22298,43 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETDISPLAYLINE(<lineNumber>)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int }.
+- Signature: `string GETDISPLAYLINE(int lineNumber)`.
+- `<lineNumber>` is evaluated as an integer expression.
 
 **Arguments**
-- (TODO)
+- `<lineNumber>` (int): zero-based index into the current visible display-line array of the normal output area.
+  - `0` = the oldest currently visible display row.
 
 **Semantics**
+- Reads one entry from the current visible display-line array.
+- This is a **display-row** getter, not a logical-line getter:
+  - wrapped rows and explicit display breaks occupy separate indices,
+  - one logical output line may therefore correspond to multiple `GETDISPLAYLINE` indices.
+- Returns `""` if `<lineNumber> < 0` or if the requested visible row does not exist.
+- Reads only the current visible normal output area:
+  - pending buffered output is not included,
+  - the separate `HTML_PRINT_ISLAND` layer is not included.
+- The return value is plain text:
+  - button metadata/clickability is flattened away,
+  - inline images/shapes contribute their text/alt representation rather than structured HTML.
+- Temporary lines are included while they remain visible.
+- Because this getter reads the **current visible** display-line array, older rows that have already fallen out of the visible log are no longer accessible by index.
 - Engine-extracted notes (key operations):
   - `if (num < 0 || num >= exm.Console.DisplayLineList.Count)`
   - `return exm.Console.DisplayLineList[(int)num].ToString()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+```erabasic
+PRINTL "AAA"
+PRINTL "BBB"
+S = GETDISPLAYLINE(0)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
