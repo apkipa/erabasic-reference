@@ -122,7 +122,7 @@ Macros apply wherever the engine uses the **expression lexer** (`LexicalAnalyzer
 - the expression bodies inside FORM placeholders `%...%` and `{...}`
 - the condition part of `\@...\@` string-ternary constructs
 
-Macros generally do **not** apply to:
+Macros do **not** apply to:
 
 - raw/simple string arguments parsed as plain text by specific instructions
 - literal segments of FORM strings (outside `%...%` / `{...}`)

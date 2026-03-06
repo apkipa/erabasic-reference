@@ -137,7 +137,7 @@ ERB files are enumerated by `Config.GetFiles(erbDir, "*.ERB")`, but with a speci
 1) Any directory whose path matches `*#*` is loaded first (recursively if subdirectory search is enabled).
 2) Then the remaining ERB files are loaded.
 
-Within a directory, the file list may be sorted depending on config.
+Within a directory, the file list is sorted only when `SortWithFilename=YES`; otherwise the engine keeps the filesystem enumeration order returned by `Directory.GetFiles(...)`.
 
 More precisely, enumeration uses the same `Config.GetFiles(...)` routine:
 
@@ -231,7 +231,7 @@ The loader validates block structure and “syntax blocks” using a nesting sta
 - validates that `$` labels do not appear inside some syntax blocks (they become error lines)
 - wires some per-line jump anchors (e.g. `BREAK`/`CONTINUE` target the nearest enclosing loop marker)
 
-Missing/extra closers and invalid nesting are typically reported as warnings with `isError=true`, which marks the offending marker line(s) as error lines.
+Missing/extra closers and invalid nesting are reported through the warning system; many of those warnings also set `isError=true`, which marks the offending marker line(s) as error lines. The exact split is loader-path-specific.
 
 #### Pass 3/3: `JumpTo` wiring and load-time name resolution
 
@@ -240,7 +240,7 @@ The loader calls each instruction’s `SetJumpTo(...)` hook to:
 - wire jump targets between marker lines (e.g. `IF` → selected `ELSEIF/ELSE/ENDIF`, `WHILE` ↔ `WEND`, etc.)
 - resolve and link constant call/jump targets where applicable:
   - If a call/jump/goto target is a compile-time constant, the engine may resolve it at load time and cache the result on the line.
-  - If such a target cannot be resolved and the instruction is not a `TRY*` form, the loader typically marks the line as an error line.
+  - If such a target cannot be resolved and the instruction is not a `TRY*` form, the loader marks the line as an error line.
   - If the target is not constant (e.g. `CALLFORM`, or any “computed name” call), the loader sets an internal `useCallForm` flag; resolution is deferred to runtime.
 
 Config interaction (important):

@@ -15,7 +15,7 @@ At runtime, the engine alternates between:
 - executing script lines inside a call stack (entered via `CALL`, `JUMP`, event calls, and system entry points), and
 - running host-side “system flow” steps when the script call stack reaches its system-defined boundary.
 
-When a system hook finishes (e.g. `@SYSTEM_TITLE`), if the engine has no further script to execute, it continues system flow. Some hooks **must** perform a phase transition (typically via `BEGIN`) or the engine errors (see §2).
+When a system hook finishes (e.g. `@SYSTEM_TITLE`), if the engine has no further script to execute, it continues system flow. Some hooks **must** perform a phase transition before returning normally—most commonly via `BEGIN`, but also via paths such as successful `LOADDATA` or `QUIT`—or the engine errors (see §2).
 
 ### 1.2 Phase transitions (`BEGIN`)
 
@@ -40,7 +40,7 @@ This is observable in SHOP/TRAIN/ABLUP flows: after a user handler returns, the 
 
 The engine treats “script ends while in the normal/non-system state” as an error.
 
-In practice, this means the following system hooks must execute a phase transition (usually `BEGIN`) before returning normally:
+This means the following system hooks must execute a phase transition before returning normally (most commonly `BEGIN`):
 
 - `@SYSTEM_TITLE` (TITLE custom entry), unless it performs `LOADDATA`/`QUIT`/etc.
 - `@EVENTFIRST` (FIRST)
@@ -112,7 +112,7 @@ If `@SYSTEM_TITLE` exists, it is responsible for deciding what happens next.
 
 Compatibility requirement:
 
-- If `@SYSTEM_TITLE` returns normally without executing a phase transition (typically `BEGIN`, or a successful `LOADDATA`, or `QUIT`), the engine errors.
+- If `@SYSTEM_TITLE` returns normally without executing a phase transition (for example `BEGIN`, a successful `LOADDATA`, or `QUIT`), the engine errors.
 
 ## 5) FIRST phase
 

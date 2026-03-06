@@ -18,7 +18,7 @@ Many parsing rules depend on the expected type context (e.g., instruction argume
 
 Implementation note (runtime arithmetic):
 
-- Integer operations use `Int64` (`long`) arithmetic and generally follow .NET default behavior:
+- Integer operations use `Int64` (`long`) arithmetic and follow .NET default behavior as detailed below:
   - overflow wraps around (unchecked)
   - `/` and `%` throw on divide-by-zero
   - `<<` / `>>` cast the shift count to `int` before shifting (so behavior matches C# shift semantics)
@@ -59,7 +59,7 @@ The lexer recognizes exactly these operator tokens for expressions:
 - Shifts: `<<` `>>`
 - Ternary: `?` and `#` (the separator is `#`, not `:`)
 
-Precedence is implemented by integer priority values; in practice (high → low):
+Precedence is implemented by integer priority values. The effective precedence order is (high → low):
 
 1) prefix unary: `+ - ! ~` (and the prefix forms of `++ --` when allowed)
 2) multiplicative: `* / %`

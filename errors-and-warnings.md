@@ -66,7 +66,7 @@ The engine uses multiple representations for “bad” lines:
 - **Invalid line objects** (`InvalidLine`, `InvalidLabelLine`):
   - represent lines that could not be parsed at all (or function labels that are structurally invalid)
   - are always error lines (`IsError == true`)
-  - typically cause the loader to report “cannot interpret” issues and may affect startup behavior (see §6)
+  - typically cause the loader to report “cannot interpret” issues; whether startup still proceeds is determined later by the loader flag / `CompatiErrorLine` behavior described in §7
 - **Normal line objects marked as error lines**:
   - represent lines that were parsed into a statement object, but were later determined to be invalid (for example, disallowed instructions in a `#FUNCTION` body, or unresolved constructs under specific config rules)
   - behave like runtime traps: if execution reaches the line, the interpreter throws `CodeEE(line.ErrMes)`

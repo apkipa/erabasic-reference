@@ -54,12 +54,15 @@ This reference has two “layers”:
 - [`appendix/tooling/builtins.md`](appendix/tooling/builtins.md) — doc-derived built-in command/function quick index (for fact-check)
 - [`appendix/tooling/builtins-signatures.md`](appendix/tooling/builtins-signatures.md) — doc-derived built-in signatures (erbapi blocks, offline lookup / fact-check)
 
-### Implementation-oriented notes (engine-specific)
+### Compatibility-critical engine behavior
 
 - [`runtime-model.md`](runtime-model.md) — core runtime execution model (stack, events, scopes)
-- [`plugins.md`](plugins.md) — plugin loading and `CALLSHARP` integration (extension mechanism)
-- [`pipeline.md`](pipeline.md) — exact load/preprocess/parse ordering (engine source of truth)
-- [`source-position-mapping.md`](source-position-mapping.md) — how Emuera maps warnings/errors to file/line (implementation detail)
+- [`plugins.md`](plugins.md) — plugin loading and `CALLSHARP` integration (public extension contract)
+- [`pipeline.md`](pipeline.md) — exact load/preprocess/parse ordering (compatibility-critical)
+
+### Implementation detail / diagnostics
+
+- [`source-position-mapping.md`](source-position-mapping.md) — how Emuera maps warnings/errors to file/line (diagnostic behavior)
 - [`appendix/implementation/builtins-core-implementation-notes.md`](appendix/implementation/builtins-core-implementation-notes.md) — legacy (kept for older links; content migrated into the main docs)
 
 ### Data and config (tightly coupled to language use)

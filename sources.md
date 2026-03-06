@@ -1,6 +1,11 @@
 # Sources
 
-This reference was assembled by reading and cross-checking:
+This reference was assembled by reading and cross-checking the repository states listed below.
+
+Compatibility baseline used for this reference:
+
+- `emuera.em` @ `25c23dc8f425347738783e5ef322561d48c9f155`
+- `emuera.em.doc` @ `b1963641c624d7b2d6a30d777a0245cd9b0a2fbb`
 
 ## Documentation repository (`emuera.em.doc`)
 

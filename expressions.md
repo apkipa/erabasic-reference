@@ -100,7 +100,7 @@ Variable terms have the shape:
 
 ### Omitted indices are not “the whole array”
 
-Because variable parsing performs argument inference, “omitting indices” does **not** generally produce an “array reference” (and EraBasic expressions do not have an “array value” type):
+Because variable parsing performs argument inference, “omitting indices” does **not** produce an “array reference” (and EraBasic expressions do not have an “array value” type):
 
 - **Non-character 1D arrays**: `NAME` is treated as `NAME:0` (except `RAND`, which can reject omission depending on `CompatiRAND`).
 - **Character-data 1D arrays** (final indices are `[chara, index]`):
@@ -284,7 +284,7 @@ Emuera also supports width/alignment extensions in some FORM placeholders, for e
 - `{X,10,LEFT}` — left-aligned
 - `%STR:0,10%` — similar, for string output
 
-Width calculations for `%...%` placeholders use `useLanguage`-dependent byte-count adjustments (typically treating many full-width characters as width 2 in common JP code pages). See `formatted-strings.md` for the exact algorithm.
+Width calculations for `%...%` placeholders use `LangManager.GetStrlenLang` and therefore depend on the configured `useLanguage` code page: ASCII-only strings count as `Length`, and non-ASCII strings use that code page's byte count before the engine adjusts the requested width. See `formatted-strings.md` for the exact algorithm.
 
 ### FORM in string-expression contexts: `@"..."`
 
@@ -302,7 +302,7 @@ For a strict, engine-accurate specification of FORM scanning, escapes, placehold
 
 ## Notes on evaluation order
 
-Evaluation is generally left-to-right.
+Operand evaluation is left-to-right, subject to short-circuiting and to load-time restructuring/constant folding in contexts that precompute constant subexpressions.
 
 Short-circuiting operators (engine-accurate):
 

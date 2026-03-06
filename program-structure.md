@@ -55,7 +55,7 @@ ERH (`*.ERH`) and ERB (`*.ERB`) discovery is controlled by config:
 
 This codebase also applies a special ERB ordering rule: directories matching `*#*` are loaded first (see `pipeline.md` for the precise algorithm).
 
-CSV discovery is mostly *not* recursive:
+CSV discovery is *not* recursive except for the cases listed below:
 
 - Most CSV tables are loaded by exact filename from `csv/` (e.g. `GAMEBASE.CSV`, `VariableSize.CSV`, `ABL.CSV`, ...), so `SearchSubdirectory` does not affect those.
 - Two notable exceptions:

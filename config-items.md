@@ -25,7 +25,7 @@ Values are parsed by the item’s declared type:
 
 - `bool`: accepts numeric `0/1`, `YES/NO`, `TRUE/FALSE` (case-insensitive); also accepts Japanese `前/後` for one specific replace key.
 - `int` / `long`
-- `string`: generally trimmed; **except** `EditorArgument` which is assigned without trimming.
+- `string`: trimmed; **exception:** `EditorArgument` is assigned from the raw substring after the first `:` without trimming. Examples: `SomeKey:   abc  ` parses as `"abc"`, while `EditorArgument:   /A /B  ` parses as `"   /A /B  "`.
 - `char`: must be a single character
 - `Color`: `R,G,B` integers (each component satisfies `0 <= component <= 255`)
 - enums: parsed by enum name (case-insensitive)

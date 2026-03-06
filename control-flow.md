@@ -8,8 +8,8 @@ In this engine, the main interpreter loop advances to `CurrentLine.NextLine` **b
 
 As a result:
 
-- “Jump targets” are typically **marker lines** (e.g. `REPEAT`, `FOR`, `WHILE`, `IF`, `CASE`).
-- After `JumpTo(marker)`, the next executed line is usually `marker.NextLine` (so the marker line itself is not re-executed).
+- In structured control flow, jump targets are **marker lines** (e.g. `REPEAT`, `FOR`, `WHILE`, `IF`, `CASE`).
+- After `JumpTo(marker)`, the next executed line is `marker.NextLine` (so the marker line itself is not re-executed).
 
 This is crucial for understanding why loop headers initialize variables only once, while loop tails (`REND/NEXT/WEND/LOOP`) drive iteration.
 

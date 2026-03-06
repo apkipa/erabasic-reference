@@ -198,7 +198,7 @@ Important detail: in `RETURNFORM`, `%` is treated as “start of a string expres
     RETURN A % 100      ; OK (modulo)
     RETURNFORM A % 100  ; parses as string/FORM, not modulo
 
-Because these are engine commands, exact parsing edge cases depend on the engine version/config.
+The rules above describe the behavior of this codebase; do not generalize them to other Emuera variants without re-checking.
 
 ## Arguments: `ARG` / `ARGS`
 

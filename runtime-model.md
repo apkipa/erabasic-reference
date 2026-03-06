@@ -18,7 +18,7 @@ If you want a short mental model label: this engine is a **line-based, (direct-)
 
 - Each function body is compiled into a linked list IR of `LogicalLine` nodes connected by `NextLine`.
 - Many control-flow constructs are “linked” at load time by filling `JumpTo` pointers between marker lines.
-- The interpreter loop advances first (`ShiftNextLine`) and then executes the current line, so jumps typically target marker lines and execution resumes at `marker.NextLine`.
+- The interpreter loop advances first (`ShiftNextLine`) and then executes the current line, so structured control-flow jumps target marker lines and execution resumes at `marker.NextLine`.
 
 ## 1) Executable unit: a linked list of logical lines
 
@@ -49,12 +49,12 @@ while running:
   execute(state.CurrentLine)
 ```
 
-This means control-flow “jumps” typically target **marker lines** (labels, loop headers, `IF`/`CASE` markers):
+This means structured control-flow jumps target **marker lines** (labels, loop headers, `IF`/`CASE` markers):
 
 - `JumpTo(marker)` sets `CurrentLine = marker`
 - the next interpreter iteration executes `marker.NextLine`
 
-So the marker line itself is usually not re-executed after a jump.
+So the marker line itself is not re-executed after a jump.
 
 This ordering is crucial for loop semantics such as:
 
@@ -68,11 +68,11 @@ At the `ProcessState` level, the engine uses two movement primitives:
 - **sequential advance**: `ShiftNextLine()` → `CurrentLine = CurrentLine.NextLine`
 - **set marker**: `JumpTo(line)` → `CurrentLine = line`
 
-### 1.3 Consequence: jumping *to* a line usually starts *after* it
+### 1.3 Consequence: jumping *to* a line starts *after* it
 
 Because execution always starts by calling `ShiftNextLine()`, control transfers have a distinctive property:
 
-- If control sets `CurrentLine = X` (via `JumpTo(X)` or by entering a function with `CurrentLine = @LABEL`), the next executed line is usually `X.NextLine`.
+- If control sets `CurrentLine = X` (via `JumpTo(X)` or by entering a function with `CurrentLine = @LABEL`), the next executed line is `X.NextLine`.
 
 This matters for two kinds of “marker lines”:
 
@@ -314,13 +314,13 @@ Constraints and quirks:
   - declaring `#FUNCTION/#FUNCTIONS` clears any previously declared `#PRI/#LATER/#SINGLE/#ONLY` on that label (with warnings).
 - `#ONLY` is exclusive:
   - if a label is already marked `#PRI/#LATER/#SINGLE`, declaring `#ONLY` emits warnings and clears those flags.
-  - if multiple definitions of the same event name declare `#ONLY`, the loader warns but still accepts them. (At runtime, the first `#ONLY` label reached ends the event call immediately, so later ones are typically unreachable.)
+  - if multiple definitions of the same event name declare `#ONLY`, the loader warns but still accepts them. (At runtime, the first `#ONLY` label reached ends the event call immediately, so later ones are unreachable through normal event dispatch.)
 
 ## 6) Arguments, defaults, and `REF` parameters
 
 ### 6.1 Formal parameters from `@NAME(...)`
 
-Function labels may declare formal parameters using lvalue-like terms (typically `ARG:n` / `ARGS:n`), optionally with defaults.
+Function labels may declare formal parameters using lvalue-like terms such as `ARG:n` / `ARGS:n`, optionally with defaults.
 
 At load time, these formals are stored in `FunctionLabelLine.Arg[]` and defaults in `FunctionLabelLine.Def[]`.
 

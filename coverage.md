@@ -7,7 +7,7 @@ Scope (current phase): **typical-game compatibility**.
 - Included: loading order, preprocessing, lexing, parsing, expression evaluation, variables/scopes, user functions, control flow, runtime model for execution.
 - Included (host/runtime contract): the **system phase state machine** (TITLE/SHOP/TRAIN/ABLUP/...) and its script entry points (`@SYSTEM_*`, `@EVENT*`, etc.), to the extent needed to run typical games.
 - Included (UI/runtime contract): the **observable console output + input model** that typical games depend on (text buffering/flush, buttons/choices, and HTML output used by the UI layer).
-- Deferred: niche host features and tooling that are not required by most games (plugins, hotkeys, debug tooling, etc.), tracked explicitly below.
+- Deferred: niche host features and tooling that are not required by most games (hotkeys, debug tooling, localization/tooling, etc.), tracked explicitly below. The plugin system is already specified separately in `plugins.md`.
 
 This document tracks what is already specified vs what still needs to be written.
 
