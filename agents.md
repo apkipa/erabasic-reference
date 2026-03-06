@@ -26,6 +26,10 @@ Do not keep legacy parsing/rendering branches just to accept old section titles;
 Do not add ad-hoc “in-script override” dictionaries or similar fallback sources inside generators.
 Overrides must live in `erabasic-reference/builtins-overrides/**/<NAME>.md` so the documentation source of truth stays reviewable and diffable.
 
+## Intentional explanatory notes
+
+If a subsection is explicitly labeled as an intentional explanatory note (for example `Counterfactual design note (intentional)`), preserve it by default even when it is not part of the current accepted-language contract. Treat such sections as boundary-clarification material, not dead text, unless the user explicitly asks to remove or rewrite them.
+
 ## Reimplementation-grade writing
 
 When a built-ins override entry is marked `**Progress state**: complete`, it must be detailed enough that an independent implementation can reproduce compatible behavior **without reading this engine’s source code**.

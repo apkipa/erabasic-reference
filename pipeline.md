@@ -23,6 +23,8 @@ The interpreter-relevant directories are mainly `csv/` and `erb/`.
 
 This is the actual order in which files/config are loaded before scripts are executed:
 
+Host-boundary note: steps (1)–(4) straddle two host layers in this codebase. `Preload.Load(...)` runs in `EmueraConsole.Initialize()`, while most later config/data/script initialization runs inside `Process.Initialize()`. The observable order below is still the compatibility-relevant order.
+
 1) **Load config files** (`ConfigData.LoadConfig()`), then apply them (`Config.SetConfig()`).
 2) **Load JSON settings** from `ExeDir/setting.json` (`JSONConfig.Load()`).
 3) **Load language/UI resources** (out of scope for a headless interpreter).
@@ -51,19 +53,23 @@ Config is layered in this order (later wins):
 2) `ExeDir/emuera.config`
 3) `csv/_fixed.config` (fallback: `csv/fixed.config`) — values successfully parsed from this file become “fixed” (immutable at runtime).
 
-Important: after loading, the engine may auto-write `emuera.config` if it does not exist, and may also update certain keys (e.g. update key) and save.
+Important: after loading, the engine writes `emuera.config` when that file does not exist, and also rewrites it when the internal update key check changes `LastKey`.
 
 JSON settings are loaded afterwards from `ExeDir/setting.json`. If it doesn’t exist, a default JSON is written.
 
 ## `_Replace.csv` (replace settings) load point
 
-If enabled by config (and not in analysis mode), the engine reads `csv/_Replace.csv` and applies it to configuration-derived “replace settings”.
+If enabled by config (and not in analysis mode), the engine reads `csv/_Replace.csv` and applies it to the dedicated replace-item set documented in `config-items.md` section 7, not to arbitrary config keys.
 
-One key language-adjacent effect: the line-continuation joiner string is taken from config (`ReplaceContinuationBR`) and used when concatenating `{ ... }` blocks (see “Line reading”).
+Those items are a mix of UI strings/chars and script-visible runtime knobs (for example `DrawLineString`, `MoneyLabel`/`MoneyFirst`, `TimeupLabel`, `MaxShopItem`, and several built-in default-value tables).
+
+Separately, the line-continuation joiner string is taken from the normal config item `ReplaceContinuationBR` and used when concatenating `{ ... }` blocks (see “Line reading”).
 
 ## `_Rename.csv` load point
 
 If enabled by config, the engine reads `csv/_Rename.csv` and builds a mapping of the form:
+
+If `UseRenameFile=YES` but `csv/_Rename.csv` does not exist, this codebase prints an error message and continues with an empty rename dictionary. Missing `_Rename.csv` is therefore a soft host-side error, not a startup abort.
 
 `[[pattern]]` → `replacement`
 
@@ -228,7 +234,7 @@ The loader validates block structure and “syntax blocks” using a nesting sta
 
 - pairs/matches: `IF..ENDIF`, `SELECTCASE..ENDSELECT`, `REPEAT..REND`, `FOR..NEXT`, `WHILE..WEND`, `DO..LOOP`, `TRYC*..CATCH..ENDCATCH`, `TRY*LIST..ENDFUNC`
 - validates restricted regions like `PRINTDATA`/`STRDATA`/`DATALIST` bodies (only specific child lines allowed)
-- validates that `$` labels do not appear inside some syntax blocks (they become error lines)
+- validates that `$` labels do not appear inside `PRINTDATA*`, `STRDATA`, `DATALIST`, or `TRYCALLLIST` / `TRYJUMPLIST` / `TRYGOTOLIST` bodies (they become error lines)
 - wires some per-line jump anchors (e.g. `BREAK`/`CONTINUE` target the nearest enclosing loop marker)
 
 Missing/extra closers and invalid nesting are reported through the warning system; many of those warnings also set `isError=true`, which marks the offending marker line(s) as error lines. The exact split is loader-path-specific.

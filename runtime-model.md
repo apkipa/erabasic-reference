@@ -93,7 +93,7 @@ This “marker-skipping” model is an Emuera implementation detail, but it is r
 ### 2.1 Function labels `@NAME`
 
 - Each `@NAME` defines a function start label.
-- Multiple `@NAME` labels with the same name may exist (especially for event functions).
+- Multiple `@NAME` labels with the same name can exist. For event names this forms an event-dispatch group; for ordinary non-event names, the first definition is primary and later ones remain duplicate definitions rather than a dispatch group.
 - A function label may be tagged by following `#...` lines (see `grammar.md`), which affect:
   - whether the label is an event function group member,
   - whether it is an expression function (`#FUNCTION/#FUNCTIONS`),
@@ -262,7 +262,7 @@ Event functions are also treated as “system” labels by the loader. Exact nam
 
 ### 5.2 Multiple definitions and grouping order
 
-Event functions may be defined multiple times across files.
+Event functions can be defined multiple times across files; the loader later groups all same-name event labels into the ordered dispatch buckets described below.
 
 During the “sort labels” phase, Emuera groups all `@EVENT...` definitions of the same name into **four ordered groups**:
 
@@ -362,9 +362,9 @@ Additional constraints enforced by this codebase’s type checker:
   - a character-data variable (this engine path rejects chara vars for `REF` parameters)
 - Integer vs string and the dimension count must match exactly.
 
-#### Counterfactual: what would happen if character-data variables were accepted as `REF` actuals?
+#### Counterfactual design note (intentional): what would happen if character-data variables were accepted as `REF` actuals?
 
-This codebase currently rejects character-data variables as `REF` actual arguments (see the constraint list above).
+This codebase currently rejects character-data variables as `REF` actual arguments (see the constraint list above). This subsection is intentionally kept as an explanatory note: it does **not** describe a currently accepted user-program behavior in this build, but it documents a latent engine path and clarifies the current rejection boundary.
 
 However, the engine already contains a “per-character slice” transport path for `REF` arguments. If the type checker were changed to allow character-data arrays for `REF` parameters, the existing transport logic implies the following observable behavior:
 

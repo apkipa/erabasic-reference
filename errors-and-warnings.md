@@ -22,7 +22,7 @@ The engine’s internal comment describes the intended meaning as:
 
 - `0`: minor mistake
 - `1`: ignorable line / non-fatal issue
-- `2`: may be harmful if the line is executed (often treated as “error-ish” during parsing)
+- `2`: may be harmful if the line is executed; many parse-time “invalid line” reports use this level
 - `3`: fatal
 
 Some warnings are additionally gated by `WarnBackCompatibility` (back-compat warnings can be suppressed even if the level passes).
@@ -52,7 +52,7 @@ Mechanically:
 - Certain parsers call a warning function with `isError=true`, which marks the parsed `LogicalLine` as an error line and attaches `ErrMes`.
 - The loader can continue reading subsequent lines even if some lines are marked as errors.
 
-This is one reason “warnings” with level `2` often behave like “soft errors”.
+This is one reason many level-`2` parse warnings behave like “soft errors”: they may also mark the line itself as invalid.
 
 Compatibility-critical nuance:
 
@@ -66,7 +66,7 @@ The engine uses multiple representations for “bad” lines:
 - **Invalid line objects** (`InvalidLine`, `InvalidLabelLine`):
   - represent lines that could not be parsed at all (or function labels that are structurally invalid)
   - are always error lines (`IsError == true`)
-  - typically cause the loader to report “cannot interpret” issues; whether startup still proceeds is determined later by the loader flag / `CompatiErrorLine` behavior described in §7
+  - cause the loader to report “cannot interpret” issues; whether startup still proceeds is determined later by the loader flag / `CompatiErrorLine` behavior described in §7
 - **Normal line objects marked as error lines**:
   - represent lines that were parsed into a statement object, but were later determined to be invalid (for example, disallowed instructions in a `#FUNCTION` body, or unresolved constructs under specific config rules)
   - behave like runtime traps: if execution reaches the line, the interpreter throws `CodeEE(line.ErrMes)`
@@ -87,19 +87,19 @@ The engine uses exceptions for hard failures. Common families include:
 
 - `CodeEE`: used for script/config/parse-time errors (often includes a source position)
 - `ExeEE`: used for runtime execution errors
-- specialized subclasses (e.g. identifier-not-found) that some loaders catch and treat specially
+- specialized subclasses such as `IdentifierNotFoundCodeEE`; for example, the ERH `#DIM/#DIMS` loader may catch it, retry after more declarations are known, and only later downgrade it to a warning if still unresolved
 
 Whether an exception aborts loading depends on where it is caught:
 
-- Some loaders catch `CodeEE`, emit a warning, and continue/skip the current unit.
+- Some loaders catch script/config exceptions, emit a warning, and continue or skip the current unit. Examples include config / `_Replace.csv` loading and the ERH `#DIM/#DIMS` pass.
 - Other exceptions propagate and abort the current load phase.
 
 ## 5) Analysis mode differences
 
-In “analysis mode” (used for static analysis / indexing), the engine relaxes some behaviors:
+In “analysis mode” (used for static analysis / indexing), the engine changes some behaviors:
 
-- some warnings are not filtered by `DisplayWarningLevel`
-- some missing-identifier situations in expression parsing may produce placeholder/null terms instead of immediately throwing
+- parser warnings bypass the normal `DisplayWarningLevel` suppression check
+- unresolved function references in expression parsing can return `NullTerm(0)` instead of immediately throwing, so analysis can continue and record the missing name
 
 If you aim for strict runtime compatibility, treat analysis mode as a separate “tooling” profile.
 
@@ -118,7 +118,7 @@ For the engine-accurate behavior (including `{...}` blocks typically reporting t
 
 This engine has two different “load succeeded?” signals:
 
-1) A loader return flag (`noError` in the main `Process`) that is set to `false` when the loader encounters *certain* hard parse failures during the ERB load phase (notably invalid label lines, invalid non-label lines, and some invalid `#...` attribute lines).
+1) A loader return flag (`noError` in the main `Process`) that is set to `false` when the ERB loader encounters an invalid label line, an invalid non-label line, or a `#...` line whose parser reports failure.
 2) The presence of error lines (`line.IsError == true`) created during later validation passes.
 
 At the “begin title” boundary, this codebase checks only the loader flag:

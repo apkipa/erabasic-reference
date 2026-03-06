@@ -163,7 +163,7 @@ Notes:
 - Maximum dimension is 3 (and `CHARADATA` reduces that further; see `variables.md`).
 - Initializers are allowed only for non-`REF`, non-`CHARADATA`, 1D variables.
 - `REF` has special size syntax: commas indicate dimension and explicit sizes must be `0`; empty fields between commas are permitted for `REF` (see `variables.md`).
-- Compatibility quirk: while the directive matcher uses `Config.StringComparison` (often case-insensitive when `IgnoreCase=YES`), this codebase determines “is string?” using a case-sensitive equality check against `"DIMS"`.
+- Compatibility quirk: while the directive matcher uses `Config.StringComparison` (ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`), this codebase determines “is string?” using a case-sensitive equality check against `"DIMS"`.
 
 Additional compatibility quirk (case-sensitivity inside some sharp directives):
 

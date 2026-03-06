@@ -15,7 +15,7 @@ At runtime, the engine alternates between:
 - executing script lines inside a call stack (entered via `CALL`, `JUMP`, event calls, and system entry points), and
 - running host-side “system flow” steps when the script call stack reaches its system-defined boundary.
 
-When a system hook finishes (e.g. `@SYSTEM_TITLE`), if the engine has no further script to execute, it continues system flow. Some hooks **must** perform a phase transition before returning normally—most commonly via `BEGIN`, but also via paths such as successful `LOADDATA` or `QUIT`—or the engine errors (see §2).
+When a system hook finishes (e.g. `@SYSTEM_TITLE`), if the engine has no further script to execute, it continues system flow. In this document, "returns normally" means the hook unwinds back to the host/system-flow boundary without leaving behind a pending phase transition. Some hooks **must** perform a phase transition before returning normally—most commonly via `BEGIN`, but also via paths such as successful `LOADDATA` or `QUIT`—or the engine errors (see §2).
 
 ### 1.2 Phase transitions (`BEGIN`)
 
@@ -31,10 +31,10 @@ This is why certain system hooks are required to execute `BEGIN`: otherwise, the
 
 Some system flows interpret the presence of a trailing **temporary line** (see `REUSELASTLINE`) as “re-prompt without restarting the whole screen”.
 
-This is observable in SHOP/TRAIN/ABLUP flows: after a user handler returns, the engine may either:
+This is observable in SHOP/TRAIN/ABLUP flows: after a user handler returns, the engine chooses between two fixed paths based on whether the trailing output line is temporary:
 
-- re-open the immediate input prompt (same screen), or
-- restart the phase’s top-level loop (re-render via `@SHOW_*`).
+- trailing line is temporary → re-open the immediate input prompt on the same screen
+- otherwise → restart the phase’s top-level loop (re-render via `@SHOW_*`)
 
 ## 2) Required `BEGIN` contracts (runtime errors)
 
@@ -63,7 +63,7 @@ System phases covered here:
 - LOADDATAEND (post-load hook sequence after `LOADDATA`/`LOADGAME`)
 - SAVEGAME/LOADGAME (interactive save/load UIs)
 
-Legal transitions are driven primarily by `BEGIN <keyword>`:
+The common script-driven phase-transition mechanism is `BEGIN <keyword>`:
 
 - `BEGIN TITLE` → TITLE
 - `BEGIN FIRST` → FIRST
@@ -73,7 +73,7 @@ Legal transitions are driven primarily by `BEGIN <keyword>`:
 - `BEGIN AFTERTRAIN` → AFTERTRAIN
 - `BEGIN TURNEND` → TURNEND
 
-If a phase does not call `BEGIN` anywhere, it normally does not exit that phase (e.g. SHOP/TRAIN/ABLUP loops are “infinite” until a script issues `BEGIN`).
+If a steady-state phase loop does not execute `BEGIN`, control remains in that phase. In particular, SHOP/TRAIN/ABLUP repeat their host-driven loop until script logic requests another phase (or enters another host-driven subflow such as save/load UI).
 
 ## 4) TITLE phase
 
@@ -98,7 +98,7 @@ If the selected value is:
 
 - `0`:
   - reset non-global variables to defaults (same reset as `RESETDATA`),
-  - add character(s) for a new game (at least character CSV #0; an additional default character may also be added depending on `GAMEBASE.CSV`),
+  - add characters for a new game: always character CSV `0`, and also `GAMEBASE.DefaultCharacter` when `DefaultCharacter > 0`,
   - then enter FIRST (equivalent to `BEGIN FIRST`).
 - `1`:
   - if `@TITLE_LOADGAME` exists: call it, then return to TITLE afterwards,
@@ -137,7 +137,7 @@ There are two distinct entry variants.
 On `BEGIN SHOP`, the engine:
 
 1) calls `@EVENTSHOP` if it exists (if it does not exist, it is skipped),
-2) may perform an autosave if autosave is enabled (see §6.3),
+2) performs the SHOP-entry autosave step when autosave is enabled (see §6.3),
 3) calls `@SHOW_SHOP`,
 4) requests an integer input and processes it (see §6.4).
 
@@ -147,7 +147,7 @@ After a successful load (`LOADDATA`/`LOADGAME`), if the post-load hooks finish w
 
 ### 6.3 Autosave on SHOP entry
 
-If autosave is enabled, the engine performs an autosave at the beginning of the SHOP loop (after `@EVENTSHOP` and before the first `@SHOW_SHOP`).
+If autosave is enabled, the engine performs an autosave at the beginning of the SHOP loop (after `@EVENTSHOP` and before the first `@SHOW_SHOP`) only when this SHOP entry came from the normal system state. The post-load fallback path in §6.2 does not autosave.
 
 Autosave details:
 
@@ -195,7 +195,7 @@ If `@EVENTLOAD` returns normally without executing `BEGIN`:
 
 ## 8) LOADGAME / SAVEGAME (interactive UIs)
 
-These UIs are host-driven flows that save/restore the previous execution context when canceled or completed.
+These UIs are host-driven flows layered on top of the current system state. `SAVEGAME` restores the previous execution context when canceled or after a successful save. `LOADGAME` keeps the previous context only until the user either cancels or completes the load: cancel restores the previous context for the in-game load UI, while the title-opening load UI returns to TITLE; a successful load clears the saved context and proceeds to LOADDATAEND.
 
 ### 8.1 Slot list and navigation
 
@@ -235,7 +235,7 @@ When entering LOADGAME:
 
 If the user selects:
 
-- `100`: cancel; restore the previous system state and return.
+- `100`: cancel; if this is the title-opening load UI, return to TITLE; otherwise restore the previous system state and return.
 - a normal slot `s` (or autosave slot `99`):
   - if there is no data in the slot: show a “no data” message and re-open the load prompt.
   - otherwise:
@@ -316,13 +316,13 @@ When an executable command `n` is selected:
 
 Command result:
 
-- If `RESULT == 0` after `@COM{n}` returns: the command is treated as “failed” and TRAIN proceeds to the post-command stage without running `@SOURCE_CHECK`.
+- If `RESULT == 0` after `@COM{n}` returns: the command is treated as “failed”; the engine skips both `@SOURCE_CHECK` and `@EVENTCOMEND`, and returns directly to the main TRAIN loop.
 - Otherwise:
   - call `@SOURCE_CHECK`,
   - then clear `SOURCE[*] = 0` for all characters,
   - then call `@EVENTCOMEND` if it exists.
 
-After the post-command stage, the engine returns to `@SHOW_STATUS`.
+After the successful-command post-processing (`@SOURCE_CHECK` and optional `@EVENTCOMEND`), the engine returns to `@SHOW_STATUS`.
 
 WAIT injection:
 
@@ -335,10 +335,10 @@ If the input does not select an executable command:
 - Set `RESULT = <input>`.
 - Call `@USERCOM`.
 
-After `@USERCOM` returns, the engine may re-prompt without restarting the whole screen:
+After `@USERCOM` returns, the engine branches on the last output line:
 
-- If the last output line is a **temporary line**: re-open the input prompt.
-- Otherwise: continue the TRAIN loop from `@SHOW_STATUS`.
+- last output line is a **temporary line** → re-open the input prompt
+- otherwise → continue the TRAIN loop from `@SHOW_STATUS`
 
 ## 10) ABLUP phase
 

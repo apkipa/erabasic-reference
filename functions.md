@@ -30,7 +30,7 @@ This engine performs a load-time “linking” pass over many control-flow instr
 Key rule:
 
 - If a call/jump/goto target name is a **compile-time constant** (including some `...FORM` cases where the FORM reduces to a constant), the loader attempts to resolve it during load.
-  - If resolution fails and the instruction is not a `TRY*` form, the line is typically marked as an **error line** during load (execution will throw if reached).
+  - If resolution fails and the instruction is not a `TRY*` form, the line is marked as an **error line** during load (execution will throw if reached).
   - The config `FunctionNotFoundWarning` can suppress *printing* of the warning, but it does not prevent the line from becoming an error line when `isError=true` is used.
 - If the target name is **not** compile-time constant, the loader sets a global “computed call target exists” flag and defers resolution to runtime.
   - In that case, missing targets raise runtime errors for non-`TRY*` instructions, and are soft-fail for `TRY*`/`TRYC*` instructions.

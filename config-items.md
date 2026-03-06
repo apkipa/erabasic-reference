@@ -49,7 +49,7 @@ The table below still lists *all* config items (including UI-only ones).
 - `SortWithFilename`: controls whether file and directory enumeration is lexicographically sorted; this also affects label “first-defined” ordering and event iteration order.
 - `SystemAllowFullSpace`: when enabled, the lexer treats full-width space (U+3000) as whitespace in multiple places (notably when skipping whitespace/comments).
 - `UseRenameFile`: enables `_Rename.csv` processing (affects `[[...]]` replacement during ERH/ERB line reading).
-- `UseReplaceFile`: enables `_Replace.csv` processing (mostly content/UI; but some script-visible strings exist).
+- `UseReplaceFile`: enables `_Replace.csv` processing for the dedicated replace-item set listed in section 7 (currency/unit presentation, loading/title strings, `DRAWLINE`/`BAR` rendering strings, shop capacity, timeout text, and several runtime default-value tables such as `COM_ABLE`, `STAIN`, `EXPLV`, `PALAMLV`, `PBAND`, `RELATION`).
 - `ReplaceContinuationBR`: controls the string inserted when joining `{ ... }` continuation lines; the joiner is used after removing all `"` characters from this value.
 - `UseERD`: enables ERD-based string-indexing for user-defined variables (`#DIM/#DIMS`).
 - `VarsizeDimConfig`: changes the `VARSIZE(var, dim)` dimension numbering (the engine decrements `dim` by 1 when enabled and `dim > 0`).

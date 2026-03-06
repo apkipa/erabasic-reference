@@ -11,7 +11,7 @@ On startup, the engine selects `ExeDir` as:
 - `AppContext.BaseDirectory`, but
 - if a `Data/erb` directory exists under that base directory, it uses `AppContext.BaseDirectory/Data` instead.
 
-So, depending on how the engine is packaged, the root may be either the executable directory itself or a `Data/` subdirectory.
+So the selected root is always one of exactly two directories: the executable directory itself, or its `Data/` subdirectory when `Data/erb` exists.
 
 ### Expected subdirectories
 
@@ -20,14 +20,14 @@ Under `ExeDir`, the engine uses these directories (trailing path separator is no
 - `erb/` — ERB scripts (`*.ERB`) and headers (`*.ERH`)
 - `csv/` — config layers and CSV tables (`*.CSV`, `*.ALS`, `_Rename.csv`, etc.)
 - `dat/` — runtime data inputs/outputs tied to built-ins (not fully specified in this phase)
-- `resources/` — engine resources (images, etc.; mostly UI-related)
+- `resources/` — engine resource files used by image/sprite/UI-facing features
 - `debug/` — debug outputs/config
 - `font/` — optional font files (`*.ttf`/`*.otf`) loaded recursively at startup
 - `sound/` — audio files used by sound-related built-ins
 
 Compatibility note (saves):
 
-- The save directory is controlled by config (not just folder layout). When `UseSaveFolder=YES`, saves go under `ExeDir/sav/`; otherwise they may be written into `ExeDir/` directly.
+- The save directory is controlled by config (not just folder layout). When `UseSaveFolder=YES`, saves go under `ExeDir/sav/`; otherwise they are written directly under `ExeDir/`.
 
 ### Case sensitivity of directory names (important)
 
@@ -92,7 +92,7 @@ For exact rules on what names are allowed, case-sensitivity, duplicate selection
 
 Some function names are treated specially by the engine as event entry points (e.g. `@SYSTEM_TITLE`, `@EVENTLOAD`, `@TITLE_LOADGAME`). Their presence can change startup/load flow.
 
-Event functions can often be defined multiple times, depending on engine rules and attributes.
+Event functions may have multiple definitions; dispatch groups them by event name and attributes such as `#ONLY`, `#PRI`, and `#LATER`. For ordinary non-event functions, duplicate definitions do not create a dispatch group: the first definition is the primary one, and later ones only trigger duplicate-definition diagnostics/warnings as configured.
 
 ## Local jump labels (`$...`)
 

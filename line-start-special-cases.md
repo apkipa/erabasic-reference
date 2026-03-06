@@ -14,7 +14,7 @@ That routine:
 - skips full-width space (`U+3000`) only when `SystemAllowFullSpace=YES`
 - treats `;` as “skip-to-end-of-line comment”, **except** for three executable prefixes (see below)
 
-So in many contexts, the “first character” is really: “the first character after whitespace and certain comment-prefix stripping”.
+So in many contexts, the “first character” is really: “the first character after whitespace and, if applicable, executable-comment-prefix stripping (`;!;`, `;#;`, `;^;`)”.
 
 ## 1) Executable comment prefixes: `;!;`, `;#;`, `;^;`
 

@@ -21,14 +21,14 @@ This means:
 
 - UTF-8 without BOM is accepted if it is valid UTF-8.
 - Shift-JIS is the “default legacy” fallback when UTF-8 decoding fails.
-- Files with “broken” byte sequences that are invalid in both UTF-8 and Shift-JIS can still fail to load.
+- Files with “broken” byte sequences that are invalid in both UTF-8 and Shift-JIS fail to decode; the observable result then depends on the caller’s error-handling path.
 
 ### 0.2 Line splitting
 
 Most loaders ultimately use `.NET File.ReadAllLines(...)` (directly or via the preload cache):
 
 - Line terminators are not preserved; each returned string is a line without `\r` / `\n`.
-- Empty lines are represented as empty strings and may be skipped depending on the loader.
+- Empty lines are represented as empty strings; whether they are skipped is decided by the specific loader.
 
 Fact-check cross-refs (optional):
 
@@ -66,7 +66,7 @@ Rules:
 
 - Lines starting with `;` are comments and ignored.
 - The key is the substring before the first `:`.
-- The value is the substring after the first `:` (some keys have special parsing to allow `:` inside the value).
+- The value is the substring after the first `:`. `TextEditor` has extra loader logic so later `:` characters are preserved in the path; `EditorArgument` has its own raw-substring handling (see `config-items.md`).
 - Unknown keys are ignored.
 
 Important: the engine uppercases the parsed `KEY` and matches it against known items. For main config items, it accepts multiple key spellings (config code name, JP label, EN label). For the exact accepted key set and defaults, see `config-items.md`.
@@ -104,7 +104,7 @@ Current fields include:
 - `UseScopedVariableInstruction`
 - `UseButtonFocusBackgroundColor` (UI-related)
 
-These flags can affect runtime semantics and warning behavior (for example, the script loader warns about some RNG-related instructions when `UseNewRandom` is enabled).
+These flags can affect runtime semantics and warning behavior. In particular, when `UseNewRandom=YES`, the script loader warns on `RANDOMIZE`, `DUMPRAND`, and `INITRAND`.
 
 ## 3) `_Replace.csv` (replace settings)
 
@@ -124,20 +124,32 @@ Rules:
 - `ITEM` is trimmed.
 - `VALUE` is the remainder of the line after the first separator (so it may contain additional commas/colons).
 
-### 3.2 Language-adjacent effects
+### 3.2 Replaceable item set and observable effects
 
-Most replace items are UI/content related, but one important language-adjacent item is:
+`_Replace.csv` does **not** target arbitrary config keys. It only targets the dedicated replace-item set listed in `config-items.md`:
 
-- the “DRAWLINE character/string” (used for the `DRAWLINE` output string)
+- currency/unit presentation: `MoneyLabel`, `MoneyFirst`
+- loading/title/menu strings: `LoadLabel`, `TitleMenuString0`, `TitleMenuString1`
+- rendering strings/chars: `DrawLineString`, `BarChar1`, `BarChar2`
+- other host/script-visible text: `TimeupLabel`
+- runtime limits/defaults: `MaxShopItem`, `ComAbleDefault`, `StainDefault`, `ExpLvDef`, `PalamLvDef`, `pbandDef`, `RelationDef`
 
-Separately, the **line concatenation joiner** is controlled by a config value (`ReplaceContinuationBR`) which is used by the line reader:
+This means `_Replace.csv` is not merely cosmetic. Some entries are observable from scripts or script-visible runtime state, for example:
+
+- `DrawLineString` changes the string used for `DRAWLINE` output.
+- `MoneyLabel` / `MoneyFirst` affect money-formatted output such as `MONEYSTR(...)` and shop displays.
+- `TimeupLabel` is the default timeout message for timed input instructions when the script does not supply its own timeout text.
+- `MaxShopItem` changes the accepted shop selection range.
+- `ComAbleDefault`, `StainDefault`, `ExpLvDef`, `PalamLvDef`, `pbandDef`, `RelationDef` change engine-provided initial values for built-in runtime data.
+
+Separately, the **line concatenation joiner** is controlled by a normal config value (`ReplaceContinuationBR`), not by `_Replace.csv`, and is used by the line reader:
 
 - the engine removes all `"` characters from this config string and appends the result between concatenated lines
 - default behavior approximates inserting a single ASCII space between lines
 
 ## 4) `_Rename.csv` (rename mapping for `[[...]]`)
 
-If enabled by config, the engine reads `csv/_Rename.csv` and builds a dictionary used for rename replacement in ERB and ERH line reading.
+If enabled by config, the engine reads `csv/_Rename.csv` and builds a dictionary used for rename replacement in ERB and ERH line reading. If `UseRenameFile=YES` but the file is missing, the host prints an error message and continues with an empty rename dictionary.
 
 ### 4.1 Syntax
 
@@ -342,7 +354,7 @@ Rules:
 
 - Lines with fewer than 2 tokens warn and are ignored.
 - A line whose first token is empty warns and is ignored.
-- `CATEGORY` is compared using `Config.StringComparison` (often case-insensitive when `IgnoreCase=YES`).
+- `CATEGORY` is compared using `Config.StringComparison`: ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`.
 - Each `keyN` is `Trim()`ed and added to a set.
 
 Recognized categories:

@@ -89,7 +89,7 @@ In Emuera, the element count of many built-in array variables is configurable vi
 
 - Setting a variable’s size to `-1` prohibits using that variable in ERB.
 - Using or referencing a prohibited variable causes an error.
-- If the engine internally needs a prohibited variable, assignments may be ignored and the value treated as `-1`.
+- Some non-script load/read paths (for example, save-data import by variable name) skip prohibited variables instead of constructing a writable token for them.
 
 This is primarily a compatibility/safety feature for specific games/engines.
 
@@ -100,7 +100,7 @@ This is primarily a compatibility/safety feature for specific games/engines.
 At variable-token resolution time:
 
 - If a variable is marked prohibited (`IsForbid == true`), resolving it as a variable token throws an error (“used prohibited var”).
-- Some system variables are not intended to be prohibited; if they are prohibited by configuration, the engine may throw a fatal error when the variable token is resolved.
+- Some built-in variables are not allowed to be prohibited at all (`CanForbid == false`); if such a variable nevertheless reaches the prohibited state, resolving it throws a fatal `ExeEE` rather than the normal script-level `CodeEE`.
 
 ### Out-of-range indices
 
@@ -354,7 +354,7 @@ Keywords recognized by this engine:
 - `SAVEDATA`
 - `CHARADATA`
 
-Compatibility quirk (important): the directive keyword match is done under `Config.StringComparison` (often case-insensitive when `IgnoreCase=YES`), but the “is this string variable?” flag is derived using a **case-sensitive** check against the literal `"DIMS"`. So `#dims ...` can be accepted by the loader but still create a **numeric** variable in this codebase.
+Compatibility quirk (important): the directive keyword match is done under `Config.StringComparison` (ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`), but the “is this string variable?” flag is derived using a **case-sensitive** check against the literal `"DIMS"`. So `#dims ...` can be accepted by the loader but still create a **numeric** variable in this codebase.
 
 ### 2) Name validity and conflicts
 
@@ -475,7 +475,7 @@ In `*.ERH` you can declare global variables used from any ERB:
 Header-scope keywords (engine-accurate):
 
 - `SAVEDATA` — marks the variable as belonging to normal save data.
-- `GLOBAL` — marks the variable as belonging to “global” storage (separate from normal save-load; typically saved/loaded by dedicated commands).
+- `GLOBAL` — marks the variable as belonging to “global” storage (separate from normal save-load; in practice this storage is persisted through the dedicated global-save paths rather than normal save slots).
 - `CHARADATA` — per-character storage (creates a character-data variable).
 
 Header constraints:
@@ -574,7 +574,7 @@ It performs these steps (in this order):
 3) Reset “non-global built-in variables” (`SetDefaultValue(constant)`):
    - clears most built-in variable arrays (numeric to `0`, string to `null`)
    - leaves `GLOBAL/GLOBALS` untouched
-   - re-applies some engine defaults (notably `TARGET:0 = 1`, `ASSI:0 = -1`, and config-driven defaults like `PALAMLV`/`EXPLV`)
+   - re-applies engine defaults including `ASSI:0 = -1`, `TARGET:0 = 1`, `PBAND:0 = Config.PbandDef`, `EJAC:0 = 10000`, and config-driven tables for `PALAMLV` / `EXPLV`
 4) Dispose and clear the entire `CharacterList` (all characters are removed).
 
 #### 6.2 `ResetGlobalData()` (global reset) — what it clears

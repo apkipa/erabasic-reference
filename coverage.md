@@ -29,6 +29,8 @@ Legend:
 - ✅ Folder layout assumptions (csv/ERH/ERB, subfolder loading rules, and filesystem case-sensitivity caveat).
 - ✅ Load order and phase boundaries (CSV → rename/replace → ERH macros/vars → ERB).
 - ✅ File encodings and newline normalization.
+- ✅ `_Rename.csv` missing-file behavior when `UseRenameFile=YES` (host prints an error and continues with an empty rename map).
+- ✅ `_Replace.csv` replaceable-item set and its main script-visible effects (it targets a fixed replace-item table, including some runtime defaults, not arbitrary config keys).
 - 🟡 Error/warning behavior on duplicate definitions and missing references.
 
 Where described today:

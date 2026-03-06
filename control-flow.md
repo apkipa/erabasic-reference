@@ -1,6 +1,6 @@
 # Control Flow (statements and blocks)
 
-EraBasic is primarily statement-and-block based. Conditions are **numeric**: `0` is false and any non-zero value is true.
+EraBasic here is a statement-and-block language. Conditions are **numeric**: `0` is false and any non-zero value is true.
 
 ## Execution model note (important for reimplementation)
 
@@ -214,7 +214,7 @@ Engine-accurate semantics:
 
 Like C/VB `do { ... } while (...)`: it always executes the body at least once, then continues while `cond` is non-zero.
 
-Note: `CONTINUE` inside a `DO...LOOP` does **not** necessarily jump to `DO`; it proceeds to `LOOP` and may exit if the condition is false.
+Note: `CONTINUE` inside a `DO...LOOP` does **not** jump back to `DO`; it proceeds to `LOOP`, evaluates the trailing condition there, and exits when that condition is `0`.
 
 ## Loop control: `CONTINUE` and `BREAK`
 
