@@ -215,6 +215,30 @@ Notes:
 - Arguments can be omitted only when the formal has a default value (including an implicit default inserted for some formals) or when a compatibility option permits omission. See `runtime-model.md` for the exact binding rules used by this engine.
 - Passing is *by value* by default.
 
+### Omitted actuals vs explicit values
+
+Do not confuse these cases:
+
+- **omitted actual**: the caller leaves an argument slot empty,
+- **explicit value**: the caller supplies a real value such as `0`, `""`, or some other expression.
+
+For user-defined functions, an omitted actual is **not** treated as though the caller had explicitly written `0` or `""`.
+The engine first keeps that slot as **absent**, then applies the callee's binding rules:
+
+- if the formal has a default, that default is used,
+- otherwise omission is an error unless `CompatiFuncArgOptional` is enabled,
+- if omission is allowed without a default, the formal is left unchanged on entry rather than being auto-filled with a fresh `0` / `""`.
+
+Only after this binding step does the callee observe a concrete value or reference binding.
+
+A separate compatibility rule can auto-convert **explicit** integer actuals to strings for string formals (`CompatiFuncArgAutoConvert`).
+That is **not** the same thing as omitted-argument handling.
+
+Compatibility implication:
+
+- “optional” does not automatically mean “equivalent to writing `0` / `""`”,
+- and “empty string” is still a supplied string value, not an omitted argument.
+
 ### Definition syntax notes
 
 - Parentheses around the argument list in the *definition* are optional in many Emuera setups (`@FUNC, ARG:0` vs `@FUNC(ARG:0)`).

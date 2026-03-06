@@ -22,6 +22,24 @@ Important implication:
 
 - If you write more than one space after the instruction name, only the first is consumed. Any remaining spaces become part of the raw argument slice and may or may not matter depending on the argument parsing mode.
 
+### 1.1 Omitted argument slots are instruction-family specific
+
+For built-in instructions and methods, there is **no single universal rule** saying that an omitted later argument always becomes `0` or `""`.
+Instead, each instruction family defines its own omission behavior.
+
+Practical reading rule:
+
+- some optional arguments are replaced immediately with their documented default during argument parsing,
+- some remain absent until the instruction's own semantics inspect them,
+- some cannot be omitted at all,
+- and an explicit value such as `0` or `""` is still different from omission unless that entry explicitly states they are treated the same.
+
+This is why built-in reference entries should distinguish:
+
+- **optional / omitted**,
+- **required but allowed to be empty**,
+- and **explicit sentinel values** such as `0`.
+
 ## 2) The meaning of `;` depends on the parsing mode
 
 The engine does **not** strip inline comments before argument parsing. Instead, `;` is handled by whichever parser is used for that instruction:

@@ -11057,7 +11057,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 **Semantics**
 - Enters a wait state for *primitive* input events (not text box submission).
-- See also: `input-flow.md` (how primitive waits differ from textbox-segmentation waits).
+- See also: `input-flow.md` (how primitive waits differ from textbox-segmentation waits) and `cbg-layer.md` (why `RESULT:4` is a separate CBG hit-map channel rather than an ordinary output-button value).
 - This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
 - When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0..5]` (i.e. `RESULT` and `RESULT:1..5`) as follows.
 
@@ -11075,9 +11075,9 @@ Payload (`RESULT:*`), by event type:
     - Typical values: left=`1048576`, right=`2097152`, middle=`4194304`.
   - `RESULT:2`: mouse `x` in client pixels (origin at the left edge).
   - `RESULT:3`: mouse `y` in client pixels, using a bottom-origin coordinate: `y = rawY - ClientHeight`.
-  - `RESULT:4`: current button-map/background-map hit value (24-bit RGB), or `-1` when no opaque map pixel is available at the click position.
-  - `RESULT:5`: if an **integer** button is currently selected, its button value; otherwise `0`.
-  - Additionally, if a **string** button is currently selected, the engine assigns `RESULTS = <button string>` (and `RESULT:5 = 0`).
+  - `RESULT:4`: current CBG button-hit-map value (24-bit RGB), or `-1` when no opaque CBG-map pixel is available at the click position.
+  - `RESULT:5`: if an **integer ordinary output button** is currently selected, its button value; otherwise `0`.
+  - Additionally, if a **string ordinary output button** is currently selected, the engine assigns `RESULTS = <button string>` (and `RESULT:5 = 0`).
   - No additional `RESULT:6` payload is assigned by this instruction.
 
 - Mouse wheel (`RESULT == 2`):
@@ -17481,7 +17481,8 @@ R = SPRITESETPOS("ICON", 100, 50)
   - the pointed object is not a button.
 - Boundary note:
   - this follows the normal output-button hover model,
-  - it does **not** expose CBG button-map values.
+  - it does **not** expose CBG button-map values,
+  - see `cbg-layer.md` for the separate CBG hit-map/value path.
 - Engine-extracted notes (key operations):
   - `bool b = exm.Console.AlwaysRefresh`
   - `Point point = exm.Console.Window.MainPicBox.PointToClient(Control.MousePosition)`
@@ -18356,6 +18357,9 @@ R = SPRITEDISPOSE("ICON")
 
 **Semantics**
 - Wraps the referenced graphics surface as a CBG image entry and adds it to the client-background layer at `(<x>, <y>, zDepth)`.
+- The registered entry holds a **live reference** to that graphics surface rather than a copied pixel snapshot.
+  - Later drawing/mutation of the same `G` surface changes later CBG rendering for this entry.
+  - Removing the CBG entry breaks that reference, but does **not** dispose the underlying graphics surface.
 - Layer boundary:
   - this affects only the CBG/background layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.
@@ -18400,12 +18404,18 @@ R = CBGSETG(GID, 0, 0, 10)
 - Signature: `int CBGSETSPRITE(string spriteName, int x, int y, int zDepth)`.
 
 **Arguments**
-- `<spriteName>` (string): sprite name to place on the CBG layer.
+- `<spriteName>` (required string): sprite name to look up and place on the CBG layer. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
 - `<x>`, `<y>` (int): CBG placement coordinates.
 - `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 
 **Semantics**
 - Looks up `<spriteName>` in the sprite table and, if it exists and is created, adds that sprite to the client-background layer at `(<x>, <y>, zDepth)`.
+- If `<spriteName>` is `""`, lookup still runs normally against that supplied empty name; in practice that lookup fails, so the call returns `0`.
+- The registered entry holds a **live reference** to that sprite object rather than a copied snapshot.
+  - Later mutation/disposal of that same sprite object changes later CBG rendering for this entry.
+- Host-mode quirk:
+  - unlike `CBGSETG` / `CBGSETBMAPG` / `CBGSETBUTTONSPRITE`, this call does **not** raise a GDI+-only error in `WINAPI` text-drawing mode,
+  - but on this host the ordinary CBG paint path is not active in that mode, so the stored entry normally has no visible CBG effect there.
 - Layer boundary:
   - this affects only the CBG/background layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.
@@ -18452,6 +18462,9 @@ R = CBGSETSPRITE("BG_ICON", 32, 16, 10)
 **Semantics**
 - Removes all currently registered CBG entries from the client-background layer, including ordinary CBG images and CBG button sprites.
 - Also clears the current CBG button-hit map and resets current CBG button selection state.
+- Resource-ownership boundary:
+  - this clears only the CBG-side registrations/references,
+  - it does **not** dispose the underlying named sprite objects or graphics surfaces that had been referenced there.
 - Layer boundary:
   - this affects only the CBG/background layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.
@@ -18491,6 +18504,9 @@ R = CBGSETSPRITE("BG_ICON", 32, 16, 10)
 **Semantics**
 - Removes every currently registered **CBG button sprite** from the client-background (`CBG`) layer.
 - Also clears the current CBG button-hit map and resets current CBG button selection state.
+- Resource-ownership boundary:
+  - this removes only the CBG-side button registrations/references,
+  - it does **not** dispose the underlying named sprite objects that had been referenced there.
 - Layer boundary:
   - this affects only the CBG/background-button layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.
@@ -18538,7 +18554,8 @@ R = CBGSETSPRITE("BG_ICON", 32, 16, 10)
 - This operation does **not** clear the current CBG button-hit map.
 - Observable consequence:
   - removed CBG images/button sprites disappear,
-  - but the hit map and current CBG selection machinery remain installed unless changed separately.
+  - but the hit map and current CBG selection machinery remain installed unless changed separately,
+  - and removing an entry severs only the CBG-side reference; it does **not** dispose the underlying sprite/graphics resource.
 - Layer boundary:
   - this affects only the CBG/background layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.
@@ -18620,6 +18637,9 @@ R = CBGSETSPRITE("BG_ICON", 32, 16, 10)
 
 **Semantics**
 - Selects one graphics surface as the current **CBG button-hit map**.
+- The installed hit map is a **live reference** to that graphics surface, not a copied bitmap snapshot.
+  - Later drawing/mutation of the same `G` surface changes later CBG hit-testing results.
+  - Clearing/replacing the hit map breaks that reference, but does **not** dispose the underlying graphics surface.
 - The map is used for CBG mouse hit-testing by reading the pixel under the mouse:
   - if the pixel alpha is `255`, its low 24-bit RGB value becomes the selected CBG button value,
   - otherwise no CBG button is considered selected at that point.
@@ -18632,7 +18652,9 @@ R = CBGSETSPRITE("BG_ICON", 32, 16, 10)
 - Compatibility quirk:
   - the public return value does **not** report whether the installed map is actually different from the previous one,
   - so re-setting the same already-installed map still returns `1`.
-- On successful installation, current CBG hover/selection state is reset.
+- Selection-reset boundary:
+  - installing a **different** graphics object as the hit map resets current CBG hover/selection state,
+  - but re-setting the same already-installed graphics object leaves the existing hit map and current selection state unchanged even though the public return value is still `1`.
 - Engine-extracted notes (key operations):
   - `exm.Console.CBG_SetButtonMap(g)`
 
@@ -18670,8 +18692,8 @@ R = CBGSETBMAPG(GID)
 
 **Arguments**
 - `<buttonValue>` (int): logical CBG button value associated with this sprite.
-- `<normalSprite>` (string): sprite name used in the normal state.
-- `<hoverSprite>` (string): sprite name used while this button value is currently selected by the CBG hit map.
+- `<normalSprite>` (required string): sprite name used in the normal state. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
+- `<hoverSprite>` (required string): sprite name used while this button value is currently selected by the CBG hit map. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
 - `<x>`, `<y>` (int): CBG placement coordinates.
 - `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 - `<tooltip>` (optional, string): tooltip text associated with this button sprite.
@@ -18679,15 +18701,20 @@ R = CBGSETBMAPG(GID)
 **Semantics**
 - Adds one CBG button sprite entry to the client-background layer.
 - The entry is associated with `<buttonValue>`.
+- The registered entry holds **live references** to the normal/hover sprite objects rather than copied snapshots.
+  - Later mutation/disposal of those same sprite objects changes later CBG rendering for this entry.
 - When the current CBG hit map selects that same button value, the runtime draws the hover/selected sprite in place of the normal sprite for this entry.
 - If multiple CBG button sprites share the same `<buttonValue>`, they all participate by value rather than by unique object identity.
 - Tooltip boundary:
   - the optional tooltip text is stored on the CBG button sprite entry,
-  - when this button value is the currently selected CBG value, that tooltip can be surfaced by the host UI.
+  - when this button value is the currently selected CBG value, that tooltip can be surfaced by the host UI,
+  - but the standard host tooltip path only does so for selected values greater than `0`, so `buttonValue = 0` still participates in selection/hover-sprite switching without surfacing tooltip text through that standard path.
 - Sprite-existence boundary:
   - missing/uncreated sprite names do **not** make the call fail by themselves,
   - the entry is still registered,
-  - but an uncreated/missing sprite simply does not draw.
+  - but an uncreated/missing sprite simply does not draw,
+  - an explicit empty string behaves the same way as any other failing lookup here,
+  - so if the hover sprite is missing/uncreated, the entry can become invisible while selected.
 - Layer boundary:
   - this affects only the CBG/background-button layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.

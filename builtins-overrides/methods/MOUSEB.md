@@ -24,7 +24,8 @@
   - the pointed object is not a button.
 - Boundary note:
   - this follows the normal output-button hover model,
-  - it does **not** expose CBG button-map values.
+  - it does **not** expose CBG button-map values,
+  - see `cbg-layer.md` for the separate CBG hit-map/value path.
 
 **Errors & validation**
 - None.

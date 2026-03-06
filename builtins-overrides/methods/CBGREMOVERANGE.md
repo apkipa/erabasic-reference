@@ -23,7 +23,8 @@
 - This operation does **not** clear the current CBG button-hit map.
 - Observable consequence:
   - removed CBG images/button sprites disappear,
-  - but the hit map and current CBG selection machinery remain installed unless changed separately.
+  - but the hit map and current CBG selection machinery remain installed unless changed separately,
+  - and removing an entry severs only the CBG-side reference; it does **not** dispose the underlying sprite/graphics resource.
 - Layer boundary:
   - this affects only the CBG/background layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.

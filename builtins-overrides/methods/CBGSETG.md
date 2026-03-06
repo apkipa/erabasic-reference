@@ -18,6 +18,9 @@
 
 **Semantics**
 - Wraps the referenced graphics surface as a CBG image entry and adds it to the client-background layer at `(<x>, <y>, zDepth)`.
+- The registered entry holds a **live reference** to that graphics surface rather than a copied pixel snapshot.
+  - Later drawing/mutation of the same `G` surface changes later CBG rendering for this entry.
+  - Removing the CBG entry breaks that reference, but does **not** dispose the underlying graphics surface.
 - Layer boundary:
   - this affects only the CBG/background layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.

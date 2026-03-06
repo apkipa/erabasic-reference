@@ -124,9 +124,10 @@ Shared properties of this path:
 
 Important boundary distinctions:
 
-- This path is about **normal-output button regions** embedded in the ordinary output model; it is not the same as the separate `CBG` button-map layer.
+- This path is about **normal-output button regions** embedded in the ordinary output model; it is not the same as the separate `CBG` button-map layer documented in [`cbg-layer.md`](cbg-layer.md).
 - For `INPUT` / `INPUTS` / `INPUTANY`-style value waits, clickable normal-output buttons can satisfy the wait even when the instruction did not request the extra mouse side-channel mode.
 - The optional `mouse` argument on `INPUT` / `INPUTS` / `TINPUT*` / `BINPUT*` families mainly controls whether the UI also writes the extra mouse side-channel metadata; see the corresponding built-in entries for exact `RESULT*` slots.
+- If the current pointer position is claimed by an active `CBG` hit-map pixel, that host-side `CBG` pointer selection takes precedence over ordinary output-button hover selection at that point; this does **not** turn the `CBG` value into an ordinary button submission.
 
 On this host, a right-click completion path can also request `MesSkip`, so one mouse completion can both satisfy the current wait and enable immediate skip-driven continuation of later waits in the same handling pass.
 
@@ -361,3 +362,4 @@ A compatible reimplementation should preserve all of these observable rules:
 - `config-items.md` — config keys referenced here, especially `AllowLongInputByMouse`.
 - `system-flow.md` — host phase/state transitions outside the local input loop.
 - `plugins.md` — plugin helper `WaitInput(...)` surface (host extension API), which is related but not a substitute for the typed ERB input instructions.
+- `cbg-layer.md` — separate `CBG` hit-map/value model and its boundary against ordinary output buttons.

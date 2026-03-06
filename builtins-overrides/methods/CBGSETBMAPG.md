@@ -17,6 +17,9 @@
 
 **Semantics**
 - Selects one graphics surface as the current **CBG button-hit map**.
+- The installed hit map is a **live reference** to that graphics surface, not a copied bitmap snapshot.
+  - Later drawing/mutation of the same `G` surface changes later CBG hit-testing results.
+  - Clearing/replacing the hit map breaks that reference, but does **not** dispose the underlying graphics surface.
 - The map is used for CBG mouse hit-testing by reading the pixel under the mouse:
   - if the pixel alpha is `255`, its low 24-bit RGB value becomes the selected CBG button value,
   - otherwise no CBG button is considered selected at that point.
@@ -29,7 +32,9 @@
 - Compatibility quirk:
   - the public return value does **not** report whether the installed map is actually different from the previous one,
   - so re-setting the same already-installed map still returns `1`.
-- On successful installation, current CBG hover/selection state is reset.
+- Selection-reset boundary:
+  - installing a **different** graphics object as the hit map resets current CBG hover/selection state,
+  - but re-setting the same already-installed graphics object leaves the existing hit map and current selection state unchanged even though the public return value is still `1`.
 
 **Errors & validation**
 - Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.

@@ -15,7 +15,7 @@
 
 **Semantics**
 - Enters a wait state for *primitive* input events (not text box submission).
-- See also: `input-flow.md` (how primitive waits differ from textbox-segmentation waits).
+- See also: `input-flow.md` (how primitive waits differ from textbox-segmentation waits) and `cbg-layer.md` (why `RESULT:4` is a separate CBG hit-map channel rather than an ordinary output-button value).
 - This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
 - When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0..5]` (i.e. `RESULT` and `RESULT:1..5`) as follows.
 
@@ -33,9 +33,9 @@ Payload (`RESULT:*`), by event type:
     - Typical values: left=`1048576`, right=`2097152`, middle=`4194304`.
   - `RESULT:2`: mouse `x` in client pixels (origin at the left edge).
   - `RESULT:3`: mouse `y` in client pixels, using a bottom-origin coordinate: `y = rawY - ClientHeight`.
-  - `RESULT:4`: current button-map/background-map hit value (24-bit RGB), or `-1` when no opaque map pixel is available at the click position.
-  - `RESULT:5`: if an **integer** button is currently selected, its button value; otherwise `0`.
-  - Additionally, if a **string** button is currently selected, the engine assigns `RESULTS = <button string>` (and `RESULT:5 = 0`).
+  - `RESULT:4`: current CBG button-hit-map value (24-bit RGB), or `-1` when no opaque CBG-map pixel is available at the click position.
+  - `RESULT:5`: if an **integer ordinary output button** is currently selected, its button value; otherwise `0`.
+  - Additionally, if a **string ordinary output button** is currently selected, the engine assigns `RESULTS = <button string>` (and `RESULT:5 = 0`).
   - No additional `RESULT:6` payload is assigned by this instruction.
 
 - Mouse wheel (`RESULT == 2`):

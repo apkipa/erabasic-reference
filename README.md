@@ -35,6 +35,7 @@ This reference has two “layers”:
 - [`system-flow.md`](system-flow.md) — system phase state machine (TITLE/SHOP/TRAIN/ABLUP/…) and required `BEGIN` contracts
 - [`input-flow.md`](input-flow.md) — host-side input request lifecycle, segmentation, submission paths, and wait-state consumption rules
 - [`output-flow.md`](output-flow.md) — shared output-state model (logical lines, temporary lines, button regions, history/buffer APIs)
+- [`cbg-layer.md`](cbg-layer.md) — client-background (`CBG`) layer, depth ordering, hit-testing, and its boundary against normal output/buttons
 - [`functions.md`](functions.md) — `CALL/RETURN`, arguments (`ARG/ARGS`), expression functions (`#FUNCTION/#FUNCTIONS`)
 - [`argument-parsing-modes.md`](argument-parsing-modes.md) — how built-ins parse arguments (raw vs expression vs FORM) and how `;` behaves
 - [`line-start-special-cases.md`](line-start-special-cases.md) — engine line-start dispatch rules (`;!;`, `{...}`, `[...]`, `@/$/#`, prefix `++/--`)

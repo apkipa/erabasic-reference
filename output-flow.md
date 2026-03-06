@@ -24,6 +24,8 @@ This topic does **not** redefine:
 - wait-state lifecycle or input acceptance rules; those live in [`input-flow.md`](input-flow.md),
 - per-built-in argument syntax beyond the shared model documented here; detailed signatures still live in [`builtins-reference.md`](builtins-reference.md).
 
+This topic deliberately covers only the **normal output** and **HTML-island** models. The separate `CBG` graphics/hit-map layer is specified in [`cbg-layer.md`](cbg-layer.md). Even when `CBG` visually appears above or below ordinary text, it is not part of the retained output history described here.
+
 `GETLINESTR` is **not** part of this model. It is a `DRAWLINE` helper that expands a pattern string to the current drawable width; see its own built-in entry.
 
 ## 2) Output state layers
@@ -409,3 +411,4 @@ A compatible implementation should preserve all of the following observable dist
 - [`input-flow.md`](input-flow.md) — wait lifecycle, button acceptance, mouse completion paths, segmentation
 - [`system-flow.md`](system-flow.md) — phase loops that inspect trailing temporary-line state
 - [`builtins-reference.md`](builtins-reference.md) — per-built-in signatures and family-specific quirks
+- [`cbg-layer.md`](cbg-layer.md) — separate CBG graphics/hit-map state excluded from normal output history

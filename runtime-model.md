@@ -334,7 +334,13 @@ At call time, Emuera builds a `UserDefinedFunctionArgument`:
   - otherwise it is an error unless `CompatiFuncArgOptional` is enabled.
 - If types mismatch:
   - string → int is always an error
-  - int → string is an error unless `CompatiFuncArgAutoConvert` is enabled, in which case the engine wraps the argument with `TOSTR(...)`.
+  - int → string is an error unless `CompatiFuncArgAutoConvert` is enabled, in which case the engine applies the same observable conversion as `TOSTR(...)`.
+
+Interpretation rule:
+
+- an omitted actual remains an **absent slot** until this binding stage decides what to do with it,
+- it is not universally rewritten in advance to `0` or `""`,
+- therefore omission behavior and explicit-value behavior stay distinct until the callee's own default/compatibility rules are applied.
 
 Evaluation and assignment order (engine-accurate):
 
