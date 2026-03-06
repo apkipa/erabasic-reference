@@ -21,7 +21,7 @@
 - Runs post-load system hooks (if they exist), in this order:
   - `SYSTEM_LOADEND`
   - `EVENTLOAD`
-- If `EVENTLOAD` returns normally without performing a `BEGIN`, execution proceeds as if `BEGIN SHOP` occurred.
+- If `EVENTLOAD` returns normally without performing a `BEGIN`, the engine enters the SHOP main loop fallback: it proceeds to `@SHOW_SHOP` / command input without calling `@EVENTSHOP` and without performing the SHOP-entry autosave.
 - See also: `save-files.md` (directories, partitions, and on-disk formats).
 
 **Errors & validation**

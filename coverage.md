@@ -264,6 +264,7 @@ Typical-game compatibility requires a subset of “UI-ish” built-ins to be spe
 
 ### 11.2 Input model (console)
 
+- ✅ Shared input-request lifecycle, submission paths, segment draining/discard rules, one-input segment semantics, and `MesSkip` auto-advance model: `input-flow.md`.
 - 🟡 Choice input:
   - how the engine decides that input is expected (e.g. after printing buttons vs explicit input instructions)
   - what forms of user input are accepted (button click vs typed number) and their precedence

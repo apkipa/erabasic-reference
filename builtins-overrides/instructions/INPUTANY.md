@@ -12,6 +12,7 @@
 
 **Semantics**
 - Enters an input wait (`InputType = AnyValue`).
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - On completion:
   - If the submitted text parses as a signed 64-bit integer, assigns it to `RESULT`.
   - Otherwise assigns the submitted text to `RESULTS`.

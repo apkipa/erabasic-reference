@@ -12,6 +12,7 @@
 
 **Semantics**
 - Enters a UI wait state for an Enter-style key/click.
+- See also: `input-flow.md` (shared wait-state lifecycle and `MesSkip` auto-advance model).
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
 

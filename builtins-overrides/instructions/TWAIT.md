@@ -15,6 +15,7 @@
 
 **Semantics**
 - If `<mode> == 0`: waits for Enter/click, but times out after `<timeMs>`.
+- See also: `input-flow.md` (shared wait-state lifecycle, timed completion model, and `MesSkip` auto-advance behavior).
 - If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.

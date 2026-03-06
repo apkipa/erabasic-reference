@@ -12,8 +12,10 @@
 
 **Semantics**
 - Same as `TINPUTS`, but with “one input” mode enabled:
-  - If the entered text has length > 1, it is truncated to the first character.
-  - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
+  - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
+  - Each submitted segment is normally truncated to its first character.
+  - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
+  - This truncation applies only to submitted UI text. Defaults accepted via empty input or the `MesSkip` no-wait path are used as-is by `TONEINPUTS` itself.
 
 **Errors & validation**
 - Same as `TINPUTS`.

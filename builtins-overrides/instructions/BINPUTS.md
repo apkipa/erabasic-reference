@@ -14,6 +14,7 @@
 
 **Semantics**
 - Ensures the current output is drawn before waiting (flushes any pending buffer and forces a refresh).
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - If there is no selectable button available:
   - If `<default>` is omitted: runtime error.
   - Otherwise: immediately accepts `<default>` (writes it to `RESULTS`) and returns without waiting.

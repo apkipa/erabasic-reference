@@ -4647,6 +4647,7 @@ PRINTFORML {X}  ; 125
 
 **Semantics**
 - Enters a UI wait state for an Enter-style key/click.
+- See also: `input-flow.md` (shared wait-state lifecycle and `MesSkip` auto-advance model).
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Engine-extracted notes (key operations):
@@ -4666,7 +4667,7 @@ PRINTFORML {X}  ; 125
 
 ## INPUT (instruction)
 **Summary**
-- Requests an integer input from the user and stores it into `RESULT` (with mouse-related side channels in some cases).
+- Requests an integer input from the user and stores it into `RESULT`; when `<mouse> != 0` and completion occurs via a mouse click, the UI also writes mouse-side-channel metadata.
 
 **Metadata**
 - Arg spec: `SP_INPUT` (see #argument-spec-sp_input) (inferred from `INPUT_Instruction` ArgBuilder assignment)
@@ -4685,6 +4686,7 @@ PRINTFORML {X}  ; 125
 
 **Semantics**
 - Enters an integer-input UI wait.
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
 - On successful completion:
   - Writes the accepted integer to `RESULT`.
@@ -4732,7 +4734,7 @@ Compatibility notes:
 
 - The mapping color uses the mapping sprite’s base size (the size defined by `resources/**/*.csv`), not the drawn size.
 - If the click is exactly on the image rectangle boundary, the mapping color is treated as `0` (the hit-test uses strict `>`/`<`).
-- Some other UI wait types (not `INPUT` itself) may write a mapping color to `RESULT:6` instead of `RESULT:3` (e.g. the “primitive mouse/key” wait used by `INPUTMOUSEKEY`).
+- Other input waits can use a different `RESULT:*` payload layout; `INPUTMOUSEKEY`, for example, does not reuse `INPUT`'s `RESULT:3` button-color slot.
 - When output skipping is enabled, the engine normally skips `INPUT`.
   - Exception: if output skipping was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
 - Engine-extracted notes (key operations):
@@ -4756,7 +4758,7 @@ Compatibility notes:
 
 ## INPUTS (instruction)
 **Summary**
-- Requests a string input from the user and stores it into `RESULTS` (with mouse-related side channels in some cases).
+- Requests a string input from the user and stores it into `RESULTS`; when `<mouse> != 0` and completion occurs via a mouse click, the UI also writes mouse-side-channel metadata.
 
 **Metadata**
 - Arg spec: `SP_INPUTS` (see #argument-spec-sp_inputs) (inferred from `INPUTS_Instruction` ArgBuilder assignment)
@@ -4774,6 +4776,7 @@ Compatibility notes:
 
 **Semantics**
 - Enters a string-input UI wait.
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - If `<defaultFormString>` is provided, it is evaluated to a string and used as the default when the input is empty and the request is not running a timer.
 - On successful completion:
   - Stores the string into `RESULTS`.
@@ -4834,6 +4837,7 @@ Compatibility notes:
 
 **Semantics**
 - Enters an integer-input UI wait with a timer of `<timeMs>` milliseconds (a default is always present for timed input).
+- See also: `input-flow.md` (shared submission paths, timed completion model, segment draining/discard rules, and `MesSkip` interaction).
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
   - A timeout message is displayed (either by updating the last “remaining time” line, or by printing a single line, depending on `<displayTime>`).
@@ -4881,6 +4885,7 @@ Compatibility notes:
 
 **Semantics**
 - Same model as `TINPUT`, but stores into `RESULTS` (string) rather than `RESULT` (int).
+- See also: `input-flow.md` (shared submission paths, timed completion model, segment draining/discard rules, and `MesSkip` interaction).
 - `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:
@@ -4919,8 +4924,10 @@ Compatibility notes:
 
 **Semantics**
 - Same as `TINPUT`, but with “one input” mode enabled:
-  - If the entered text has length > 1, it is truncated to the first character.
-  - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
+  - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
+  - Each submitted segment is normally truncated to its first character.
+  - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
+  - This truncation applies only to submitted UI text. Defaults accepted via empty input or the `MesSkip` no-wait path are used as-is by `TONEINPUT` itself.
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -4951,8 +4958,10 @@ Compatibility notes:
 
 **Semantics**
 - Same as `TINPUTS`, but with “one input” mode enabled:
-  - If the entered text has length > 1, it is truncated to the first character.
-  - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
+  - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
+  - Each submitted segment is normally truncated to its first character.
+  - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
+  - This truncation applies only to submitted UI text. Defaults accepted via empty input or the `MesSkip` no-wait path are used as-is by `TONEINPUTS` itself.
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -4986,6 +4995,7 @@ Compatibility notes:
 
 **Semantics**
 - If `<mode> == 0`: waits for Enter/click, but times out after `<timeMs>`.
+- See also: `input-flow.md` (shared wait-state lifecycle, timed completion model, and `MesSkip` auto-advance behavior).
 - If `<mode> != 0`: disallows input and simply waits `<timeMs>` (but can still be affected by macro/skip behavior).
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
@@ -5022,6 +5032,7 @@ Compatibility notes:
 
 **Semantics**
 - Enters a UI wait state for any-key input.
+- See also: `input-flow.md` (shared wait-state lifecycle and `MesSkip` auto-advance model).
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Engine-extracted notes (key operations):
@@ -5054,6 +5065,7 @@ Compatibility notes:
 
 **Semantics**
 - Waits for Enter/click, and stops “message skip” from auto-advancing past the wait.
+- See also: `input-flow.md` (shared wait-state lifecycle and `MesSkip` auto-advance model).
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Engine-extracted notes (key operations):
@@ -5089,9 +5101,11 @@ Compatibility notes:
 
 **Semantics**
 - Like `INPUT` (including `MesSkip` behavior and mouse side channels), but sets `OneInput = true` on the input request.
-- Implementation-oriented notes:
-  - In the UI input handler, `OneInput` truncates the entered text to at most one character in many cases, so it typically behaves like “read a single digit/character then parse”.
-  - Depending on configuration, mouse-provided input may bypass this truncation.
+- Exact one-input rule:
+  - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
+  - Each submitted segment is normally truncated to its first character.
+  - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
+  - This truncation applies only to submitted UI text. Defaults accepted via empty input or the `MesSkip` no-wait path are used as-is by `ONEINPUT` itself.
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -5125,8 +5139,10 @@ Compatibility notes:
 
 **Semantics**
 - Like `INPUTS` (including `MesSkip` behavior and mouse side channels), but with “one input” mode enabled:
-  - If the entered text has length > 1, it is truncated to the first character.
-  - Exception: if `AllowLongInputByMouse` is enabled and the input was produced by mouse selection, truncation does not occur.
+  - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
+  - Each submitted segment is normally truncated to its first character.
+  - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
+  - This truncation applies only to submitted UI text. Defaults accepted via empty input or the `MesSkip` no-wait path are used as-is by `ONEINPUTS` itself.
 - Engine-extracted notes (key operations):
   - `exm.Console.WaitInput(req)`
 
@@ -5724,7 +5740,7 @@ DELCHARA 1, 3
     - Enters the same post-load system hook sequence as `LOADDATA`:
       - `SYSTEM_LOADEND` (if present)
       - `EVENTLOAD` (if present)
-      - then returns to normal system flow (typically as if `BEGIN SHOP` occurred, unless `EVENTLOAD` performed a `BEGIN`).
+      - if `EVENTLOAD` returns normally without performing a `BEGIN`, the engine enters the SHOP main loop fallback: it proceeds to `@SHOW_SHOP` / command input without calling `@EVENTSHOP` and without performing the SHOP-entry autosave.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 - Engine-extracted notes (key operations):
   - `if ((state.SystemState & SystemStateCode.__CAN_SAVE__) != SystemStateCode.__CAN_SAVE__)`
@@ -5821,7 +5837,7 @@ DELCHARA 1, 3
 - Runs post-load system hooks (if they exist), in this order:
   - `SYSTEM_LOADEND`
   - `EVENTLOAD`
-- If `EVENTLOAD` returns normally without performing a `BEGIN`, execution proceeds as if `BEGIN SHOP` occurred.
+- If `EVENTLOAD` returns normally without performing a `BEGIN`, the engine enters the SHOP main loop fallback: it proceeds to `@SHOW_SHOP` / command input without calling `@EVENTSHOP` and without performing the SHOP-entry autosave.
 - See also: `save-files.md` (directories, partitions, and on-disk formats).
 - Engine-extracted notes (key operations):
   - `EraDataResult result = vEvaluator.CheckData((int)target, EraSaveFileType.Normal)`
@@ -10943,6 +10959,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 
 **Semantics**
 - Enters a wait state for *primitive* input events (not text box submission).
+- See also: `input-flow.md` (how primitive waits differ from textbox-segmentation waits).
 - This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
 - When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0..5]` (i.e. `RESULT` and `RESULT:1..5`) as follows.
 
@@ -10960,10 +10977,10 @@ Payload (`RESULT:*`), by event type:
     - Typical values: left=`1048576`, right=`2097152`, middle=`4194304`.
   - `RESULT:2`: mouse `x` in client pixels (origin at the left edge).
   - `RESULT:3`: mouse `y` in client pixels, using a bottom-origin coordinate: `y = rawY - ClientHeight`.
-  - `RESULT:4`: background-map hit value (see `SETBGIMAGE` / mapping graph); `-1` when not available.
+  - `RESULT:4`: current button-map/background-map hit value (24-bit RGB), or `-1` when no opaque map pixel is available at the click position.
   - `RESULT:5`: if an **integer** button is currently selected, its button value; otherwise `0`.
-  - Additionally, if a **string** button is selected, the engine assigns `RESULTS = <button string>` (and `RESULT:5 = 0`).
-  - Additionally, the UI may assign `RESULT:6` to the selected button’s mapping color (24-bit RGB) if the button contains an `<img srcm='...'>` mapping sprite.
+  - Additionally, if a **string** button is currently selected, the engine assigns `RESULTS = <button string>` (and `RESULT:5 = 0`).
+  - No additional `RESULT:6` payload is assigned by this instruction.
 
 - Mouse wheel (`RESULT == 2`):
   - `RESULT:1`: wheel delta.
@@ -11715,6 +11732,7 @@ ENCODETOUNI "ABC"
 
 **Semantics**
 - Enters an input wait (`InputType = AnyValue`).
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - On completion:
   - If the submitted text parses as a signed 64-bit integer, assigns it to `RESULT`.
   - Otherwise assigns the submitted text to `RESULTS`.
@@ -11925,6 +11943,7 @@ ENDIF
 
 **Semantics**
 - Ensures the current output is drawn before waiting (flushes any pending buffer and forces a refresh).
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - If there is no selectable integer button available:
   - If `<default>` is omitted: runtime error.
   - Otherwise: immediately accepts `<default>` (writes it to `RESULT`) and returns without waiting.
@@ -11997,6 +12016,7 @@ PRINTFORML "picked=" + RESULT
 
 **Semantics**
 - Ensures the current output is drawn before waiting (flushes any pending buffer and forces a refresh).
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - If there is no selectable button available:
   - If `<default>` is omitted: runtime error.
   - Otherwise: immediately accepts `<default>` (writes it to `RESULTS`) and returns without waiting.
@@ -12058,7 +12078,7 @@ PRINTFORML "picked=" + RESULTS
 
 ## ONEBINPUT (instruction)
 **Summary**
-- Like `BINPUT`, but uses “one input” mode (`OneInput = true`): typed text input is truncated to its first character.
+- Like `BINPUT`, but uses “one input” mode (`OneInput = true`) for submitted UI text.
 
 **Metadata**
 - Arg spec: `SP_INPUT` (see #argument-spec-sp_input) (inferred from `ONEBINPUT_Instruction` ArgBuilder assignment)
@@ -12072,9 +12092,11 @@ PRINTFORML "picked=" + RESULTS
 
 **Semantics**
 - Same button-matching and default rules as `BINPUT`.
-- Additionally, when the user submits a non-empty input string:
-  - The engine truncates the input to its first character before attempting to parse/match it.
-  - Exception: if the input is produced by mouse selection and config `AllowLongInputByMouse` is enabled, truncation does not occur.
+- Exact one-input rule:
+  - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
+  - Each submitted segment is normally truncated to its first character.
+  - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
+  - This truncation applies only to submitted UI text. Defaults accepted via empty input or the `MesSkip` no-wait path are used as-is by `ONEBINPUT` itself.
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.PrintBuffer.IsEmpty)`
   - `exm.Console.NewLine()`
@@ -12105,7 +12127,7 @@ ONEBINPUT
 
 ## ONEBINPUTS (instruction)
 **Summary**
-- Like `BINPUTS`, but uses “one input” mode (`OneInput = true`): typed text input is truncated to its first character.
+- Like `BINPUTS`, but uses “one input” mode (`OneInput = true`) for submitted UI text.
 
 **Metadata**
 - Arg spec: `SP_INPUTS` (see #argument-spec-sp_inputs) (inferred from `ONEBINPUTS_Instruction` ArgBuilder assignment)
@@ -12119,9 +12141,11 @@ ONEBINPUT
 
 **Semantics**
 - Same button-matching and default rules as `BINPUTS`.
-- Additionally, when the user submits a non-empty input string:
-  - The engine truncates the input to its first character before attempting to match it.
-  - Exception: if the input is produced by mouse selection and config `AllowLongInputByMouse` is enabled, truncation does not occur.
+- Exact one-input rule:
+  - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
+  - Each submitted segment is normally truncated to its first character.
+  - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
+  - This truncation applies only to submitted UI text. Defaults accepted via empty input or the `MesSkip` no-wait path are used as-is by `ONEBINPUTS` itself.
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.PrintBuffer.IsEmpty)`
   - `exm.Console.NewLine()`

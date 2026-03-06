@@ -17,6 +17,7 @@
 
 **Semantics**
 - Enters an integer-input UI wait with a timer of `<timeMs>` milliseconds (a default is always present for timed input).
+- See also: `input-flow.md` (shared submission paths, timed completion model, segment draining/discard rules, and `MesSkip` interaction).
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
   - A timeout message is displayed (either by updating the last “remaining time” line, or by printing a single line, depending on `<displayTime>`).

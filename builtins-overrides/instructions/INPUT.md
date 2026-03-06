@@ -1,5 +1,5 @@
 **Summary**
-- Requests an integer input from the user and stores it into `RESULT` (with mouse-related side channels in some cases).
+- Requests an integer input from the user and stores it into `RESULT`; when `<mouse> != 0` and completion occurs via a mouse click, the UI also writes mouse-side-channel metadata.
 
 **Tags**
 - io
@@ -17,6 +17,7 @@
 
 **Semantics**
 - Enters an integer-input UI wait.
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
 - On successful completion:
   - Writes the accepted integer to `RESULT`.
@@ -64,7 +65,7 @@ Compatibility notes:
 
 - The mapping color uses the mapping sprite’s base size (the size defined by `resources/**/*.csv`), not the drawn size.
 - If the click is exactly on the image rectangle boundary, the mapping color is treated as `0` (the hit-test uses strict `>`/`<`).
-- Some other UI wait types (not `INPUT` itself) may write a mapping color to `RESULT:6` instead of `RESULT:3` (e.g. the “primitive mouse/key” wait used by `INPUTMOUSEKEY`).
+- Other input waits can use a different `RESULT:*` payload layout; `INPUTMOUSEKEY`, for example, does not reuse `INPUT`'s `RESULT:3` button-color slot.
 - When output skipping is enabled, the engine normally skips `INPUT`.
   - Exception: if output skipping was enabled by `SKIPDISP`, reaching `INPUT` is a runtime error.
 

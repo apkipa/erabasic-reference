@@ -1,5 +1,5 @@
 **Summary**
-- Like `BINPUTS`, but uses “one input” mode (`OneInput = true`): typed text input is truncated to its first character.
+- Like `BINPUTS`, but uses “one input” mode (`OneInput = true`) for submitted UI text.
 
 **Tags**
 - io
@@ -12,9 +12,11 @@
 
 **Semantics**
 - Same button-matching and default rules as `BINPUTS`.
-- Additionally, when the user submits a non-empty input string:
-  - The engine truncates the input to its first character before attempting to match it.
-  - Exception: if the input is produced by mouse selection and config `AllowLongInputByMouse` is enabled, truncation does not occur.
+- Exact one-input rule:
+  - One-input truncation is applied per submitted segment; see `input-flow.md` for the shared submission/segmentation model.
+  - Each submitted segment is normally truncated to its first character.
+  - Exception: if the segment is accepted through the mouse-click completion path and config option `AllowLongInputByMouse` is enabled (see `config-items.md`), that mouse-submitted text is not truncated.
+  - This truncation applies only to submitted UI text. Defaults accepted via empty input or the `MesSkip` no-wait path are used as-is by `ONEBINPUTS` itself.
 
 **Errors & validation**
 - Same as `BINPUTS`.

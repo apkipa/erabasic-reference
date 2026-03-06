@@ -23,7 +23,7 @@
     - Enters the same post-load system hook sequence as `LOADDATA`:
       - `SYSTEM_LOADEND` (if present)
       - `EVENTLOAD` (if present)
-      - then returns to normal system flow (typically as if `BEGIN SHOP` occurred, unless `EVENTLOAD` performed a `BEGIN`).
+      - if `EVENTLOAD` returns normally without performing a `BEGIN`, the engine enters the SHOP main loop fallback: it proceeds to `@SHOW_SHOP` / command input without calling `@EVENTSHOP` and without performing the SHOP-entry autosave.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 
 **Errors & validation**

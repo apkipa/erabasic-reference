@@ -36,8 +36,42 @@ When a built-ins override entry is marked `**Progress state**: complete`, it mus
 
 Rule of thumb:
 - Specify **observable contracts** (inputs → outputs/state/errors) in engine-agnostic language.
+- Prefer external, user-visible terminology over internal helper names, temporary variable names, or call-chain descriptions.
 - If a behavior matches a stable external spec (e.g. a .NET formatting API), it is OK to reference that external spec directly (example: “equivalent to `Int64.ToString(format)`”).
 - Do **not** justify behavior by pointing at internal call chains or internal helper names (e.g. “because `SomeInternalClass.SomeMethod()` does X”).
+
+## Public contract fidelity
+
+When a type, method, helper surface, or signature is part of the externally observable contract, prefer preserving it rather than paraphrasing it away.
+
+Guidelines:
+- Preserve public/API-facing names when they are part of compatibility.
+- If a literal interface/type definition is the clearest contract artifact, it is acceptable to keep or quote that definition rather than replacing it with a looser summary.
+- Treat helper APIs exposed to scripts/plugins/extensions as part of the public contract unless there is clear evidence they are purely internal.
+
+## Reader-first precision
+
+Write for a reader who wants to reproduce behavior, not for a reader who already knows the engine internals.
+
+Guidelines:
+- Prefer the most precise wording that stays readable to a newcomer.
+- Avoid unexplained internal identifiers when a user-facing description is sufficient.
+- When internal terminology must be mentioned for compatibility, immediately anchor it to an observable meaning.
+- If a mechanism is easy to misread from prose alone, add a small example instead of relying on dense wording.
+
+## Ambiguity tightening
+
+When a statement would materially affect compatibility, do not leave it at vague wording if the behavior can be determined.
+
+Prefer replacing vague phrases such as:
+- `some cases`
+- `typically`
+- `in many cases`
+- `depending on ...`
+
+with exact conditions, explicit branch rules, or narrowly scoped exceptions.
+
+If exact behavior is still unknown, explicitly mark the uncertainty and fence it so readers can see what is known vs unknown.
 
 ## Default evaluation rules (document exceptions only)
 

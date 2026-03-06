@@ -1,5 +1,5 @@
 **Summary**
-- Requests a string input from the user and stores it into `RESULTS` (with mouse-related side channels in some cases).
+- Requests a string input from the user and stores it into `RESULTS`; when `<mouse> != 0` and completion occurs via a mouse click, the UI also writes mouse-side-channel metadata.
 
 **Tags**
 - io
@@ -16,6 +16,7 @@
 
 **Semantics**
 - Enters a string-input UI wait.
+- See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
 - If `<defaultFormString>` is provided, it is evaluated to a string and used as the default when the input is empty and the request is not running a timer.
 - On successful completion:
   - Stores the string into `RESULTS`.
