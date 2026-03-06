@@ -1,6 +1,6 @@
 # EraBasic Built-ins Index (by tag)
 
-Generated on `2026-03-05`.
+Generated on `2026-03-06`.
 
 This index is built from `builtins-overrides/**` tags and links into `builtins-reference.md`.
 
@@ -309,6 +309,10 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`RAND`](builtins-reference.md#rand-expression-function) (method)
 - [`SIGN`](builtins-reference.md#sign-expression-function) (method)
 - [`SQRT`](builtins-reference.md#sqrt-expression-function) (method)
+
+## plugins
+
+- [`CALLSHARP`](builtins-reference.md#callsharp-instruction) (instruction)
 
 ## random
 

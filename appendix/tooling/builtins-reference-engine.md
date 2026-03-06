@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)
 
-Generated from engine source on `2026-03-05`.
+Generated from engine source on `2026-03-06`.
 
 This file is **not user-facing**.
 It exists for doc authors and fact-checking, and includes engine-extracted skeletons, validation structures, and file/line references.
@@ -9534,26 +9534,55 @@ ENDNOSKIP
 
 ## CALLSHARP (instruction)
 **Summary**
-- (TODO)
+- Calls a C# plugin method (from `Plugins/*.dll`) by name.
 
 **Metadata**
 - Arg spec: `SP_CALLCSHARP` (see #argument-spec-sp_callcsharp) (inferred from `CALLSHARP_Instruction` ArgBuilder assignment)
 - Implementor (registration): `new CALLSHARP_Instruction()`
 
 **Syntax**
-- General shape: `INSTR arg1, arg2, ...` (exact parsing depends on the builder).
+- `CALLSHARP <methodName>`
+- `CALLSHARP <methodName> [, <arg1>, <arg2>, ... ]`
+- `CALLSHARP <methodName>(<arg1>, <arg2>, ... )`
 
 **Arguments**
-- Builder: `SP_CALLSHARP_ArgumentBuilder()`
+- `<methodName>`: raw string token; matched against the registered plugin method name.
+- `<argN>`: expression; evaluated and passed to the plugin as either a string or an integer.
 
 **Semantics**
-- (TODO)
+- `CALLSHARP` resolves `<methodName>` to a plugin method registered by the plugin system and calls it.
+- `<methodName>` is not an expression:
+  - It is parsed as raw text up to the first `(`, `[`, `,`, or `;`, then trimmed.
+  - Backslash escapes are processed while parsing the raw token (e.g. `\\s` = space, `\\t` = tab, and `\\,` can be used to include a comma in the name).
+  - Quotation marks are not special here; `CALLSHARP "X"` looks for a method literally named `"X"`.
+- Argument passing:
+  - Each `<argN>` is evaluated before the plugin is invoked.
+  - If `<argN>` is a string expression, the plugin receives a string value; otherwise it receives an integer value.
+- Write-back (out/ref-like behavior):
+  - After the plugin returns, any `<argN>` that is a variable term is assigned a new value from the plugin’s corresponding argument slot.
+  - Non-variable arguments (constants, computed expressions, etc.) are not written back.
+- Optional bracket segment:
+  - The parser accepts `CALLSHARP <methodName>[...]` in the same “subname” shape as `CALL/CALLF`.
+  - This bracket segment is ignored by `CALLSHARP`: it is parsed for compatibility, but not evaluated and not passed to the plugin.
 
 **Errors & validation**
-- (TODO)
+- If `<methodName>` is empty: load-time error.
+- If `<methodName>` does not match any registered plugin method:
+  - The engine emits a load-time warning for constant `<methodName>`.
+  - Executing the instruction still fails at runtime (missing method binding).
+- If an argument position is left empty (e.g. `CALLSHARP M, , 1`): runtime error.
+- If the plugin throws an exception: runtime error.
+
+Method-name case sensitivity follows the engine’s `IgnoreCase` configuration:
+- If `IgnoreCase = true`, plugin methods are looked up case-insensitively.
+- Otherwise, method names are case-sensitive.
+
+See `plugins.md` for how plugins are discovered/loaded and how methods are registered.
 
 **Examples**
-- (TODO)
+- `CALLSHARP MyMethod`
+- `CALLSHARP MyMethod, 123, "abc", X, S`
+- `CALLSHARP MyMethod(X, S)` (equivalent argument parsing)
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`

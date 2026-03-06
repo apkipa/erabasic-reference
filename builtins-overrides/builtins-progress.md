@@ -1,6 +1,6 @@
 # EraBasic Built-ins Writing Progress (Emuera / EvilMask)
 
-Generated on `2026-03-05`.
+Generated on `2026-03-06`.
 
 Legend:
 - `⛔` none: no manual override yet
@@ -10,7 +10,7 @@ Legend:
 Notes:
 - To mark an entry complete, add a section `**Progress state**` with `- complete` to the override file.
 
-Instructions: `⛔ 22` / `🟡 0` / `✅ 281` (total `303`).
+Instructions: `⛔ 21` / `🟡 0` / `✅ 282` (total `303`).
 Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 
 ## Instructions
@@ -241,7 +241,7 @@ Expression functions: `⛔ 190` / `🟡 0` / `✅ 76` (total `266`).
 - ⛔ [`CALLEVENT`](../builtins-reference.md#callevent-instruction)
 - ✅ [`CALLF`](../builtins-reference.md#callf-instruction)
 - ✅ [`CALLFORMF`](../builtins-reference.md#callformf-instruction)
-- ⛔ [`CALLSHARP`](../builtins-reference.md#callsharp-instruction)
+- ✅ [`CALLSHARP`](../builtins-reference.md#callsharp-instruction)
 - ⛔ [`RESTART`](../builtins-reference.md#restart-instruction)
 - ✅ [`GOTO`](../builtins-reference.md#goto-instruction)
 - ✅ [`TRYGOTO`](../builtins-reference.md#trygoto-instruction)

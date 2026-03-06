@@ -57,6 +57,7 @@ This reference has two “layers”:
 ### Implementation-oriented notes (engine-specific)
 
 - [`runtime-model.md`](runtime-model.md) — core runtime execution model (stack, events, scopes)
+- [`plugins.md`](plugins.md) — plugin loading and `CALLSHARP` integration (extension mechanism)
 - [`pipeline.md`](pipeline.md) — exact load/preprocess/parse ordering (engine source of truth)
 - [`source-position-mapping.md`](source-position-mapping.md) — how Emuera maps warnings/errors to file/line (implementation detail)
 - [`appendix/implementation/builtins-core-implementation-notes.md`](appendix/implementation/builtins-core-implementation-notes.md) — legacy (kept for older links; content migrated into the main docs)
