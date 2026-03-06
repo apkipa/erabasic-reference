@@ -325,7 +325,7 @@ These items are **observable engine features** but are deferred because they are
 - 🔁 In-game debug command mode: `UseDebugCommand` and the console rule “input beginning with `@` is treated as a debug command” (supported syntax subset + restrictions).
 - 🔁 Hotkey scripting extension: `ExeDir/HOTKEY.ERB` + Ctrl+D toggle + its limited grammar, and how it interacts with `HOTKEY_STATE*`.
   - Optional developer dump file: `ExeDir/HOTKEY.ERB.bytecode.txt`.
-- 🔁 Plugin system: loading `ExeDir/Plugins/*.dll` and the `ExeDir/pluginsAware.txt` gating/security behavior (see `plugins.md`).
+- ✅ Plugin system: discovery/load timing, `Plugins/*.dll` admission, `pluginsAware.txt` gating, public plugin contract types, `CALLSHARP` interop, and the public `PluginManager` / `PluginAPICharContext` helper surface are specified in `plugins.md`.
 - 🔁 Debug UI aux files under `ExeDir/debug/`: `debug/debug.config`, `debug/watchlist.csv`, `debug/console.log`.
 - 🔁 Rikaichan integration files: `RikaiFilename` (dictionary path) and its sidecar index file `RikaiFilename.ind`.
 - 🔁 Misc host diagnostics/aux files: `ExeDir/patch_versions/*.txt`, `ExeDir/emuera.log`, `ExeDir/Analysis.log`, `ExeDir/time.log`, and `img_err.log`.

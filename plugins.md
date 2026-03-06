@@ -1,61 +1,68 @@
 # Plugins (EvilMask / Emuera)
 
-This engine supports loading external .NET DLL plugins and exposing their functionality to ERB via the built-in instruction `CALLSHARP`.
+This document specifies the **observable compatibility contract** of the plugin system used by this engine build.
+Its goal is to let a reader reimplement compatible plugin loading and `CALLSHARP` interop **without needing to read engine source code**.
 
-## What plugins can (and cannot) extend
+## Scope
 
-- Plugins can register **named methods** that ERB can invoke using `CALLSHARP`.
-- Plugins do **not** dynamically add new ERB instruction keywords or new expression-function names to the parser. (The ERB-facing entry point is still the built-in `CALLSHARP` instruction.)
+This document specifies:
+
+- how plugin DLLs are discovered and when they are loaded,
+- when startup is blocked by the `pluginsAware.txt` security gate,
+- the required public contract types that a loadable plugin must provide,
+- how plugin methods are registered and looked up, and
+- how `CALLSHARP` passes values to plugins and writes values back.
+
+This document specifies the public helper surface exposed through `PluginManager` / `PluginAPICharContext` to the level needed for compatible reimplementation of the plugin API.
+Where a helper delegates to another already-specified subsystem (for example button behavior, variable indexing, or HTML output), this document references that existing contract rather than restating the entire subsystem here.
+
+## Runtime root and plugin paths
+
+All plugin-system paths in this document are resolved relative to the game's **runtime root**.
+This is the same root that contains `erb/`, `csv/`, `dat/`, `resources/`, and other game folders.
+In packaged builds that route game data through a `Data/` subdirectory, or in launches that explicitly choose a different game root, this runtime root can differ from the OS-level executable directory.
+
+Plugin-related paths are:
+
+- `Plugins/` — optional plugin DLL directory.
+- `pluginsAware.txt` — optional acknowledgement file at the runtime root.
 
 ## Discovery and load timing
 
-- On startup, the engine scans the game directory’s `Plugins/` folder and loads all `*.dll` files found there.
-- Plugins are loaded during engine initialization, before ERH/ERB compilation begins.
+Plugin loading happens during engine initialization **before ERH and ERB are loaded**.
+
+Discovery rules:
+
+1. If the runtime root does **not** contain a `Plugins/` directory, plugin loading is skipped entirely.
+2. Otherwise, the engine enumerates files matching `Plugins/*.dll`.
+3. Enumeration is **top-level only**; the engine does **not** recurse into subdirectories under `Plugins/`.
+4. Enumeration order is **not specified** by the language contract; do not rely on any particular order when multiple plugin DLLs are present.
+
+Compatibility notes:
+
+- The engine clears its plugin-method registry before loading the current contents of `Plugins/`.
+- A reimplementation should treat plugin loading as part of startup, not as a late or on-demand feature.
 
 ## Security gate: `pluginsAware.txt`
 
-If the game distribution contains any plugin DLLs, the engine requires a `pluginsAware.txt` file at the game root (the executable directory). If it is missing, the engine aborts startup with an error message intended to warn the user about the security implications of running third-party code.
+The plugin system includes a startup security gate.
 
-## Plugin manifest and method registration
+- A DLL under `Plugins/` only triggers this gate if it actually contains a type named `PluginManifest`.
+- If such a DLL is found and `pluginsAware.txt` is **missing** from the runtime root, startup aborts with an error.
+- DLLs that do **not** contain a `PluginManifest` type are ignored and do **not** by themselves trigger the gate.
 
-Each plugin DLL must provide a type named `PluginManifest` (any namespace) that:
+Practical consequence:
 
-- is instantiable via a parameterless constructor, and
-- derives from the engine’s `PluginManifestAbstract` base class, and
-- populates its `methods` list with objects implementing `IPluginMethod`.
+- A loadable managed DLL under `Plugins/` that does not expose a `PluginManifest` type is ignored as a plugin.
+- This does **not** mean every arbitrary file in `Plugins/` is harmless: DLL load failures, type-enumeration failures, or missing managed dependencies can still abort startup before the loader reaches the “ignore” case.
+- Shipping one or more actual plugins requires `pluginsAware.txt`.
 
-At load time, the engine:
+## Required public contract types
 
-1. Finds the `PluginManifest` type in each DLL.
-2. Instantiates it.
-3. Collects `IPluginMethod` objects returned by `GetPluginMethods()`.
-4. Registers each method by its `Name`.
+The following source-level definitions are part of the **public plugin contract**.
+A source-compatible plugin should be implementable against these definitions.
 
-Method-name case sensitivity follows the engine’s `IgnoreCase` configuration:
-
-- If `IgnoreCase = true`, method lookup is case-insensitive.
-- Otherwise, method lookup is case-sensitive.
-
-## Calling a plugin method from ERB: `CALLSHARP`
-
-`CALLSHARP` invokes a registered plugin method by name and passes ERB argument values to it.
-
-- Arguments are evaluated first, and each argument is passed as either a string value or an integer value (depending on whether the ERB expression is a string expression).
-- After the plugin method returns, any arguments that were variable terms are written back from the plugin’s corresponding argument slot (out/ref-like behavior).
-
-See the `CALLSHARP` entry in `builtins-reference.md` for the ERB-level contract and edge cases.
-
-## Writing a compatible plugin (C#)
-
-This section describes the minimum contract a plugin DLL must satisfy to be loadable and callable by this engine build.
-
-### Source of truth (API excerpts)
-
-This engine’s plugin API is defined by types inside the engine assembly (namespace `MinorShift.Emuera.Runtime.Utils.PluginSystem`).
-
-The following excerpts are included here so plugin authors can implement against the exact contract without having to dig through engine source:
-
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/IPluginMethod.cs`:
+### `IPluginMethod`
 
 ```csharp
 namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
@@ -69,7 +76,13 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 }
 ```
 
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/BasePluginManifest.cs`:
+Contract notes:
+
+- `Name` is the dispatch key used by `CALLSHARP`.
+- `Description` is informational; it does not affect dispatch.
+- `Execute(...)` is invoked synchronously when the plugin method is called.
+
+### `PluginManifestAbstract`
 
 ```csharp
 namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
@@ -87,7 +100,12 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 }
 ```
 
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/PluginMethodParameter.cs`:
+Contract notes:
+
+- A plugin manifest exposes its ERB-callable methods by populating `methods`.
+- Registration order follows the list order returned by `GetPluginMethods()`.
+
+### `PluginMethodParameter`
 
 ```csharp
 namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
@@ -104,581 +122,337 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 }
 ```
 
-### Packaging and placement
+Contract notes:
 
-- Build a `.dll` and place it under the game’s `Plugins/` directory.
-- The engine loads `Plugins/*.dll` on startup. If any DLLs are present, `pluginsAware.txt` must exist at the game root (executable directory) or the engine aborts startup (security gate).
+- `isString` records whether the incoming ERB argument was converted as a string or an integer.
+- The plugin may mutate `strValue` and/or `intValue` before returning.
+- The engine does **not** automatically keep the two value fields in sync for you.
 
-### End-to-end minimal example
+## Plugin manifest discovery and admission rules
 
-This is the smallest complete example of a plugin that can be loaded by the engine and invoked from ERB.
+For each discovered `Plugins/*.dll` file, the engine applies these rules:
 
-**Game folder layout**
+1. Load the DLL as a .NET assembly.
+2. Search that assembly's defined types for a type whose **type name** is exactly `PluginManifest`.
+   - Namespace does not matter.
+3. If no such type exists, ignore that DLL and continue.
+4. If such a type exists, require `pluginsAware.txt` at the runtime root.
+5. Instantiate the `PluginManifest` type using a **parameterless constructor**.
+6. Treat the resulting object as `PluginManifestAbstract`.
+7. Obtain its `IPluginMethod` list via `GetPluginMethods()`.
+8. Register each method into the global plugin-method registry.
 
-```
-<GameRoot>/
-  Emuera.exe
-  pluginsAware.txt
-  Plugins/
-    ExamplePlugin.dll
-```
+Important edge cases:
 
-**Plugin project**
+- If a DLL contains **multiple** types named `PluginManifest`, the chosen one is not a stable compatibility guarantee; provide exactly one.
+- If the selected `PluginManifest` type cannot be constructed with no arguments, startup fails.
+- If manifest construction itself throws an exception, startup fails.
+- If the selected `PluginManifest` type does not actually satisfy the `PluginManifestAbstract` contract, startup fails.
+- If DLL loading or type enumeration fails, startup fails.
 
-`ExamplePlugin.csproj` (reference the engine assembly and target a compatible framework):
+## Method registration and lookup
 
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>disable</Nullable>
-  </PropertyGroup>
+Methods are registered globally by their `Name`.
 
-  <ItemGroup>
-    <Reference Include="Emuera">
-      <HintPath>path/to/Emuera.exe</HintPath>
-    </Reference>
-  </ItemGroup>
-</Project>
-```
+Lookup case-sensitivity follows the engine's `IgnoreCase` configuration:
 
-`PluginManifest.cs` (the required `PluginManifest` type name):
+- If `IgnoreCase = true`, the registry is case-insensitive.
+- Otherwise, method names are matched case-sensitively.
 
-```csharp
-using MinorShift.Emuera.Runtime.Utils.PluginSystem;
+Observable consequences:
 
-public sealed class PluginManifest : PluginManifestAbstract
-{
-    public override string PluginName => "ExamplePlugin";
-    public override string PluginDescription => "Minimal CALLSHARP demo";
-    public override string PluginVersion => "1.0.0";
-    public override string PluginAuthor => "Example";
+- In case-insensitive mode, names that differ only by case are treated as the **same** plugin method name.
+- If two methods register the same effective name, registration fails and startup aborts.
+- Name collisions are global across **all** loaded plugin DLLs, not only within one manifest.
+- Leading/trailing spaces are a poor choice for method-name uniqueness, because the ERB-side `CALLSHARP` parser trims the method-name token before lookup.
 
-    public PluginManifest()
-    {
-        methods.Add(new Echo());
-        methods.Add(new AddOne());
-    }
-}
-```
+## ERB interop: `CALLSHARP`
 
-`Echo.cs` (prints all arguments):
+`CALLSHARP` is the ERB-side entry point for invoking registered plugin methods.
+See the `CALLSHARP` built-ins entry for source syntax and parser details.
+This section focuses only on the plugin-facing execution contract.
 
-```csharp
-using MinorShift.Emuera.Runtime.Utils.PluginSystem;
+### Method selection
 
-public sealed class Echo : IPluginMethod
-{
-    public string Name => "ECHO";
-    public string Description => "Prints args via PluginManager";
+- `CALLSHARP` selects a registered plugin method by name.
+- If the method name does not resolve during load/validation, the engine emits a warning.
+- Executing a `CALLSHARP` line whose target method was not successfully bound results in runtime failure.
 
-    public void Execute(PluginMethodParameter[] args)
-    {
-        var pm = PluginManager.GetInstance();
-        for (int i = 0; i < args.Length; i++)
-        {
-            var text = args[i].isString ? args[i].strValue : args[i].intValue.ToString();
-            pm.Print(text);
-            pm.PrintNewLine();
-        }
-    }
-}
-```
+### Argument conversion
 
-`AddOne.cs` (demonstrates write-back: updates `args[0]`):
+Before the plugin method is invoked, each ERB argument is converted into one `PluginMethodParameter`:
 
-```csharp
-using MinorShift.Emuera.Runtime.Utils.PluginSystem;
+- If the ERB expression is a **string expression**, the plugin receives `new PluginMethodParameter(stringValue)`.
+- Otherwise, the plugin receives `new PluginMethodParameter(intValue)`.
 
-public sealed class AddOne : IPluginMethod
-{
-    public string Name => "ADDONE";
-    public string Description => "args[0] += 1 (write-back demo)";
+Practical consequence:
 
-    public void Execute(PluginMethodParameter[] args)
-    {
-        if (args.Length < 1) return;
+- Plugins receive only two scalar value shapes from ERB: string or integer.
+- ERB-side variable identity is **not** passed directly; what the plugin sees is a temporary parameter object.
 
-        long value;
-        if (args[0].isString)
-            value = long.Parse(args[0].strValue);
-        else
-            value = args[0].intValue;
+### Write-back after `Execute`
 
-        value += 1;
+After `Execute(...)` returns, the engine performs a write-back step for each original ERB argument position:
 
-        // Set both fields so either kind of ERB variable can receive write-back.
-        args[0].intValue = value;
-        args[0].strValue = value.ToString();
-    }
-}
-```
+- If the original ERB argument was **not** a variable term, nothing is written back.
+- If the original ERB argument was a **string variable term**, the engine writes back `args[i].strValue`.
+- If the original ERB argument was an **integer variable term**, the engine writes back `args[i].intValue`.
 
-Build and deploy:
+Important compatibility detail:
 
-- `dotnet build -c Release`
-- Copy the resulting `ExamplePlugin.dll` to `<GameRoot>/Plugins/`.
-- Ensure `<GameRoot>/pluginsAware.txt` exists.
+- Write-back depends on the **ERB variable kind**, not on `args[i].isString`.
+- A plugin that wants to behave like a generic `out`/`ref` helper should usually update **both** `strValue` and `intValue` unless it knows exactly which kind of ERB variable will be passed.
 
-**ERB usage**
+### Plugin exceptions
 
-```erb
-#DIM X
-#DIMS S
-X = 41
-S = "41"
+- If the plugin method throws an exception, the call fails at runtime.
+- The engine does not define a plugin-specific recovery layer for `CALLSHARP`; plugin exceptions are not converted into an ERB-level “soft reject” contract.
 
-CALLSHARP ADDONE, X
-CALLSHARP ADDONE, S
-CALLSHARP ECHO, "X=", X, " S=", S
+## Public host helper entry points
 
-PRINTFORMS "X=%d S=%s", X, S
-```
+Plugins run **in-process** with the engine.
+They are not sandboxed by the plugin system.
 
-### Target framework and architecture
-
-- The plugin must be built for a .NET target compatible with the engine build (this repository’s engine project targets `net10.0-windows`).
-- If you distribute separate x86/x64 engine builds, ensure the plugin and its native dependencies are compatible with the bitness of the engine that will load it.
-
-### Referencing the engine API assembly
-
-To compile a plugin, reference the engine assembly that contains the plugin API types under the `MinorShift.Emuera.Runtime.Utils.PluginSystem` namespace.
-
-In typical distributions this is the main `Emuera` executable (an `.exe` is still a .NET assembly and can be referenced by a C# project), or a `Emuera.dll` if you distribute the engine as a library.
-
-### Required entry point: `PluginManifest`
-
-For each plugin DLL, the engine searches for a type whose **type name** is exactly `PluginManifest` (namespace does not matter). The type must:
-
-- have a parameterless constructor, and
-- derive from `MinorShift.Emuera.Runtime.Utils.PluginSystem.PluginManifestAbstract`.
-
-The manifest provides the list of methods exposed to ERB via its `methods` list (returned by `GetPluginMethods()`).
-
-Practical notes:
-
-- If the DLL contains multiple `PluginManifest` types, the engine will pick one depending on reflection enumeration order; do not rely on this. Provide exactly one.
-- If two methods register the same `Name` (after `IgnoreCase` normalization, if enabled), registration throws and plugin loading aborts. Avoid name collisions across plugins.
-
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/PluginManager.cs` (plugin discovery + security gate, excerpt):
+The main helper entry point is `PluginManager`:
 
 ```csharp
-if (!Directory.Exists(Path.Combine(Program.ExeDir, "Plugins")))
-    return;
-string[] plugins = Directory.GetFiles(Path.Combine(Program.ExeDir, "Plugins"), "*.dll");
-bool pluginsAware = File.Exists(Program.ExeDir + "pluginsAware.txt");
-...
-if (!pluginsAware)
-    throw new ExeEE("This game comes prepackaged with plugins. ... create file pluginsAware.txt ...");
-...
-Assembly DLL = Assembly.LoadFrom(pluginPath);
-var manifestType = DLL.GetTypes().Where((v) => v.Name == "PluginManifest").FirstOrDefault();
-...
-PluginManifestAbstract manifest = (PluginManifestAbstract)Activator.CreateInstance(manifestType);
-var methods = manifest.GetPluginMethods();
-foreach (var method in methods)
-    AddMethod(method);
-```
-
-### `CALLSHARP` parsing and binding (engine behavior)
-
-`CALLSHARP` is the only ERB-facing entry point for plugins. In this build:
-
-- The method name is parsed as a raw string token (not an expression and not a FORM string).
-- If the method name is a constant and is found in the plugin registry, the engine binds it at load time.
-- If the method name is not found, the engine emits a load-time warning but still leaves the call target unbound; at runtime, executing such a line fails (null call target).
-
-From `emuera.em/Emuera/Runtime/Script/Statements/ArgumentBuilder.cs` (method-name tokenization, excerpt):
-
-```csharp
-CharStream st = line.PopArgumentPrimitive();
-string str = LexicalAnalyzer.ReadString(st, StrEndWith.LeftParenthesis_Bracket_Comma_Semicolon);
-str = str.Trim([' ', '\t']);
-funcname = new SingleStrTerm(str);
-```
-
-Practical implication: because the engine trims the parsed method name, plugin method `Name` values should not rely on leading/trailing spaces for uniqueness (scripts cannot spell them).
-
-From `emuera.em/Emuera/Runtime/Script/Statements/Instraction.Child.cs` (binding check, excerpt):
-
-```csharp
-if (!manager.HasMethod(arg.ConstStr))
+public class PluginManager
 {
-    ParserMediator.Warn(string.Format(trerror.MethodNotFound.Text, arg.ConstStr), func, 2, true, false);
-    return;
-}
-arg.CallFunc = manager.GetMethod(func.Argument.ConstStr);
-```
+    public static PluginManager GetInstance();
 
-From `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs` (escape handling inside raw-string parsing, excerpt):
+    public void ExecuteLine(string line);
+    public void Print(string text);
+    public void PrintError(string text);
+    public void PrintC(string text, bool aligmentRight = false);
+    public void PrintPlain(string text);
+    public void PrintPlainWithSingleLine(string text);
+    public void PrintSingleLine(string text);
+    public void PrintSystemLine(string text);
+    public void PrintTemporaryLine(string text);
+    public void PrintButton(string text, long id);
+    public void PrintButtonC(string text, long id, bool aligmentRight = false);
+    public void PrintBar(string text = "", bool isConst = true);
+    public void PrintHtml(string htmlText, bool toBuffer = false);
+    public void PrintImage(string resourceName, int width, int height, int y, string buttonResourceName = null, string mapResourceName = null);
+    public void PrintNewLine();
+    public void FlushConsole(bool force = false);
+    public void DebugPrint(string text);
 
-```csharp
-case '\\':
-    st.ShiftNext();
-    switch (st.Current)
-    {
-        case 's': buffer.Append(' '); break;
-        case 'S': buffer.Append('　'); break;
-        case 't': buffer.Append('\t'); break;
-        case 'n': buffer.Append('\n'); break;
-        default: buffer.Append(st.Current); break;
-    }
-    st.ShiftNext();
-    continue;
-```
+    public void ClearDisplay();
+    public void SetBgColor(Color color);
+    public void SetFont(string fontName);
+    public Point GetMousePosition();
+    public void WaitInput(bool oneInput = true, int timelimit = -1);
+    public void ReadAnyKey();
+    public void Await(int time);
+    public void ForceStopTimer();
+    public void Quit(bool force = false);
 
-### Exposed methods: `IPluginMethod`
+    public long[] GetCharacterIDs();
+    public long GetIntVar(string name, int index = 0);
+    public string GetStrVar(string name, int index = 0);
+    public void SetIntVar(string name, long val, int index = 0);
+    public void SetStrVar(string name, string val, int index = 0);
+    public void SetCharVar(string name, long charId, string key, long value);
+    public void SetCharVar(string name, long charId, long key, long value);
+    public long GetCharVar(string name, long charId, long key);
+    public long GetCharVar(string name, long charId, string key);
 
-Each exposed method must implement `MinorShift.Emuera.Runtime.Utils.PluginSystem.IPluginMethod`:
+    public System.Data.DataTable GetDataTable(string name);
+    public static PluginAPICharContext CreateCharContext(long charId);
+    public IEnumerable<string> GetStackTrace();
 
-- `string Name { get; }` — the method name used by `CALLSHARP`.
-- `string Description { get; }` — informational (not required for dispatch).
-- `void Execute(PluginMethodParameter[] args)` — invoked by `CALLSHARP`.
-
-Method-name lookup uses the engine’s `IgnoreCase` configuration:
-
-- If `IgnoreCase = true`, method names are matched case-insensitively.
-- Otherwise, they are case-sensitive.
-
-### Argument values and write-back
-
-`CALLSHARP` passes arguments as an array of `PluginMethodParameter`:
-
-- For a string expression argument, the engine creates a parameter with `isString = true` and initializes `strValue`.
-- For a non-string argument, the engine creates a parameter with `isString = false` and initializes `intValue`.
-
-After `Execute` returns, `CALLSHARP` performs a write-back step:
-
-- For each argument position whose original ERB argument is a **variable term**, the engine assigns a new value from `args[i]` back into that variable.
-  - If the variable term is a string variable, it writes back `args[i].strValue`.
-  - Otherwise it writes back `args[i].intValue`.
-
-Implications for plugin authors:
-
-- To implement “out/ref”-style outputs, mutate `args[i].strValue` / `args[i].intValue` in-place.
-- `args[i].isString` reflects the original ERB expression type, but write-back depends on whether the ERB argument is a *string variable* or an *integer variable*. Avoid setting only one field when you don’t control which variable kind was passed.
-
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/PluginMethodParameter.cs` (how ERB terms are converted to plugin args, excerpt):
-
-```csharp
-internal static PluginMethodParameter ConvertTerm(AExpression term, ExpressionMediator exm)
-{
-    if (term.IsString) return new PluginMethodParameter(term.GetStrValue(exm));
-    else return new PluginMethodParameter(term.GetIntValue(exm));
+    public void LoadPlugins();
+    public IPluginMethod GetMethod(string name);
+    public bool HasMethod(string name);
 }
 ```
 
-From `emuera.em/Emuera/Runtime/Script/Statements/Instraction.Child.cs` (argument conversion + write-back, excerpt):
+### `PluginManager` helper behavior
 
-```csharp
-var pluginArgs = arg.RowArgs.Select((term) => PluginMethodParameterBuilder.ConvertTerm(term, exm)).ToArray();
-arg.CallFunc.Execute(pluginArgs);
-for (var i = 0; i < pluginArgs.Count(); ++i)
-{
-    var rowArg = arg.RowArgs[i];
-    if (rowArg is VariableTerm)
-    {
-        var varTerm = (VariableTerm)rowArg;
-        if (varTerm.IsString) varTerm.SetValue(pluginArgs[i].strValue, exm);
-        else varTerm.SetValue(pluginArgs[i].intValue, exm);
-    }
-}
-```
+These helper methods operate on the **live runtime state**. They do not expose a detached snapshot.
+Each wrapper or helper call reads and writes the current engine state at the time of that call.
 
-### Calling back into the engine
+`GetInstance()` returns the process-global plugin manager singleton shared by all plugin methods running in the same engine process.
 
-Plugins run in-process and can call engine APIs directly (they are not sandboxed).
+Compatibility-relevant notes:
 
-- You can access the engine’s plugin API entry point via `PluginManager.GetInstance()`.
-- `PluginManager` provides helper methods for common tasks (printing to the console, reading/setting variables, creating a character context wrapper, awaiting timers, etc.).
-- As an escape hatch, `PluginManager.ExecuteLine(string line)` can execute a single ERB instruction line through the interpreter (intended for debugging/quick integration; prefer direct API calls where possible).
+- `ExecuteLine(string line)` executes one parsed instruction line through the interpreter. It should be treated as a low-level escape hatch, not as a full script runner.
+- `GetIntVar` / `GetStrVar` and `SetIntVar` / `SetStrVar` are convenience helpers for one-index global-variable access. They do not by themselves cover arbitrary multidimensional variables, character-data variables, or local stack variables.
+- `SetCharVar(name, charId, string key, value)` and `GetCharVar(name, charId, string key)` are not generic string-key helpers for arbitrary character variables. Their string-key resolution follows the host's `CFLAG`-style keyword dictionary behavior.
+- `CreateCharContext(long charId)` returns a helper object permanently bound to that `charId`; the resulting wrapper methods implicitly prepend that character index on each access.
+- Plugin DLL loading depends on normal managed assembly resolution. If a plugin DLL or one of its managed dependencies cannot be loaded or its types cannot be enumerated, startup fails.
 
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/PluginManager.cs` (selected public API surface, excerpt):
+### Output and UI helper groups
 
-```csharp
-public static PluginManager GetInstance()
-{
-	if (instance == null)
-	{
-		instance = new PluginManager();
-	}
+The output-facing helpers are thin host calls; they do not reparse ERB source unless explicitly stated.
 
-	return instance;
-}
+- `Print`, `PrintError`, `PrintC`, `PrintPlain`, `PrintPlainWithSingleLine`, `PrintSingleLine`, `PrintSystemLine`, `PrintTemporaryLine`, `PrintButton`, `PrintButtonC`, `PrintHtml`, `PrintImage`, `PrintNewLine`, `FlushConsole`, and `DebugPrint` write directly to the host console/UI layer.
+- `ExecuteLine(string line)` is the main exception: it reparses and executes the supplied ERB instruction line.
+- `ClearDisplay()` clears the current display-line collection and related transient display state; it is a destructive screen-clear operation, not merely a print-buffer reset.
+- `PrintBar()` with no text argument emits the host's standard separator/bar output. `PrintBar(text, isConst)` with a non-empty `text` emits a custom bar string instead.
+- `PrintC(text, alignmentRight)` formats `text` into the host's fixed-width PRINTC-style cell layout before appending it to the print buffer. `PrintButtonC` applies the same cell formatting before appending a button.
+- `PrintButton` appends a clickable/button entry with the supplied label and numeric id. `PrintButtonC` differs only by applying PRINTC-style cell formatting to the label first. Their button behavior follows the same host button model used by normal script-side button output.
+- `Print(text)` appends to the print buffer rather than forcing immediate display. If `text` contains newline characters, the host splits at `\n`, flushes a line break, and continues printing the remainder recursively.
+- `PrintPlain(text)` appends plain text to the print buffer without the raw-PRINT parser step that ERB `PRINT` uses.
+- `PrintPlainWithSingleLine(text)` is an observable API quirk in this build: it routes through a low-level helper that creates a single-line display object, but the plugin-facing wrapper does not insert that returned line into the display list itself. Do not assume it behaves like `PrintSingleLine`.
+- `PrintImage(...)` treats `width`, `height`, and `y` as pixel-valued integers when forwarding them to the host image renderer.
+- `PrintHtml(htmlText, toBuffer: false)` renders HTML-like content directly into display output; `PrintHtml(htmlText, toBuffer: true)` appends the generated button content to the current print buffer instead of immediately emitting standalone display lines. The HTML fragment semantics themselves follow the same HTML-output rules used elsewhere in this reference.
+- `PrintSingleLine` flushes the current buffer and emits one standard display line. `PrintTemporaryLine` uses the host's temporary-single-line path rather than a persistent standard line.
+- `PrintSystemLine(text)` flushes first, disables user-style output, and emits a single system-style line. In this build that style-mode switch is stateful until later host/script output re-enables user-style mode.
+- `PrintError(text)` flushes first, disables user-style output, emits an error display line, and in debug mode also mirrors the text to the debug log. Like `PrintSystemLine`, it leaves the host in non-user-style mode until something later re-enables it.
+- `FlushConsole(force: false)` flushes the current print buffer if it is non-empty. With `force: true`, it forces a flush even when the print buffer is empty.
+- `PrintNewLine()` forces a flush/newline boundary in the host console.
+- `SetFont(fontName)` changes the current user-style font name. Passing `null` or an empty string resets the font name to the host default font setting.
+- `SetBgColor(color)` requests a host background-color change for the console surface.
+- `DebugPrint(text)` writes only to the debug log path and does nothing when debug mode is disabled.
 
-public void ExecuteLine(string line)
-{
-	var logicalLine = LogicalLineParser.ParseLine(line, null);
-	InstructionLine func = (InstructionLine)logicalLine;
-	ArgumentParser.SetArgumentTo(func);
-	func.Function.Instruction.DoInstruction(expressionMediator, func, processState);
-}
+### Input, timing, and process-control helpers
 
-public void Print(string text)
-{
-	expressionMediator.Console.Print(text);
-}
-public void PrintError(string text)
-{
-	expressionMediator.Console.PrintError(text);
-}
-public void PrintC(string text, bool aligmentRight = false)
-{
-	expressionMediator.Console.PrintC(text, aligmentRight);
-}
-public void PrintPlain(string text)
-{
-	expressionMediator.Console.PrintPlain(text);
-}
-public void PrintSystemLine(string text)
-{
-	expressionMediator.Console.PrintSystemLine(text);
-}
-public void PrintButton(string text, long id)
-{
-	expressionMediator.Console.PrintButton(text, id);
-}
-public void PrintHtml(string htmlText, bool toBuffer = false)
-{
-	expressionMediator.Console.PrintHtml(htmlText, toBuffer);
-}
-public void PrintNewLine()
-{
-	expressionMediator.Console.NewLine();
-}
-public void FlushConsole(bool force = false)
-{
-	expressionMediator.Console.PrintFlush(force);
-}
+- `WaitInput(oneInput, timelimit)` enters the host's wait-for-input state using an `InputRequest` built from those two values.
+  - `oneInput` controls the request's single-input mode.
+  - `timelimit > 0` enables the host timer path for that wait request.
+- `WaitInput(...)` does **not** configure a typed ERB input mode such as integer/string/button input.
+  - In this build it behaves as a host-side pause/wait request rather than a typed `INPUT*` equivalent.
+  - When the wait later completes, the accepted input is echoed to output, but no typed value is dispatched into the script input handlers through this helper alone.
+- `ReadAnyKey()` is a misleading name in this build: the plugin-exposed zero-argument form enters the host's **Enter/click wait** path, not the internal `AnyKey` path.
+- `Await(time)` enters the host sleep/wait state, processes pending UI events, and sleeps for `time` milliseconds when `time > 0`.
+- `Quit(force: false)` requests normal host shutdown. `Quit(force: true)` uses the host's force-quit path instead.
+- `ForceStopTimer()` stops the host-side input timer mechanism if one is active.
+- `GetMousePosition()` returns the current host mouse position in UI coordinates.
 
-public void WaitInput(bool oneInput = true, int timelimit = -1)
-{
-	InputRequest request = new()
-	{
-		OneInput = oneInput,
-		Timelimit = timelimit
-	};
-	expressionMediator.Console.WaitInput(request);
-}
-public void ReadAnyKey()
-{
-	expressionMediator.Console.ReadAnyKey();
-}
-public void Await(int time)
-{
-	expressionMediator.Console.Await(time);
-}
-public void ForceStopTimer()
-{
-	expressionMediator.Console.forceStopTimer();
-}
-public void Quit(bool force = false)
-{
-	if (force)
-	{
-		expressionMediator.Console.ForceQuit();
-	}
-	else
-	{
-		expressionMediator.Console.Quit();
-	}
-}
+### Runtime-data helpers
 
-public long[] GetCharacterIDs()
-{
-	return expressionMediator.VEvaluator.VariableData.CharacterList.Select(v => v.NO).ToArray();
-}
-public long GetIntVar(string name, int index = 0)
-{
-	return expressionMediator.VEvaluator.VariableData.GetVarTokenDic()[name].GetIntValue(expressionMediator, [index]);
-}
-public string GetStrVar(string name, int index = 0)
-{
-	return expressionMediator.VEvaluator.VariableData.GetVarTokenDic()[name].GetStrValue(expressionMediator, [index]);
-}
-public void SetIntVar(string name, long val, int index = 0)
-{
-	expressionMediator.VEvaluator.VariableData.GetVarTokenDic()[name].SetValue(val, [index]);
-}
-public void SetStrVar(string name, string val, int index = 0)
-{
-	expressionMediator.VEvaluator.VariableData.GetVarTokenDic()[name].SetValue(val, [index]);
-}
+- `GetCharacterIDs()` returns the current character list as an array of character `NO` values in the host's current character-list order.
+- `GetDataTable(name)` returns the live `DataTable` stored under `name`; it does not clone the table before returning it.
+- `GetStackTrace()` returns ERB-side call-stack entries as strings in the form `filename:line@label`.
+  - The first element is the current executing line.
+  - Later elements follow the return-address chain outward.
+  - Frames without a source position are skipped.
+- `LoadPlugins()` clears the current plugin-method registry and performs the plugin discovery/admission sequence described earlier in this document. It is the host's plugin-loader entry point, even though ordinary plugin code typically relies on startup having called it already.
+- `GetMethod(name)` and `HasMethod(name)` consult the plugin registry using the same case-sensitivity rules as plugin registration.
+  - `HasMethod(name)` is the existence probe.
+  - `GetMethod(name)` assumes the method exists; if it does not, the lookup fails rather than returning a sentinel/null object.
 
-public void SetCharVar(string name, long charId, string key, long value)
-{
-	var variable = expressionMediator.VEvaluator.VariableData.GetVarTokenDic()[name];
-	var errPos = "";
-	var dict = expressionMediator.VEvaluator.Constant.GetKeywordDictionary(out errPos, VariableCode.CFLAG, 1, key);
-	variable.SetValue(value, [charId, dict[key]]);
-}
-public void SetCharVar(string name, long charId, long key, long value)
-{
-	var variable = expressionMediator.VEvaluator.VariableData.GetVarTokenDic()[name];
-	variable.SetValue(value, [charId, key]);
-}
-public long GetCharVar(string name, long charId, long key)
-{
-	var variable = expressionMediator.VEvaluator.VariableData.GetVarTokenDic()[name];
-	return variable.GetIntValue(expressionMediator, [charId, key]);
-}
-public long GetCharVar(string name, long charId, string key)
-{
-	var variable = expressionMediator.VEvaluator.VariableData.GetVarTokenDic()[name];
-	var errPos = "";
-	var dict = expressionMediator.VEvaluator.Constant.GetKeywordDictionary(out errPos, VariableCode.CFLAG, 1, key);
-	return variable.GetIntValue(expressionMediator, [charId, dict[key]]);
-}
+### Public wrapper class contracts
 
-public System.Data.DataTable GetDataTable(string name)
-{
-	return expressionMediator.VEvaluator.VariableData.DataDataTables[name];
-}
-public static PluginAPICharContext CreateCharContext(long charId)
-{
-	return new PluginAPICharContext(charId);
-}
-```
-
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/PluginManager.cs` (cached wrapper fields exposed on the singleton, excerpt):
-
-```csharp
-public GlobalInt1dWrapper DAY;
-public GlobalInt1dWrapper MONEY;
-public GlobalInt1dWrapper ITEM;
-public GlobalInt1dWrapper FLAG;
-public GlobalInt1dWrapper TFLAG;
-public GlobalInt1dWrapper UP;
-public GlobalInt1dWrapper PALAMLV;
-public GlobalInt1dWrapper EXPLV;
-public GlobalInt1dWrapper EJAC;
-public GlobalInt1dWrapper DOWN;
-public GlobalInt1dWrapper RESULT;
-public GlobalInt1dWrapper COUNT;
-public GlobalInt1dWrapper TARGET;
-public GlobalInt1dWrapper ASSI;
-public GlobalInt1dWrapper MASTER;
-public GlobalInt1dWrapper NOITEM;
-public GlobalInt1dWrapper LOSEBASE;
-public GlobalInt1dWrapper SELECTCOM;
-public GlobalInt1dWrapper ASSIPLAY;
-public GlobalInt1dWrapper PREVCOM;
-public GlobalInt1dWrapper TIME;
-public GlobalInt1dWrapper ITEMSALES;
-public GlobalInt1dWrapper PLAYER;
-public GlobalInt1dWrapper NEXTCOM;
-public GlobalInt1dWrapper PBAND;
-public GlobalInt1dWrapper BOUGHT;
-
-public GlobalInt1dWrapper GLOBAL;
-public GlobalInt1dWrapper RANDDATA;
-
-public GlobalString1dWrapper SAVESTR;
-public GlobalString1dWrapper TSTR;
-public GlobalString1dWrapper STR;
-public GlobalString1dWrapper RESULTS;
-public GlobalString1dWrapper GLOBALS;
-
-public GlobalConstInt1dWrapper NO;
-public GlobalConstInt1dWrapper ITEMPRICE;
-
-public GlobalConstString1dWrapper ABLNAME;
-public GlobalConstString1dWrapper TALENTNAME;
-public GlobalConstString1dWrapper EXPNAME;
-public GlobalConstString1dWrapper MARKNAME;
-public GlobalConstString1dWrapper PALAMNAME;
-public GlobalConstString1dWrapper ITEMNAME;
-public GlobalConstString1dWrapper TRAINNAME;
-public GlobalConstString1dWrapper BASENAME;
-public GlobalConstString1dWrapper SOURCENAME;
-public GlobalConstString1dWrapper EXNAME;
-public GlobalConstString1dWrapper EQUIPNAME;
-public GlobalConstString1dWrapper TEQUIPNAME;
-public GlobalConstString1dWrapper FLAGNAME;
-public GlobalConstString1dWrapper TFLAGNAME;
-public GlobalConstString1dWrapper CFLAGNAME;
-public GlobalConstString1dWrapper TCVARNAME;
-public GlobalConstString1dWrapper CSTRNAME;
-public GlobalConstString1dWrapper STAINNAME;
-
-public GlobalConstString1dWrapper CDFLAGNAME1;
-public GlobalConstString1dWrapper CDFLAGNAME2;
-public GlobalConstString1dWrapper STRNAME;
-public GlobalConstString1dWrapper TSTRNAME;
-public GlobalConstString1dWrapper SAVESTRNAME;
-public GlobalConstString1dWrapper GLOBALNAME;
-public GlobalConstString1dWrapper GLOBALSNAME;
-```
-
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/VariableDataWrappers.cs` (indexer-based variable wrappers, excerpt):
+The helper API exposes these public wrapper classes:
 
 ```csharp
 public class GlobalInt1dWrapper
 {
-    public long this[string key] { get => Get(key); set => Set(key, value); }
-    public long this[long key] { get => Get(key); set => Set(key, value); }
-
-    public long Get(string key) { ... } // string-key -> index via keyword dictionary
-    public long Get(long key) => token.GetIntValue(exm, [key]);
-
-    public void Set(string key, long value) { ... } // string-key -> index via keyword dictionary
-    public void Set(long key, long value) => token.SetValue(value, [key]);
+    public long this[string key] { get; set; }
+    public long this[long key] { get; set; }
+    public long Get(string key);
+    public long Get(long key);
+    public void Set(string key, long value);
+    public void Set(long key, long value);
 }
 
 public class GlobalString1dWrapper
 {
-    public string this[string key] { get => Get(key); set => Set(key, value); }
-    public string this[long key] { get => Get(key); set => Set(key, value); }
-    public string Get(string key) { ... } // string-key -> index via keyword dictionary
-    public string Get(long key) => token.GetStrValue(exm, [key]);
-    public void Set(string key, string value) { ... } // string-key -> index via keyword dictionary
-    public void Set(long key, string value) => token.SetValue(value, [key]);
+    public string this[string key] { get; set; }
+    public string this[long key] { get; set; }
+    public string Get(string key);
+    public string Get(long key);
+    public void Set(string key, string value);
+    public void Set(long key, string value);
+}
+
+public class GlobalConstString1dWrapper
+{
+    public string this[string key] { get; }
+    public string this[long key] { get; }
+    public string Get(string key);
+    public string Get(long key);
+}
+
+public class GlobalConstInt1dWrapper
+{
+    public long this[string key] { get; }
+    public long this[long key] { get; }
+    public long Get(string key);
+    public long Get(long key);
 }
 
 public class CharInt1dWrapper
 {
-    public long this[string key] { get => Get(key); set => Set(key, value); }
-    public long this[long key] { get => Get(key); set => Set(key, value); }
-
-    public long Get(string key) { ... } // string-key -> index via keyword dictionary
-    public long Get(long key) => token.GetIntValue(exm, [charId, key]);
-
-    public void Set(string key, long value) { ... } // string-key -> index via keyword dictionary
-    public void Set(long key, long value) => token.SetValue(value, [charId, key]);
+    public long this[string key] { get; set; }
+    public long this[long key] { get; set; }
+    public long Get(string key);
+    public long Get(long key);
+    public void Set(string key, long value);
+    public void Set(long key, long value);
 }
 
 public class CharInt2dWrapper
 {
-    public long this[long keyA, long keyB] { get => Get(keyA, keyB); set => Set(keyA, keyB, value); }
-    public long Get(long keyA, long keyB) => token.GetIntValue(exm, [charId, keyA, keyB]);
-    public void Set(long keyA, long keyB, long value) => token.SetValue(value, [charId, keyA, keyB]);
+    public long this[string keyA, string keyB] { get; set; }
+    public long this[long keyA, string keyB] { get; set; }
+    public long this[string keyA, long keyB] { get; set; }
+    public long this[long keyA, long keyB] { get; set; }
+    public long Get(string keyA, string keyB);
+    public long Get(long keyA, string keyB);
+    public long Get(string keyA, long keyB);
+    public long Get(long keyA, long keyB);
+    public void Set(string keyA, string keyB, long value);
+    public void Set(long keyA, string keyB, long value);
+    public void Set(string keyA, long keyB, long value);
+    public void Set(long keyA, long keyB, long value);
 }
 
 public class CharUserdefinedInt1dWrapper
 {
-    public long this[string key, long idx] { get => Get(key, idx); set => Set(key, value, idx); }
-    public long Get(string key, long idx = 0) { ... } // optional IgnoreCase uppercasing
-    public void Set(string key, long value, long idx = 0) { ... } // optional IgnoreCase uppercasing
+    public long this[string key] { get; set; }
+    public long this[string key, long idx] { get; set; }
+    public long Get(string key, long idx = 0);
+    public void Set(string key, long value, long idx = 0);
 }
 
 public class CharStringWrapper
 {
-    public string Get() => token.GetStrValue(exm, [charId]);
-    public void Set(string value) => token.SetValue(value, [charId]);
+    public string Get();
+    public void Set(string value);
 }
 
 public class CharString1dWrapper
 {
-    public string this[long key] { get => Get(key); set => Set(key, value); }
-    public string Get(long key) => token.GetStrValue(exm, [charId, key]);
-    public void Set(long key, string value) => token.SetValue(value, [charId, key]);
+    public string this[string key] { get; set; }
+    public string this[long key] { get; set; }
+    public string Get(string key);
+    public string Get(long key);
+    public void Set(string key, string value);
+    public void Set(long key, string value);
 }
 ```
 
-From `emuera.em/Emuera/Runtime/Utils/PluginSystem/PluginAPICharContext.cs` (character context wrapper, excerpt):
+Wrapper semantics:
+
+- `Global*Wrapper` classes address one-dimensional global variables.
+- `Char*Wrapper` classes address variables whose first implicit index is the bound `charId` from `PluginAPICharContext`.
+- Numeric overloads (`long key`, `long keyA`, `long keyB`) use raw numeric indices.
+- String-key overloads on all wrappers except `CharUserdefinedInt1dWrapper` resolve the string through the host's keyword dictionary for that wrapper's variable family, then use the resulting numeric index.
+- `CharUserdefinedInt1dWrapper` uses its first string argument as the **user-defined variable name**, not as a name-table subscript. Its optional `idx` is the numeric secondary index, defaulting to `0`.
+- For `CharUserdefinedInt1dWrapper`, variable-name matching follows the host's `IgnoreCase` mode.
+- `CharStringWrapper` is the scalar-string special case: it has no indexers and simply gets/sets the bound character's single string slot.
+- Const wrapper classes expose only getters; there is no public setter surface.
+- Failed name lookup, failed string-key resolution, and out-of-range index access are runtime failures; these wrappers do not provide a `TryGet`-style sentinel API.
+
+### Public wrapper-bearing fields
+
+Public variable/helper fields exist on `PluginManager`.
+Their exact names are part of the source-level API surface:
+
+- integer wrappers: `DAY`, `MONEY`, `ITEM`, `FLAG`, `TFLAG`, `UP`, `PALAMLV`, `EXPLV`, `EJAC`, `DOWN`, `RESULT`, `COUNT`, `TARGET`, `ASSI`, `MASTER`, `NOITEM`, `LOSEBASE`, `SELECTCOM`, `ASSIPLAY`, `PREVCOM`, `TIME`, `ITEMSALES`, `PLAYER`, `NEXTCOM`, `PBAND`, `BOUGHT`, `GLOBAL`, `RANDDATA`
+- string wrappers: `SAVESTR`, `TSTR`, `STR`, `RESULTS`, `GLOBALS`
+- const integer wrappers: `NO`, `ITEMPRICE`
+- const string wrappers: `ABLNAME`, `TALENTNAME`, `EXPNAME`, `MARKNAME`, `PALAMNAME`, `ITEMNAME`, `TRAINNAME`, `BASENAME`, `SOURCENAME`, `EXNAME`, `EQUIPNAME`, `TEQUIPNAME`, `FLAGNAME`, `TFLAGNAME`, `CFLAGNAME`, `TCVARNAME`, `CSTRNAME`, `STAINNAME`, `CDFLAGNAME1`, `CDFLAGNAME2`, `STRNAME`, `TSTRNAME`, `SAVESTRNAME`, `GLOBALNAME`, `GLOBALSNAME`
+
+Per-character helper access is exposed through `PluginAPICharContext`:
 
 ```csharp
+public static PluginAPICharContext CreateCharContext(long charId);
+
 public class PluginAPICharContext
 {
     public CharUserdefinedInt1dWrapper UserDefined;
@@ -715,71 +489,82 @@ public class PluginAPICharContext
 }
 ```
 
-### Dependencies
+Public-surface note:
 
-Plugin DLLs are loaded with `Assembly.LoadFrom(...)`. If your plugin depends on additional managed DLLs, keep those dependencies in a location where the runtime can resolve them reliably (commonly alongside the engine executable or alongside the plugin DLL, depending on the host’s probing behavior). If a dependency cannot be resolved, plugin loading fails at startup.
+- Plugins obtain `PluginAPICharContext` instances through `CreateCharContext(long charId)`; construction is not a public plugin-side contract in this build.
+- The public skeleton above intentionally omits internal cache/bootstrap machinery such as `CacheVariables(...)`.
+- Those internal setup steps are not themselves part of the plugin-facing API contract; only their observable effects matter for compatibility.
 
-## Troubleshooting and compatibility pitfalls
+Compatibility-relevant quirk:
 
-### API quirks and limitations (this build)
+- `PluginAPICharContext.UserDefined` is built from the host's cached user-defined character-variable set at plugin-manager setup time. Because plugins are set up before ERH declarations are processed, a compatible implementation should account for the fact that ERH-defined character variables may be absent from this cached helper view.
 
-These are observable behaviors/limitations that matter if you want to be compatible with existing plugins written for this engine build.
+## Minimal compatible plugin
 
-#### Caching happens before ERH is loaded
+A minimal loadable plugin must:
 
-During engine startup, plugins are loaded before ERH/ERB compilation begins. The plugin system also caches some variable-token references at that time.
+- compile to a `.dll`,
+- be placed directly under `Plugins/`,
+- expose exactly one usable `PluginManifest` type,
+- derive that type from `PluginManifestAbstract`,
+- provide a parameterless constructor,
+- populate `methods` with one or more `IPluginMethod` objects, and
+- be accompanied by `pluginsAware.txt` if it will actually be recognized as a plugin.
 
-Implication:
+Minimal example:
 
-- `PluginAPICharContext.UserDefined` is built from the engine’s `UserDefinedCharaVarList` at cache time. Because ERH `#DIM/#DIMS` declarations are processed later, `UserDefined` may not include ERH-defined character variables in this build.
+```csharp
+using MinorShift.Emuera.Runtime.Utils.PluginSystem;
 
-Workarounds:
+public sealed class PluginManifest : PluginManifestAbstract
+{
+    public override string PluginName => "ExamplePlugin";
+    public override string PluginDescription => "Minimal CALLSHARP demo";
+    public override string PluginVersion => "1.0.0";
+    public override string PluginAuthor => "Example";
 
-- Prefer accessing built-in character variables through the fixed fields on `PluginAPICharContext` (e.g. `BASE`, `ABL`, `CFLAG`, ...), which are cached from built-ins.
-- For user-defined character variables:
-  - Use `PluginManager.SetCharVar/GetCharVar` if your variable is compatible with the two-index `[charId, key]` shape.
-  - Otherwise, use `PluginManager.ExecuteLine(...)` as a last resort to run an ERB assignment that touches the desired variable term.
+    public PluginManifest()
+    {
+        methods.Add(new Echo());
+    }
+}
 
-#### `SetCharVar/GetCharVar` string-key overload is not generic
+public sealed class Echo : IPluginMethod
+{
+    public string Name => "ECHO";
+    public string Description => "Echoes arguments";
 
-`PluginManager.SetCharVar(name, charId, string key, value)` and `GetCharVar(name, charId, string key)` always resolve `key` via the engine’s keyword dictionary for `CFLAG` (regardless of `name`). This means the string-key overload is only compatible with variables whose second index uses the same keyword dictionary as `CFLAG`.
+    public void Execute(PluginMethodParameter[] args)
+    {
+        var pm = PluginManager.GetInstance();
+        foreach (var arg in args)
+        {
+            pm.Print(arg.isString ? arg.strValue : arg.intValue.ToString());
+            pm.PrintNewLine();
+        }
+    }
+}
+```
 
-#### `GetIntVar/GetStrVar` are 1D helpers
+One compatible ERB call site is:
 
-`GetIntVar/GetStrVar` and `SetIntVar/SetStrVar` pass a single index (`[index]`) to the underlying variable token. They are convenient for 1D global variables but do not directly cover:
+```erb
+CALLSHARP ECHO, "hello", 123
+```
 
-- multi-dimensional variables
-- character-data variables (which require a `charId` index)
-- local variables (`LOCAL/LOCALS/ARG/ARGS`)
+If you prefer not to depend on helper printing APIs, a plugin can also restrict itself to mutating `args` and returning.
 
-### Plugin not loaded at all
+## Compatibility checklist for reimplementation
 
-- No `Plugins/` directory: the engine does not create it and simply skips plugin loading.
-- DLL does not contain any type whose `.Name` is exactly `PluginManifest`: the engine silently ignores that DLL.
+A compatible reimplementation of this plugin system should, at minimum, preserve these observable behaviors:
 
-### Engine aborts on startup (plugins present)
-
-Common causes:
-
-- `pluginsAware.txt` missing at game root: startup aborts with a security warning error.
-- Manifest type exists but is not instantiable (no parameterless constructor, throws in constructor) or does not derive from `PluginManifestAbstract`: startup aborts due to an exception during instantiation/cast.
-- Two plugin methods register the same `Name` (after `IgnoreCase` normalization if enabled): startup aborts because registration uses `Dictionary.Add(...)` and throws on duplicate keys.
-- A plugin’s managed dependency is missing or incompatible: the engine may abort while loading the assembly or enumerating types (`GetTypes()`), depending on when the runtime tries to resolve the dependency.
-
-### `CALLSHARP` fails at runtime
-
-- Method name mismatch:
-  - `CALLSHARP` does not evaluate the method name; it is a raw token with backslash escapes and trimming.
-  - Quoting is literal: `CALLSHARP "ECHO"` looks for a method named `"ECHO"` (including quotes).
-  - If `IgnoreCase = true`, method lookup normalizes names using `ToUpper()`; avoid non-ASCII method names if you want predictable matching across locales.
-- Method missing:
-  - The engine warns at load time for constant method names but still executes the line later; because the call target is unbound, the runtime failure may surface as a null-reference-style error.
-- Empty argument slots:
-  - `CALLSHARP M, , 1` parses but leaves a missing argument term; execution fails when the engine tries to evaluate that argument.
-
-### API coupling and binary compatibility
-
-Plugins are compiled against the engine assembly that defines `MinorShift.Emuera.Runtime.Utils.PluginSystem.*`. In practice this means:
-
-- A plugin binary is tightly coupled to the engine build it was compiled against (assembly identity + API surface).
-- To run an existing plugin binary on a different host, that host must provide the expected assembly identity and the required public types/members with compatible behavior.
+- plugin loading happens before ERH/ERB compilation,
+- `Plugins/` enumeration is top-level-only and not recursive,
+- non-plugin DLLs under `Plugins/` are ignored,
+- actual plugins require `pluginsAware.txt`,
+- plugin admission is based on a type named exactly `PluginManifest`,
+- plugin methods are registered globally by `IPluginMethod.Name`,
+- case-sensitivity follows the engine's `IgnoreCase` mode,
+- duplicate effective method names abort loading,
+- `CALLSHARP` passes string/int scalar values via `PluginMethodParameter`, and
+- post-call write-back affects only original ERB variable arguments, using `strValue` for string variables and `intValue` for integer variables.

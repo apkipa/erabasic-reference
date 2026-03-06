@@ -32,7 +32,7 @@
 **Errors & validation**
 - If `<methodName>` is empty: load-time error.
 - If `<methodName>` does not match any registered plugin method:
-  - The engine emits a load-time warning for constant `<methodName>`.
+  - The engine emits a load-time warning.
   - Executing the instruction still fails at runtime (missing method binding).
 - If an argument position is left empty (e.g. `CALLSHARP M, , 1`): runtime error.
 - If the plugin throws an exception: runtime error.
