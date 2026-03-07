@@ -6,7 +6,8 @@
 - io
 
 **Syntax**
-- `PRINTCK [<raw text>]`
+- `PRINTCK`
+- `PRINTCK <raw text>`
 - `PRINTCK;<raw text>`
 
 **Arguments**

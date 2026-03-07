@@ -5,8 +5,13 @@
 - calls
 
 **Syntax**
-- `JUMPFORM <formString> [, <arg1>, <arg2>, ... ]`
-- `JUMPFORM <formString>(<arg1>, <arg2>, ... )`
+- `JUMPFORM <formString>`
+- `JUMPFORM <formString>()`
+- `JUMPFORM <formString>, <arg1> [, <arg2> ... ]`
+- `JUMPFORM <formString>(<arg1> [, <arg2> ... ])`
+- `JUMPFORM <formString>[<subName1>, <subName2>, ...]`
+- `JUMPFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALLFORM`.

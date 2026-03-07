@@ -6,9 +6,16 @@
 - data-blocks
 
 **Syntax**
-- `DATALIST`
-  - `DATA ...` / `DATAFORM ...` (one or more)
-- `ENDLIST`
+```text
+DATALIST
+    DATA <raw text> | DATAFORM <formString>
+    ...
+ENDLIST
+```
+
+- Header line: `DATALIST`
+- Item lines: `DATA <raw text>` / `DATAFORM <formString>`
+- Terminator line: `ENDLIST`
 
 **Arguments**
 - None.
@@ -24,10 +31,10 @@
 **Examples**
 ```erabasic
 PRINTDATA
-  DATALIST
-    DATA Line 1
-    DATA Line 2
-  ENDLIST
+    DATALIST
+        DATA Line 1
+        DATA Line 2
+    ENDLIST
 ENDDATA
 ```
 

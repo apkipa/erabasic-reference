@@ -5,10 +5,14 @@
 - calls
 
 **Syntax**
-- `TRYCGOTO <labelName>`
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCGOTO <labelName>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- Header line: `TRYCGOTO <labelName>`
 
 **Arguments**
 - Same as `GOTO`.
@@ -21,10 +25,12 @@
 - Mis-nesting (`CATCH` without `TRYC*`, `ENDCATCH` without `CATCH`) is a load-time error (the line is marked as error).
 
 **Examples**
-- `TRYCGOTO OPTIONAL_LABEL`
-- `CATCH`
-- `  PRINTL "label missing"`
-- `ENDCATCH`
+```erabasic
+TRYCGOTO OPTIONAL_LABEL
+CATCH
+    PRINTL "label missing"
+ENDCATCH
+```
 
 **Progress state**
 - complete

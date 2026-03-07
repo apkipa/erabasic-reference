@@ -5,10 +5,10 @@
 - data-blocks
 
 **Syntax**
-- `DATAFORM [<FORM string>]`
+- `DATAFORM [<formString>]`
 
 **Arguments**
-- Optional FORM/formatted string scanned to end-of-line.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.

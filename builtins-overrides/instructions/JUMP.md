@@ -5,8 +5,13 @@
 - calls
 
 **Syntax**
-- `JUMP <functionName> [, <arg1>, <arg2>, ... ]`
-- `JUMP <functionName>(<arg1>, <arg2>, ... )`
+- `JUMP <functionName>`
+- `JUMP <functionName>()`
+- `JUMP <functionName>, <arg1> [, <arg2> ... ]`
+- `JUMP <functionName>(<arg1> [, <arg2> ... ])`
+- `JUMP <functionName>[<subName1>, <subName2>, ...]`
+- `JUMP <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALL`.

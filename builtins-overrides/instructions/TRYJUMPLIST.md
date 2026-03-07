@@ -5,10 +5,16 @@
 - calls
 
 **Syntax**
-- `TRYJUMPLIST`
-  - `FUNC <formString> [, <arg1>, ... ]`
-  - `...`
-  - `ENDFUNC`
+```text
+TRYJUMPLIST
+    FUNC ...
+    ...
+ENDFUNC
+```
+
+- Header line: `TRYJUMPLIST`
+- Item lines: `FUNC ...` (see `FUNC` for item syntax)
+- Terminator line: `ENDFUNC`
 
 **Arguments**
 - Same as `TRYCALLLIST`.
@@ -24,10 +30,12 @@
 - Same as `TRYCALLLIST`.
 
 **Examples**
-- `TRYJUMPLIST`
-- `  FUNC PHASE_%COUNT%`
-- `  FUNC PHASE_DEFAULT`
-- `ENDFUNC`
+```erabasic
+TRYJUMPLIST
+    FUNC PHASE_%COUNT%
+    FUNC PHASE_DEFAULT
+ENDFUNC
+```
 
 **Progress state**
 - complete

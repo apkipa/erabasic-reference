@@ -7,7 +7,14 @@
 - data-blocks
 
 **Syntax**
-- `PRINTDATAD [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATAD [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATAD [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -23,7 +30,12 @@
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATAD CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATAD CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Progress state**
 - complete

@@ -6,14 +6,20 @@
 
 **Syntax**
 - Inside `TRYCALLLIST` / `TRYJUMPLIST`:
-  - `FUNC <formString> [, <arg1>, <arg2>, ... ]`
-  - `FUNC <formString>(<arg1>, <arg2>, ... )`
+  - `FUNC <formString>`
+  - `FUNC <formString>()`
+  - `FUNC <formString>, <arg1> [, <arg2> ... ]`
+  - `FUNC <formString>(<arg1> [, <arg2> ... ])`
+  - `FUNC <formString>[<subName1>, <subName2>, ...]`
+  - `FUNC <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+  - The bracket segment is accepted for compatibility, but is currently unused by `TRYCALLLIST` / `TRYJUMPLIST`.
 - Inside `TRYGOTOLIST`:
   - `FUNC <formString>`
 
 **Arguments**
 - `<formString>` (FORM/formatted string): evaluated to a function name or label name.
-- `<argN>` (optional): call argument; not allowed for `TRYGOTOLIST`.
+- `<argN>` (optional, expression): call argument; not allowed for `TRYGOTOLIST`.
+- `<subNameN>` (optional): only for `TRYCALLLIST` / `TRYJUMPLIST`; parsed from the bracket segment after `<formString>` and currently ignored.
 
 **Semantics**
 - Not executed as a standalone statement.

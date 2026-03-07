@@ -5,8 +5,13 @@
 - calls
 
 **Syntax**
-- `TRYJUMP <functionName> [, <arg1>, <arg2>, ... ]`
-- `TRYJUMP <functionName>(<arg1>, <arg2>, ... )`
+- `TRYJUMP <functionName>`
+- `TRYJUMP <functionName>()`
+- `TRYJUMP <functionName>, <arg1> [, <arg2> ... ]`
+- `TRYJUMP <functionName>(<arg1> [, <arg2> ... ])`
+- `TRYJUMP <functionName>[<subName1>, <subName2>, ...]`
+- `TRYJUMP <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `JUMP`.

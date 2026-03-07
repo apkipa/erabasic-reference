@@ -6,10 +6,10 @@
 - io
 
 **Syntax**
-- `PRINTSINGLESD <string expr>`
+- `PRINTSINGLESD <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

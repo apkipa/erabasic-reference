@@ -5,8 +5,13 @@
 - calls
 
 **Syntax**
-- `TRYCALL <functionName> [, <arg1>, <arg2>, ... ]`
-- `TRYCALL <functionName>(<arg1>, <arg2>, ... )`
+- `TRYCALL <functionName>`
+- `TRYCALL <functionName>()`
+- `TRYCALL <functionName>, <arg1> [, <arg2> ... ]`
+- `TRYCALL <functionName>(<arg1> [, <arg2> ... ])`
+- `TRYCALL <functionName>[<subName1>, <subName2>, ...]`
+- `TRYCALL <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALL`.

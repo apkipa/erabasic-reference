@@ -96,6 +96,17 @@ Guidelines:
 - When internal terminology must be mentioned for compatibility, immediately anchor it to an observable meaning.
 - If a mechanism is easy to misread from prose alone, add a small example instead of relying on dense wording.
 
+## Structured syntax presentation
+
+When an instruction's syntax is inherently **multi-line / block-structured**, make that overall structure visible in `Syntax` with a fenced `text` block.
+
+Guidelines:
+- Use a fenced `text` block in `Syntax` to show the whole construct shape (header / body / terminator or catch block) at a glance.
+- Keep `Syntax` as `text`, not `erabasic`: syntax blocks are meta-syntax and may contain placeholders / optional markers / `...`, so they are not literal runnable script.
+- Do not rely on the fenced block alone: keep machine-readable bullet/backtick syntax lines below it for placeholders, variants, and lint-friendly argument contracts.
+- For structured instructions, prefer fenced `erabasic` blocks in `Examples`, so readers see the full construct in runnable-looking form rather than line-by-line bullets. Use 4-space indentation per nesting level inside those example blocks.
+- Use this pattern for genuinely structured instructions; ordinary single-line instructions/functions should keep the normal bullet/backtick `Syntax` style.
+
 ## Ambiguity tightening
 
 When a statement would materially affect compatibility, do not leave it at vague wording if the behavior can be determined.

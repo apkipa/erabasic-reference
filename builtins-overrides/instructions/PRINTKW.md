@@ -6,7 +6,8 @@
 - io
 
 **Syntax**
-- `PRINTKW [<raw text>]`
+- `PRINTKW`
+- `PRINTKW <raw text>`
 - `PRINTKW;<raw text>`
 
 **Arguments**

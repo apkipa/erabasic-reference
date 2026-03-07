@@ -5,9 +5,14 @@
 - control-flow
 
 **Syntax**
-- `FOR <intVarTerm>, [<start>], <end> [, <step>]`
-  - `...`
-  - `NEXT`
+```text
+FOR <intVarTerm>, [<start>], <end> [, <step>]
+    ...
+NEXT
+```
+
+- Header line: `FOR <intVarTerm>, [<start>], <end> [, <step>]`
+- Terminator line: `NEXT`
 
 **Arguments**
 - `<intVarTerm>` (changeable integer variable term): loop counter; must not be character-data.
@@ -27,10 +32,11 @@
 - `NEXT` without a matching open `FOR` is a load-time error (the `NEXT` line is marked as error).
 
 **Examples**
-- `FOR I, 0, 10`
-- `FOR I, , 10`
-- `  PRINTV I`
-- `NEXT`
+```erabasic
+FOR I, 0, 10
+    PRINTV I
+NEXT
+```
 
 **Progress state**
 - complete

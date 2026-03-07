@@ -5,10 +5,22 @@
 - calls
 
 **Syntax**
-- `TRYCJUMP <functionName> [, <arg1>, ... ]`
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCJUMP <target>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- `<target>` can be:
+  - `functionName`
+  - `functionName()`
+  - `functionName, <arg1> [, <arg2> ... ]`
+  - `functionName(<arg1> [, <arg2> ... ])`
+  - `functionName[<subName1>, <subName2>, ...]`
+  - `functionName[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+
+> **Note:** The bracketed `[...]` segment is accepted for backward compatibility, but is currently unused.
 
 **Arguments**
 - Same as `JUMP`.
@@ -21,10 +33,12 @@
 - Still errors for invalid argument binding/type conversion when a function is found.
 
 **Examples**
-- `TRYCJUMP OPTIONAL_PHASE`
-- `CATCH`
-- `  PRINTL "phase missing"`
-- `ENDCATCH`
+```erabasic
+TRYCJUMP OPTIONAL_PHASE
+CATCH
+    PRINTL "phase missing"
+ENDCATCH
+```
 
 **Progress state**
 - complete

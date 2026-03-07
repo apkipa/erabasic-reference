@@ -5,12 +5,19 @@
 - control-flow
 
 **Syntax**
-- `SELECTCASE <expr>`
-  - `CASE <caseExpr> (, <caseExpr> ... )`
-  - `...`
-  - `CASEELSE`
-  - `...`
-  - `ENDSELECT`
+```text
+SELECTCASE <expr>
+    CASE <caseExpr> [, <caseExpr> ...]
+        ...
+    ...
+    [CASEELSE
+        ...]
+ENDSELECT
+```
+
+- Header line: `SELECTCASE <expr>`
+- Clause header lines inside the block are `CASE <caseExpr> [, <caseExpr> ...]`; an optional final `CASEELSE` may appear.
+- Terminator line: `ENDSELECT`
 
 **Arguments**
 - `<expr>` (int|string): selector expression.
@@ -30,14 +37,16 @@
 - Mis-nesting / unexpected `CASE` / unexpected `ENDSELECT` are load-time errors (the line is marked as error).
 
 **Examples**
-- `SELECTCASE A`
-- `CASE 0`
-- `  PRINTL "zero"`
-- `CASE 1 TO 9`
-- `  PRINTL "small"`
-- `CASEELSE`
-- `  PRINTL "other"`
-- `ENDSELECT`
+```erabasic
+SELECTCASE A
+CASE 0
+    PRINTL "zero"
+CASE 1 TO 9
+    PRINTL "small"
+CASEELSE
+    PRINTL "other"
+ENDSELECT
+```
 
 **Progress state**
 - complete

@@ -5,9 +5,14 @@
 - error-handling
 
 **Syntax**
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- Header line: `CATCH`
+- Terminator line: `ENDCATCH`
 
 **Arguments**
 - None.
@@ -20,9 +25,12 @@
 - `CATCH` without a matching open `TRYC*` is a load-time error (the line is marked as error).
 
 **Examples**
-- `CATCH`
-- `  PRINTL "not found"`
-- `ENDCATCH`
+```erabasic
+TRYCCALL OPTIONAL_HOOK
+CATCH
+    PRINTL "hook missing"
+ENDCATCH
+```
 
 **Progress state**
 - complete

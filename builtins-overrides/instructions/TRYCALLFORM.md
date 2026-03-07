@@ -5,8 +5,13 @@
 - calls
 
 **Syntax**
-- `TRYCALLFORM <formString> [, <arg1>, <arg2>, ... ]`
-- `TRYCALLFORM <formString>(<arg1>, <arg2>, ... )`
+- `TRYCALLFORM <formString>`
+- `TRYCALLFORM <formString>()`
+- `TRYCALLFORM <formString>, <arg1> [, <arg2> ... ]`
+- `TRYCALLFORM <formString>(<arg1> [, <arg2> ... ])`
+- `TRYCALLFORM <formString>[<subName1>, <subName2>, ...]`
+- `TRYCALLFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALLFORM`.

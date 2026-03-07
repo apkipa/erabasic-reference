@@ -6,12 +6,10 @@
 - io
 
 **Syntax**
-- `PRINTFORMLCK [<FORM string>]`
+- `PRINTFORMLCK [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

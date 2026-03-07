@@ -6,7 +6,8 @@
 - io
 
 **Syntax**
-- `PRINTLCD [<raw text>]`
+- `PRINTLCD`
+- `PRINTLCD <raw text>`
 - `PRINTLCD;<raw text>`
 
 **Arguments**

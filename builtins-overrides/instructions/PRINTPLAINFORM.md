@@ -6,10 +6,10 @@
 
 **Syntax**
 - `PRINTPLAINFORM`
-- `PRINTPLAINFORM <FORM string>`
+- `PRINTPLAINFORM <formString>`
 
 **Arguments**
-- `<FORM string>` (optional, FORM/formatted string; default `""`): scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).

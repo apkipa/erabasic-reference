@@ -7,12 +7,20 @@
 - data-blocks
 
 **Syntax**
-- `PRINTDATA [<intVarTerm>]`
-- Block form:
-  - `PRINTDATA [<intVarTerm>]`
-    - `DATA <raw text>` / `DATAFORM <FORM string>` (one or more choices)
-    - optionally, `DATALIST` ... `ENDLIST` groups to make a multi-line choice
-  - `ENDDATA`
+```text
+PRINTDATA [<intVarTerm>]
+    DATA <raw text> | DATAFORM <formString>
+    ...
+    [DATALIST
+        DATA <raw text> | DATAFORM <formString>
+        ...
+    ENDLIST]
+ENDDATA
+```
+
+- Header line: `PRINTDATA [<intVarTerm>]`
+- Body entries may be single-line `DATA` / `DATAFORM` choices or nested `DATALIST ... ENDLIST` multi-line choices.
+- Terminator line: `ENDDATA`
 
 **Arguments**
 - `<intVarTerm>` (optional, changeable int variable term): receives the 0-based chosen index.
@@ -44,17 +52,17 @@
 **Examples**
 ```erabasic
 PRINTDATA CHOICE
-  DATA First option
-  DATA Second option
+    DATA First option
+    DATA Second option
 ENDDATA
 ```
 
 ```erabasic
 PRINTDATA
-  DATALIST
-    DATA Line 1
-    DATAFORM Line 2: %TOSTR(RAND:100)%
-  ENDLIST
+    DATALIST
+        DATA Line 1
+        DATAFORM Line 2: %TOSTR(RAND:100)%
+    ENDLIST
 ENDDATA
 ```
 

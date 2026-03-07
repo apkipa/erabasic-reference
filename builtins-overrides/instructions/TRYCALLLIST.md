@@ -5,11 +5,16 @@
 - calls
 
 **Syntax**
-- `TRYCALLLIST`
-  - `FUNC <formString> [, <arg1>, <arg2>, ... ]`
-  - `FUNC <formString>(<arg1>, <arg2>, ... )`
-  - `...`
-  - `ENDFUNC`
+```text
+TRYCALLLIST
+    FUNC ...
+    ...
+ENDFUNC
+```
+
+- Header line: `TRYCALLLIST`
+- Item lines: `FUNC ...` (see `FUNC` for item syntax)
+- Terminator line: `ENDFUNC`
 
 **Arguments**
 - None on `TRYCALLLIST` itself.
@@ -28,7 +33,7 @@
     - Otherwise, bind arguments and enter that function (like `CALL`).
       - When the callee returns, execution resumes at the `ENDFUNC` line (then continues after it).
   - If no candidate matches, jump directly to the `ENDFUNC` line (then continue after it).
-- `FUNC` syntax matches `CALLFORM`: candidate name is a FORM string; arguments are normal expressions.
+- `FUNC` item syntax is documented in `FUNC`; candidate name is a FORM string, arguments are normal expressions, and any bracket subname segment is currently ignored here.
 
 **Errors & validation**
 - Load-time structure errors (the line is marked as error):
@@ -41,10 +46,12 @@
   - If argument binding fails (too many args, omitted required args, type conversion not permitted, invalid `REF` binding, etc.), it errors (it does **not** “try the next one”).
 
 **Examples**
-- `TRYCALLLIST`
-- `  FUNC HOOK_%TARGET%, TARGET`
-- `  FUNC HOOK_DEFAULT`
-- `ENDFUNC`
+```erabasic
+TRYCALLLIST
+    FUNC HOOK_%TARGET%, TARGET
+    FUNC HOOK_DEFAULT
+ENDFUNC
+```
 
 **Progress state**
 - complete

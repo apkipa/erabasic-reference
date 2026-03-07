@@ -5,7 +5,19 @@
 - data-blocks
 
 **Syntax**
-- `STRDATA [<strVarTerm>]` ... `ENDDATA`
+```text
+STRDATA [<strVarTerm>]
+    DATA <raw text> | DATAFORM <formString>
+    ...
+    [DATALIST
+        DATA <raw text> | DATAFORM <formString>
+        ...
+    ENDLIST]
+ENDDATA
+```
+
+- Header line: `STRDATA [<strVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - `<strVarTerm>` (optional, changeable string variable term; default `RESULTS`): receives the result.
@@ -25,8 +37,8 @@
 **Examples**
 ```erabasic
 STRDATA
-  DATA Hello
-  DATA World
+    DATA Hello
+    DATA World
 ENDDATA
 PRINTFORML RESULTS
 ```

@@ -5,12 +5,17 @@
 - control-flow
 
 **Syntax**
-- `WHILE [<int expr>]`
-  - `...`
-  - `WEND`
+```text
+WHILE [<condition>]
+    ...
+WEND
+```
+
+- Header line: `WHILE [<condition>]`
+- Terminator line: `WEND`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
+- `<condition>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - At `WHILE`, evaluates the condition:
@@ -22,9 +27,11 @@
 - `WEND` without a matching open `WHILE` is a load-time error (the `WEND` line is marked as error).
 
 **Examples**
-- `WHILE I < 10`
-- `  I += 1`
-- `WEND`
+```erabasic
+WHILE I < 10
+    I += 1
+WEND
+```
 
 **Progress state**
 - complete

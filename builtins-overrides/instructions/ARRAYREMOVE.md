@@ -21,7 +21,7 @@
   - Elements after the removed segment are shifted left into the gap.
   - The remaining tail is filled with defaults:
     - int arrays: `0`
-    - string arrays: `null` internally (typically observed as empty string in many contexts)
+    - string arrays: `null` internally; ordinary script-side reads observe this as `""`.
 - Special case: if `<count> <= 0`, the engine treats it as “remove to the end” (it effectively clears the suffix starting at `<start>`).
 - If `<start> + <count>` exceeds the array length, it behaves like removing to the end.
 

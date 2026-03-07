@@ -5,10 +5,22 @@
 - calls
 
 **Syntax**
-- `TRYCCALLFORM <formString> [, <arg1>, ... ]`
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCCALLFORM <target>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- `<target>` can be:
+  - `<formString>`
+  - `<formString>()`
+  - `<formString>, <arg1> [, <arg2> ... ]`
+  - `<formString>(<arg1> [, <arg2> ... ])`
+  - `<formString>[<subName1>, <subName2>, ...]`
+  - `<formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+
+> **Note:** The bracketed `[...]` segment is accepted for backward compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALLFORM`.
@@ -20,10 +32,12 @@
 - Same as `TRYCCALL`.
 
 **Examples**
-- `TRYCCALLFORM "HOOK_%TARGET%"`
-- `CATCH`
-- `  PRINTL "hook missing"`
-- `ENDCATCH`
+```erabasic
+TRYCCALLFORM "HOOK_%TARGET%"
+CATCH
+    PRINTL "hook missing"
+ENDCATCH
+```
 
 **Progress state**
 - complete

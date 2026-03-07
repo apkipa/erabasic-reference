@@ -6,11 +6,10 @@
 - io
 
 **Syntax**
-- `PRINTSINGLEFORM [<FORM string>]`
+- `PRINTSINGLEFORM [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

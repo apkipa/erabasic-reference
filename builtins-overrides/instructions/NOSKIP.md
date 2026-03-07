@@ -6,9 +6,14 @@
 - skip-mode
 
 **Syntax**
-- `NOSKIP`
-  - `...`
-- `ENDNOSKIP`
+```text
+NOSKIP
+    ...
+ENDNOSKIP
+```
+
+- Header line: `NOSKIP`
+- Terminator line: `ENDNOSKIP`
 
 **Arguments**
 - None.
@@ -35,7 +40,7 @@
 SKIPDISP 1
 
 NOSKIP
-  PRINTL This line still prints even during SKIPDISP.
+    PRINTL This line still prints even during SKIPDISP.
 ENDNOSKIP
 ```
 

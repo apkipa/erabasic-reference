@@ -5,10 +5,10 @@
 - control-flow
 
 **Syntax**
-- `ELSEIF <int expr>`
+- `ELSEIF <condition>`
 
 **Arguments**
-- `<int expr>` is evaluated by the `IF` header’s clause-selection logic (not by the `ELSEIF` instruction itself).
+- `<condition>` (int): evaluated by the surrounding `IF` header’s clause-selection logic, not by standalone `ELSEIF` execution.
 
 **Semantics**
 - When reached **sequentially** (i.e., a previous clause already executed and control fell through), `ELSEIF` unconditionally jumps to the matching `ENDIF` marker, skipping the rest of the block.

@@ -20,7 +20,11 @@
 - `NEXT` without a matching open `FOR` is a load-time error (the line is marked as error).
 
 **Examples**
-- `NEXT`
+```erabasic
+FOR I, 0, 10
+    PRINTV I
+NEXT
+```
 
 **Progress state**
 - complete

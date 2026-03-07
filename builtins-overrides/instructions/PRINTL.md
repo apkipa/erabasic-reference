@@ -6,7 +6,8 @@
 - io
 
 **Syntax**
-- `PRINTL [<raw text>]`
+- `PRINTL`
+- `PRINTL <raw text>`
 - `PRINTL;<raw text>`
 
 **Arguments**

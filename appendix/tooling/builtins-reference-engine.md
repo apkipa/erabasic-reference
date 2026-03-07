@@ -6461,7 +6461,7 @@ DELCHARA 1, 3
   - `state.JumpTo(func.JumpTo)`
 
 **Errors & validation**
-- If the system variable `COUNT` is forbidden by the current variable-scope configuration, `REPEAT` raises an error when its argument is parsed (typically: first execution of the `REPEAT` line).
+- If the system variable `COUNT` is forbidden by the current variable-scope configuration, `REPEAT` raises an error when execution reaches the `REPEAT` line and its argument is parsed.
 - If a constant count is `<= 0`, the engine emits a warning when the line’s argument is parsed.
 - Nested `REPEAT` is warned about by the loader (not necessarily a hard error).
 
@@ -8938,7 +8938,7 @@ ENDNOSKIP
   - Elements after the removed segment are shifted left into the gap.
   - The remaining tail is filled with defaults:
     - int arrays: `0`
-    - string arrays: `null` internally (typically observed as empty string in many contexts)
+    - string arrays: `null` internally; ordinary script-side reads observe this as `""`.
 - Special case: if `<count> <= 0`, the engine treats it as “remove to the end” (it effectively clears the suffix starting at `<start>`).
 - If `<start> + <count>` exceeds the array length, it behaves like removing to the end.
 - Engine-extracted notes (key operations):
@@ -9030,8 +9030,8 @@ ENDNOSKIP
 - `ARRAYCOPY <srcVarNameExpr>, <dstVarNameExpr>`
 
 **Arguments**
-- `<srcVarNameExpr>` (string): expression whose value is a variable name.
-- `<dstVarNameExpr>` (string): expression whose value is a variable name.
+- `<srcVarNameExpr>` (string): its value names the source array variable.
+- `<dstVarNameExpr>` (string): its value names the destination array variable.
 
 **Semantics**
 - Resolves both variable names to variable tokens (early when literal, otherwise at runtime).
@@ -9109,8 +9109,13 @@ ENDNOSKIP
 - Implementor (registration): `new CALL_Instruction(false, true, false, false)`
 
 **Syntax**
-- `JUMP <functionName> [, <arg1>, <arg2>, ... ]`
-- `JUMP <functionName>(<arg1>, <arg2>, ... )`
+- `JUMP <functionName>`
+- `JUMP <functionName>()`
+- `JUMP <functionName>, <arg1> [, <arg2> ... ]`
+- `JUMP <functionName>(<arg1> [, <arg2> ... ])`
+- `JUMP <functionName>[<subName1>, <subName2>, ...]`
+- `JUMP <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALL`.
@@ -9200,8 +9205,13 @@ ENDNOSKIP
 - Additional flags (registration): `EXTENDED`
 
 **Syntax**
-- `TRYJUMP <functionName> [, <arg1>, <arg2>, ... ]`
-- `TRYJUMP <functionName>(<arg1>, <arg2>, ... )`
+- `TRYJUMP <functionName>`
+- `TRYJUMP <functionName>()`
+- `TRYJUMP <functionName>, <arg1> [, <arg2> ... ]`
+- `TRYJUMP <functionName>(<arg1> [, <arg2> ... ])`
+- `TRYJUMP <functionName>[<subName1>, <subName2>, ...]`
+- `TRYJUMP <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `JUMP`.
@@ -9236,8 +9246,13 @@ ENDNOSKIP
 - Additional flags (registration): `EXTENDED`
 
 **Syntax**
-- `TRYCALL <functionName> [, <arg1>, <arg2>, ... ]`
-- `TRYCALL <functionName>(<arg1>, <arg2>, ... )`
+- `TRYCALL <functionName>`
+- `TRYCALL <functionName>()`
+- `TRYCALL <functionName>, <arg1> [, <arg2> ... ]`
+- `TRYCALL <functionName>(<arg1> [, <arg2> ... ])`
+- `TRYCALL <functionName>[<subName1>, <subName2>, ...]`
+- `TRYCALL <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALL`.
@@ -9272,8 +9287,13 @@ ENDNOSKIP
 - Additional flags (registration): `EXTENDED`
 
 **Syntax**
-- `JUMPFORM <formString> [, <arg1>, <arg2>, ... ]`
-- `JUMPFORM <formString>(<arg1>, <arg2>, ... )`
+- `JUMPFORM <formString>`
+- `JUMPFORM <formString>()`
+- `JUMPFORM <formString>, <arg1> [, <arg2> ... ]`
+- `JUMPFORM <formString>(<arg1> [, <arg2> ... ])`
+- `JUMPFORM <formString>[<subName1>, <subName2>, ...]`
+- `JUMPFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALLFORM`.
@@ -9311,11 +9331,16 @@ ENDNOSKIP
 - `CALLFORM <formString>()`
 - `CALLFORM <formString>, <arg1> [, <arg2> ... ]`
 - `CALLFORM <formString>(<arg1> [, <arg2> ... ])`
+- `CALLFORM <formString>[<subName1>, <subName2>, ...]`
+- `CALLFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - `<formString>` (FORM/formatted string): its evaluated result is used as the function name.
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
-- `<argN>` (optional): same as `CALL`.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed like `CALL`.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<formString>`.
+  - The current engine accepts and stores them, but they do not affect target resolution or call behavior.
 
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.
@@ -9346,8 +9371,13 @@ ENDNOSKIP
 - Additional flags (registration): `EXTENDED`
 
 **Syntax**
-- `TRYJUMPFORM <formString> [, <arg1>, <arg2>, ... ]`
-- `TRYJUMPFORM <formString>(<arg1>, <arg2>, ... )`
+- `TRYJUMPFORM <formString>`
+- `TRYJUMPFORM <formString>()`
+- `TRYJUMPFORM <formString>, <arg1> [, <arg2> ... ]`
+- `TRYJUMPFORM <formString>(<arg1> [, <arg2> ... ])`
+- `TRYJUMPFORM <formString>[<subName1>, <subName2>, ...]`
+- `TRYJUMPFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `JUMPFORM`.
@@ -9382,8 +9412,13 @@ ENDNOSKIP
 - Additional flags (registration): `EXTENDED`
 
 **Syntax**
-- `TRYCALLFORM <formString> [, <arg1>, <arg2>, ... ]`
-- `TRYCALLFORM <formString>(<arg1>, <arg2>, ... )`
+- `TRYCALLFORM <formString>`
+- `TRYCALLFORM <formString>()`
+- `TRYCALLFORM <formString>, <arg1> [, <arg2> ... ]`
+- `TRYCALLFORM <formString>(<arg1> [, <arg2> ... ])`
+- `TRYCALLFORM <formString>[<subName1>, <subName2>, ...]`
+- `TRYCALLFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALLFORM`.
@@ -9419,7 +9454,13 @@ ENDNOSKIP
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCJUMP <functionName> [, <arg1>, ... ]`
+- `TRYCJUMP <functionName>`
+- `TRYCJUMP <functionName>()`
+- `TRYCJUMP <functionName>, <arg1> [, <arg2> ... ]`
+- `TRYCJUMP <functionName>(<arg1> [, <arg2> ... ])`
+- `TRYCJUMP <functionName>[<subName1>, <subName2>, ...]`
+- `TRYCJUMP <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 - `CATCH`
   - `<catch body>`
   - `ENDCATCH`
@@ -9461,7 +9502,13 @@ ENDNOSKIP
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCCALL <functionName> [, <arg1>, ... ]`
+- `TRYCCALL <functionName>`
+- `TRYCCALL <functionName>()`
+- `TRYCCALL <functionName>, <arg1> [, <arg2> ... ]`
+- `TRYCCALL <functionName>(<arg1> [, <arg2> ... ])`
+- `TRYCCALL <functionName>[<subName1>, <subName2>, ...]`
+- `TRYCCALL <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 - `CATCH`
   - `<catch body>`
   - `ENDCATCH`
@@ -9504,7 +9551,13 @@ ENDNOSKIP
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCJUMPFORM <formString> [, <arg1>, ... ]`
+- `TRYCJUMPFORM <formString>`
+- `TRYCJUMPFORM <formString>()`
+- `TRYCJUMPFORM <formString>, <arg1> [, <arg2> ... ]`
+- `TRYCJUMPFORM <formString>(<arg1> [, <arg2> ... ])`
+- `TRYCJUMPFORM <formString>[<subName1>, <subName2>, ...]`
+- `TRYCJUMPFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 - `CATCH`
   - `<catch body>`
   - `ENDCATCH`
@@ -9545,7 +9598,13 @@ ENDNOSKIP
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCCALLFORM <formString> [, <arg1>, ... ]`
+- `TRYCCALLFORM <formString>`
+- `TRYCCALLFORM <formString>()`
+- `TRYCCALLFORM <formString>, <arg1> [, <arg2> ... ]`
+- `TRYCCALLFORM <formString>(<arg1> [, <arg2> ... ])`
+- `TRYCCALLFORM <formString>[<subName1>, <subName2>, ...]`
+- `TRYCCALLFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 - `CATCH`
   - `<catch body>`
   - `ENDCATCH`
@@ -9628,10 +9687,15 @@ ENDNOSKIP
 - `CALLF <methodName>()`
 - `CALLF <methodName>, <arg1> [, <arg2> ... ]`
 - `CALLF <methodName>(<arg1> [, <arg2> ... ])`
+- `CALLF <methodName>[<subName1>, <subName2>, ...]`
+- `CALLF <methodName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - `<methodName>` (raw string token): read up to `(` / `[` / `,` / `;` and then trimmed.
 - `<argN>` (optional, expression): each occurrence is evaluated and passed to the method.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<methodName>`.
+  - The current engine accepts and stores them, but they do not affect method resolution or call behavior.
 
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.
@@ -9665,10 +9729,15 @@ ENDNOSKIP
 - `CALLFORMF <formString>()`
 - `CALLFORMF <formString>, <arg1> [, <arg2> ... ]`
 - `CALLFORMF <formString>(<arg1> [, <arg2> ... ])`
+- `CALLFORMF <formString>[<subName1>, <subName2>, ...]`
+- `CALLFORMF <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - `<formString>` (FORM/formatted string): its evaluated result is used as the method name.
 - `<argN>` (optional, expression): each occurrence is evaluated and passed to the method.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<formString>`.
+  - The current engine accepts and stores them, but they do not affect method resolution or call behavior.
 
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.
@@ -10100,8 +10169,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 **Syntax**
 - `TRYCALLLIST`
-  - `FUNC <formString> [, <arg1>, <arg2>, ... ]`
-  - `FUNC <formString>(<arg1>, <arg2>, ... )`
+  - `FUNC ...` (see `FUNC` for item syntax)
   - `...`
   - `ENDFUNC`
 
@@ -10122,7 +10190,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
     - Otherwise, bind arguments and enter that function (like `CALL`).
       - When the callee returns, execution resumes at the `ENDFUNC` line (then continues after it).
   - If no candidate matches, jump directly to the `ENDFUNC` line (then continue after it).
-- `FUNC` syntax matches `CALLFORM`: candidate name is a FORM string; arguments are normal expressions.
+- `FUNC` item syntax is documented in `FUNC`; candidate name is a FORM string, arguments are normal expressions, and any bracket subname segment is currently ignored here.
 - Engine-extracted notes (key operations):
   - `state.IntoFunction(callto, args, exm)`
   - `state.JumpTo(func.JumpTo)`
@@ -10161,7 +10229,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 **Syntax**
 - `TRYJUMPLIST`
-  - `FUNC <formString> [, <arg1>, ... ]`
+  - `FUNC ...` (see `FUNC` for item syntax)
   - `...`
   - `ENDFUNC`
 
@@ -10205,8 +10273,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 **Syntax**
 - `TRYGOTOLIST`
-  - `FUNC <formString>`
-  - `FUNC <formString>`
+  - `FUNC <formString>` (see `FUNC` for the shared item model; this variant forbids subnames and arguments)
   - `...`
   - `ENDFUNC`
 
@@ -10254,14 +10321,20 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 
 **Syntax**
 - Inside `TRYCALLLIST` / `TRYJUMPLIST`:
-  - `FUNC <formString> [, <arg1>, <arg2>, ... ]`
-  - `FUNC <formString>(<arg1>, <arg2>, ... )`
+  - `FUNC <formString>`
+  - `FUNC <formString>()`
+  - `FUNC <formString>, <arg1> [, <arg2> ... ]`
+  - `FUNC <formString>(<arg1> [, <arg2> ... ])`
+  - `FUNC <formString>[<subName1>, <subName2>, ...]`
+  - `FUNC <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+  - The bracket segment is accepted for compatibility, but is currently unused by `TRYCALLLIST` / `TRYJUMPLIST`.
 - Inside `TRYGOTOLIST`:
   - `FUNC <formString>`
 
 **Arguments**
 - `<formString>` (FORM/formatted string): evaluated to a function name or label name.
-- `<argN>` (optional): call argument; not allowed for `TRYGOTOLIST`.
+- `<argN>` (optional, expression): call argument; not allowed for `TRYGOTOLIST`.
+- `<subNameN>` (optional): only for `TRYCALLLIST` / `TRYJUMPLIST`; parsed from the bracket segment after `<formString>` and currently ignored.
 
 **Semantics**
 - Not executed as a standalone statement.
@@ -11717,10 +11790,15 @@ ENCODETOUNI "ABC"
 - `TRYCALLFORMF <formString>()`
 - `TRYCALLFORMF <formString>, <arg1> [, <arg2> ... ]`
 - `TRYCALLFORMF <formString>(<arg1> [, <arg2> ... ])`
+- `TRYCALLFORMF <formString>[<subName1>, <subName2>, ...]`
+- `TRYCALLFORMF <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - `<formString>` (FORM/formatted string): its evaluated result is used as the method name.
 - `<argN>` (optional, expression): each occurrence is evaluated and passed to the target method.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<formString>`.
+  - The current engine accepts and stores them, but they do not affect method resolution or call behavior.
 
 **Semantics**
 - Evaluates `<formString>` to a name string, then behaves like `TRYCALLF`.
@@ -16330,7 +16408,7 @@ ARRAYMSORT(A, B, C)
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.
-- Even though many invalid strings return `0`, the underlying integer-literal reader can raise runtime errors for some inputs, including (non-exhaustive):
+- Even though many invalid strings return `0`, inputs that reach the integer-literal reader can still raise runtime errors; for example:
   - out-of-range / overflow while parsing the integer literal
   - invalid binary digit in a `0b...` literal (e.g. `0b2`)
   - malformed exponent forms (e.g. `1e` without exponent digits)

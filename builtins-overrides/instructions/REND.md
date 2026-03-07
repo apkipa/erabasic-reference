@@ -20,7 +20,11 @@
 - `REND` without a matching open `REPEAT` is a load-time error (the line is marked as error).
 
 **Examples**
-- `REND`
+```erabasic
+REPEAT 10
+    PRINTV COUNT
+REND
+```
 
 **Progress state**
 - complete

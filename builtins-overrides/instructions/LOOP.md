@@ -5,10 +5,10 @@
 - control-flow
 
 **Syntax**
-- `LOOP [<int expr>]`
+- `LOOP [<condition>]`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
+- `<condition>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates the condition:
@@ -19,7 +19,11 @@
 - `LOOP` without a matching open `DO` is a load-time error (the line is marked as error).
 
 **Examples**
-- `LOOP I < 10`
+```erabasic
+DO
+    I += 1
+LOOP I < 10
+```
 
 **Progress state**
 - complete

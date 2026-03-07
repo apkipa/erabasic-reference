@@ -5,11 +5,11 @@
 - control-flow
 
 **Syntax**
-- `SIF [<int expr>]`
+- `SIF [<condition>]`
   - `<next logical line>`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
+- `<condition>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.

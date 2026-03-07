@@ -6,7 +6,8 @@
 - io
 
 **Syntax**
-- `PRINTSINGLED [<raw text>]`
+- `PRINTSINGLED`
+- `PRINTSINGLED <raw text>`
 - `PRINTSINGLED;<raw text>`
 
 **Arguments**

@@ -5,10 +5,22 @@
 - calls
 
 **Syntax**
-- `TRYCCALL <functionName> [, <arg1>, ... ]`
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCCALL <target>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- `<target>` can be:
+  - `functionName`
+  - `functionName()`
+  - `functionName, <arg1> [, <arg2> ... ]`
+  - `functionName(<arg1> [, <arg2> ... ])`
+  - `functionName[<subName1>, <subName2>, ...]`
+  - `functionName[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+
+> **Note:** The bracketed `[...]` segment is accepted for backward compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALL`.
@@ -22,10 +34,12 @@
 - Mis-nesting (`CATCH` without `TRYC*`, `ENDCATCH` without `CATCH`) is a load-time error (the line is marked as error).
 
 **Examples**
-- `TRYCCALL OPTIONAL_HOOK`
-- `CATCH`
-- `  PRINTL "hook missing"`
-- `ENDCATCH`
+```erabasic
+TRYCCALL OPTIONAL_HOOK
+CATCH
+    PRINTL "hook missing"
+ENDCATCH
+```
 
 **Progress state**
 - complete

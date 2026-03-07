@@ -6,13 +6,13 @@
 - skip-mode
 
 **Syntax**
-- `SKIPDISP <int expr>`
+- `SKIPDISP <enabled>`
 
 **Arguments**
-- `<int expr>` (int): `0` disables skip mode; non-zero enables skip mode.
+- `<enabled>` (int): `0` disables skip mode; non-zero enables skip mode.
 
 **Semantics**
-- Evaluates `<int expr>` to `v`.
+- Evaluates `<enabled>` to `v`.
 - If `v != 0`, enables output skipping; otherwise disables it.
 - Sets `RESULT` to:
   - `1` when output skipping is enabled

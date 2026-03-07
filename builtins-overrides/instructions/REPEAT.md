@@ -5,9 +5,14 @@
 - control-flow
 
 **Syntax**
-- `REPEAT [<countExpr>]`
-  - `...`
-  - `REND`
+```text
+REPEAT [<countExpr>]
+    ...
+REND
+```
+
+- Header line: `REPEAT [<countExpr>]`
+- Terminator line: `REND`
 
 **Arguments**
 - `<countExpr>` (optional, int; default `0`; omission emits a warning): number of iterations.
@@ -25,14 +30,16 @@
   - Jumping to `REND` exits to the first line after `REND`.
 
 **Errors & validation**
-- If the system variable `COUNT` is forbidden by the current variable-scope configuration, `REPEAT` raises an error when its argument is parsed (typically: first execution of the `REPEAT` line).
+- If the system variable `COUNT` is forbidden by the current variable-scope configuration, `REPEAT` raises an error when execution reaches the `REPEAT` line and its argument is parsed.
 - If a constant count is `<= 0`, the engine emits a warning when the line’s argument is parsed.
 - Nested `REPEAT` is warned about by the loader (not necessarily a hard error).
 
 **Examples**
-- `REPEAT 10`
-- `  PRINTV COUNT`
-- `REND`
+```erabasic
+REPEAT 10
+    PRINTV COUNT
+REND
+```
 
 **Progress state**
 - complete

@@ -19,7 +19,11 @@
 - `WEND` without a matching open `WHILE` is a load-time error (the line is marked as error).
 
 **Examples**
-- `WEND`
+```erabasic
+WHILE I < 10
+    I += 1
+WEND
+```
 
 **Progress state**
 - complete

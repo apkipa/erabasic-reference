@@ -5,10 +5,14 @@
 - calls
 
 **Syntax**
-- `TRYCGOTOFORM <formString>`
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCGOTOFORM <formString>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- Header line: `TRYCGOTOFORM <formString>`
 
 **Arguments**
 - Same as `GOTOFORM`.
@@ -20,10 +24,12 @@
 - Same as `TRYCGOTO`.
 
 **Examples**
-- `TRYCGOTOFORM "LABEL_%RESULT%"`
-- `CATCH`
-- `  PRINTL "label missing"`
-- `ENDCATCH`
+```erabasic
+TRYCGOTOFORM "LABEL_%RESULT%"
+CATCH
+    PRINTL "label missing"
+ENDCATCH
+```
 
 **Progress state**
 - complete

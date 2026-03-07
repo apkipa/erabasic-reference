@@ -9,14 +9,17 @@
 - `PRINT_RECT <x>, <y>, <width>, <height>`
 
 **Arguments**
-- The numeric arguments are int expressions in mixed units:
-  - A numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `30px`).
-  - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `valuePx = value * FontSize / 100`.
-- 1-argument form:
-  - `<width>`: rectangle width (must be `> 0`).
-  - Height is the current font size (pixels), and the rectangle starts at `(x=0, y=0)` within the line box.
-- 4-argument form:
-  - `<x>, <y>, <width>, <height>` define the rectangle (must satisfy `x >= 0`, `width > 0`, `height > 0`; `y` may be negative).
+- `<width>` (int): rectangle width in mixed units; must satisfy `width > 0`.
+- `<x>` (int): 4-argument form only; rectangle X offset in mixed units and must satisfy `x >= 0`.
+- `<y>` (int): 4-argument form only; rectangle Y offset in mixed units; negative values are allowed.
+- `<height>` (int): 4-argument form only; rectangle height in mixed units and must satisfy `height > 0`.
+- Mixed-unit rule:
+  - A numeric argument may be followed by a `px` suffix token to indicate pixels (for example `30px`).
+  - Without `px`, the value is interpreted as a percentage of the current font size in pixels: `valuePx = value * FontSize / 100`.
+- 1-argument form defaults:
+  - `x = 0`
+  - `y = 0`
+  - `height = FontSize` (pixels)
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).

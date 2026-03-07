@@ -6,11 +6,10 @@
 
 **Syntax**
 - `RETURN`
-- `RETURN <int expr1> [, <int expr2>, <int expr3>, ... ]`
+- `RETURN <value1> [, <value2>, <value3>, ... ]`
 
 **Arguments**
-- `<valueN>` (optional, int): each value is stored into `RESULT:<index>`.
-
+- `<valueN>` (optional, int): each occurrence is stored into `RESULT:<index>`.
 
 **Semantics**
 - Evaluates all provided integer expressions (left-to-right), stores them into the `RESULT` integer array starting at index 0, then returns from the function.

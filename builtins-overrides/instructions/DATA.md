@@ -6,7 +6,8 @@
 - data-blocks
 
 **Syntax**
-- `DATA [<raw text>]`
+- `DATA`
+- `DATA <raw text>`
 - `DATA;<raw text>`
 
 **Arguments**

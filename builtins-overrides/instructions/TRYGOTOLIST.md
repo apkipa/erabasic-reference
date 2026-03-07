@@ -5,11 +5,16 @@
 - calls
 
 **Syntax**
-- `TRYGOTOLIST`
-  - `FUNC <formString>`
-  - `FUNC <formString>`
-  - `...`
-  - `ENDFUNC`
+```text
+TRYGOTOLIST
+    FUNC <formString>
+    ...
+ENDFUNC
+```
+
+- Header line: `TRYGOTOLIST`
+- Item lines: `FUNC <formString>` (see `FUNC`; this variant forbids subnames and arguments)
+- Terminator line: `ENDFUNC`
 
 **Arguments**
 - Each `FUNC` item provides a label name as a **FORM/formatted string expression** (evaluated to a string at runtime).
@@ -31,10 +36,12 @@
   - no argument list (neither `(... )` nor `, ...`)
 
 **Examples**
-- `TRYGOTOLIST`
-- `  FUNC LABEL_%RESULT%`
-- `  FUNC LABEL_DEFAULT`
-- `ENDFUNC`
+```erabasic
+TRYGOTOLIST
+    FUNC LABEL_%RESULT%
+    FUNC LABEL_DEFAULT
+ENDFUNC
+```
 
 **Progress state**
 - complete

@@ -5,16 +5,22 @@
 - control-flow
 
 **Syntax**
-- `IF [<int expr>]`
-  - `...`
-  - `ELSEIF <int expr>`
-  - `...`
-  - `ELSE`
-  - `...`
-  - `ENDIF`
+```text
+IF [<condition>]
+    ...
+[ELSEIF <condition>
+    ...]
+[ELSE
+    ...]
+ENDIF
+```
+
+- Header line: `IF [<condition>]`
+- Clause header lines inside the block may include `ELSEIF <condition>` and `ELSE`.
+- Terminator line: `ENDIF`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
+- `<condition>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates its own condition and then each `ELSEIF` condition in order.
@@ -30,11 +36,13 @@
 - `ELSEIF` after an `ELSE` produces a load-time warning.
 
 **Examples**
-- `IF FLAG`
-- `  PRINTL "yes"`
-- `ELSE`
-- `  PRINTL "no"`
-- `ENDIF`
+```erabasic
+IF FLAG
+    PRINTL "yes"
+ELSE
+    PRINTL "no"
+ENDIF
+```
 
 **Progress state**
 - complete

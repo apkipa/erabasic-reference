@@ -9,10 +9,15 @@
 - `CALLF <methodName>()`
 - `CALLF <methodName>, <arg1> [, <arg2> ... ]`
 - `CALLF <methodName>(<arg1> [, <arg2> ... ])`
+- `CALLF <methodName>[<subName1>, <subName2>, ...]`
+- `CALLF <methodName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - `<methodName>` (raw string token): read up to `(` / `[` / `,` / `;` and then trimmed.
 - `<argN>` (optional, expression): each occurrence is evaluated and passed to the method.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<methodName>`.
+  - The current engine accepts and stores them, but they do not affect method resolution or call behavior.
 
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.

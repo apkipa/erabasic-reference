@@ -6,11 +6,10 @@
 - io
 
 **Syntax**
-- `PRINTSINGLEVD <expr1> [, <expr2> ...]`
+- `PRINTSINGLEVD <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

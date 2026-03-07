@@ -16,6 +16,7 @@ import sys
 import re
 
 import reference_common as ref_common
+import reference_engine_registry as ref_engine
 
 
 REPO_ROOT = ref_common.MONOREPO_ROOT
@@ -81,6 +82,8 @@ FAIL_ON_CODES = (
     "topic-doc-source-path-leak",
     "topic-doc-internal-symbol-leak",
     "topic-doc-vague-phrase",
+    "structured-syntax-missing-code-block",
+    "structured-examples-missing-erabasic-block",
 )
 
 _read_text = ref_common.read_text
@@ -293,6 +296,7 @@ _ARGUMENT_DESC_TYPEISH_RE = re.compile(
 _ARGUMENT_VARIABLE_TERM_KIND_RE = re.compile(r"^(?:(?:zero|one)\s+or\s+more\s+)?(?:a\s+|an\s+)?([^.:;]+?\bvariable terms?)\b", re.IGNORECASE)
 _ARGUMENT_VARIABLE_TERM_QUALIFIER_RE = re.compile(r"\b(?:\d+d|changeable|non-character|character-data|int|integer|string)\b", re.IGNORECASE)
 _ARGUMENT_DESC_FORMATTED_STRING_RE = re.compile(r"^(?:formatted string expression\b|FORM/formatted string\b)", re.IGNORECASE)
+_CALL_FAMILY_EFFECTIVE_ARGTYPES = {"SP_CALL", "SP_CALLFORM", "SP_CALLF", "SP_CALLFORMF", "SP_CALLCSHARP"}
 
 
 def _ordered_unique(items: Iterable[str]) -> list[str]:
@@ -403,8 +407,8 @@ def _scan_token_stream(text: str) -> list[tuple[str, bool]]:
             j = text.find(">", i + 1)
             if j == -1:
                 break
-            name = text[i + 1 : j].strip()
-            if name and " " not in name:
+            name = re.sub(r"\s+", " ", text[i + 1 : j].strip())
+            if name:
                 name = _canonical_arg_name(name)
                 pair = (name, depth > 0)
                 if pair not in seen:
@@ -458,17 +462,33 @@ def _scan_syntax_tokens_from_fragment(fragment: str) -> list[tuple[str, bool]]:
         return _scan_token_stream(text)
     first_paren = text.find("(")
     first_space = text.find(" ")
-    if first_paren != -1 and (first_space == -1 or first_paren < first_space):
+    first_semicolon = text.find(";")
+    delim_positions = [pos for pos in (first_space, first_semicolon) if pos != -1]
+    first_delim = min(delim_positions) if delim_positions else -1
+    if first_paren != -1 and (first_delim == -1 or first_paren < first_delim):
         text = text[first_paren + 1 : text.rfind(")")]
     else:
-        if first_space == -1:
+        if first_delim == -1:
             return []
-        text = text[first_space + 1 :]
+        text = text[first_delim + 1 :].lstrip()
     return _scan_token_stream(text)
 
 
 def _scan_argument_names_from_fragment(fragment: str) -> list[str]:
     return [name for name, _ in _scan_token_stream(fragment.strip())]
+
+
+def _collect_syntax_placeholder_names(secs: dict[str, list[str]]) -> list[str]:
+    names: list[str] = []
+    for raw in secs.get("Syntax", []):
+        if not re.match(r"^-\s+`", raw):
+            continue
+        for frag in _extract_code_spans(raw):
+            for placeholder in re.findall(r"<([^<>]+)>", frag):
+                canon = _canonical_arg_name(re.sub(r"\s+", " ", placeholder.strip()))
+                if canon and canon not in names:
+                    names.append(canon)
+    return names
 
 
 def _collect_syntax_contract(secs: dict[str, list[str]]) -> tuple[list[str], dict[str, bool]]:
@@ -713,10 +733,147 @@ def _lint_override_argument_wording(*, path: Path, kind: str, name: str) -> list
     return issues
 
 
+def _effective_instruction_arg_types(instr_regs: list[InstructionReg]) -> dict[str, str | None]:
+    out: dict[str, str | None] = {}
+    instr_class_impl = ref_engine._scan_csharp_classes(ref_engine.PATH_ARGUMENT_BUILDER.parent, class_name_suffix="_Instruction")
+    for reg in instr_regs:
+        effective = reg.arg_type
+        if effective is None and reg.reg_kind not in ("Switch", "Internal"):
+            cls_name: str | None = None
+            if reg.impl_ctor:
+                mm = re.match(r"new\s+([A-Za-z0-9_]+)\b", reg.impl_ctor)
+                if mm:
+                    cls_name = mm.group(1)
+            if cls_name and cls_name not in instr_class_impl:
+                cls_name = None
+            if not cls_name:
+                cls_name = f"{reg.name}_Instruction"
+            if cls_name in instr_class_impl:
+                _p, _start, _end, block = instr_class_impl[cls_name]
+                argb_lines, _flag_lines, _ops, _thr = ref_engine._extract_instruction_class_info(block, cls_name)
+                candidates = ref_engine._infer_arg_types_from_argbuilder_lines(argb_lines)
+                if len(candidates) == 1:
+                    effective = candidates[0]
+        out[reg.name] = effective
+    return out
+
+
+def _lint_call_family_syntax(*, path: Path, kind: str, name: str, secs: dict[str, list[str]], effective_arg_type: str | None) -> list[ValidationIssue]:
+    if kind != "instruction" or effective_arg_type not in _CALL_FAMILY_EFFECTIVE_ARGTYPES:
+        return []
+    rel = path.relative_to(REPO_ROOT)
+    syntax_text = "\n".join(secs.get("Syntax", []))
+    missing: list[str] = []
+    if "()" not in syntax_text:
+        missing.append("explicit empty-paren form `...()`")
+    if "[<subName1>, <subName2>, ...]" not in syntax_text:
+        missing.append("bracket compatibility form `...[<subName1>, <subName2>, ...]`")
+    if "[<subName1>, <subName2>, ...](<arg1>" not in syntax_text:
+        missing.append("combined bracket-plus-argument form `...[<subName1>, <subName2>, ...](<arg1> ...)`")
+    if not missing:
+        return []
+    return [ValidationIssue(severity="WARN", code="incomplete-call-family-syntax", kind=kind, name=name, message=f"{rel}: uses `{effective_arg_type}`, whose parser also accepts empty-paren and bracket compatibility forms, but `Syntax` does not document: {', '.join(missing)}.")]
+
+
+def _syntax_starts_with_text_fence(secs: dict[str, list[str]]) -> bool:
+    for raw in secs.get("Syntax", []):
+        stripped = raw.strip()
+        if not stripped:
+            continue
+        return stripped == "```text"
+    return False
+
+
+def _structured_syntax_instruction_names(instr_regs: list[InstructionReg]) -> set[str]:
+    structural_map = ref_engine.parse_structural_info(_lines(ref_engine.PATH_FUNCTION_IDENTIFIER))
+    engine_instr = {r.name for r in instr_regs}
+    return {name for name, info in structural_map.items() if info.match_end and name in engine_instr}
+
+
+def _structured_example_instruction_names(instr_regs: list[InstructionReg]) -> set[str]:
+    structural_map = ref_engine.parse_structural_info(_lines(ref_engine.PATH_FUNCTION_IDENTIFIER))
+    engine_instr = {r.name for r in instr_regs}
+    return {name for name in structural_map if name in engine_instr}
+
+
+def _first_nonblank_line(lines: list[str]) -> str:
+    for raw in lines:
+        stripped = raw.strip()
+        if stripped:
+            return stripped
+    return ""
+
+
+def _iter_fenced_blocks(lines: list[str]) -> list[tuple[str, list[str]]]:
+    blocks: list[tuple[str, list[str]]] = []
+    current_fence: str | None = None
+    current_lines: list[str] = []
+    for raw in lines:
+        stripped = raw.strip()
+        if current_fence is None:
+            if stripped.startswith("```"):
+                current_fence = stripped
+                current_lines = []
+            continue
+        if stripped == "```":
+            blocks.append((current_fence, list(current_lines)))
+            current_fence = None
+            current_lines = []
+            continue
+        current_lines.append(raw)
+    return blocks
+
+
+def _structured_block_has_noncanonical_indent(lines: list[str]) -> bool:
+    positive_indents: list[int] = []
+    for raw in lines:
+        if not raw.strip():
+            continue
+        if raw.startswith("	"):
+            return True
+        indent = len(raw) - len(raw.lstrip(" "))
+        if indent > 0:
+            positive_indents.append(indent)
+    if not positive_indents:
+        return False
+    min_positive = min(positive_indents)
+    if min_positive != 4:
+        return True
+    return any(indent % 4 != 0 for indent in positive_indents)
+
+
+def _lint_structured_syntax_presentation(*, path: Path, kind: str, name: str, secs: dict[str, list[str]], structured_syntax_instruction_names: set[str]) -> list[ValidationIssue]:
+    if kind != "instruction" or name not in structured_syntax_instruction_names:
+        return []
+    if _syntax_starts_with_text_fence(secs):
+        return []
+    rel = path.relative_to(REPO_ROOT)
+    return [ValidationIssue(severity="WARN", code="structured-syntax-missing-code-block", kind=kind, name=name, message=f"{rel}: structured instruction syntax should start with a fenced `text` block showing the overall multi-line construct; keep machine-readable bullet/backtick forms below it.")]
+
+
+def _lint_structured_examples_presentation(*, path: Path, kind: str, name: str, secs: dict[str, list[str]], structured_example_instruction_names: set[str]) -> list[ValidationIssue]:
+    if kind != "instruction" or name not in structured_example_instruction_names:
+        return []
+    rel = path.relative_to(REPO_ROOT)
+    example_lines = secs.get("Examples", [])
+    first = _first_nonblank_line(example_lines)
+    issues: list[ValidationIssue] = []
+    if first and first != "```erabasic":
+        issues.append(ValidationIssue(severity="WARN", code="structured-examples-missing-erabasic-block", kind=kind, name=name, message=f"{rel}: structured instruction examples should start with a fenced `erabasic` block showing the full construct."))
+    for fence, block_lines in _iter_fenced_blocks(example_lines):
+        if fence != "```erabasic":
+            continue
+        if _structured_block_has_noncanonical_indent(block_lines):
+            issues.append(ValidationIssue(severity="WARN", code="structured-examples-noncanonical-indent", kind=kind, name=name, message=f"{rel}: structured instruction examples should use 4-space indentation per nesting level inside fenced `erabasic` blocks."))
+            break
+    return issues
+
+
 def _lint_override_argument_contracts(*, path: Path, kind: str, name: str, secs: dict[str, list[str]]) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
     rel = path.relative_to(REPO_ROOT)
     syntax_order, syntax_optional = _collect_syntax_contract(secs)
+    syntax_placeholders = _collect_syntax_placeholder_names(secs)
     arg_order, arg_meta = _parse_argument_bullets(secs)
     arg_lines = secs.get("Arguments", [])
     if any(re.match(r"^\s*-\s+Same as\b", raw) for raw in arg_lines):
@@ -728,6 +885,10 @@ def _lint_override_argument_contracts(*, path: Path, kind: str, name: str, secs:
     for spec in arg_meta.values():
         if spec.has_default and not spec.optional:
             issues.append(ValidationIssue(severity="ERROR", code="default-without-optional", kind=kind, name=name, message=f"{rel}: argument `{spec.name}` documents a default but is not marked `optional`."))
+
+    if syntax_placeholders and not arg_meta:
+        issues.append(ValidationIssue(severity="ERROR", code="missing-argument-doc-for-syntax-placeholder", kind=kind, name=name, message=f"{rel}: `Syntax` uses placeholder names but `Arguments` has no named argument bullets; document them with canonical bullets such as `<arg>` `(int): ...`."))
+        return issues
 
     if not syntax_order or not arg_meta:
         return issues
@@ -758,6 +919,9 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
 
     engine_instr = {r.name for r in instr_regs}
     engine_meth = {r.name for r in method_regs}
+    effective_instr_arg_type = _effective_instruction_arg_types(instr_regs)
+    structured_syntax_instruction_names = _structured_syntax_instruction_names(instr_regs)
+    structured_example_instruction_names = _structured_example_instruction_names(instr_regs)
     is_input_instr: dict[str, bool] = {}
     for r in instr_regs:
         flags = (r.flags_expr or "") + " " + (r.additional_flags_expr or "")
@@ -772,6 +936,9 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
         issues.extend(_lint_override_required_markers(path=path, kind=kind, name=name))
         issues.extend(_lint_override_argument_wording(path=path, kind=kind, name=name))
         issues.extend(_lint_override_argument_contracts(path=path, kind=kind, name=name, secs=secs))
+        issues.extend(_lint_call_family_syntax(path=path, kind=kind, name=name, secs=secs, effective_arg_type=effective_instr_arg_type.get(name) if kind == "instruction" else None))
+        issues.extend(_lint_structured_syntax_presentation(path=path, kind=kind, name=name, secs=secs, structured_syntax_instruction_names=structured_syntax_instruction_names))
+        issues.extend(_lint_structured_examples_presentation(path=path, kind=kind, name=name, secs=secs, structured_example_instruction_names=structured_example_instruction_names))
 
         allowed = allowed_instruction if kind == "instruction" else allowed_method
         unknown = sorted([k for k in secs.keys() if k not in allowed])

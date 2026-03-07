@@ -32,7 +32,7 @@
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.
-- Even though many invalid strings return `0`, the underlying integer-literal reader can raise runtime errors for some inputs, including (non-exhaustive):
+- Even though many invalid strings return `0`, inputs that reach the integer-literal reader can still raise runtime errors; for example:
   - out-of-range / overflow while parsing the integer literal
   - invalid binary digit in a `0b...` literal (e.g. `0b2`)
   - malformed exponent forms (e.g. `1e` without exponent digits)

@@ -5,8 +5,13 @@
 - calls
 
 **Syntax**
-- `TRYJUMPFORM <formString> [, <arg1>, <arg2>, ... ]`
-- `TRYJUMPFORM <formString>(<arg1>, <arg2>, ... )`
+- `TRYJUMPFORM <formString>`
+- `TRYJUMPFORM <formString>()`
+- `TRYJUMPFORM <formString>, <arg1> [, <arg2> ... ]`
+- `TRYJUMPFORM <formString>(<arg1> [, <arg2> ... ])`
+- `TRYJUMPFORM <formString>[<subName1>, <subName2>, ...]`
+- `TRYJUMPFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - Same as `JUMPFORM`.

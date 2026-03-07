@@ -6,11 +6,10 @@
 - io
 
 **Syntax**
-- `PRINTFORMSDL <string expr>`
+- `PRINTFORMSDL <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

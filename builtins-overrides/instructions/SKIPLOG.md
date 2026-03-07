@@ -6,13 +6,13 @@
 - skip-mode
 
 **Syntax**
-- `SKIPLOG <int expr>`
+- `SKIPLOG <enabled>`
 
 **Arguments**
-- `<int expr>` (int): `0` clears message-skip; non-zero enables message-skip.
+- `<enabled>` (int): `0` clears message-skip; non-zero enables message-skip.
 
 **Semantics**
-- Evaluates `<int expr>` to `v`.
+- Evaluates `<enabled>` to `v`.
 - Sets the message-skip flag `MesSkip` to `(v != 0)`.
 - Implementation-oriented effect (UI-side):
   - When `MesSkip` is true, the input loop may automatically advance through waits that do not require a value, unless the current wait request explicitly stops message skip.
