@@ -55,7 +55,7 @@ ERH (`*.ERH`) and ERB (`*.ERB`) discovery is controlled by config:
 
 This codebase also applies a special ERB ordering rule: directories matching `*#*` are loaded first (see `pipeline.md` for the precise algorithm).
 
-CSV discovery is *not* recursive except for the cases listed below:
+CSV discovery is *not* recursive except for the cases listed in the bullets that follow:
 
 - Most CSV tables are loaded by exact filename from `csv/` (e.g. `GAMEBASE.CSV`, `VariableSize.CSV`, `ABL.CSV`, ...), so `SearchSubdirectory` does not affect those.
 - Two notable exceptions:
@@ -129,6 +129,6 @@ For details, see `preprocessor-and-macros.md`.
 
 ## Fact-check cross-refs (optional)
 
-- `emuera.em.doc/docs/Emuera/ERH.en.md`
-- `emuera.em.doc/docs/Emuera/function.en.md`
-- `emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
+- `../emuera.em.doc/docs/Emuera/ERH.en.md`
+- `../emuera.em.doc/docs/Emuera/function.en.md`
+- `../emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`

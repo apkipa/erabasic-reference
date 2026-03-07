@@ -1,5 +1,5 @@
 **Summary**
-- Reorders the engine’s character list (`0 .. CHARANUM-1`) by a key taken from a character-data variable.
+- Reorders the engine’s character list (`0 <= i < CHARANUM`) by a key taken from a character-data variable.
 - Observable behavior: keeps `MASTER` fixed at its numeric position for this instruction.
 
 **Tags**
@@ -14,7 +14,7 @@
 - `<charaVarTerm>` (optional, character-data variable term; default `NO`): sort key.
 - `FORWARD | BACK` (optional, keyword; default `FORWARD`): sort order.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
-  - Any written chara selector in `<charaVarTerm>` is ignored and not evaluated (the sort always scans `i = 0 .. CHARANUM-1`).
+  - Any written chara selector in `<charaVarTerm>` is ignored and not evaluated (the sort always scans `0 <= i < CHARANUM`).
 
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.

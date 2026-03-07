@@ -79,7 +79,7 @@ Practical effect:
 
 ## 2) `#DEFINE` macros (declared in ERH, expanded by the lexer)
 
-Macros are declared in **ERH** files and are expanded by the engine’s **expression lexer** (`LexicalAnalyzer.Analyse`) as a post-processing step over the token list.
+Macros are declared in **ERH** files and are expanded by the engine’s ordinary **expression lexer** as a post-processing step over the token list.
 
 Example:
 
@@ -116,7 +116,7 @@ There is a hard limit on total expansions per lexed unit:
 
 ### 2.3 Where macros apply (and where they do not)
 
-Macros apply wherever the engine uses the **expression lexer** (`LexicalAnalyzer.Analyse`), including:
+Macros apply wherever the engine uses the ordinary **expression lexer**, including:
 
 - normal numeric/string expressions
 - the expression bodies inside FORM placeholders `%...%` and `{...}`

@@ -17,8 +17,8 @@
 - Otherwise:
   - Loads the legacy RNG state from `RANDDATA`.
   - `RANDDATA` must have length `625`.
-  - Layout: elements `0..623` are the 624 state words; element `624` is the current index.
-  - On load, elements `0..623` are interpreted as unsigned 32-bit values.
+  - Layout: elements `0` through `623` are the 624 state words; element `624` is the current index.
+  - On load, elements `0` through `623` are interpreted as unsigned 32-bit values.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**

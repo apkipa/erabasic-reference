@@ -86,7 +86,7 @@ The engine’s `GetKeywordDictionary` defines, for each variable code:
 
 ### 5.1 Table: variable code → source → allowed `argIndex`
 
-The table below is engine-accurate.
+The following table is engine-accurate.
 
 #### Character 1D variables (string key is typically the *second* argument, `argIndex = 1`)
 

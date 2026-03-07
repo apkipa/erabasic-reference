@@ -42,7 +42,7 @@ Values are parsed by the item’s declared type:
 ## 4) High-impact items for a compatible interpreter (selected)
 
 This section calls out config that directly changes script parsing or core runtime semantics.
-The table below still lists *all* config items (including UI-only ones).
+The full table in this section still lists *all* config items (including UI-only ones).
 
 - `IgnoreCase`: controls identifier comparison (`Config.StringComparison` / `Config.StrComper`) used throughout parsing and runtime lookup.
 - `SearchSubdirectory`: controls whether certain file enumerations use recursive search (notably `*.ERH`, `*.ERB`, and `CHARA*.CSV` via `Config.GetFiles`). Other enumerations may ignore this setting (e.g. `*.erd` and `VarExt*.csv` are always searched recursively in this codebase).

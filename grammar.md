@@ -232,7 +232,7 @@ instr_args       ::= raw_argument_region ;
 ```
 
 `INSTR` is a keyword recognized by `IdentifierDictionary.GetFunctionIdentifier(...)`.
-`raw_argument_region` is parsed by the instruction’s `ArgumentBuilder`; for many instructions it is a comma-separated `arglist` as defined below.
+`raw_argument_region` is parsed by the instruction’s `ArgumentBuilder`; for many instructions it is a comma-separated `arglist` as defined by the `arglist` production in this grammar.
 
 Note: if `instr_sep` is `;`, the separator begins a comment and `instr_args` is effectively empty (argument builders therefore see “no arguments”).
 

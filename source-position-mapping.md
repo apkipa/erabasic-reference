@@ -109,7 +109,7 @@ Fact-check cross-ref (optional): `emuera.em/Emuera/Runtime/Script/Process.cs` (`
 
 During loading/parsing, some helpers emit warnings using a “currently scanning line” value instead of taking a `ScriptPosition` directly.
 
-Emuera exposes `GlobalStatic.Process.GetScaningLine()`:
+This codebase exposes a dedicated “currently scanning line” getter:
 
 - if `Process.scaningLine` is non-null, it returns that
 - otherwise it falls back to the process state’s current/error line

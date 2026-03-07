@@ -8,7 +8,7 @@
 - `PRINT_SPACE <width>`
 
 **Arguments**
-- `<width>` (int expression): space width in mixed units.
+- `<width>` (int): space width in mixed units.
   - May be followed by a `px` suffix token to indicate pixels (e.g. `40px`).
   - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `widthPx = width * FontSize / 100`.
 

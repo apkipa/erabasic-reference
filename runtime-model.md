@@ -63,7 +63,7 @@ This ordering is crucial for loop semantics such as:
 
 ### 1.2 Movement primitives
 
-At the `ProcessState` level, the engine uses two movement primitives:
+At the interpreter execution-state level, the engine uses two movement primitives:
 
 - **sequential advance**: `ShiftNextLine()` → `CurrentLine = CurrentLine.NextLine`
 - **set marker**: `JumpTo(line)` → `CurrentLine = line`
@@ -122,7 +122,7 @@ A frame contains (conceptually):
 - `IsEvent`: whether this is an event-function call
 - `IsJump`: whether this call is a `JUMP`-style call (does not return normally)
 
-The `ProcessState.CurrentLine` is set to the frame’s `CurrentLabel` on entry.
+The interpreter's current-line pointer is set to the frame's `CurrentLabel` on entry.
 
 ### 3.0 The actual stack: `functionList` and `ScriptEnd`
 
@@ -217,7 +217,7 @@ Note: `RETURNFORM` is a specialized variant that returns numeric values parsed f
 Engine-accurate behavior:
 
 - `RETURNF` does **not** write `RESULT`/`RESULTS`.
-- Instead it sets `ProcessState.MethodReturnValue` and pops exactly one “method call” frame (down to `currentMin`).
+- Instead it writes the dedicated expression-function return slot and pops exactly one “method call” frame (down to `currentMin`).
 
 ### 4.5 Implicit return at end of function
 
@@ -225,7 +225,7 @@ If execution “falls off the end” of a function body (the interpreter reaches
 
 - for non-method functions, the engine sets `RESULT:0 = 0` (via `VEvaluator.RESULT = 0`) and then returns
 - it does not clear `RESULT:1+`
-- for expression functions (`#FUNCTION/#FUNCTIONS`), it returns with `MethodReturnValue = null` (the expression evaluator then supplies the default `0` / `""`), and it does not assign `RESULT`
+- for expression functions (`#FUNCTION/#FUNCTIONS`), it returns with the dedicated expression-function return slot left `null` (the expression evaluator then supplies the default `0` / `""`), and it does not assign `RESULT`
 
 ### 4.6 `RESULT` / `RESULTS` are global variables, not per-frame
 
@@ -262,7 +262,7 @@ Event functions are also treated as “system” labels by the loader. Exact nam
 
 ### 5.2 Multiple definitions and grouping order
 
-Event functions can be defined multiple times across files; the loader later groups all same-name event labels into the ordered dispatch buckets described below.
+Event functions can be defined multiple times across files; the loader later groups all same-name event labels into the four ordered dispatch buckets listed in this subsection.
 
 During the “sort labels” phase, Emuera groups all `@EVENT...` definitions of the same name into **four ordered groups**:
 
@@ -370,7 +370,7 @@ Additional constraints enforced by this codebase’s type checker:
 
 #### Counterfactual design note (intentional): what would happen if character-data variables were accepted as `REF` actuals?
 
-This codebase currently rejects character-data variables as `REF` actual arguments (see the constraint list above). This subsection is intentionally kept as an explanatory note: it does **not** describe a currently accepted user-program behavior in this build, but it documents a latent engine path and clarifies the current rejection boundary.
+This codebase currently rejects character-data variables as `REF` actual arguments (see the `REF`-actual constraint list in this topic). This subsection is intentionally kept as an explanatory note: it does **not** describe a currently accepted user-program behavior in this build, but it documents a latent engine path and clarifies the current rejection boundary.
 
 However, the engine already contains a “per-character slice” transport path for `REF` arguments. If the type checker were changed to allow character-data arrays for `REF` parameters, the existing transport logic implies the following observable behavior:
 
@@ -454,7 +454,7 @@ Evaluating a user-defined method term runs script code:
 2) It temporarily sets a “minimum call depth boundary” so the method call’s internal frames can be popped without disturbing outer non-method frames.
 3) It sets the method’s return address to the current executing line.
 4) It enters the method function via `IntoFunction(...)` and runs the script interpreter loop until the method returns via `RETURNF` (or end-of-function return behavior).
-5) The method return value is stored in `ProcessState.MethodReturnValue` and returned to the expression evaluator.
+5) The method return value is stored in the dedicated expression-function return slot and returned to the expression evaluator.
 
 If the method returns no value (`RETURNF` with no expression, or falling off the end of the function), the expression evaluator uses a default:
 

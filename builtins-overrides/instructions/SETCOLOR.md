@@ -21,7 +21,7 @@
     - `b = (rgb & 0x0000FF)`
   - Sets the current text color to `(r, g, b)`.
 - Three-argument form (`r, g, b`):
-  - Validates that each component is within `0..255`.
+  - Validates that each component is within `0 <= component <= 255`.
   - Sets the current text color to `(r, g, b)`.
 - Does not print output.
 

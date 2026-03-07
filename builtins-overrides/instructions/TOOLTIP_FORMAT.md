@@ -8,7 +8,7 @@
 - `TOOLTIP_FORMAT <flags>`
 
 **Arguments**
-- `<flags>` (int expression): bitmask passed through as `.NET` `TextFormatFlags`.
+- `<flags>` (int): bitmask passed through as `.NET` `TextFormatFlags`.
 
 **Semantics**
 - Updates the text format flags used when drawing tooltip text in custom-draw mode (`TOOLTIP_CUSTOM 1`).

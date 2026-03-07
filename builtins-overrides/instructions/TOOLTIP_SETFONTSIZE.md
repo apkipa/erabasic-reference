@@ -8,7 +8,7 @@
 - `TOOLTIP_SETFONTSIZE <size>`
 
 **Arguments**
-- `<size>` (int expression): font size value passed to the UI font constructor.
+- `<size>` (int): font size value passed to the UI font constructor.
 
 **Semantics**
 - Stores the tooltip font size used by tooltip custom drawing (`TOOLTIP_CUSTOM 1`).

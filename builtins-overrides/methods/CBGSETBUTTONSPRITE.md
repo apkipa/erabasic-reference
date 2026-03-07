@@ -41,7 +41,7 @@
   - this affects only the CBG/background-button layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.
 - Return value:
-  - returns `0` if `<buttonValue>` is outside `0 .. 0xFFFFFF`,
+  - returns `0` if `<buttonValue>` is outside `0 <= value <= 0xFFFFFF`,
   - otherwise returns `1` after registering the entry.
 
 **Errors & validation**

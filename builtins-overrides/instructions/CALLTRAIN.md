@@ -8,10 +8,10 @@
 - `CALLTRAIN <count>`
 
 **Arguments**
-- `<count>` (int expression): number of commands to take from `SELECTCOM`.
+- `<count>` (int): number of commands to take from `SELECTCOM`.
 
 **Semantics**
-- Reads the current `SELECTCOM` array and enqueues `SELECTCOM[1] .. SELECTCOM[count]` (inclusive) as a command list.
+- Reads the current `SELECTCOM` array and enqueues `SELECTCOM[1]` through `SELECTCOM[count]` (inclusive) as a command list.
 - While this mode is active, the train loop consumes the queued commands automatically instead of waiting for user input.
 - When the queued command list is exhausted, the engine exits the mode and (if present) calls `@CALLTRAINEND`.
 

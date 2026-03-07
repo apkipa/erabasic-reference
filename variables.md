@@ -42,7 +42,7 @@ In this reference, a **variable term** means the expression node produced by par
 Engine-accurate model:
 
 - The parser first resolves the identifier (and optional `@subKey`) into a **variable token** (the resolved variable identity + its type/dimension metadata).
-- It then parses up to three `:` index expressions and applies argument inference rules (see below).
+- It then parses up to three `:` index expressions and applies this topic's argument-inference rules.
 - The resulting variable term can be used in different roles:
   - **r-value** (most expressions): reads one scalar cell value (`long` or `string`)
   - **l-value** (assignment LHS, `++/--`): identifies a writable cell (must not be `CONST`)
@@ -209,15 +209,15 @@ Terminology used below:
 
 - “args omitted” means you wrote no `:` arguments at all (e.g. `PALAM` not `PALAM:...`).
 - “provided args” means the raw `:` arguments you wrote before inference.
-- The final argument list is the list actually stored in the parsed `VariableTerm`.
+- The final argument list is the list actually stored in the parsed variable-reference term.
 
 How character-data variable terms are *used* by built-ins (important for compatibility):
 
 - **Per-character slice usage**: many operations first select a character by evaluating the chara selector, then operate on that character’s underlying array storage.
-  - Conceptually, the engine uses `[chara, ...]` to pick a per-character slice and then treats the remaining indices as indices into that slice.
+  - Conceptually, the engine uses `[chara, ...]` to pick a per-character slice and then treats the remaining indices as subscripts into that slice.
   - Equivalently: once `chara` is fixed, a character-data *N*-D array behaves like a non-character *(N-1)*-D array for that operation.
   - In this usage mode, the chara selector must be present and in range; a no-arg variable term cannot work.
-- **Whole-character-list scan usage** (e.g. `SORTCHARA`, `FINDCHARA`): the operation iterates `i = 0 .. CHARANUM-1` and treats `i` as the effective chara selector.
+- **Whole-character-list scan usage** (e.g. `SORTCHARA`, `FINDCHARA`): the operation iterates `0 <= i < CHARANUM` and treats `i` as the effective chara selector.
   - In this usage mode, any written chara selector in the variable term is ignored.
   - Subscripts written *after* the chara selector (if any) still matter: they select which per-chara cell is compared/sorted.
   - For character scalar (0D) variables there are no “after-chara” subscripts, so `NAME` / `NO` can be usable even when parsed as a no-arg term.
@@ -258,7 +258,7 @@ Expected final args: 3 arguments: `[chara, index1, index2]`.
 
 For non-character arrays:
 
-- 1D arrays default a missing index to `0` (`VAR:0`) except for `RAND` (see below).
+- 1D arrays default a missing index to `0` (`VAR:0`) except for `RAND` (see the `RAND` subsection in this topic).
 - 2D/3D arrays require all indices if any are present; partial omission is an error.
 - Any variable (character or not) rejects more than 3 `:` arguments syntactically.
 
@@ -280,9 +280,9 @@ For non-character arrays:
 - `DUMPRAND` writes the current legacy RNG state into `RANDDATA`.
 - `INITRAND` reads `RANDDATA` back into that legacy RNG state.
 - Layout:
-  - elements `0..623`: the generator's 624 state words
+  - elements `0` through `623`: the generator's 624 state words
   - element `624`: the generator's current index
-- On `INITRAND`, elements `0..623` are interpreted as unsigned 32-bit values and element `624` as an integer index.
+- On `INITRAND`, elements `0` through `623` are interpreted as unsigned 32-bit values and element `624` as an integer index.
 - In new-random mode (`UseNewRandom=YES`), `RANDDATA` no longer controls `RAND`; `INITRAND` and `DUMPRAND` only warn and do nothing.
 
 ## String arguments to `:` are not “string indices”

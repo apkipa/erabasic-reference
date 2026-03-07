@@ -8,7 +8,7 @@
 - `SETBGMVOLUME <volume>`
 
 **Arguments**
-- `<volume>` (int expression): volume level, clamped to `0 .. 100`.
+- `<volume>` (int): volume level, clamped to `0 <= volume <= 100`.
 
 **Semantics**
 - Applies the volume to the BGM channel.

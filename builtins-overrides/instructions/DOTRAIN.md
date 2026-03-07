@@ -8,7 +8,7 @@
 - `DOTRAIN <trainIndex>`
 
 **Arguments**
-- `<trainIndex>` (int expression): index into `TRAINNAME` (from `train.csv`).
+- `<trainIndex>` (int): index into `TRAINNAME` (from `train.csv`).
 
 **Semantics**
 - Valid only in specific train-phase internal states (e.g. during `@EVENTTRAIN`, `@SHOW_STATUS`, `@SHOW_USERCOM`, or `@EVENTCOMEND` processing).

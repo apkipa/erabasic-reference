@@ -198,7 +198,7 @@ Important detail: in `RETURNFORM`, `%` is treated as “start of a string expres
     RETURN A % 100      ; OK (modulo)
     RETURNFORM A % 100  ; parses as string/FORM, not modulo
 
-The rules above describe the behavior of this codebase; do not generalize them to other Emuera variants without re-checking.
+These rules describe the behavior of this codebase; do not generalize them to other Emuera variants without re-checking.
 
 ## Arguments: `ARG` / `ARGS`
 
@@ -242,7 +242,7 @@ Compatibility implication:
 ### Definition syntax notes
 
 - Parentheses around the argument list in the *definition* are optional in many Emuera setups (`@FUNC, ARG:0` vs `@FUNC(ARG:0)`).
-- Parentheses are required when calling **expression functions** inside expressions (see below).
+- Parentheses are required when calling **expression functions** inside expressions; bare-name call syntax does not work there.
 
 ### Default values
 
@@ -331,10 +331,10 @@ Expression functions have restrictions to keep expressions safe/deterministic:
 
 ## Fact-check cross-refs (optional)
 
-- `emuera.em.doc/docs/Reference/CALL.en.md`
-- `emuera.em.doc/docs/Reference/RETURN.en.md`
-- `emuera.em.doc/docs/Emuera/function.en.md`
-- `emuera.em.doc/docs/Emuera/user_defined_variables.en.md`
-- `emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
+- `../emuera.em.doc/docs/Reference/CALL.en.md`
+- `../emuera.em.doc/docs/Reference/RETURN.en.md`
+- `../emuera.em.doc/docs/Emuera/function.en.md`
+- `../emuera.em.doc/docs/Emuera/user_defined_variables.en.md`
+- `../emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
 - Engine source of truth: `runtime-model.md`
 - Implementation reference (try-family): `emuera.em/Emuera/Runtime/Script/Statements/Instraction.Child.cs` (`CALL_Instruction`, `GOTO_Instruction`, `CATCH_Instruction`), `emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs` (`nestCheck` pairing)

@@ -32,7 +32,7 @@ In core language constructs, these positions require `long` (string is a type er
 
 - Control-flow conditions: `IF`, `ELSEIF`, `SIF`, `WHILE`, `LOOP` (the `LOOP <cond>` part of `DO ... LOOP <cond>`).
 - Numeric ternary condition and branches: `cond ? a # b` requires `cond`, `a`, and `b` to all be numeric.
-- Most numeric-only operands such as shift counts and arithmetic operands (unless an operator explicitly supports strings; see below).
+- Most numeric-only operands such as shift counts and arithmetic operands (unless the specific operator rule in this document explicitly supports strings).
 
 If a context requires numeric, the engine throws an “expression result is not numeric” error when given a string.
 
@@ -292,7 +292,7 @@ In string expressions, using FORM syntax directly (e.g. `%VAR%`) can be an error
 
     PRINTS @"%STR:0%!"
 
-In some cases, if the entire content is only a string-ternary `\@...\@`, `@"..."` can be omitted.
+If the entire content is only a string-ternary `\@...\@`, this codebase also accepts omitting `@"..."`.
 
 This `@"..."` form is an engine extension specifically meant for “FORM inside string expressions”.
 
@@ -324,8 +324,8 @@ For a formal EBNF of expressions (including operator set and precedence as imple
 
 ## Fact-check cross-refs (optional)
 
-- `emuera.em.doc/docs/Emuera/operand.en.md`
-- `emuera.em.doc/docs/Emuera/expression.en.md`
-- `emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
+- `../emuera.em.doc/docs/Emuera/operand.en.md`
+- `../emuera.em.doc/docs/Emuera/expression.en.md`
+- `../emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
 - Implementation reference: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`
 - Operator semantics and short-circuiting: `emuera.em/Emuera/Runtime/Script/Statements/Expression/OperatorMethod.cs`

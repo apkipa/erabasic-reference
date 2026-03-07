@@ -35,7 +35,7 @@ During later “restructure”/constant-folding, a `StrFormWord` can collapse to
 
 ### 1.1 In expression lexing
 
-When lexing an expression (`LexicalAnalyzer.Analyse`):
+When lexing an ordinary expression:
 
 - `@"...` starts a formatted-string literal. The lexer reads FORM content until the next `"` and emits one `StrFormWord` token.
 - `\@` starts a string-ternary literal form. The lexer parses the ternary structure and emits one `StrFormWord` token containing a `YenAtSubWord`.

@@ -8,7 +8,7 @@
 - `TOOLTIP_SETDURATION <durationMs>`
 
 **Arguments**
-- `<durationMs>` (int expression): duration in milliseconds.
+- `<durationMs>` (int): duration in milliseconds.
   - Omitted argument is accepted with a warning and treated as `0`.
 
 **Semantics**

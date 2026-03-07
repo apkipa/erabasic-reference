@@ -150,7 +150,7 @@ Important quirks:
     - group 0 (`#ONLY` list), and
     - group 2 (“normal” list; the engine adds any label that is neither `#PRI` nor `#LATER`).
   - Runtime event iteration stops immediately after returning from a `#ONLY` label, so the “normal group” inclusion never results in a second execution during normal event dispatch (see `runtime-model.md`).
-- Within each group, labels are processed in the stable “first-defined” ordering described above.
+- Within each group, labels are processed in the stable “first-defined” ordering used for label registration.
 - If multiple definitions of the same event label name specify `#ONLY`, the loader emits a warning but still accepts them.
 
 The runtime meaning of these attributes (and how `RETURN` values affect event iteration) is specified in `runtime-model.md`.

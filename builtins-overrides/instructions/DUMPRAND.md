@@ -17,7 +17,7 @@
 - Otherwise:
   - Writes the legacy RNG state into `RANDDATA`.
   - `RANDDATA` must have length `625`.
-  - Layout: elements `0..623` receive the 624 state words; element `624` receives the current index.
+  - Layout: elements `0` through `623` receive the 624 state words; element `624` receives the current index.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**

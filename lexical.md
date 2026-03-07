@@ -4,7 +4,7 @@
 
 EraBasic is line-oriented. Most statements end at end-of-line.
 
-Whitespace handling is engine-configurable in some cases.
+Whitespace handling is partly fixed and partly config-controlled: half-width space/tab are always whitespace, while full-width space depends on `SystemAllowFullSpace`.
 
 ### Whitespace characters
 
@@ -13,7 +13,7 @@ Whitespace handling is engine-configurable in some cases.
 
 Important engine behavior when `SystemAllowFullSpace=NO`:
 
-- During main tokenization (`LexicalAnalyzer.Analyse`), encountering a full-width space is a **parse error** (“unexpected full-width space”).
+- During ordinary expression tokenization, encountering a full-width space is a **parse error** (“unexpected full-width space”).
 - In some “skip whitespace/comments” helpers used by the line reader, a full-width space is simply *not consumed* (so it can prevent a line from being recognized as empty, or prevent `{` / `[` detection if it appears before them).
 
 ## Comments

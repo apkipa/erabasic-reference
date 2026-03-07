@@ -9,7 +9,7 @@
 - `INPUTMOUSEKEY <timeMs>`
 
 **Arguments**
-- `<timeMs>` (optional, int expression): time limit in milliseconds.
+- `<timeMs>` (optional, int): time limit in milliseconds.
   - If `timeMs > 0`, enables a timeout.
   - If omitted or `timeMs <= 0`, no timeout is used.
 
@@ -17,7 +17,7 @@
 - Enters a wait state for *primitive* input events (not text box submission).
 - See also: `input-flow.md` (how primitive waits differ from textbox-segmentation waits) and `cbg-layer.md` (why `RESULT:4` is a separate CBG hit-map channel rather than an ordinary output-button value).
 - This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
-- When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0..5]` (i.e. `RESULT` and `RESULT:1..5`) as follows.
+- When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0]` through `RESULT_ARRAY[5]` (i.e. `RESULT` and `RESULT:1` through `RESULT:5`) as follows.
 
 Event type (`RESULT`):
 
@@ -50,7 +50,7 @@ Payload (`RESULT:*`), by event type:
   - `RESULT:3 = 0`, `RESULT:4 = 0`, `RESULT:5 = 0`.
 
 - Timeout (`RESULT == 4`):
-  - `RESULT:1..5 = 0`.
+  - `RESULT:1` through `RESULT:5` are set to `0`.
 
 **Errors & validation**
 - (none)

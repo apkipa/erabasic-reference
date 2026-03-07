@@ -44,9 +44,9 @@ This is why built-in reference entries should distinguish:
 
 The engine does **not** strip inline comments before argument parsing. Instead, `;` is handled by whichever parser is used for that instruction:
 
-- **Expression lexing** (`LexicalAnalyzer.Analyse(...)`) treats `;` as “end-of-line comment” and stops tokenization.
+- **Ordinary expression lexing** treats `;` as “end-of-line comment” and stops tokenization.
   - Exceptions: `;!;` is a special “force executable line” prefix, `;#;` is a debug-only prefix, and this codebase also recognizes `;^;` as an executable prefix (historically an EMEE extension). These are handled in the lexer’s whitespace/comment skipper.
-- **FORM scanning** (`LexicalAnalyzer.AnalyseFormattedString(...)`) does **not** treat `;` as a comment delimiter. In FORM contexts, `;` is literal text unless it is inside a `%...%`/`{...}` placeholder where other rules apply.
+- **FORM scanning** does **not** treat `;` as a comment delimiter. In FORM contexts, `;` is literal text unless it is inside a `%...%`/`{...}` placeholder where other rules apply.
 - **Raw-string arguments** (the `STR` argument builder) do **not** treat `;` as a comment delimiter. The argument is the raw remaining substring to end-of-line.
 
 Practical rule:

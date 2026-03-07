@@ -62,7 +62,7 @@ If `arg2` equals `ANIME` (case-insensitive), the line declares an animation spri
 
 If any requirement is not met, the engine emits a warning and ignores the line.
 
-After a successful `ANIME` declaration, subsequent lines with the same `name` can add frames (see below) until another sprite declaration resets the “current animation sprite”.
+After a successful `ANIME` declaration, subsequent lines with the same `name` can add frames under the frame-line rules in this section until another sprite declaration resets the “current animation sprite”.
 
 ### 4.2 Static sprite declaration (from an image file)
 

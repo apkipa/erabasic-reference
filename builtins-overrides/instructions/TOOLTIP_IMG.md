@@ -8,7 +8,7 @@
 - `TOOLTIP_IMG <enabled>`
 
 **Arguments**
-- `<enabled>` (int expression): `0` disables; non-zero enables.
+- `<enabled>` (int): `0` disables; non-zero enables.
 
 **Semantics**
 - When enabled and tooltips are custom-drawn (`TOOLTIP_CUSTOM 1`):

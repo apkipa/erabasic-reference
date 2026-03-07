@@ -329,7 +329,7 @@ The output-facing helpers are thin host calls; they do not reparse ERB source un
   - The first element is the current executing line.
   - Later elements follow the return-address chain outward.
   - Frames without a source position are skipped.
-- `LoadPlugins()` clears the current plugin-method registry and performs the plugin discovery/admission sequence described earlier in this document. It is the host's plugin-loader entry point, even though ordinary plugin code typically relies on startup having called it already.
+- `LoadPlugins()` clears the current plugin-method registry and performs this topic's plugin discovery/admission sequence. It is the host's plugin-loader entry point, even though ordinary plugin code typically relies on startup having called it already.
 - `GetMethod(name)` and `HasMethod(name)` consult the plugin registry using the same case-sensitivity rules as plugin registration.
   - `HasMethod(name)` is the existence probe.
   - `GetMethod(name)` assumes the method exists; if it does not, the lookup fails rather than returning a sentinel/null object.

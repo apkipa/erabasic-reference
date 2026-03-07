@@ -23,7 +23,7 @@
   - int keys: numeric ascending
   - string keys: `string.CompareTo` ordering (current culture)
 - Applies the resulting permutation to each argument array (including `keyArray` itself):
-  - 1D arrays: permutes elements `0 .. n-1`
+  - 1D arrays: permutes elements `0 <= i < n`
   - 2D arrays: permutes rows by the first index (`[row, col]`)
   - 3D arrays: permutes slabs by the first index (`[i, j, k]`)
 - If any argument array’s first dimension is shorter than `n`, the function returns `0`.

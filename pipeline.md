@@ -274,7 +274,7 @@ The core line reader:
 - iterates lines, skipping:
   - empty lines
   - whitespace-only lines
-  - lines that become empty after leading whitespace + comment stripping (see below)
+  - lines that become empty after leading whitespace + comment stripping under the line-start rules in `line-start-special-cases.md`
 - applies rename replacement (if enabled) **before** tokenization
 - supports Emuera line concatenation blocks `{ ... }` unless “disabled” by the caller (used for ERB skip regions)
 

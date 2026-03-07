@@ -8,7 +8,7 @@
 - `PLAYSOUND <filename> [, <repeat>]`
 
 **Arguments**
-- `<filename>` (string expression): file name or relative path under the sound directory.
+- `<filename>` (string): file name or relative path under the sound directory.
 - `<repeat>` (optional, int; default `1`): number of times to repeat the sound.
   - Values `< 1` are clamped to `1`.
 
@@ -16,7 +16,7 @@
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
 - If the file does not exist, no-op.
 - Otherwise, starts playback on a “sound effect slot”:
-  - There are 10 slots (`0..9`).
+  - There are 10 slots (`0 <= slot <= 9`).
   - The engine prefers the first non-playing slot; if all are playing, it reuses slot `0`.
 - Playback is independent from BGM (`PLAYBGM`).
 

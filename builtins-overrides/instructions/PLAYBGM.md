@@ -8,7 +8,7 @@
 - `PLAYBGM <filename>`
 
 **Arguments**
-- `<filename>` (string expression): file name or relative path under the sound directory.
+- `<filename>` (string): file name or relative path under the sound directory.
 
 **Semantics**
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.

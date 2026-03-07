@@ -8,8 +8,8 @@
 - `PRINTBUTTON <text>, <buttonValue>`
 
 **Arguments**
-- `<text>` (string expression): label shown in the output.
-- `<buttonValue>` (int or string expression): value associated with the button.
+- `<text>` (string): label shown in the output.
+- `<buttonValue>` (int or string): value associated with the button.
   - Integer values are accepted by integer button waits (`BINPUT` / `ONEBINPUT`).
   - String values are accepted by string button waits (`BINPUTS` / `ONEBINPUTS`).
 

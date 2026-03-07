@@ -8,7 +8,7 @@
 - `TOOLTIP_SETFONT <fontName>`
 
 **Arguments**
-- `<fontName>` (string expression): font family name.
+- `<fontName>` (string): font family name.
 
 **Semantics**
 - Stores the font name used by tooltip custom drawing (`TOOLTIP_CUSTOM 1`).

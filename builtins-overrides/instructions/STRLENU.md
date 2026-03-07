@@ -8,7 +8,7 @@
 - `STRLENU [<rawString>]`
 
 **Arguments**
-- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string expression).
+- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string).
 
 
 **Semantics**

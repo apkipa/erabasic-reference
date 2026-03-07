@@ -8,7 +8,7 @@
 - `TOOLTIP_CUSTOM <enabled>`
 
 **Arguments**
-- `<enabled>` (int expression): `0` disables custom tooltips; non-zero enables.
+- `<enabled>` (int): `0` disables custom tooltips; non-zero enables.
 
 **Semantics**
 - When enabled, tooltips are drawn via the engine’s custom draw logic, which supports:

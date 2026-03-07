@@ -6,13 +6,13 @@ It is intended as an implementer’s checklist: if you parse EraBasic “as a no
 
 ## 0) “First non-whitespace” is not purely lexical
 
-Many loaders call `LexicalAnalyzer.SkipWhiteSpace(...)` before deciding what a line “starts with”.
+Many loaders first skip leading whitespace and executable-comment prefixes before deciding what a line “starts with”.
 
 That routine:
 
 - skips ASCII space and tab
 - skips full-width space (`U+3000`) only when `SystemAllowFullSpace=YES`
-- treats `;` as “skip-to-end-of-line comment”, **except** for three executable prefixes (see below)
+- treats `;` as “skip-to-end-of-line comment”, **except** for the three executable prefixes defined in section 1
 
 So in many contexts, the “first character” is really: “the first character after whitespace and, if applicable, executable-comment-prefix stripping (`;!;`, `;#;`, `;^;`)”.
 

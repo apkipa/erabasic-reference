@@ -273,13 +273,13 @@ Practical compatibility note:
 
 If you want to verify exact edge cases, these are the upstream references:
 
-- `emuera.em.doc/docs/Reference/IF.en.md`
-- `emuera.em.doc/docs/Reference/SELECTCASE.en.md`
-- `emuera.em.doc/docs/Reference/REPEAT.en.md`
-- `emuera.em.doc/docs/Reference/FOR.en.md`
-- `emuera.em.doc/docs/Reference/WHILE.en.md`
-- `emuera.em.doc/docs/Reference/DO.en.md`
-- `emuera.em.doc/docs/Reference/CONTINUE.en.md`
+- `../emuera.em.doc/docs/Reference/IF.en.md`
+- `../emuera.em.doc/docs/Reference/SELECTCASE.en.md`
+- `../emuera.em.doc/docs/Reference/REPEAT.en.md`
+- `../emuera.em.doc/docs/Reference/FOR.en.md`
+- `../emuera.em.doc/docs/Reference/WHILE.en.md`
+- `../emuera.em.doc/docs/Reference/DO.en.md`
+- `../emuera.em.doc/docs/Reference/CONTINUE.en.md`
 
 Engine source of truth for this codebase:
 

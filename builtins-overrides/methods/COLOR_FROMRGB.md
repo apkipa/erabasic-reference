@@ -20,7 +20,7 @@
   - `(r << 16) + (g << 8) + b`.
 
 **Errors & validation**
-- Runtime error if any component is outside `0..255`.
+- Runtime error if any component is outside `0 <= component <= 255`.
 
 **Examples**
 - `c = COLOR_FROMRGB(255, 0, 0)` returns `0xFF0000`.

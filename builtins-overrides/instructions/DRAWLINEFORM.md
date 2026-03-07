@@ -8,7 +8,7 @@
 - `DRAWLINEFORM <pattern>`
 
 **Arguments**
-- `<pattern>` (string expression): pattern to repeat.
+- `<pattern>` (string): pattern to repeat.
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).

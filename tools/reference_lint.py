@@ -65,6 +65,7 @@ FAIL_ON_CODES = (
     "argument-order-mismatch",
     "syntax-optional-mismatch",
     "default-without-optional",
+    "redundant-expression-type-wording",
     "suspicious-escaped-quote",
     "noncanonical-default-syntax",
     "noncanonical-required-marker",
@@ -265,6 +266,9 @@ _TOPIC_REFERENCE_BLOCK_START_RES = [
 ]
 _OVERRIDE_REQUIRED_MARKER_SECTIONS = {"Arguments", "Signatures / argument rules"}
 _REQUIRED_MARKER_RE = re.compile(r"\(required\s+[^)]+\)")
+
+
+_ARGUMENT_REDUNDANT_EXPRESSION_TYPE_RE = re.compile(r"\(([^)]*\b(?:int|string|bool) expression\b[^)]*)\)", re.IGNORECASE)
 
 
 def _ordered_unique(items: Iterable[str]) -> list[str]:
@@ -536,7 +540,7 @@ def _line_pattern_issues(*, path: Path, kind: str, name: str, lines: list[str], 
         if any(p.search(raw) for p in _VAGUE_PHRASE_RES):
             issues.append(ValidationIssue(severity="WARN", code=vague_code, kind=kind, name=name, message=f"{rel}:{line_no}: contains vague wording that may weaken reimplementation-grade precision."))
         if _has_range_shorthand(raw):
-            issues.append(ValidationIssue(severity="WARN", code="range-shorthand", kind=kind, name=name, message=f"{rel}:{line_no}: uses `a..b`-style shorthand; prefer explicit inequalities or half-open interval notation."))
+            issues.append(ValidationIssue(severity="WARN", code="range-shorthand", kind=kind, name=name, message=f"{rel}:{line_no}: uses `a..b`-style shorthand; prefer canonical interval notation such as `[0, n)` or explicit inequalities."))
     return issues
 
 
@@ -606,6 +610,26 @@ def _lint_override_required_markers(*, path: Path, kind: str, name: str) -> list
     return issues
 
 
+def _lint_override_argument_wording(*, path: Path, kind: str, name: str) -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+    rel = path.relative_to(REPO_ROOT)
+    current_section: str | None = None
+    for line_no, raw in enumerate(_lines(path), start=1):
+        m = _OVERRIDE_SECTION_RE.match(raw)
+        if m:
+            current_section = m.group(1).strip()
+            continue
+        if current_section != "Arguments":
+            continue
+        if not raw.lstrip().startswith("- "):
+            continue
+        m_type = _ARGUMENT_REDUNDANT_EXPRESSION_TYPE_RE.search(raw)
+        if not m_type:
+            continue
+        issues.append(ValidationIssue(severity="WARN", code="redundant-expression-type-wording", kind=kind, name=name, message=f"{rel}:{line_no}: in `Arguments`, prefer `int`/`string`/`bool` over `int expression`/`string expression`/`bool expression`."))
+    return issues
+
+
 def _lint_override_argument_contracts(*, path: Path, kind: str, name: str, secs: dict[str, list[str]]) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
     rel = path.relative_to(REPO_ROOT)
@@ -663,6 +687,7 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
         issues.extend(_line_pattern_issues(path=path, kind=kind, name=name, lines=_lines(path), source_path_code="user-doc-source-path-leak", internal_symbol_code="user-doc-internal-symbol-leak", vague_code="banned-vague-phrase", check_required_marker=False))
         issues.extend(_lint_override_structure(path=path, kind=kind, name=name, secs=secs))
         issues.extend(_lint_override_required_markers(path=path, kind=kind, name=name))
+        issues.extend(_lint_override_argument_wording(path=path, kind=kind, name=name))
         issues.extend(_lint_override_argument_contracts(path=path, kind=kind, name=name, secs=secs))
 
         allowed = allowed_instruction if kind == "instruction" else allowed_method

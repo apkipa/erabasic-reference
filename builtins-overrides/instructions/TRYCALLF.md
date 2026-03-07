@@ -15,7 +15,7 @@
 
 **Arguments**
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
-  - This is **not** a string literal or string expression.
+  - This is **not** a string literal or string.
   - Quotes are treated as ordinary characters.
   - Backslash escapes are processed (e.g. `\n`, `\t`, `\s`).
 - `<argN>` (optional): zero or more expressions passed to the target method.

@@ -9,7 +9,7 @@
 
 **Arguments**
 - `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
-- `<sourceName>` (string expression): evaluates to a variable name string.
+- `<sourceName>` (string): evaluates to a variable name string.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.

@@ -271,7 +271,7 @@ can be observed as:
 
 ### 5.4 Why this is not a persistent queue
 
-The model above can look queue-like, but it is submission-scoped, not global.
+This submission-scoped model can look queue-like, but it is not a global persistent queue.
 
 If execution stops in any non-wait state after an accepted segment (for example script end, quit, error, or another non-input host state), the submission pass ends immediately and any remaining submitted segments are lost.
 They are **not** retained for some unrelated later wait.

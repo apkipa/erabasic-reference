@@ -8,7 +8,7 @@
 - `TOOLTIP_SETDELAY <delayMs>`
 
 **Arguments**
-- `<delayMs>` (int expression): delay in milliseconds.
+- `<delayMs>` (int): delay in milliseconds.
   - Omitted argument is accepted with a warning and treated as `0`.
 
 **Semantics**

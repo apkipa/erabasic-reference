@@ -8,7 +8,7 @@
 - `REDRAW <flags>`
 
 **Arguments**
-- `<flags>` (int expression): redraw flags.
+- `<flags>` (int): redraw flags.
   - Bit `0`:
     - `0`: disable non-forced automatic redraw (`Redraw = None`)
     - `1`: enable normal redraw (`Redraw = Normal`)

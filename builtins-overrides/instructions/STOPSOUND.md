@@ -11,7 +11,7 @@
 - None.
 
 **Semantics**
-- Stops playback of all sound effect slots (`0..9`).
+- Stops playback of all sound effect slots (`0 <= slot <= 9`).
 - Does not affect BGM (`PLAYBGM`).
 
 **Errors & validation**
