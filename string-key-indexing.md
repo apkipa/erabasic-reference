@@ -88,7 +88,7 @@ The engine’s `GetKeywordDictionary` defines, for each variable code:
 
 The following table is engine-accurate.
 
-#### Character 1D variables (string key is typically the *second* argument, `argIndex = 1`)
+#### Character 1D variables (string key is the *second* argument, `argIndex = 1`)
 
 - `ABL` → `abl.csv` → `argIndex = 1`
 - `EXP` → `exp.csv` → `argIndex = 1`
@@ -110,7 +110,7 @@ The following table is engine-accurate.
 - `RELATION` → `chara*.csv` (character names/callnames/etc.) → `argIndex = 1`
 - `NAME`, `CALLNAME` → `chara*.csv` dictionary exists but **string-key indexing is not allowed** in variable-argument positions
 
-#### Non-character 1D variables (string key is typically the *first* argument, `argIndex = 0`)
+#### Non-character 1D variables (string key is the *first* argument, `argIndex = 0`)
 
 - `TRAINNAME` → `train.csv` → `argIndex = 0`
 - `ITEM`, `ITEMSALES`, `ITEMPRICE` → `Item.csv` → `argIndex = 0`
@@ -134,7 +134,7 @@ The following table is engine-accurate.
 
 ### 5.2 Special case: `CDFLAG`
 
-`CDFLAG` selects between two different name tables depending on which index is being string-specified:
+`CDFLAG` uses one of two different name tables based on the string-specified index:
 
 - if `argIndex == 1` → use `cdflag1.csv`
 - if `argIndex == 2` → use `cdflag2.csv`
@@ -152,22 +152,15 @@ ERD dictionary selection is **variable-code-specific** and depends on which argu
   - allowed `argIndex`: `0`
   - ERD dictionary key: `varname`
 - `CVAR`, `CVARS`:
-  - allowed `argIndex`: `1` (because the final argument list is typically `[chara, index]`)
+  - allowed `argIndex`: `1` (because the final argument list is `[chara, index]`)
   - ERD dictionary key: `varname`
 - `VAR2D`, `VARS2D`:
   - if resolving `argIndex == 0`: dictionary key is `varname@1`, allowed `argIndex = 0`
   - if resolving `argIndex == 1`: dictionary key is `varname@2`, allowed `argIndex = 1`
 - `CVAR2D`, `CVARS2D`:
-  - only `argIndex == 2` is allowed (final arguments are typically `[chara, i, j]`)
+  - only `argIndex == 2` is allowed (the final argument list is `[chara, i, j]`)
   - dictionary key is `varname@2`
 - `VAR3D`, `VARS3D`:
   - resolving `argIndex == k` uses dictionary key `varname@{k+1}` and allows only that same `argIndex`
 
 If the ERD dictionary is missing, string-key indexing for that variable fails (the engine throws an ERD-specific “key not defined” error).
-
-## Fact-check cross-refs (optional)
-
-- Bare-identifier key parsing in variable-arg context: `emuera.em/Emuera/Runtime/Script/Statements/Expression/ExpressionParser.cs`
-- Argument inference and wrapping of string args: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableParser.cs`
-- Runtime key→index resolution term: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableStrArgTerm.cs`
-- Key dictionary mapping table + ERD behavior: `emuera.em/Emuera/Runtime/Script/Data/ConstantData.cs`

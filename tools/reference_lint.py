@@ -626,29 +626,7 @@ def _lint_override_structure(*, path: Path, kind: str, name: str, secs: dict[str
 
 
 def _topic_reference_exempt_lines(lines: list[str]) -> set[int]:
-    exempt: set[int] = set()
-    heading_stack: list[str] = []
-    block_mode = False
-    for line_no, raw in enumerate(lines, start=1):
-        stripped = raw.strip()
-        heading_exempt = any(rx.search(title) for title in heading_stack for rx in _TOPIC_REFERENCE_ALLOWED_HEADING_RES)
-        block_start = any(rx.search(stripped) for rx in _TOPIC_REFERENCE_BLOCK_START_RES)
-        if raw.startswith("#"):
-            level = len(raw) - len(raw.lstrip("#"))
-            title = raw[level:].strip()
-            heading_stack = heading_stack[: level - 1]
-            if title:
-                heading_stack.append(title)
-            block_mode = False
-            heading_exempt = any(rx.search(title) for title in heading_stack for rx in _TOPIC_REFERENCE_ALLOWED_HEADING_RES)
-            block_start = False
-        elif block_start:
-            block_mode = True
-        elif block_mode and stripped and not stripped.startswith(("- ", "* ")) and not re.match(r"^\d+[.)]\s", stripped):
-            block_mode = False
-        if heading_exempt or block_mode or block_start:
-            exempt.add(line_no)
-    return exempt
+    return set()
 
 
 def _lint_override_required_markers(*, path: Path, kind: str, name: str) -> list[ValidationIssue]:
@@ -994,7 +972,7 @@ def _iter_authored_doc_paths() -> list[Path]:
         rp = path.resolve()
         if rp in generated:
             continue
-        if path.name in {"agents.md", "builtins-reference.md", "builtins-index.md"}:
+        if path.name.lower() in {"agents.md", "builtins-reference.md", "builtins-index.md"}:
             continue
         out.append(path)
     return out
@@ -1046,6 +1024,8 @@ def validate_authored_docs() -> list[ValidationIssue]:
         lines = _lines(path)
         doc_name = str(rel)
         reference_exempt_lines = _topic_reference_exempt_lines(lines)
+        if path.name == "sources.md":
+            reference_exempt_lines = set(range(1, len(lines) + 1))
 
         issues.extend(_line_pattern_issues(path=path, kind="doc", name=doc_name, lines=lines, source_path_code="topic-doc-source-path-leak", internal_symbol_code="topic-doc-internal-symbol-leak", vague_code="topic-doc-vague-phrase", check_required_marker=False, source_path_exempt_lines=reference_exempt_lines, internal_symbol_exempt_lines=reference_exempt_lines))
 

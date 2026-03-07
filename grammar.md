@@ -242,7 +242,7 @@ Special-case instructions (when enabled):
 
 ### 6.3 Assignment statement
 
-If a line is not recognized as an instruction, the engine attempts to parse it as an assignment by locating an assignment operator and then delegating to the `SET` instruction’s argument builder.
+If a line is not recognized as an instruction, the engine treats it as an assignment candidate: it locates an assignment operator and then delegates to the `SET` instruction’s argument builder.
 
 Important implementation detail (engine-accurate):
 
@@ -275,7 +275,9 @@ Notes:
 - For integer variables, multiple comma-separated RHS values can be accepted for array assignment when using `=`.
 - For string variables:
   - `=` parses the RHS using the **formatted-string (FORM) scanner**, not the normal expression lexer.
-  - `'=`, `+=`, and `*=` parse the RHS as a normal expression.
+  - `'=` parses the RHS as a normal expression, and each RHS expression must be string-typed.
+  - `+=` parses one normal-expression RHS, which must be string-typed.
+  - `*=` parses one normal-expression RHS, which must be int-typed.
   - only `'=`, as the operator, supports “batch assignment” (multiple comma-separated RHS values) for string variables.
   - `SystemIgnoreStringSet` can prohibit `=` on string variables (while still allowing `'=`, `+=`, `*=`).
 
@@ -482,12 +484,3 @@ Key implementation notes:
 - `#DEFINE` in this codebase supports **empty macros** (no replacement tokens), but **does not allow function-like macros** (`NAME(arg1,...)`): those are explicitly rejected.
 - `#FUNCTION/#FUNCTIONS` in ERH are present in the loader switch, but currently throw `NotImplCodeEE` (i.e. they error if encountered).
 - `#DIM/#DIMS` are queued and processed later as a batch; they share the same declaration syntax family as ERB `#DIM/#DIMS`.
-
-## Fact-check cross-refs (optional)
-
-- ERB loader + preprocessor + `#`/label handling: `emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs`
-- Statement classification and assignment operator recognition: `emuera.em/Emuera/Runtime/Script/Parser/LogicalLineParser.cs`, `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`
-- Function label signature parsing: `emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs` (`parseLabel`)
-- Control-flow instruction implementations: `emuera.em/Emuera/Runtime/Script/Statements/Instraction.Child.cs`, `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
-- `CASE` expression parsing: `emuera.em/Emuera/Runtime/Script/Statements/Expression/ExpressionParser.cs`, `emuera.em/Emuera/Runtime/Script/Statements/CaseExpression.cs`
-- ERH loader (`#DEFINE/#DIM` behavior): `emuera.em/Emuera/Runtime/Script/Loader/ErhLoader.cs`

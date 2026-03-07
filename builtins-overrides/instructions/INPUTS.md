@@ -12,7 +12,7 @@
 **Arguments**
 - `<defaultFormString>` (optional, FORM/formatted string): its evaluated result is used as the default string. If omitted, there is no default.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable **normal-output button** can still submit its string as `INPUTS` even when this argument is omitted or `0`.
+  - Clicking a selectable **normal-output button** also submits its string as `INPUTS` even when this argument is omitted or `0`.
 - `<canSkip>` (optional, any): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
 
 **Semantics**
@@ -41,7 +41,7 @@
 **Errors & validation**
 - Argument parsing errors follow the underlying builder rules for `INPUTS`.
 - Argument parsing quirks:
-  - After the first comma, the engine tries to parse `<mouse>` as an `int` expression.
+  - After the first comma, the engine parses `<mouse>` as an `int` expression.
     - If it is omitted or not an integer expression, the engine warns and ignores the entire tail (mouse input is disabled; `canSkip` is not enabled).
   - Supplying `<canSkip>` may still emit a “too many arguments” warning, but its presence is accepted and used by the runtime.
 

@@ -12,7 +12,7 @@
 
 **Semantics**
 - When enabled and tooltips are custom-drawn (`TOOLTIP_CUSTOM 1`):
-  - If the tooltip text can be parsed as an integer `i`, the engine attempts to draw graphics resource `G:i` as the tooltip content.
+  - If the tooltip text can be parsed as an integer `i`, the engine uses graphics resource `G:i` as the primary tooltip content.
   - If the graphics resource is not available, it falls back to drawing the tooltip text.
 - This instruction executes even when output skipping is active.
 

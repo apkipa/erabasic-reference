@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)
 
-Generated from engine source on `2026-03-07`.
+Generated from engine source on `2026-03-08`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `appendix/tooling/builtins-reference-engine.md` by hand.
@@ -479,7 +479,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 
 **Arguments**
 - LHS must be a **single variable term** (not an arbitrary expression), and must not be `CONST`.
-- RHS is parsed in one of multiple modes depending on operator and LHS type:
+- RHS parsing mode is determined by the operator and LHS type:
   - int LHS: RHS is parsed as normal expressions.
   - string LHS with `=`: RHS is scanned as a formatted string until end-of-line.
   - string LHS with `'=` / `+=` / `*=`: RHS is parsed as normal expressions.
@@ -489,11 +489,15 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Assignment operator recognition:
   - The engine recognizes: `=`, `'=`; `++`, `--`; and compound forms `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `|=`, `&=`, `^=`.
 - Allowed operators depend on LHS type:
-  - int LHS: all the above operators are accepted by the assignment builder.
-  - string LHS: only `=`, `'=` (string-expression assignment), `+=`, `*=` are accepted; other compound operators are rejected as invalid.
+  - int LHS: accepts `=`, `++`, `--`, and the integer compound operators `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `|=`, `&=`, `^=`. The string-assignment operator `'=` is rejected.
+  - string LHS: accepts `=` (FORM assignment), `'=` (string-expression assignment), `+=` (string concatenation), and `*=` (string repetition). Other compound operators are rejected as invalid.
 - If the RHS is a single value:
   - `=` assigns that value.
   - For compound assignment operators, the resulting value is the same as `LHS = (LHS <op> RHS)` (using the operator implied by the compound form).
+- String-typed operator constraints:
+  - `strVar '= expr` requires each RHS expression to be string-typed.
+  - `strVar += expr` requires the RHS expression to be string-typed.
+  - `strVar *= expr` requires the RHS expression to be int-typed.
 - Index evaluation and side effects (important compatibility detail):
   - For `++`, `--`, `+= <const int>`, `-= <const int>`: the LHS variable term (including indices/subscripts) is evaluated once.
   - For other compound assignments: the LHS variable term is evaluated twice (once to read the old value, and once to write the new value), so any side effects in indices can run twice.
@@ -507,8 +511,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Errors & validation**
 - Parse-time errors:
   - If the line does not contain a recognized assignment operator, it becomes an invalid line at load/parse time.
-- Errors if LHS cannot be read as a single variable term, if LHS is const, or if operator is incompatible with the LHS type.
-- Errors if assigning string→int or int→string in contexts that disallow it.
+- Errors if LHS cannot be read as a single variable term, if LHS is const, or if operator is incompatible with the LHS type (for example, `intVar '= expr`).
+- Errors if assigning string→int or int→string in contexts that disallow it (for example, `intVar = "x"`, `strVar '= 1`, `strVar += 1`, or `strVar *= "x"`).
 - If `SystemIgnoreStringSet` is enabled, string `=` assignment is rejected (scripts must use `'=` or other operations).
   - Note: this check happens when the assignment line’s argument is parsed (by default: when the line is first reached at runtime).
 
@@ -617,7 +621,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTL [<raw text>]`
+- `PRINTL`
+- `PRINTL <raw text>`
 - `PRINTL;<raw text>`
 
 **Arguments**
@@ -655,7 +660,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTW [<raw text>]`
+- `PRINTW`
+- `PRINTW <raw text>`
 - `PRINTW;<raw text>`
 
 **Arguments**
@@ -693,11 +699,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTV <expr1> [, <expr2> ...]`
+- `PRINTV <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -731,11 +736,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVL <expr1> [, <expr2> ...]`
+- `PRINTVL <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -770,11 +774,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVW <expr1> [, <expr2> ...]`
+- `PRINTVW <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -809,10 +812,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTS <string expr>`
+- `PRINTS <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -846,10 +849,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSL <string expr>`
+- `PRINTSL <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -884,10 +887,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSW <string expr>`
+- `PRINTSW <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -922,11 +925,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORM [<FORM string>]`
+- `PRINTFORM [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -960,11 +962,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORML [<FORM string>]`
+- `PRINTFORML [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -999,11 +1000,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMW [<FORM string>]`
+- `PRINTFORMW [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1038,11 +1038,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMS <string expr>`
+- `PRINTFORMS <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1077,11 +1076,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSL <string expr>`
+- `PRINTFORMSL <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1117,11 +1115,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSW <string expr>`
+- `PRINTFORMSW <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1157,7 +1154,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTK [<raw text>]`
+- `PRINTK`
+- `PRINTK <raw text>`
 - `PRINTK;<raw text>`
 
 **Arguments**
@@ -1195,7 +1193,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTKL [<raw text>]`
+- `PRINTKL`
+- `PRINTKL <raw text>`
 - `PRINTKL;<raw text>`
 
 **Arguments**
@@ -1234,7 +1233,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTKW [<raw text>]`
+- `PRINTKW`
+- `PRINTKW <raw text>`
 - `PRINTKW;<raw text>`
 
 **Arguments**
@@ -1273,11 +1273,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVK <expr1> [, <expr2> ...]`
+- `PRINTVK <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1312,11 +1311,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVKL <expr1> [, <expr2> ...]`
+- `PRINTVKL <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1352,11 +1350,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVKW <expr1> [, <expr2> ...]`
+- `PRINTVKW <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1392,10 +1389,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSK <string expr>`
+- `PRINTSK <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1430,10 +1427,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSKL <string expr>`
+- `PRINTSKL <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1469,10 +1466,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSKW <string expr>`
+- `PRINTSKW <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1508,11 +1505,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMK [<FORM string>]`
+- `PRINTFORMK [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1547,11 +1543,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMKL [<FORM string>]`
+- `PRINTFORMKL [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1587,11 +1582,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMKW [<FORM string>]`
+- `PRINTFORMKW [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1627,11 +1621,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSK <string expr>`
+- `PRINTFORMSK <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1667,11 +1660,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSKL <string expr>`
+- `PRINTFORMSKL <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1708,11 +1700,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSKW <string expr>`
+- `PRINTFORMSKW <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1749,7 +1740,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTD [<raw text>]`
+- `PRINTD`
+- `PRINTD <raw text>`
 - `PRINTD;<raw text>`
 
 **Arguments**
@@ -1787,7 +1779,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTDL [<raw text>]`
+- `PRINTDL`
+- `PRINTDL <raw text>`
 - `PRINTDL;<raw text>`
 
 **Arguments**
@@ -1826,7 +1819,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTDW [<raw text>]`
+- `PRINTDW`
+- `PRINTDW <raw text>`
 - `PRINTDW;<raw text>`
 
 **Arguments**
@@ -1865,11 +1859,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVD <expr1> [, <expr2> ...]`
+- `PRINTVD <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1904,11 +1897,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVDL <expr1> [, <expr2> ...]`
+- `PRINTVDL <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1944,11 +1936,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVDW <expr1> [, <expr2> ...]`
+- `PRINTVDW <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1984,10 +1975,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSD <string expr>`
+- `PRINTSD <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2022,10 +2013,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSDL <string expr>`
+- `PRINTSDL <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2061,10 +2052,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSDW <string expr>`
+- `PRINTSDW <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2100,11 +2091,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMD [<FORM string>]`
+- `PRINTFORMD [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2139,11 +2129,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMDL [<FORM string>]`
+- `PRINTFORMDL [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2179,11 +2168,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMDW [<FORM string>]`
+- `PRINTFORMDW [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2219,11 +2207,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSD <string expr>`
+- `PRINTFORMSD <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2259,11 +2246,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSDL <string expr>`
+- `PRINTFORMSDL <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2300,11 +2286,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSDW <string expr>`
+- `PRINTFORMSDW <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2341,7 +2326,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLE [<raw text>]`
+- `PRINTSINGLE`
+- `PRINTSINGLE <raw text>`
 - `PRINTSINGLE;<raw text>`
 
 **Arguments**
@@ -2381,11 +2367,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEV <expr1> [, <expr2> ...]`
+- `PRINTSINGLEV <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2422,10 +2407,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLES <string expr>`
+- `PRINTSINGLES <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2462,11 +2447,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORM [<FORM string>]`
+- `PRINTSINGLEFORM [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2503,11 +2487,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMS <string expr>`
+- `PRINTSINGLEFORMS <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2545,7 +2528,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEK [<raw text>]`
+- `PRINTSINGLEK`
+- `PRINTSINGLEK <raw text>`
 - `PRINTSINGLEK;<raw text>`
 
 **Arguments**
@@ -2586,11 +2570,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEVK <expr1> [, <expr2> ...]`
+- `PRINTSINGLEVK <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2628,10 +2611,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLESK <string expr>`
+- `PRINTSINGLESK <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2669,11 +2652,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMK [<FORM string>]`
+- `PRINTSINGLEFORMK [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2711,11 +2693,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMSK <string expr>`
+- `PRINTSINGLEFORMSK <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2754,7 +2735,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLED [<raw text>]`
+- `PRINTSINGLED`
+- `PRINTSINGLED <raw text>`
 - `PRINTSINGLED;<raw text>`
 
 **Arguments**
@@ -2795,11 +2777,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEVD <expr1> [, <expr2> ...]`
+- `PRINTSINGLEVD <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2837,10 +2818,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLESD <string expr>`
+- `PRINTSINGLESD <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2878,11 +2859,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMD [<FORM string>]`
+- `PRINTSINGLEFORMD [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2920,11 +2900,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMSD <string expr>`
+- `PRINTSINGLEFORMSD <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2963,7 +2942,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTC [<raw text>]`
+- `PRINTC`
+- `PRINTC <raw text>`
 - `PRINTC;<raw text>`
 
 **Arguments**
@@ -3012,7 +2992,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTLC [<raw text>]`
+- `PRINTLC`
+- `PRINTLC <raw text>`
 - `PRINTLC;<raw text>`
 
 **Arguments**
@@ -3061,12 +3042,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMC [<FORM string>]`
+- `PRINTFORMC [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -3102,12 +3081,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMLC [<FORM string>]`
+- `PRINTFORMLC [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -3143,7 +3120,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTCK [<raw text>]`
+- `PRINTCK`
+- `PRINTCK <raw text>`
 - `PRINTCK;<raw text>`
 
 **Arguments**
@@ -3184,7 +3162,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTLCK [<raw text>]`
+- `PRINTLCK`
+- `PRINTLCK <raw text>`
 - `PRINTLCK;<raw text>`
 
 **Arguments**
@@ -3225,12 +3204,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMCK [<FORM string>]`
+- `PRINTFORMCK [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -3267,12 +3244,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMLCK [<FORM string>]`
+- `PRINTFORMLCK [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -3309,7 +3284,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTCD [<raw text>]`
+- `PRINTCD`
+- `PRINTCD <raw text>`
 - `PRINTCD;<raw text>`
 
 **Arguments**
@@ -3350,7 +3326,8 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTLCD [<raw text>]`
+- `PRINTLCD`
+- `PRINTLCD <raw text>`
 - `PRINTLCD;<raw text>`
 
 **Arguments**
@@ -3391,12 +3368,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMCD [<FORM string>]`
+- `PRINTFORMCD [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -3433,12 +3408,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMLCD [<FORM string>]`
+- `PRINTFORMLCD [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -3476,12 +3449,20 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATA [<intVarTerm>]`
-- Block form:
-  - `PRINTDATA [<intVarTerm>]`
-    - `DATA <raw text>` / `DATAFORM <FORM string>` (one or more choices)
-    - optionally, `DATALIST` ... `ENDLIST` groups to make a multi-line choice
-  - `ENDDATA`
+```text
+PRINTDATA [<intVarTerm>]
+    DATA <raw text> | DATAFORM <formString>
+    ...
+    [DATALIST
+        DATA <raw text> | DATAFORM <formString>
+        ...
+    ENDLIST]
+ENDDATA
+```
+
+- Header line: `PRINTDATA [<intVarTerm>]`
+- Body entries may be single-line `DATA` / `DATAFORM` choices or nested `DATALIST ... ENDLIST` multi-line choices.
+- Terminator line: `ENDDATA`
 
 **Arguments**
 - `<intVarTerm>` (optional, changeable int variable term): receives the 0-based chosen index.
@@ -3524,17 +3505,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Examples**
 ```erabasic
 PRINTDATA CHOICE
-  DATA First option
-  DATA Second option
+    DATA First option
+    DATA Second option
 ENDDATA
 ```
 
 ```erabasic
 PRINTDATA
-  DATALIST
-    DATA Line 1
-    DATAFORM Line 2: %TOSTR(RAND:100)%
-  ENDLIST
+    DATALIST
+        DATA Line 1
+        DATAFORM Line 2: %TOSTR(RAND:100)%
+    ENDLIST
 ENDDATA
 ```
 
@@ -3554,7 +3535,14 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATAL [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATAL [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATAL [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3581,7 +3569,12 @@ ENDDATA
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATAL CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATAL CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -3599,7 +3592,14 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATAW [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATAW [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATAW [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3626,7 +3626,12 @@ ENDDATA
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATAW CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATAW CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -3644,7 +3649,14 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATAK [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATAK [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATAK [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3671,7 +3683,12 @@ ENDDATA
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATAK CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATAK CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -3689,7 +3706,14 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATAKL [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATAKL [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATAKL [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3716,7 +3740,12 @@ ENDDATA
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATAKL CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATAKL CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -3734,7 +3763,14 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATAKW [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATAKW [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATAKW [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3761,7 +3797,12 @@ ENDDATA
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATAKW CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATAKW CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -3779,7 +3820,14 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATAD [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATAD [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATAD [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3806,7 +3854,12 @@ ENDDATA
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATAD CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATAD CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -3824,7 +3877,14 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATADL [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATADL [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATADL [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3851,7 +3911,12 @@ ENDDATA
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATADL CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATADL CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -3869,7 +3934,14 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `PRINTDATADW [<intVarTerm>]` ... `ENDDATA`
+```text
+PRINTDATADW [<intVarTerm>]
+    ...
+ENDDATA
+```
+
+- Header line: `PRINTDATADW [<intVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3896,7 +3968,12 @@ ENDDATA
 - Same as `PRINTDATA`.
 
 **Examples**
-- `PRINTDATADW CHOICE` ... `ENDDATA`
+```erabasic
+PRINTDATADW CHOICE
+    DATA First option
+    DATA Second option
+ENDDATA
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -4094,10 +4171,10 @@ PRINTL
 
 **Syntax**
 - `PRINTPLAINFORM`
-- `PRINTPLAINFORM <FORM string>`
+- `PRINTPLAINFORM <formString>`
 
 **Arguments**
-- `<FORM string>` (optional, FORM/formatted string; default `""`): scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -4647,7 +4724,7 @@ PRINTFORML {X}  ; 125
 
 ## WAIT (instruction)
 **Summary**
-- Waits for the user to press Enter (or click, depending on the UI), then continues.
+- Waits for a confirmation event, then continues.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `WAIT_Instruction` ArgBuilder assignment)
@@ -4694,7 +4771,7 @@ PRINTFORML {X}  ; 125
 **Arguments**
 - `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable **normal-output button** can still submit its value as `INPUT` even when this argument is omitted or `0`.
+  - Clicking a selectable **normal-output button** also submits its value as `INPUT` even when this argument is omitted or `0`.
   - If non-zero, the UI additionally writes the mouse side-channel metadata described below.
   - `0`: accepted integer values on the normal completion path are written to `RESULT`.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
@@ -4789,7 +4866,7 @@ Compatibility notes:
 **Arguments**
 - `<defaultFormString>` (optional, FORM/formatted string): its evaluated result is used as the default string. If omitted, there is no default.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable **normal-output button** can still submit its string as `INPUTS` even when this argument is omitted or `0`.
+  - Clicking a selectable **normal-output button** also submits its string as `INPUTS` even when this argument is omitted or `0`.
 - `<canSkip>` (optional, any): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
 
 **Semantics**
@@ -4821,7 +4898,7 @@ Compatibility notes:
 **Errors & validation**
 - Argument parsing errors follow the underlying builder rules for `INPUTS`.
 - Argument parsing quirks:
-  - After the first comma, the engine tries to parse `<mouse>` as an `int` expression.
+  - After the first comma, the engine parses `<mouse>` as an `int` expression.
     - If it is omitted or not an integer expression, the engine warns and ignores the entire tail (mouse input is disabled; `canSkip` is not enabled).
   - Supplying `<canSkip>` may still emit a “too many arguments” warning, but its presence is accepted and used by the runtime.
 
@@ -4852,7 +4929,7 @@ Compatibility notes:
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable **normal-output button** can still submit its value as `TINPUT` even when this argument is `0` or omitted.
+  - Clicking a selectable **normal-output button** also submits its value as `TINPUT` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Semantics**
@@ -4861,7 +4938,8 @@ Compatibility notes:
 - See also: `input-flow.md` (shared submission paths, timed completion model, segment draining/discard rules, and `MesSkip` interaction).
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
-  - A timeout message is displayed (either by updating the last “remaining time” line, or by printing a single line, depending on `<displayTime>`).
+  - If `<displayTime> != 0`, the timeout message updates the current “remaining time” line.
+  - If `<displayTime> == 0`, the timeout message is printed as a single line.
 - `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:
@@ -4902,7 +4980,7 @@ Compatibility notes:
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time.
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): timeout message.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable **normal-output button** can still submit its string as `TINPUTS` even when this argument is `0` or omitted.
+  - Clicking a selectable **normal-output button** also submits its string as `TINPUTS` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Semantics**
@@ -6099,11 +6177,11 @@ DELCHARA 1, 3
 - Implementor (registration): `new SIF_Instruction()`
 
 **Syntax**
-- `SIF [<int expr>]`
+- `SIF [<condition>]`
   - `<next logical line>`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
+- `<condition>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.
@@ -6143,16 +6221,22 @@ DELCHARA 1, 3
 - Structural match end: `ENDIF`
 
 **Syntax**
-- `IF [<int expr>]`
-  - `...`
-  - `ELSEIF <int expr>`
-  - `...`
-  - `ELSE`
-  - `...`
-  - `ENDIF`
+```text
+IF [<condition>]
+    ...
+[ELSEIF <condition>
+    ...]
+[ELSE
+    ...]
+ENDIF
+```
+
+- Header line: `IF [<condition>]`
+- Clause header lines inside the block may include `ELSEIF <condition>` and `ELSE`.
+- Terminator line: `ENDIF`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
+- `<condition>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates its own condition and then each `ELSEIF` condition in order.
@@ -6171,11 +6255,13 @@ DELCHARA 1, 3
 - `ELSEIF` after an `ELSE` produces a load-time warning.
 
 **Examples**
-- `IF FLAG`
-- `  PRINTL "yes"`
-- `ELSE`
-- `  PRINTL "no"`
-- `ENDIF`
+```erabasic
+IF FLAG
+    PRINTL "yes"
+ELSE
+    PRINTL "no"
+ENDIF
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6222,10 +6308,10 @@ DELCHARA 1, 3
 - Implementor (registration): `new ELSEIF_Instruction(FunctionArgType.INT_EXPRESSION)`
 
 **Syntax**
-- `ELSEIF <int expr>`
+- `ELSEIF <condition>`
 
 **Arguments**
-- `<int expr>` is evaluated by the `IF` header’s clause-selection logic (not by the `ELSEIF` instruction itself).
+- `<condition>` (int): evaluated by the surrounding `IF` header’s clause-selection logic, not by standalone `ELSEIF` execution.
 
 **Semantics**
 - When reached **sequentially** (i.e., a previous clause already executed and control fell through), `ELSEIF` unconditionally jumps to the matching `ENDIF` marker, skipping the rest of the block.
@@ -6282,12 +6368,19 @@ DELCHARA 1, 3
 - Structural match end: `ENDSELECT`
 
 **Syntax**
-- `SELECTCASE <expr>`
-  - `CASE <caseExpr> (, <caseExpr> ... )`
-  - `...`
-  - `CASEELSE`
-  - `...`
-  - `ENDSELECT`
+```text
+SELECTCASE <expr>
+    CASE <caseExpr> [, <caseExpr> ...]
+        ...
+    ...
+    [CASEELSE
+        ...]
+ENDSELECT
+```
+
+- Header line: `SELECTCASE <expr>`
+- Clause header lines inside the block are `CASE <caseExpr> [, <caseExpr> ...]`; an optional final `CASEELSE` may appear.
+- Terminator line: `ENDSELECT`
 
 **Arguments**
 - `<expr>` (int|string): selector expression.
@@ -6310,14 +6403,16 @@ DELCHARA 1, 3
 - Mis-nesting / unexpected `CASE` / unexpected `ENDSELECT` are load-time errors (the line is marked as error).
 
 **Examples**
-- `SELECTCASE A`
-- `CASE 0`
-- `  PRINTL "zero"`
-- `CASE 1 TO 9`
-- `  PRINTL "small"`
-- `CASEELSE`
-- `  PRINTL "other"`
-- `ENDSELECT`
+```erabasic
+SELECTCASE A
+CASE 0
+    PRINTL "zero"
+CASE 1 TO 9
+    PRINTL "small"
+CASEELSE
+    PRINTL "other"
+ENDSELECT
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6440,9 +6535,14 @@ DELCHARA 1, 3
 - Structural match end: `REND`
 
 **Syntax**
-- `REPEAT [<countExpr>]`
-  - `...`
-  - `REND`
+```text
+REPEAT [<countExpr>]
+    ...
+REND
+```
+
+- Header line: `REPEAT [<countExpr>]`
+- Terminator line: `REND`
 
 **Arguments**
 - `<countExpr>` (optional, int; default `0`; omission emits a warning): number of iterations.
@@ -6466,9 +6566,11 @@ DELCHARA 1, 3
 - Nested `REPEAT` is warned about by the loader (not necessarily a hard error).
 
 **Examples**
-- `REPEAT 10`
-- `  PRINTV COUNT`
-- `REND`
+```erabasic
+REPEAT 10
+    PRINTV COUNT
+REND
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6502,7 +6604,11 @@ DELCHARA 1, 3
 - `REND` without a matching open `REPEAT` is a load-time error (the line is marked as error).
 
 **Examples**
-- `REND`
+```erabasic
+REPEAT 10
+    PRINTV COUNT
+REND
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6520,9 +6626,14 @@ DELCHARA 1, 3
 - Structural match end: `NEXT`
 
 **Syntax**
-- `FOR <intVarTerm>, [<start>], <end> [, <step>]`
-  - `...`
-  - `NEXT`
+```text
+FOR <intVarTerm>, [<start>], <end> [, <step>]
+    ...
+NEXT
+```
+
+- Header line: `FOR <intVarTerm>, [<start>], <end> [, <step>]`
+- Terminator line: `NEXT`
 
 **Arguments**
 - `<intVarTerm>` (changeable integer variable term): loop counter; must not be character-data.
@@ -6544,10 +6655,11 @@ DELCHARA 1, 3
 - `NEXT` without a matching open `FOR` is a load-time error (the `NEXT` line is marked as error).
 
 **Examples**
-- `FOR I, 0, 10`
-- `FOR I, , 10`
-- `  PRINTV I`
-- `NEXT`
+```erabasic
+FOR I, 0, 10
+    PRINTV I
+NEXT
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6582,7 +6694,11 @@ DELCHARA 1, 3
 - `NEXT` without a matching open `FOR` is a load-time error (the line is marked as error).
 
 **Examples**
-- `NEXT`
+```erabasic
+FOR I, 0, 10
+    PRINTV I
+NEXT
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6599,12 +6715,17 @@ DELCHARA 1, 3
 - Structural match end: `WEND`
 
 **Syntax**
-- `WHILE [<int expr>]`
-  - `...`
-  - `WEND`
+```text
+WHILE [<condition>]
+    ...
+WEND
+```
+
+- Header line: `WHILE [<condition>]`
+- Terminator line: `WEND`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
+- `<condition>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - At `WHILE`, evaluates the condition:
@@ -6618,9 +6739,11 @@ DELCHARA 1, 3
 - `WEND` without a matching open `WHILE` is a load-time error (the `WEND` line is marked as error).
 
 **Examples**
-- `WHILE I < 10`
-- `  I += 1`
-- `WEND`
+```erabasic
+WHILE I < 10
+    I += 1
+WEND
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6653,7 +6776,11 @@ DELCHARA 1, 3
 - `WEND` without a matching open `WHILE` is a load-time error (the line is marked as error).
 
 **Examples**
-- `WEND`
+```erabasic
+WHILE I < 10
+    I += 1
+WEND
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6671,9 +6798,14 @@ DELCHARA 1, 3
 - Structural match end: `LOOP`
 
 **Syntax**
-- `DO`
-  - `...`
-  - `LOOP <int expr>`
+```text
+DO
+    ...
+LOOP <condition>
+```
+
+- Header line: `DO`
+- Terminator line: `LOOP <condition>`
 
 **Arguments**
 - None.
@@ -6686,9 +6818,11 @@ DELCHARA 1, 3
 - `LOOP` without a matching open `DO` is a load-time error (the `LOOP` line is marked as error).
 
 **Examples**
-- `DO`
-- `  I += 1`
-- `LOOP I < 10`
+```erabasic
+DO
+    I += 1
+LOOP I < 10
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6705,10 +6839,10 @@ DELCHARA 1, 3
 - Structural parent: `DO`
 
 **Syntax**
-- `LOOP [<int expr>]`
+- `LOOP [<condition>]`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
+- `<condition>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates the condition:
@@ -6721,7 +6855,11 @@ DELCHARA 1, 3
 - `LOOP` without a matching open `DO` is a load-time error (the line is marked as error).
 
 **Examples**
-- `LOOP I < 10`
+```erabasic
+DO
+    I += 1
+LOOP I < 10
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6811,10 +6949,10 @@ DELCHARA 1, 3
 
 **Syntax**
 - `RETURN`
-- `RETURN <int expr1> [, <int expr2>, <int expr3>, ... ]`
+- `RETURN <value1> [, <value2>, <value3>, ... ]`
 
 **Arguments**
-- `<valueN>` (optional, int): each value is stored into `RESULT:<index>`.
+- `<valueN>` (optional, int): each occurrence is stored into `RESULT:<index>`.
 
 **Semantics**
 - Evaluates all provided integer expressions (left-to-right), stores them into the `RESULT` integer array starting at index 0, then returns from the function.
@@ -8185,7 +8323,8 @@ SPLIT "a,b,c", ",", PARTS
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`, `PARTIAL`, `PARTIAL`
 
 **Syntax**
-- `DATA [<raw text>]`
+- `DATA`
+- `DATA <raw text>`
 - `DATA;<raw text>`
 
 **Arguments**
@@ -8221,15 +8360,15 @@ ENDDATA
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`, `PARTIAL`
 
 **Syntax**
-- `DATAFORM [<FORM string>]`
+- `DATAFORM [<formString>]`
 
 **Arguments**
-- Optional FORM/formatted string scanned to end-of-line.
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.
 - When selected, evaluated to a string at runtime and printed/concatenated.
-  - The FORM string is scanned at load time and stored as an expression that is evaluated later (so it can still depend on runtime variables).
+  - The FORM string is scanned at load time and stored as an expression that is evaluated later, so runtime variables inside it are read when the entry is selected.
 
 **Errors & validation**
 - Must appear inside a valid surrounding block; otherwise it is a load-time error (the line is marked as error).
@@ -8287,9 +8426,16 @@ ENDDATA
 - Structural match end: `ENDLIST`
 
 **Syntax**
-- `DATALIST`
-  - `DATA ...` / `DATAFORM ...` (one or more)
-- `ENDLIST`
+```text
+DATALIST
+    DATA <raw text> | DATAFORM <formString>
+    ...
+ENDLIST
+```
+
+- Header line: `DATALIST`
+- Item lines: `DATA <raw text>` / `DATAFORM <formString>`
+- Terminator line: `ENDLIST`
 
 **Arguments**
 - None.
@@ -8305,10 +8451,10 @@ ENDDATA
 **Examples**
 ```erabasic
 PRINTDATA
-  DATALIST
-    DATA Line 1
-    DATA Line 2
-  ENDLIST
+    DATALIST
+        DATA Line 1
+        DATA Line 2
+    ENDLIST
 ENDDATA
 ```
 
@@ -8355,7 +8501,19 @@ ENDDATA
 - Structural match end: `ENDDATA`
 
 **Syntax**
-- `STRDATA [<strVarTerm>]` ... `ENDDATA`
+```text
+STRDATA [<strVarTerm>]
+    DATA <raw text> | DATAFORM <formString>
+    ...
+    [DATALIST
+        DATA <raw text> | DATAFORM <formString>
+        ...
+    ENDLIST]
+ENDDATA
+```
+
+- Header line: `STRDATA [<strVarTerm>]`
+- Body / terminator structure is the same as `PRINTDATA`.
 
 **Arguments**
 - `<strVarTerm>` (optional, changeable string variable term; default `RESULTS`): receives the result.
@@ -8378,8 +8536,8 @@ ENDDATA
 **Examples**
 ```erabasic
 STRDATA
-  DATA Hello
-  DATA World
+    DATA Hello
+    DATA World
 ENDDATA
 PRINTFORML RESULTS
 ```
@@ -8756,13 +8914,13 @@ PRINTFORML RESULTS
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- `SKIPDISP <int expr>`
+- `SKIPDISP <enabled>`
 
 **Arguments**
-- `<int expr>` (int): `0` disables skip mode; non-zero enables skip mode.
+- `<enabled>` (int): `0` disables skip mode; non-zero enables skip mode.
 
 **Semantics**
-- Evaluates `<int expr>` to `v`.
+- Evaluates `<enabled>` to `v`.
 - If `v != 0`, enables output skipping; otherwise disables it.
 - Sets `RESULT` to:
   - `1` when output skipping is enabled
@@ -8796,9 +8954,14 @@ PRINTFORML RESULTS
 - Structural match end: `ENDNOSKIP`
 
 **Syntax**
-- `NOSKIP`
-  - `...`
-- `ENDNOSKIP`
+```text
+NOSKIP
+    ...
+ENDNOSKIP
+```
+
+- Header line: `NOSKIP`
+- Terminator line: `ENDNOSKIP`
 
 **Arguments**
 - None.
@@ -8827,7 +8990,7 @@ PRINTFORML RESULTS
 SKIPDISP 1
 
 NOSKIP
-  PRINTL This line still prints even during SKIPDISP.
+    PRINTL This line still prints even during SKIPDISP.
 ENDNOSKIP
 ```
 
@@ -9074,13 +9237,13 @@ ENDNOSKIP
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`
 
 **Syntax**
-- `SKIPLOG <int expr>`
+- `SKIPLOG <enabled>`
 
 **Arguments**
-- `<int expr>` (int): `0` clears message-skip; non-zero enables message-skip.
+- `<enabled>` (int): `0` clears message-skip; non-zero enables message-skip.
 
 **Semantics**
-- Evaluates `<int expr>` to `v`.
+- Evaluates `<enabled>` to `v`.
 - Sets the message-skip flag `MesSkip` to `(v != 0)`.
 - Implementation-oriented effect (UI-side):
   - When `MesSkip` is true, the input loop may automatically advance through waits that do not require a value, unless the current wait request explicitly stops message skip.
@@ -9170,7 +9333,7 @@ ENDNOSKIP
   - If `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
 - Evaluates arguments, binds them to the callee’s declared formals (including `REF` behavior), then enters the callee.
 - When the callee executes `RETURN` (or reaches end-of-function), control returns to the statement after the `CALL`.
-- Load-time behavior: if `<functionName>` is a compile-time constant, the loader tries to resolve the callee and may emit early diagnostics (e.g. unknown function, argument binding issues).
+- Load-time behavior: if `<functionName>` is a compile-time constant, the loader resolves the callee during load and may emit early diagnostics (e.g. unknown function, argument binding issues).
 - Engine-extracted notes (key operations):
   - `state.JumpTo(func.JumpToEndCatch)`
   - `state.IntoFunction(call, arg, exm)`
@@ -9454,16 +9617,22 @@ ENDNOSKIP
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCJUMP <functionName>`
-- `TRYCJUMP <functionName>()`
-- `TRYCJUMP <functionName>, <arg1> [, <arg2> ... ]`
-- `TRYCJUMP <functionName>(<arg1> [, <arg2> ... ])`
-- `TRYCJUMP <functionName>[<subName1>, <subName2>, ...]`
-- `TRYCJUMP <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
-- The bracket segment is accepted for compatibility, but is currently unused.
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCJUMP <target>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- `<target>` can be:
+  - `functionName`
+  - `functionName()`
+  - `functionName, <arg1> [, <arg2> ... ]`
+  - `functionName(<arg1> [, <arg2> ... ])`
+  - `functionName[<subName1>, <subName2>, ...]`
+  - `functionName[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+
+> **Note:** The bracketed `[...]` segment is accepted for backward compatibility, but is currently unused.
 
 **Arguments**
 - Same as `JUMP`.
@@ -9482,10 +9651,12 @@ ENDNOSKIP
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `TRYCJUMP OPTIONAL_PHASE`
-- `CATCH`
-- `  PRINTL "phase missing"`
-- `ENDCATCH`
+```erabasic
+TRYCJUMP OPTIONAL_PHASE
+CATCH
+    PRINTL "phase missing"
+ENDCATCH
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -9502,16 +9673,22 @@ ENDNOSKIP
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCCALL <functionName>`
-- `TRYCCALL <functionName>()`
-- `TRYCCALL <functionName>, <arg1> [, <arg2> ... ]`
-- `TRYCCALL <functionName>(<arg1> [, <arg2> ... ])`
-- `TRYCCALL <functionName>[<subName1>, <subName2>, ...]`
-- `TRYCCALL <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
-- The bracket segment is accepted for compatibility, but is currently unused.
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCCALL <target>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- `<target>` can be:
+  - `functionName`
+  - `functionName()`
+  - `functionName, <arg1> [, <arg2> ... ]`
+  - `functionName(<arg1> [, <arg2> ... ])`
+  - `functionName[<subName1>, <subName2>, ...]`
+  - `functionName[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+
+> **Note:** The bracketed `[...]` segment is accepted for backward compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALL`.
@@ -9531,10 +9708,12 @@ ENDNOSKIP
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `TRYCCALL OPTIONAL_HOOK`
-- `CATCH`
-- `  PRINTL "hook missing"`
-- `ENDCATCH`
+```erabasic
+TRYCCALL OPTIONAL_HOOK
+CATCH
+    PRINTL "hook missing"
+ENDCATCH
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -9551,16 +9730,22 @@ ENDNOSKIP
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCJUMPFORM <formString>`
-- `TRYCJUMPFORM <formString>()`
-- `TRYCJUMPFORM <formString>, <arg1> [, <arg2> ... ]`
-- `TRYCJUMPFORM <formString>(<arg1> [, <arg2> ... ])`
-- `TRYCJUMPFORM <formString>[<subName1>, <subName2>, ...]`
-- `TRYCJUMPFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
-- The bracket segment is accepted for compatibility, but is currently unused.
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCJUMPFORM <target>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- `<target>` can be:
+  - `<formString>`
+  - `<formString>()`
+  - `<formString>, <arg1> [, <arg2> ... ]`
+  - `<formString>(<arg1> [, <arg2> ... ])`
+  - `<formString>[<subName1>, <subName2>, ...]`
+  - `<formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+
+> **Note:** The bracketed `[...]` segment is accepted for backward compatibility, but is currently unused.
 
 **Arguments**
 - Same as `JUMPFORM`.
@@ -9578,10 +9763,12 @@ ENDNOSKIP
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `TRYCJUMPFORM "OPTIONAL_%COUNT%"`
-- `CATCH`
-- `  PRINTL "missing"`
-- `ENDCATCH`
+```erabasic
+TRYCJUMPFORM "OPTIONAL_%COUNT%"
+CATCH
+    PRINTL "missing"
+ENDCATCH
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -9598,16 +9785,22 @@ ENDNOSKIP
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCCALLFORM <formString>`
-- `TRYCCALLFORM <formString>()`
-- `TRYCCALLFORM <formString>, <arg1> [, <arg2> ... ]`
-- `TRYCCALLFORM <formString>(<arg1> [, <arg2> ... ])`
-- `TRYCCALLFORM <formString>[<subName1>, <subName2>, ...]`
-- `TRYCCALLFORM <formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
-- The bracket segment is accepted for compatibility, but is currently unused.
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCCALLFORM <target>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- `<target>` can be:
+  - `<formString>`
+  - `<formString>()`
+  - `<formString>, <arg1> [, <arg2> ... ]`
+  - `<formString>(<arg1> [, <arg2> ... ])`
+  - `<formString>[<subName1>, <subName2>, ...]`
+  - `<formString>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+
+> **Note:** The bracketed `[...]` segment is accepted for backward compatibility, but is currently unused.
 
 **Arguments**
 - Same as `CALLFORM`.
@@ -9625,10 +9818,12 @@ ENDNOSKIP
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `TRYCCALLFORM "HOOK_%TARGET%"`
-- `CATCH`
-- `  PRINTL "hook missing"`
-- `ENDCATCH`
+```erabasic
+TRYCCALLFORM "HOOK_%TARGET%"
+CATCH
+    PRINTL "hook missing"
+ENDCATCH
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10019,10 +10214,14 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCGOTO <labelName>`
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCGOTO <labelName>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- Header line: `TRYCGOTO <labelName>`
 
 **Arguments**
 - Same as `GOTO`.
@@ -10042,10 +10241,12 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
   - `throw new CodeEE(string.Format(trerror.InvalidLabelName.Text, label))`
 
 **Examples**
-- `TRYCGOTO OPTIONAL_LABEL`
-- `CATCH`
-- `  PRINTL "label missing"`
-- `ENDCATCH`
+```erabasic
+TRYCGOTO OPTIONAL_LABEL
+CATCH
+    PRINTL "label missing"
+ENDCATCH
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10062,10 +10263,14 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - Structural match end: `CATCH`
 
 **Syntax**
-- `TRYCGOTOFORM <formString>`
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+TRYCGOTOFORM <formString>
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- Header line: `TRYCGOTOFORM <formString>`
 
 **Arguments**
 - Same as `GOTOFORM`.
@@ -10084,10 +10289,12 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
   - `throw new CodeEE(string.Format(trerror.InvalidLabelName.Text, label))`
 
 **Examples**
-- `TRYCGOTOFORM "LABEL_%RESULT%"`
-- `CATCH`
-- `  PRINTL "label missing"`
-- `ENDCATCH`
+```erabasic
+TRYCGOTOFORM "LABEL_%RESULT%"
+CATCH
+    PRINTL "label missing"
+ENDCATCH
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10103,9 +10310,14 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - Structural match end: `ENDCATCH`
 
 **Syntax**
-- `CATCH`
-  - `<catch body>`
-  - `ENDCATCH`
+```text
+CATCH
+    <catch body>
+ENDCATCH
+```
+
+- Header line: `CATCH`
+- Terminator line: `ENDCATCH`
 
 **Arguments**
 - None.
@@ -10120,9 +10332,12 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - `CATCH` without a matching open `TRYC*` is a load-time error (the line is marked as error).
 
 **Examples**
-- `CATCH`
-- `  PRINTL "not found"`
-- `ENDCATCH`
+```erabasic
+TRYCCALL OPTIONAL_HOOK
+CATCH
+    PRINTL "hook missing"
+ENDCATCH
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10168,10 +10383,16 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - Structural match end: `ENDFUNC`
 
 **Syntax**
-- `TRYCALLLIST`
-  - `FUNC ...` (see `FUNC` for item syntax)
-  - `...`
-  - `ENDFUNC`
+```text
+TRYCALLLIST
+    FUNC ...
+    ...
+ENDFUNC
+```
+
+- Header line: `TRYCALLLIST`
+- Item lines: `FUNC ...` (see `FUNC` for item syntax)
+- Terminator line: `ENDFUNC`
 
 **Arguments**
 - None on `TRYCALLLIST` itself.
@@ -10208,10 +10429,12 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `TRYCALLLIST`
-- `  FUNC HOOK_%TARGET%, TARGET`
-- `  FUNC HOOK_DEFAULT`
-- `ENDFUNC`
+```erabasic
+TRYCALLLIST
+    FUNC HOOK_%TARGET%, TARGET
+    FUNC HOOK_DEFAULT
+ENDFUNC
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10228,10 +10451,16 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - Structural match end: `ENDFUNC`
 
 **Syntax**
-- `TRYJUMPLIST`
-  - `FUNC ...` (see `FUNC` for item syntax)
-  - `...`
-  - `ENDFUNC`
+```text
+TRYJUMPLIST
+    FUNC ...
+    ...
+ENDFUNC
+```
+
+- Header line: `TRYJUMPLIST`
+- Item lines: `FUNC ...` (see `FUNC` for item syntax)
+- Terminator line: `ENDFUNC`
 
 **Arguments**
 - Same as `TRYCALLLIST`.
@@ -10252,10 +10481,12 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `TRYJUMPLIST`
-- `  FUNC PHASE_%COUNT%`
-- `  FUNC PHASE_DEFAULT`
-- `ENDFUNC`
+```erabasic
+TRYJUMPLIST
+    FUNC PHASE_%COUNT%
+    FUNC PHASE_DEFAULT
+ENDFUNC
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10272,10 +10503,16 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - Structural match end: `ENDFUNC`
 
 **Syntax**
-- `TRYGOTOLIST`
-  - `FUNC <formString>` (see `FUNC` for the shared item model; this variant forbids subnames and arguments)
-  - `...`
-  - `ENDFUNC`
+```text
+TRYGOTOLIST
+    FUNC <formString>
+    ...
+ENDFUNC
+```
+
+- Header line: `TRYGOTOLIST`
+- Item lines: `FUNC <formString>` (see `FUNC`; this variant forbids subnames and arguments)
+- Terminator line: `ENDFUNC`
 
 **Arguments**
 - Each `FUNC` item provides a label name as a **FORM/formatted string expression** (evaluated to a string at runtime).
@@ -10301,10 +10538,12 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
   - no argument list (neither `(... )` nor `, ...`)
 
 **Examples**
-- `TRYGOTOLIST`
-- `  FUNC LABEL_%RESULT%`
-- `  FUNC LABEL_DEFAULT`
-- `ENDFUNC`
+```erabasic
+TRYGOTOLIST
+    FUNC LABEL_%RESULT%
+    FUNC LABEL_DEFAULT
+ENDFUNC
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -11032,14 +11271,17 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `PRINT_RECT <x>, <y>, <width>, <height>`
 
 **Arguments**
-- The numeric arguments are int expressions in mixed units:
-  - A numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `30px`).
-  - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `valuePx = value * FontSize / 100`.
-- 1-argument form:
-  - `<width>`: rectangle width (must be `> 0`).
-  - Height is the current font size (pixels), and the rectangle starts at `(x=0, y=0)` within the line box.
-- 4-argument form:
-  - `<x>, <y>, <width>, <height>` define the rectangle (must satisfy `x >= 0`, `width > 0`, `height > 0`; `y` may be negative).
+- `<width>` (int): rectangle width in mixed units; must satisfy `width > 0`.
+- `<x>` (int): 4-argument form only; rectangle X offset in mixed units and must satisfy `x >= 0`.
+- `<y>` (int): 4-argument form only; rectangle Y offset in mixed units; negative values are allowed.
+- `<height>` (int): 4-argument form only; rectangle height in mixed units and must satisfy `height > 0`.
+- Mixed-unit rule:
+  - A numeric argument may be followed by a `px` suffix token to indicate pixels (for example `30px`).
+  - Without `px`, the value is interpreted as a percentage of the current font size in pixels: `valuePx = value * FontSize / 100`.
+- 1-argument form defaults:
+  - `x = 0`
+  - `y = 0`
+  - `height = FontSize` (pixels)
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -11996,7 +12238,7 @@ ENCODETOUNI "ABC"
 
 ## INPUTANY (instruction)
 **Summary**
-- Waits for a text input, then stores it as either an integer (`RESULT`) or a string (`RESULTS`) depending on whether it parses as a 64-bit integer.
+- Waits for a text input, then stores it in `RESULT` if it parses as a signed 64-bit integer; otherwise stores it in `RESULTS`.
 
 **Metadata**
 - Arg spec: `VOID` (see #argument-spec-void) (inferred from `INPUTANY_Instruction` ArgBuilder assignment)
@@ -12186,7 +12428,7 @@ ENDIF
 
 **Semantics**
 - When enabled and tooltips are custom-drawn (`TOOLTIP_CUSTOM 1`):
-  - If the tooltip text can be parsed as an integer `i`, the engine attempts to draw graphics resource `G:i` as the tooltip content.
+  - If the tooltip text can be parsed as an integer `i`, the engine uses graphics resource `G:i` as the primary tooltip content.
   - If the graphics resource is not available, it falls back to drawing the tooltip text.
 - This instruction executes even when output skipping is active.
 - Engine-extracted notes (key operations):
@@ -12218,7 +12460,7 @@ ENDIF
 **Arguments**
 - `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable button can still satisfy `BINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
+  - Clicking a selectable button also satisfies `BINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 - Extra arguments after `<canSkip>` are accepted by the argument parser but ignored by the runtime.
 
@@ -12296,7 +12538,7 @@ PRINTFORML "picked=" + RESULT
 **Arguments**
 - `<default>` (optional, string): default string used only when the submitted text is empty.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable button can still satisfy `BINPUTS` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
+  - Clicking a selectable button also satisfies `BINPUTS` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 
 **Semantics**
@@ -12378,7 +12620,7 @@ PRINTFORML "picked=" + RESULTS
 **Arguments**
 - `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable button can still satisfy `ONEBINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
+  - Clicking a selectable button also satisfies `ONEBINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 - Extra arguments after `<canSkip>` are accepted by the argument parser but ignored by the runtime.
 
@@ -12432,7 +12674,7 @@ ONEBINPUT
 **Arguments**
 - `<default>` (optional, string): default string used only when the submitted text is empty.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable button can still satisfy `ONEBINPUTS` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
+  - Clicking a selectable button also satisfies `ONEBINPUTS` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 
 **Semantics**
@@ -12723,7 +12965,8 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTN [<raw text>]`
+- `PRINTN`
+- `PRINTN <raw text>`
 - `PRINTN;<raw text>`
 
 **Arguments**
@@ -12766,11 +13009,10 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTVN <expr1> [, <expr2> ...]`
+- `PRINTVN <value1> [, <value2> ...]`
 
 **Arguments**
-- One or more comma-separated expressions (each may be int or string).
-- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.
+- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -12806,10 +13048,10 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTSN <string expr>`
+- `PRINTSN <text>`
 
 **Arguments**
-- A single string expression (must be present).
+- `<text>` (string): text to print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -12845,11 +13087,10 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTFORMN [<FORM string>]`
+- `PRINTFORMN [<formString>]`
 
 **Arguments**
-- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
-- The argument is optional for the `...FORM...` PRINT family (missing means empty string).
+- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -12885,11 +13126,10 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTFORMSN <string expr>`
+- `PRINTFORMSN <formatSource>`
 
 **Arguments**
-- A string expression (must be present).
-- The resulting string is then treated as a FORM/formatted string **at runtime**.
+- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -14397,7 +14637,7 @@ PRINTFORML %S%
 - Formats `money`:
   - if `format` is omitted or `""`: uses default numeric formatting (`money.ToString()`)
   - otherwise: uses `money.ToString(format)`
-- Then attaches the currency label (`MoneyLabel`) either as a prefix or suffix depending on `MoneyFirst`:
+- Then attaches the currency label (`MoneyLabel`):
   - `MoneyFirst = true`: `MoneyLabel + formatted`
   - `MoneyFirst = false`: `formatted + MoneyLabel`
 
@@ -16408,7 +16648,7 @@ ARRAYMSORT(A, B, C)
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.
-- Even though many invalid strings return `0`, inputs that reach the integer-literal reader can still raise runtime errors; for example:
+- Even though many invalid strings return `0`, inputs that reach the integer-literal reader can raise runtime errors; for example:
   - out-of-range / overflow while parsing the integer literal
   - invalid binary digit in a `0b...` literal (e.g. `0b2`)
   - malformed exponent forms (e.g. `1e` without exponent digits)
@@ -18655,7 +18895,7 @@ R = CBGSETG(GID, 0, 0, 10)
 
 **Semantics**
 - Looks up `<spriteName>` in the sprite table and, if it exists and is created, adds that sprite to the client-background layer at `(<x>, <y>, zDepth)`.
-- If `<spriteName>` is `""`, lookup still runs normally against that supplied empty name; in practice that lookup fails, so the call returns `0`.
+- If `<spriteName>` is `""`, the same lookup path is used against that supplied empty name; in the current implementation this returns `0`.
 - The registered entry holds a **live reference** to that sprite object rather than a copied snapshot.
   - Later mutation/disposal of that same sprite object changes later CBG rendering for this entry.
 - Host-mode quirk:

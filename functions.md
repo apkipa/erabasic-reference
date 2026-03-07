@@ -11,7 +11,7 @@ Normal functions are defined by `@NAME` labels and called by commands such as:
 
 Many call-like built-ins parse their *target* with optional “tails”:
 
-- `NAME` (raw text or a FORM string, depending on the instruction)
+- `NAME` (each instruction defines whether this part is parsed as raw text or as a FORM string)
 - optional bracket list: `[...]` (“subNames” in the engine)
 - optional argument list: `(arg1, arg2, ...)` or comma form `, arg1, arg2, ...`
 
@@ -29,7 +29,7 @@ This engine performs a load-time “linking” pass over many control-flow instr
 
 Key rule:
 
-- If a call/jump/goto target name is a **compile-time constant** (including some `...FORM` cases where the FORM reduces to a constant), the loader attempts to resolve it during load.
+- If a call/jump/goto target name is a **compile-time constant** (including some `...FORM` cases where the FORM reduces to a constant), the loader resolves it during load.
   - If resolution fails and the instruction is not a `TRY*` form, the line is marked as an **error line** during load (execution will throw if reached).
   - The config `FunctionNotFoundWarning` can suppress *printing* of the warning, but it does not prevent the line from becoming an error line when `isError=true` is used.
 - If the target name is **not** compile-time constant, the loader sets a global “computed call target exists” flag and defers resolution to runtime.
@@ -319,7 +319,7 @@ The definition may use either:
     @MYFUNC(ARG:0, ARG:1)
     @MYFUNC, ARG:0, ARG:1
 
-depending on style and engine rules, but the *call* in an expression uses parentheses.
+The definition form is engine-/style-dependent, but the *call* in an expression uses parentheses.
 
 ### Restrictions inside expression functions
 
@@ -328,13 +328,3 @@ Expression functions have restrictions to keep expressions safe/deterministic:
 - They cannot be called via normal `CALL` (but can be invoked via `CALLF`/`CALLFORMF`).
 - Some commands (input/wait, normal function calls) are disallowed and raise errors.
 - Avoid side effects; while most expression evaluation is effectively left-to-right, the engine performs restructuring/constant-folding during load, and short-circuiting operators (`&&`, `||`, `!&`, `!|`, ternary) can skip evaluations.
-
-## Fact-check cross-refs (optional)
-
-- `../emuera.em.doc/docs/Reference/CALL.en.md`
-- `../emuera.em.doc/docs/Reference/RETURN.en.md`
-- `../emuera.em.doc/docs/Emuera/function.en.md`
-- `../emuera.em.doc/docs/Emuera/user_defined_variables.en.md`
-- `../emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
-- Engine source of truth: `runtime-model.md`
-- Implementation reference (try-family): `emuera.em/Emuera/Runtime/Script/Statements/Instraction.Child.cs` (`CALL_Instruction`, `GOTO_Instruction`, `CATCH_Instruction`), `emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs` (`nestCheck` pairing)

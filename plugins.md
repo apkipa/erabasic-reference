@@ -54,7 +54,7 @@ The plugin system includes a startup security gate.
 Practical consequence:
 
 - A loadable managed DLL under `Plugins/` that does not expose a `PluginManifest` type is ignored as a plugin.
-- This does **not** mean every arbitrary file in `Plugins/` is harmless: DLL load failures, type-enumeration failures, or missing managed dependencies can still abort startup before the loader reaches the “ignore” case.
+- This does **not** mean every arbitrary file in `Plugins/` is harmless: DLL load failures, type-enumeration failures, or missing managed dependencies can abort startup before the loader reaches the “ignore” case.
 - Shipping one or more actual plugins requires `pluginsAware.txt`.
 
 ## Required public contract types
@@ -201,7 +201,7 @@ After `Execute(...)` returns, the engine performs a write-back step for each ori
 Important compatibility detail:
 
 - Write-back depends on the **ERB variable kind**, not on `args[i].isString`.
-- A plugin that wants to behave like a generic `out`/`ref` helper should usually update **both** `strValue` and `intValue` unless it knows exactly which kind of ERB variable will be passed.
+- A plugin that wants to behave like a generic `out`/`ref` helper should update **both** `strValue` and `intValue` unless it knows exactly which kind of ERB variable will be passed.
 
 ### Plugin exceptions
 
@@ -329,7 +329,7 @@ The output-facing helpers are thin host calls; they do not reparse ERB source un
   - The first element is the current executing line.
   - Later elements follow the return-address chain outward.
   - Frames without a source position are skipped.
-- `LoadPlugins()` clears the current plugin-method registry and performs this topic's plugin discovery/admission sequence. It is the host's plugin-loader entry point, even though ordinary plugin code typically relies on startup having called it already.
+- `LoadPlugins()` clears the current plugin-method registry and performs this topic's plugin discovery/admission sequence. It is the host's plugin-loader entry point; in the normal engine startup path, that initialization has already happened before ordinary plugin code runs.
 - `GetMethod(name)` and `HasMethod(name)` consult the plugin registry using the same case-sensitivity rules as plugin registration.
   - `HasMethod(name)` is the existence probe.
   - `GetMethod(name)` assumes the method exists; if it does not, the lookup fails rather than returning a sentinel/null object.

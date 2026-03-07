@@ -113,8 +113,6 @@ Commonly documented:
 
 Other engine-supported event attributes exist (e.g. `#PRI`, `#LATER`, `#SINGLE`)—these are parsed by the engine even if not always covered in high-level language tutorials.
 
-Implementation reference: `emuera.em/Emuera/Runtime/Script/Parser/LogicalLineParser.cs` (`ParseSharpLine`).
-
 ## Blocks and “special block lines”
 
 Some constructs are represented by block-like keyword lines. These lines should contain only the block keyword (no trailing commands/comments on the same line).
@@ -126,9 +124,3 @@ Notable examples:
 - `[IF_DEBUG]` … `[ENDIF]`, `[IF_NDEBUG]` … `[ENDIF]` — debug-mode conditional inclusion.
 
 For details, see `preprocessor-and-macros.md`.
-
-## Fact-check cross-refs (optional)
-
-- `../emuera.em.doc/docs/Emuera/ERH.en.md`
-- `../emuera.em.doc/docs/Emuera/function.en.md`
-- `../emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`

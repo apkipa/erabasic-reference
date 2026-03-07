@@ -19,7 +19,7 @@
 - Formats `money`:
   - if `format` is omitted or `""`: uses default numeric formatting (`money.ToString()`)
   - otherwise: uses `money.ToString(format)`
-- Then attaches the currency label (`MoneyLabel`) either as a prefix or suffix depending on `MoneyFirst`:
+- Then attaches the currency label (`MoneyLabel`):
   - `MoneyFirst = true`: `MoneyLabel + formatted`
   - `MoneyFirst = false`: `formatted + MoneyLabel`
 

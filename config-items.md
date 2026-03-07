@@ -197,9 +197,3 @@ The full table in this section still lists *all* config items (including UI-only
 | `PalamLvDef` | `List<long>` | `[0, 100, 500, 3000, 10000, 30000, 60000, 100000, 150000, 250000]` | `PALAMLVの初期値` | `Default PALAMLV` |
 | `pbandDef` | `long` | `4` | `PBANDの初期値` | `Default PBAND` |
 | `RelationDef` | `long` | `0` | `RELATIONの初期値` | `Default RELATION` |
-
-## Fact-check cross-refs (optional)
-
-- Config item list + defaults: `emuera.em/Emuera/Runtime/Config/ConfigData.cs`
-- Parsing rules per type: `emuera.em/Emuera/Runtime/Config/ConfigItem.cs`
-- Runtime wiring/validation: `emuera.em/Emuera/Runtime/Config/Config.cs`

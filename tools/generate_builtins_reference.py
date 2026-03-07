@@ -555,7 +555,7 @@ def main(argv: list[str] | None = None) -> int:
     md_user.append("")
     md_user.append("## Terminology: errors vs rejection")
     md_user.append("")
-    md_user.append("- **Error**: the engine reports an error (typically aborting the current execution).")
+    md_user.append("- **Error**: the engine reports an error. This is distinct from rejection; the exact aftermath is documented per topic/built-in where relevant.")
     md_user.append("- **Reject** (input/choice contexts): the engine ignores the input and continues waiting; side effects such as `RESULT*` writes happen only as documented for the accepting path.")
     md_user.append("")
     md_user.append("# Expression functions as statements")

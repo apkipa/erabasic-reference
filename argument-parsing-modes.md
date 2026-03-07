@@ -20,7 +20,7 @@ Valid separators are:
 
 Important implication:
 
-- If you write more than one space after the instruction name, only the first is consumed. Any remaining spaces become part of the raw argument slice and may or may not matter depending on the argument parsing mode.
+- If you write more than one space after the instruction name, only the first is consumed. Any remaining spaces become part of the raw argument slice; their later effect is defined by the active argument parsing mode.
 
 ### 1.1 Omitted argument slots are instruction-family specific
 
@@ -167,11 +167,3 @@ These built-ins use `FORM_STR*` parsing for their primary argument parsing mode 
 - `THROW`
 
 Note: `STRLEN*` illustrates that the engine offers both raw-string and FORM-scanned variants; they differ only in argument parsing mode.
-
-## Fact-check cross-refs (optional)
-
-- Instruction line parsing and “consume exactly one separator char”: `emuera.em/Emuera/Runtime/Script/Parser/LogicalLineParser.cs` (`ParseLine`)
-- Expression lexing and `;` comment handling: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs` (`Analyse`)
-- FORM scanning: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs` (`AnalyseFormattedString`)
-- Core argument builders (`STR`, `FORM_STR`, `STR_EXPRESSION`, etc.): `emuera.em/Emuera/Runtime/Script/Statements/ArgumentBuilder.cs`
-- `PRINT*` parsing mode selection: `emuera.em/Emuera/Runtime/Script/Statements/Instraction.Child.cs` (`PRINT_Instruction`)

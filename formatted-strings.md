@@ -13,7 +13,7 @@ FORM parsing is **not** the same as double-quoted string literal parsing:
 
 - FORM has its own escape rules (see §4).
 - FORM recognizes interpolation placeholders `%...%` and `{...}` (see §2).
-- FORM may recognize “triple symbols” like `***` depending on config (see §3).
+- Triple-symbol recognition in FORM (for sequences like `***`) is controlled by `SystemIgnoreTripleSymbol` (see §3).
 
 ## 0) Data model (what FORM produces)
 
@@ -233,10 +233,3 @@ Additional termination depends on the caller:
 - `LeftParenthesis_Bracket_Comma_Semicolon`: stop before any of `(` `[` `,` `;` (used for FORM-parsed “function name” fields)
 
 Trimming (`trim=true`) removes only `' '` and `'\t'` from the start/end edges as described in §6.2.
-
-## Fact-check cross-refs (optional)
-
-- FORM scanner + escapes + terminators: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`
-- `\@...\@` subword structure: `emuera.em/Emuera/Runtime/Script/Parser/SubWord.cs`
-- `%...%` / `{...}` compilation and padding semantics: `emuera.em/Emuera/Runtime/Script/Data/StrForm.cs`
-- Expression insertion and `StrFormTerm` restructuring: `emuera.em/Emuera/Runtime/Script/Statements/Expression/ExpressionParser.cs` and `emuera.em/Emuera/Runtime/Script/Statements/Expression/Term.cs`

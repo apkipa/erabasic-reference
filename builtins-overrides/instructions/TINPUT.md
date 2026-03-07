@@ -13,7 +13,7 @@
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable **normal-output button** can still submit its value as `TINPUT` even when this argument is `0` or omitted.
+  - Clicking a selectable **normal-output button** also submits its value as `TINPUT` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Semantics**
@@ -22,7 +22,8 @@
 - See also: `input-flow.md` (shared submission paths, timed completion model, segment draining/discard rules, and `MesSkip` interaction).
 - Timeout behavior:
   - When the timer expires, the engine runs the input completion path with an empty input string; this causes the default to be accepted.
-  - A timeout message is displayed (either by updating the last “remaining time” line, or by printing a single line, depending on `<displayTime>`).
+  - If `<displayTime> != 0`, the timeout message updates the current “remaining time” line.
+  - If `<displayTime> == 0`, the timeout message is printed as a single line.
 - `MesSkip` integration:
   - If `<canSkip>` is present and `MesSkip` is currently true, the engine does not wait and instead accepts the default immediately.
   - In that no-wait path, the engine assigns the default to:

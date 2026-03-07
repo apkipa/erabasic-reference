@@ -80,8 +80,7 @@ These are parsed by a dedicated label-line routine, not the normal instruction p
 
 When parsing a normal ERB statement line (not a label, not `#`, not a preprocessor directive), the statement parser has a dedicated line-initial special case:
 
-- If the first character is `+` or `-`, the engine attempts to interpret the line as a **prefix increment/decrement statement** (`++X` / `--X`).
+- If the first character is `+` or `-`, the parser routes the line into the **prefix increment/decrement statement** special-case (`++X` / `--X`).
 - If the line starts with `+`/`-` but is not actually `++`/`--`, the line is rejected as an invalid line (it is not treated as a general “expression statement”).
 
 This is an engine parsing rule, not a general EraBasic grammar rule.
-

@@ -132,9 +132,3 @@ Macros do **not** apply to:
 - Macros do not turn text into statements: a macro replacement is still just expression tokens.
 - Even though macro declarations are tokenized with “assignment allowed” in ERH, using `=` inside a normal expression is still an error at expression-parse time.
 - Because replacement is token-based (not raw text), you cannot rely on “spacing tricks” inside macro bodies; use parentheses explicitly to avoid precedence surprises.
-
-## Fact-check cross-refs (optional)
-
-- ERB preprocessor implementation: `emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs`
-- ERH `#DEFINE` parsing: `emuera.em/Emuera/Runtime/Script/Loader/ErhLoader.cs`
-- Token-based macro expansion: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`

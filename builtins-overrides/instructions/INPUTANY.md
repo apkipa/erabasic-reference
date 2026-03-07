@@ -1,5 +1,5 @@
 **Summary**
-- Waits for a text input, then stores it as either an integer (`RESULT`) or a string (`RESULTS`) depending on whether it parses as a 64-bit integer.
+- Waits for a text input, then stores it in `RESULT` if it parses as a signed 64-bit integer; otherwise stores it in `RESULTS`.
 
 **Tags**
 - io

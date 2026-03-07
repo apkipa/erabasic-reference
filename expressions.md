@@ -76,7 +76,9 @@ These rules are enforced around expression evaluation by the loader and/or runti
 - **Assignments**:
   - numeric variables: RHS must be numeric expressions
   - string variables:
-    - `'=`, `+=`, `*=` parse the RHS as a normal expression (type depends on operator)
+    - `'=` parses the RHS as a normal expression, and each RHS expression must be string-typed
+    - `+=` parses one normal-expression RHS, which must be string-typed
+    - `*=` parses one normal-expression RHS, which must be int-typed
     - `=` parses the RHS as a formatted string (FORM) token stream rather than a string expression
   See “Assignment” below and `formatted-strings.md`.
 
@@ -102,7 +104,7 @@ Variable terms have the shape:
 
 Because variable parsing performs argument inference, “omitting indices” does **not** produce an “array reference” (and EraBasic expressions do not have an “array value” type):
 
-- **Non-character 1D arrays**: `NAME` is treated as `NAME:0` (except `RAND`, which can reject omission depending on `CompatiRAND`).
+- **Non-character 1D arrays**: `NAME` is treated as `NAME:0`; for `RAND`, this is accepted only when `CompatiRAND=YES`, and otherwise omission errors.
 - **Character-data 1D arrays** (final indices are `[chara, index]`):
   - if `SystemNoTarget=NO`: `NAME` defaults to `NAME:TARGET:0`, and `NAME:i` is treated as `NAME:TARGET:i` (the single written arg is the element index)
   - if `SystemNoTarget=YES`: `NAME` becomes a special *no-arg variable term*; `NAME:i` is an error (you must write both `chara` and `index`)
@@ -113,7 +115,7 @@ Because variable parsing performs argument inference, “omitting indices” doe
 
 See `variables.md` for the full argument inference tables (especially for character-data variables).
 
-Important: a *no-arg variable term* is not “filled in later” by built-ins. It does not implicitly become `...:TARGET:...`; any built-in that needs indices will fail when it attempts to read them.
+Important: a *no-arg variable term* is not “filled in later” by built-ins. It does not implicitly become `...:TARGET:...`; any built-in that needs indices will fail when it reads them.
 
 Nevertheless, some built-ins can accept a no-arg variable term because they only need the **variable identifier / underlying storage** and never read indices from the term. Examples include:
 
@@ -132,11 +134,6 @@ This matters for array-manipulating built-ins:
   - the term must be a variable (not a literal)
   - the variable must not be `CONST`
   - the instruction may impose extra constraints (e.g. “must be 1D array”, “must be numeric”, etc.)
-
-Engine references (fact-check):
-
-- Variable argument inference and “no-arg variable term”: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableParser.cs`
-- “No-arg term” throws on value access: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableTerm.cs` (`VariableNoArgTerm`)
 
 ### `@subKey` is only for local-variable families
 
@@ -220,17 +217,25 @@ Invalid mixes (engine rejects these):
 
 ### Precedence (practical summary)
 
-The engine’s effective precedence (high → low) can be approximated as:
+The engine’s effective precedence (high → low) is:
 
-1. unary `~ !`
-2. `* / %`
-3. `+ -`
-4. `<< >>`
-5. `< > <= >=`
-6. `== !=`
-7. `& | ^` (bitwise)
-8. `&& || !& !| ^^` (logical family, with short-circuit where applicable)
-9. ternary `? ... # ...`
+1. postfix `++ --`
+2. prefix unary `+ - ! ~ ++ --`
+3. `* / %`
+4. `+ -`
+5. `<< >>`
+6. `< > <= >=`
+7. `== !=`
+8. `& ^ |` (all three share one precedence level in this engine)
+9. `&& || ^^ !& !|` (all five share one precedence level; short-circuit where applicable)
+10. ternary `? ... # ...`
+
+Important parser quirks:
+
+- Operators at the same precedence level are left-associative.
+- Unlike many C-like languages, bitwise `& ^ |` are **not** split into separate precedence levels here, and logical `&&` / `||` are likewise **not** split from `^^` / `!&` / `!|`.
+- Postfix `++/--` bind before a pending prefix unary, so `-X++` parses as `-(X++)`.
+- The parser accepts at most one prefix unary operator and at most one postfix `++/--`; forms such as `!!X` or `X++++` are rejected.
 
 If you are unsure, use parentheses.
 
@@ -321,11 +326,3 @@ In expression functions (`#FUNCTION/#FUNCTIONS`), avoid side effects in expressi
 For a formal EBNF of expressions (including operator set and precedence as implemented), see:
 
 - `expression-grammar.md`
-
-## Fact-check cross-refs (optional)
-
-- `../emuera.em.doc/docs/Emuera/operand.en.md`
-- `../emuera.em.doc/docs/Emuera/expression.en.md`
-- `../emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
-- Implementation reference: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`
-- Operator semantics and short-circuiting: `emuera.em/Emuera/Runtime/Script/Statements/Expression/OperatorMethod.cs`

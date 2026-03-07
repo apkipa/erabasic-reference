@@ -35,7 +35,7 @@ Sprite name is taken from `tokens[0]`:
 - `name = tokens[0].Trim()`.
 - If `name` is empty, the line is ignored.
 - The name is normalized to uppercase before lookup/insertion:
-  - `normalizedName = name.ToUpper()` (culture-dependent).
+  - `normalizedName = name.ToUpper()` using the current culture (that is, not an invariant/ordinal ASCII-only fold).
 
 If a sprite with the same normalized name already exists:
 
@@ -116,8 +116,7 @@ Interpretation:
 Sprite lookup by name (e.g. `<img src='NAME'>`) behaves as:
 
 - If the input name is null, lookup fails.
-- Otherwise, the engine uppercases the name and performs a dictionary lookup.
-- Lookup is effectively case-insensitive for typical ASCII names.
+- Otherwise, the engine uppercases the name with the same current-culture `ToUpper()` rule and performs a dictionary lookup.
+- Therefore ASCII names behave case-insensitively under this mapping, while non-ASCII names follow the current culture’s uppercase mapping.
 
 If lookup fails, HTML `<img ...>` falls back to displaying the tag as literal text (see `html-output.md`).
-

@@ -13,7 +13,7 @@
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.
 - When selected, evaluated to a string at runtime and printed/concatenated.
-  - The FORM string is scanned at load time and stored as an expression that is evaluated later (so it can still depend on runtime variables).
+  - The FORM string is scanned at load time and stored as an expression that is evaluated later, so runtime variables inside it are read when the entry is selected.
 
 **Errors & validation**
 - Must appear inside a valid surrounding block; otherwise it is a load-time error (the line is marked as error).

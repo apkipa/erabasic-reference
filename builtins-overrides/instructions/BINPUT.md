@@ -10,7 +10,7 @@
 **Arguments**
 - `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable button can still satisfy `BINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
+  - Clicking a selectable button also satisfies `BINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 - Extra arguments after `<canSkip>` are accepted by the argument parser but ignored by the runtime.
 

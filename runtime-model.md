@@ -82,7 +82,7 @@ This matters for two kinds of “marker lines”:
 Engine-accurate implications:
 
 - When `IF` selects an `ELSEIF`/`ELSE` branch, it “jumps to the marker line”, which means execution begins at the marker’s **body** (`marker.NextLine`).
-- When you jump *into* a control-flow construct using unstructured control transfer (typically `GOTO $label`), you can enter the middle of an `IF`/`SELECTCASE`/loop body without running the corresponding marker/header instruction first.
+- When you jump *into* a control-flow construct using unstructured control transfer (for example via `GOTO $label`), you can enter the middle of an `IF`/`SELECTCASE`/loop body without running the corresponding marker/header instruction first.
   - This is allowed by the engine (there is no “structured entry” enforcement).
   - It can change behavior (for example, entering a loop body without executing the header can leave loop-counter bindings unset; `REND/NEXT/CONTINUE` then exit the loop, while `BREAK` can throw due to a missing counter binding).
 
@@ -444,7 +444,7 @@ When parsing an expression function call `NAME(...)`, Emuera resolves the name u
 
 - user-defined expression functions (`@NAME` with `#FUNCTION/#FUNCTIONS`) if labels are initialized, otherwise
 - built-in expression functions (method list), otherwise
-- it errors (with special messaging depending on whether a non-method user function exists).
+- it errors. If a non-method user function with that name exists and no built-in method of the same name shadows it, the engine uses a dedicated wrong-kind-of-function message.
 
 ### 8.2 Execution model
 
@@ -486,11 +486,3 @@ This codebase distinguishes:
 Compatibility-critical toggle:
 
 - `CompatiErrorLine`: when disabled, the engine exits to title after load if there were uninterpretable lines; when enabled, it continues into execution.
-
-## Fact-check cross-refs (optional)
-
-- Execution state and call stack mechanics: `emuera.em/Emuera/Runtime/Script/Process.State.cs`
-- Call frames and argument binding: `emuera.em/Emuera/Runtime/Script/Process.CalledFunction.cs`
-- User-defined method evaluation (`#FUNCTION`): `emuera.em/Emuera/Runtime/Script/Process.cs` (`GetValue`)
-- Event grouping and label sorting: `emuera.em/Emuera/Runtime/Script/Data/LabelDictionary.cs`
-- Private variable scoping hooks: `emuera.em/Emuera/Runtime/Script/Statements/LogicalLine.cs` (`FunctionLabelLine.ScopeIn/ScopeOut`)

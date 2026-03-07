@@ -21,7 +21,8 @@ This means:
 
 - UTF-8 without BOM is accepted if it is valid UTF-8.
 - Shift-JIS is the “default legacy” fallback when UTF-8 decoding fails.
-- Files with “broken” byte sequences that are invalid in both UTF-8 and Shift-JIS fail to decode; the observable result then depends on the caller’s error-handling path.
+- Files with “broken” byte sequences that are invalid in both UTF-8 and Shift-JIS do not decode successfully.
+- This shared section defines only the decode decision itself; the higher-level loader then decides whether that becomes a warning-and-skip, a printed load-failure, or an abort of that load path.
 
 ### 0.2 Line splitting
 
@@ -29,11 +30,6 @@ Most loaders ultimately use `.NET File.ReadAllLines(...)` (directly or via the p
 
 - Line terminators are not preserved; each returned string is a line without `\r` / `\n`.
 - Empty lines are represented as empty strings; whether they are skipped is decided by the specific loader.
-
-Fact-check cross-refs (optional):
-
-- Encoding detection: `emuera.em/Emuera/Runtime/Utils/EncodingHandler.cs`
-- Preload cache read path (ERB/ERH/CSV/ERD/ALS): `emuera.em/Emuera/Runtime/Utils/Preload.cs`
 
 ## 0.3 File locations and subfolder discovery (overview)
 
@@ -383,14 +379,3 @@ Save/load boundaries (binary save mode, engine-accurate):
 - Global save writes only keys in `GLOBAL_*` sets.
 - Static keys are never written to save files in this codebase.
 - When reading, the engine accepts `Map`/`Xml`/`DT` records only if the key belongs to either a `SAVE_*` or a `GLOBAL_*` set (static keys are ignored at load time).
-
-## Fact-check cross-refs (optional)
-
-- Config loader: `emuera.em/Emuera/Runtime/Config/ConfigData.cs`, `emuera.em/Emuera/Runtime/Config/ConfigItem.cs`
-- JSON settings: `emuera.em/Emuera/Runtime/Config/JSON/JSONConfig.cs`
-- Replace loader: `emuera.em/Emuera/Runtime/Config/ConfigData.cs` (`LoadReplaceFile`)
-- Rename loader: `emuera.em/Emuera/Runtime/Script/Data/ParserMediator.cs` (`LoadEraExRenameFile`)
-- Variable sizes and name table CSV loading: `emuera.em/Emuera/Runtime/Script/Data/ConstantData.cs`
-- ERD discovery and load: `emuera.em/Emuera/Runtime/Script/Loader/ErhLoader.cs`
-- VarExt parsing + key sets: `emuera.em/Emuera/Runtime/Script/Data/ConstantData.cs` (`loadGlobalVarExSetting`)
-- EM extension save/load/clear behavior: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableData.cs` (`SaveEMDataToStreamBinary`, `LoadVariableBinary`, `RemoveEM*`)

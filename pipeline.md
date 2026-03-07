@@ -158,7 +158,7 @@ Case-sensitivity note:
 Important ordering detail (engine quirk):
 
 - The `*#*` directory list is obtained via `Directory.GetDirectories(erbDir, "*#*", ...)` and is **not** sorted by `SortWithFilename` before being iterated. If multiple `*#*` directories exist, their relative order can therefore depend on filesystem enumeration order.
-- Within each chosen directory, the engine uses `Config.GetFiles(dir, erbDir, "*.ERB")` to enumerate ERBs (which *can* be sorted, depending on `SortWithFilename`).
+- Within each chosen directory, the engine uses `Config.GetFiles(dir, erbDir, "*.ERB")` to enumerate ERBs. If `SortWithFilename=YES`, that list is filename-sorted; otherwise it follows the unsorted filesystem enumeration order used by `Directory.GetFiles`.
 - The engine then enumerates `Config.GetFiles(erbDir, "*.ERB")` for the “remaining” files and skips any absolute paths already loaded from the `*#*` phase.
 
 This ordering affects:
@@ -173,7 +173,7 @@ Macro expansion is disabled during early init and during ERH parsing.
 
 After ERH has been loaded, macro expansion is enabled only if at least one macro was defined.
 
-This is a real phase boundary: the same tokenization call behaves differently depending on whether `UseMacro` is enabled.
+This is a real phase boundary: if `UseMacro` is enabled, tokenization performs macro expansion; if it is disabled, the same tokenization call does not.
 
 ## ERB parse/build passes (function-level validation and linking)
 
@@ -358,13 +358,3 @@ Supported directives:
 - `[IF MACRO]` / `[ELSEIF MACRO]` / `[ELSE]` / `[ENDIF]`
 
 Semantics are described in `preprocessor-and-macros.md`, and the exact state machine is in the engine source.
-
-## Fact-check cross-refs (optional)
-
-- Initialization order: `emuera.em/Emuera/Runtime/Script/Process.cs`
-- Preload cache load (required for `OpenOnCache(...)`): `emuera.em/Emuera/UI/Game/EmueraConsole.cs`, `emuera.em/Emuera/Runtime/Utils/Preload.cs`
-- Directory paths: `emuera.em/Emuera/Program.cs`
-- Line reader: `emuera.em/Emuera/Runtime/Utils/EraStreamReader.cs`
-- ERB preprocessor state machine: `emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs`
-- Config loader: `emuera.em/Emuera/Runtime/Config/ConfigData.cs`, `emuera.em/Emuera/Runtime/Config/ConfigItem.cs`
-- JSON settings: `emuera.em/Emuera/Runtime/Config/JSON/JSONConfig.cs`

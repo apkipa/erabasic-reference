@@ -59,19 +59,20 @@ The lexer recognizes exactly these operator tokens for expressions:
 - Shifts: `<<` `>>`
 - Ternary: `?` and `#` (the separator is `#`, not `:`)
 
-Precedence is implemented by integer priority values. The effective precedence order is (high → low):
+Precedence is implemented by integer priority values plus a dedicated postfix-unary reduction step. The effective precedence order is (high → low):
 
-1) prefix unary: `+ - ! ~` (and the prefix forms of `++ --` when allowed)
-2) multiplicative: `* / %`
-3) additive: `+ -`
-4) shifts: `<< >>`
-5) comparisons: `< > <= >=`
-6) equality: `== !=`
-7) bitwise: `& ^ |` (note `^` is between `&` and `|`)
-8) logical: `&& || ^^ !& !|`
-9) ternary: `? ... # ...` (lowest)
+1) postfix unary: `++ --`
+2) prefix unary: `+ - ! ~` (and the prefix forms of `++ --` when allowed)
+3) multiplicative: `* / %`
+4) additive: `+ -`
+5) shifts: `<< >>`
+6) comparisons: `< > <= >=`
+7) equality: `== !=`
+8) bitwise: `& ^ |` (all three share one precedence level in this engine)
+9) logical: `&& || ^^ !& !|` (all five share one precedence level in this engine)
+10) ternary: `? ... # ...` (lowest)
 
-Associativity: operators with the same precedence behave as **left-associative** in this parser.
+Associativity: operators with the same precedence behave as **left-associative** in this parser. Postfix `++/--` bind before any pending prefix unary, so `-X++` parses as `-(X++)`.
 
 ## 3.1 Evaluation semantics (engine-accurate)
 
@@ -138,7 +139,7 @@ Where:
 
 ```ebnf
 unary
-  ::= { unary_op } postfix
+  ::= [ unary_op ] postfix
   ;
 
 unary_op ::= "+" | "-" | "!" | "~" | "++" | "--" ;
@@ -148,6 +149,7 @@ Notes:
 
 - `+` as unary on an integer is a no-op.
 - Unary operators apply only to integer operands. Applying them to strings is an error.
+- The parser accepts **at most one** prefix unary operator. Chains such as `!!X`, `-~X`, or `++--X` are rejected.
 - Prefix `++/--` require a non-const integer variable term and have side effects:
   - `++X` / `--X` yield the **new** value.
 
@@ -155,7 +157,7 @@ Notes:
 
 ```ebnf
 postfix
-  ::= primary { postfix_op }
+  ::= primary [ postfix_op ]
   ;
 
 postfix_op ::= "++" | "--" ;
@@ -164,8 +166,9 @@ postfix_op ::= "++" | "--" ;
 Constraints:
 
 - Postfix `++/--` are only valid on a **non-const variable term** of integer type.
-- The parser rejects multiple postfix unary operators on the same primary in some combinations (it tracks “duplicate increment/decrement” cases).
-  - `X++` / `X--` yield the **old** value.
+- The parser accepts **at most one** postfix `++/--` on a primary; forms such as `X++++` are rejected.
+- The parser also rejects combining prefix and postfix increment/decrement on the same primary (for example `++X++`).
+- `X++` / `X--` yield the **old** value.
 
 ### 4.4 Binary operator ladder
 
@@ -173,12 +176,10 @@ Constraints:
 mul   ::= unary { ("*" | "/" | "%") unary } ;
 add   ::= mul   { ("+" | "-") mul } ;
 shift ::= add   { ("<<" | ">>") add } ;
-rel   ::= shift { ("<" | "<=" | ">" | ">=") shift } ;
-eq    ::= rel   { ("==" | "!=") rel } ;
-band  ::= eq    { "&" eq } ;
-bxor  ::= band  { "^" band } ;
-bor   ::= bxor  { "|" bxor } ;
-land  ::= bor   { ("&&" | "||" | "^^" | "!&" | "!|") bor } ;
+rel     ::= shift   { ("<" | "<=" | ">" | ">=") shift } ;
+eq      ::= rel     { ("==" | "!=") rel } ;
+bitwise ::= eq      { ("&" | "^" | "|") eq } ;
+logic   ::= bitwise { ("&&" | "||" | "^^" | "!&" | "!|") bitwise } ;
 ```
 
 Type rules (as implemented):
@@ -196,7 +197,7 @@ Type rules (as implemented):
 expr ::= ternary ;
 
 ternary
-  ::= land [ "?" expr "#" expr ] ;
+  ::= logic [ "?" expr "#" expr ] ;
 ```
 
 Constraints (as implemented):
@@ -212,7 +213,7 @@ When the parser sees an identifier `IDENT`, it decides its meaning by the next t
 
 1) If followed by `(`, it is a **function call**: `IDENT "(" arglist ")"`.
 2) Otherwise it is a **variable term** *if* the identifier resolves to a variable token; if not, the parser tries:
-   - function-reference (some function/method names can be referenced), or
+   - function-reference (if the identifier resolves to a referenceable function/method name), or
    - a “named constant key” in the special context of variable `:` arguments, or
    - otherwise it errors (“cannot interpret identifier”).
 
@@ -248,7 +249,7 @@ Notes and constraints:
   - `@` is **not** an expression operator: it is recognized only in this specific spot while parsing a variable identifier.
     - Example: `(A+B)@X` is a parse error (“unexpected symbol `@`”) in expression-parsed contexts.
 - Omitted/implicit indices are part of variable-term construction (argument inference):
-  - For non-character **1D** arrays, omitting the index makes it `:0` (except `RAND`, which can reject omission depending on config).
+  - For non-character **1D** arrays, omitting the index makes it `:0`; for `RAND`, this is accepted only when `CompatiRAND=YES`, and otherwise omission errors.
   - For character-data **1D** arrays, a single written index is treated as the element index and the character selector defaults to `TARGET` (when `SystemNoTarget=NO`); selecting a specific character requires writing both indices.
   - For **2D/3D** arrays, omitting required indices can produce a “no-arg variable term” that throws a “missing variable argument” error if evaluated as a value.
 - In a `var_arg` position, the parser may accept a **bare identifier** as a string key (e.g. `ABL:Skill`) *only if* that identifier does not resolve to a variable/function name and is a known key for that table/variable.
@@ -293,28 +294,28 @@ Notable rule:
 
 This section is **not** part of EraBasic’s expression *syntax*. It is an Emuera implementation note that helps explain how Emuera realizes the grammar and where certain “expression work” happens (parse time vs runtime).
 
-### 8.1 Parse time: “operator-precedence stack” → `AExpression` tree
+### 8.1 Parse time: operator-precedence reduction → expression tree
 
-Emuera does **not** parse expressions by directly constructing EBNF productions. Instead, the parser reads a `WordCollection` token stream and incrementally reduces it using an internal stack:
+Emuera does **not** parse expressions by directly constructing EBNF productions. Instead, the parser reads a token stream and incrementally reduces it using an internal precedence stack:
 
-- The parser’s main entrypoint (`reduceTerm(...)`) maintains a `TermStack`.
-- `TermStack` contains a `Stack<object>` holding a mix of:
-  - operator markers (`OperatorCode`), and
-  - partially-built expression nodes (`AExpression` and subclasses).
+- The parser maintains a working stack for operators and partially built subexpressions.
+- That working stack holds a mix of:
+  - operator markers, and
+  - partially built expression nodes.
 - When an operator is encountered, the parser compares precedence to the stack top and reduces prior operators first (left-associative behavior for same precedence).
-- Reduction creates new `AExpression` nodes:
+- Reduction creates new expression-tree nodes:
   - unary operator + operand → new expression node
   - binary operator + left/right → new expression node
   - ternary `? ... # ...` reduces into a ternary expression node
 
-Conceptually, this is similar to a shunting-yard / operator-precedence reduction approach. The key point is that the “stack” here is a **parsing** data structure used to build an `AExpression` tree.
+Conceptually, this is similar to a shunting-yard / operator-precedence reduction approach. The key point is that the “stack” here is a **parsing** data structure used to build an expression tree.
 
 ### 8.2 Runtime: AST evaluation (host call stack), not a stack-bytecode VM
 
 Once parsed, the engine evaluates expressions primarily by recursively calling virtual methods on the expression tree:
 
-- Numeric evaluation calls `AExpression.GetIntValue(exm)`.
-- String evaluation calls `AExpression.GetStrValue(exm)`.
+- Numeric evaluation dispatches to the expression tree's numeric-evaluation path.
+- String evaluation dispatches to the expression tree's string-evaluation path.
 
 Intermediate results flow through the host language’s call stack and locals; Emuera does **not** run expressions by interpreting a separate “operand stack bytecode” representation.
 
@@ -322,11 +323,3 @@ This matters when comparing execution models:
 
 - a fine-grained stack-bytecode VM must frequently materialize intermediate values into a VM value stack between tiny steps
 - Emuera’s AST model computes many intermediate values directly as local temporaries within C# methods
-
-## Fact-check cross-refs (optional)
-
-- Lexer/tokenization + macro expansion: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`
-- Operator set + precedence constants: `emuera.em/Emuera/Runtime/Script/Statements/Expression/OperatorCode.cs`
-- Expression parser core: `emuera.em/Emuera/Runtime/Script/Statements/Expression/ExpressionParser.cs`
-- Type rules for operators: `emuera.em/Emuera/Runtime/Script/Statements/Expression/OperatorMethod.cs`
-- Variable parsing via `:`: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableParser.cs`

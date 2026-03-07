@@ -127,7 +127,7 @@ In other words, transparency in the hit map is binary for selection purposes:
 
 ### 4.3 CBG hit-testing takes pointer-selection precedence
 
-When the current mouse position hits an active CBG-map pixel, the host treats that as the current pointer-side CBG selection **before** it tries to select ordinary output buttons at that point.
+When the current mouse position hits an active CBG-map pixel, the host treats that as the current pointer-side CBG selection **before** it selects ordinary output buttons at that point.
 
 Observable consequence:
 
@@ -201,7 +201,7 @@ Therefore:
 Host-mode quirk:
 
 - on this host, ordinary CBG painting is performed only on the non-`WINAPI` text-drawing path,
-- so methods that do not themselves reject `WINAPI` can still mutate stored CBG state there without producing normal visible CBG painting.
+- so methods that do not themselves reject `WINAPI` still mutate stored CBG state there without producing normal visible CBG painting.
 
 ### 7.2 `CBG` buttons are not ordinary output buttons
 

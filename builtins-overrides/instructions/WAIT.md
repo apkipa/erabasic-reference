@@ -1,5 +1,5 @@
 **Summary**
-- Waits for the user to press Enter (or click, depending on the UI), then continues.
+- Waits for a confirmation event, then continues.
 
 **Tags**
 - io

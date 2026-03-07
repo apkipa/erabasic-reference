@@ -13,7 +13,7 @@ Nothing in this folder should be treated as “more normative” than the spec-f
 
 This folder is intentionally treated as **generated/derived and/or legacy**:
 
-- `tooling/` is **tooling-derived output** (indexes, metadata) and should generally be updated by regenerating it from sources, not by hand-editing.
+- `tooling/` is **tooling-derived output** (indexes, metadata) and should be updated by regenerating it from sources, not by hand-editing.
 - `implementation/` currently contains **legacy stubs** kept to avoid breaking older links.
 
 If you add new reference content, **do not put it in `appendix/`**. Add it to the main reference in the repository root (or another clearly non-appendix location) so the core reference remains discoverable and stable.

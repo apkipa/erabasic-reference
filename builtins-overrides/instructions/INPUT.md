@@ -10,7 +10,7 @@
 **Arguments**
 - `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable **normal-output button** can still submit its value as `INPUT` even when this argument is omitted or `0`.
+  - Clicking a selectable **normal-output button** also submits its value as `INPUT` even when this argument is omitted or `0`.
   - If non-zero, the UI additionally writes the mouse side-channel metadata described below.
   - `0`: accepted integer values on the normal completion path are written to `RESULT`.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).

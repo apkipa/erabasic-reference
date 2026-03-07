@@ -1,6 +1,6 @@
 # EraBasic Built-ins Index (by tag)
 
-Generated on `2026-03-07`.
+Generated on `2026-03-08`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `builtins-index.md` by hand.

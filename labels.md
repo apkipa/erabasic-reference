@@ -129,9 +129,7 @@ So “first-defined” means the earliest according to that ordering.
 ### 4.2 Normal (non-event) functions
 
 - The engine chooses the **first-defined** definition as the callable target for `CALL @NAME` / `JUMP @NAME`.
-- Later definitions with the same name are ignored for normal calls (but can still produce warnings depending on config).
-
-If `WarnNormalFunctionOverloading=YES` (or in analysis mode), the loader emits a warning when a non-event function name is defined more than once.
+- Later definitions with the same name are ignored for normal calls. If `WarnNormalFunctionOverloading=YES` (or analysis mode is active), the loader still emits a warning when a non-event function name is defined more than once.
 
 ### 4.3 Event functions: grouping by `#` attributes
 
@@ -174,10 +172,3 @@ Consequences:
 - The same `$NAME` can be used in different functions without conflict.
 - Defining the same `$NAME` twice within the same function emits a warning (level 2) and keeps the first-defined label as the target.
 - `$` labels are parsed as identifiers; if extra tokens follow `$NAME` on the same line, the engine warns that the label “has arguments”.
-
-## Fact-check cross-refs (optional)
-
-- Label name validation: `emuera.em/Emuera/Runtime/Script/Data/IdentifierDictionary.cs` (`CheckUserLabelName`)
-- Label storage and grouping: `emuera.em/Emuera/Runtime/Script/Data/LabelDictionary.cs`
-- Event label name lists: `emuera.em/Emuera/Runtime/Script/Data/IdentifierDictionary.cs` (`IsEventLabelName`, `IsSystemLabelName`)
-- Duplicate label warnings during load: `emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs`

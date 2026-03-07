@@ -13,7 +13,7 @@
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time.
 - `<timeoutMessage>` (optional, string; default `TimeupLabel`): timeout message.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
-  - Clicking a selectable **normal-output button** can still submit its string as `TINPUTS` even when this argument is `0` or omitted.
+  - Clicking a selectable **normal-output button** also submits its string as `TINPUTS` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
 
 **Semantics**

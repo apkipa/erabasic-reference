@@ -18,7 +18,7 @@
 
 **Arguments**
 - LHS must be a **single variable term** (not an arbitrary expression), and must not be `CONST`.
-- RHS is parsed in one of multiple modes depending on operator and LHS type:
+- RHS parsing mode is determined by the operator and LHS type:
   - int LHS: RHS is parsed as normal expressions.
   - string LHS with `=`: RHS is scanned as a formatted string until end-of-line.
   - string LHS with `'=` / `+=` / `*=`: RHS is parsed as normal expressions.
@@ -29,11 +29,15 @@
 - Assignment operator recognition:
   - The engine recognizes: `=`, `'=`; `++`, `--`; and compound forms `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `|=`, `&=`, `^=`.
 - Allowed operators depend on LHS type:
-  - int LHS: all the above operators are accepted by the assignment builder.
-  - string LHS: only `=`, `'=` (string-expression assignment), `+=`, `*=` are accepted; other compound operators are rejected as invalid.
+  - int LHS: accepts `=`, `++`, `--`, and the integer compound operators `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `|=`, `&=`, `^=`. The string-assignment operator `'=` is rejected.
+  - string LHS: accepts `=` (FORM assignment), `'=` (string-expression assignment), `+=` (string concatenation), and `*=` (string repetition). Other compound operators are rejected as invalid.
 - If the RHS is a single value:
   - `=` assigns that value.
   - For compound assignment operators, the resulting value is the same as `LHS = (LHS <op> RHS)` (using the operator implied by the compound form).
+- String-typed operator constraints:
+  - `strVar '= expr` requires each RHS expression to be string-typed.
+  - `strVar += expr` requires the RHS expression to be string-typed.
+  - `strVar *= expr` requires the RHS expression to be int-typed.
 - Index evaluation and side effects (important compatibility detail):
   - For `++`, `--`, `+= <const int>`, `-= <const int>`: the LHS variable term (including indices/subscripts) is evaluated once.
   - For other compound assignments: the LHS variable term is evaluated twice (once to read the old value, and once to write the new value), so any side effects in indices can run twice.
@@ -47,8 +51,8 @@
 **Errors & validation**
 - Parse-time errors:
   - If the line does not contain a recognized assignment operator, it becomes an invalid line at load/parse time.
-- Errors if LHS cannot be read as a single variable term, if LHS is const, or if operator is incompatible with the LHS type.
-- Errors if assigning string→int or int→string in contexts that disallow it.
+- Errors if LHS cannot be read as a single variable term, if LHS is const, or if operator is incompatible with the LHS type (for example, `intVar '= expr`).
+- Errors if assigning string→int or int→string in contexts that disallow it (for example, `intVar = "x"`, `strVar '= 1`, `strVar += 1`, or `strVar *= "x"`).
 - If `SystemIgnoreStringSet` is enabled, string `=` assignment is rejected (scripts must use `'=` or other operations).
   - Note: this check happens when the assignment line’s argument is parsed (by default: when the line is first reached at runtime).
 

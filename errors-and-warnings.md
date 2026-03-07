@@ -9,7 +9,7 @@ Terminology used in this reference:
 - **Warning**: a diagnostic message recorded during config/script loading or analysis. Warnings do not necessarily stop loading.
 - **Error line**: a parsed line object that is marked as invalid for execution (`line.IsError == true`) and will throw if reached at runtime.
 - **Invalid line**: a line that could not be parsed into a meaningful statement object; it is represented by a distinct `InvalidLine`/`InvalidLabelLine` object and is always an error line.
-- **Exception error**: a thrown exception (`CodeEE`, `ExeEE`, etc.) that aborts the current load phase or current runtime execution step, depending on where it is caught.
+- **Exception error**: a thrown exception (`CodeEE`, `ExeEE`, etc.). At the boundary where it escapes, it aborts that current load phase or runtime execution step.
 
 ## 1) Warning levels and filtering
 
@@ -25,7 +25,7 @@ The engine’s internal comment describes the intended meaning as:
 - `2`: may be harmful if the line is executed; many parse-time “invalid line” reports use this level
 - `3`: fatal
 
-Some warnings are additionally gated by `WarnBackCompatibility` (back-compat warnings can be suppressed even if the level passes).
+Back-compat warnings are additionally gated by `WarnBackCompatibility` (they can be suppressed even if the level passes).
 
 ## 2) How warnings are collected and printed
 
@@ -110,7 +110,7 @@ EraBasic itself does not define a standard source-location format, but Emuera do
 - Locations are stored as a `(Filename, LineNo)` pair (`ScriptPosition`) without any column.
 - Some preprocessing steps (notably `{ ... }` line concatenation and `[[...]]` rename replacement) can make the reported line number differ from where the “meaningful” text appears in the original file.
 
-For the engine-accurate behavior (including `{...}` blocks typically reporting the closing `}` line), see:
+For the engine-accurate behavior (including `{...}` blocks reporting the closing `}` line as their logical-line position), see:
 
 - `source-position-mapping.md`
 
@@ -129,8 +129,3 @@ At the “begin title” boundary, this codebase checks only the loader flag:
 Important limitation:
 
 - `CompatiErrorLine` does not guarantee that scripts with error lines are safe to run. If execution reaches an error line, the interpreter still throws `CodeEE`.
-
-## Fact-check cross-refs (optional)
-
-- Warning collection/filtering/levels: `emuera.em/Emuera/Runtime/Script/Data/ParserMediator.cs`
-- Config key definition: `emuera.em/Emuera/Runtime/Config/ConfigData.cs` (`DisplayWarningLevel`)

@@ -234,7 +234,6 @@ Coverage target (core-compat requirements):
 Where described today:
 
 - 🟡 `system-flow.md` (system phases, entry points, and phase-entry resets)
-- Fact-check reference (external to this reference): `../emuera.em.doc/docs/Emuera/system_flow.en.md` (and EraMaker comparison pages).
 
 ## 11) Built-in commands/functions
 

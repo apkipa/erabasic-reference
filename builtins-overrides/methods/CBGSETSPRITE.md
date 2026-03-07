@@ -19,7 +19,7 @@
 
 **Semantics**
 - Looks up `<spriteName>` in the sprite table and, if it exists and is created, adds that sprite to the client-background layer at `(<x>, <y>, zDepth)`.
-- If `<spriteName>` is `""`, lookup still runs normally against that supplied empty name; in practice that lookup fails, so the call returns `0`.
+- If `<spriteName>` is `""`, the same lookup path is used against that supplied empty name; in the current implementation this returns `0`.
 - The registered entry holds a **live reference** to that sprite object rather than a copied snapshot.
   - Later mutation/disposal of that same sprite object changes later CBG rendering for this entry.
 - Host-mode quirk:

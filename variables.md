@@ -79,7 +79,7 @@ This difference is observable:
 
 Practical reading tip:
 
-- “Ignored tail” can mean two different things depending on how the built-in parses arguments:
+- There are two distinct “ignored tail” models:
   - **Identifier-only** parsing (like `VARSIZE <name>`): the tail is not parsed at all (it may contain arbitrary characters), and it is not evaluated.
   - **Compatibility tail** parsing (like `GOTO LABEL, expr...`): the tail must still be syntactically valid according to expression grammar, but the engine does not evaluate it (no side effects).
 
@@ -177,7 +177,7 @@ For **character data** arrays, the first index is the character selector, but th
 
 ### Out-of-range behavior (engine-accurate)
 
-In batch assignment, bounds behavior differs depending on *what* is out of range:
+In batch assignment, bounds behavior splits into two cases:
 
 - If any *provided* index is out of range (e.g. `i < 0`, `i >= len`), the engine throws the same “index out of range” error family as normal indexing.
 - If the starting indices are valid but the write runs past the end of the last dimension (e.g. `i + count > len`), the engine throws a generic “assign out of range” error for that variable (rather than reporting the specific failing element).
@@ -196,7 +196,7 @@ Dynamic string expressions can be used with parentheses:
 Notes:
 
 - You can also write quoted names (e.g. `ABL:"Skill"`). This is still “name indexing”, not a general string expression.
-- If you omit parentheses, a bare name can be ambiguous with a variable name. In ambiguous cases, the engine may prefer the variable interpretation.
+- If you omit parentheses, a bare name is first resolved as a normal identifier/variable/function token. It becomes a string-key name only if that normal resolution does not win and the identifier is accepted as a known key in that variable-key context.
 - If the “name” looks like a number, it may be interpreted as a numeric index instead of a CSV name.
 
 ## Argument inference rules for character variables (engine-accurate)
@@ -230,7 +230,7 @@ Expected final args: 1 argument: `[chara]`.
 - If args omitted and `SystemNoTarget` is `false`: `chara` defaults to `TARGET`.
 - If you provide more than 1 argument: error.
 - If you provide no chara argument while `SystemNoTarget` is `true`: error (the only exception is “args omitted” which becomes the no-arg term).
-  - The no-arg term is not lazily completed later: built-ins do not implicitly substitute `TARGET` when they attempt to read indices from it.
+  - The no-arg term is not lazily completed later: built-ins do not implicitly substitute `TARGET` when they read indices from it.
 
 ### 1D character variables (per-character arrays)
 
@@ -489,7 +489,7 @@ In `*.ERH` you can declare global variables used from any ERB:
 Header-scope keywords (engine-accurate):
 
 - `SAVEDATA` — marks the variable as belonging to normal save data.
-- `GLOBAL` — marks the variable as belonging to “global” storage (separate from normal save-load; in practice this storage is persisted through the dedicated global-save paths rather than normal save slots).
+- `GLOBAL` — marks the variable as belonging to “global” storage (separate from normal save-load; this storage is persisted through the dedicated global-save paths rather than normal save slots).
 - `CHARADATA` — per-character storage (creates a character-data variable).
 
 Header constraints:
@@ -607,13 +607,3 @@ When loading from disk, this codebase clears only the corresponding EM extension
 
 - Normal slot load (`LoadFrom(...)`) clears only the “save” partition (`RemoveEMSaveData()`).
 - Global load (`LoadGlobal()`) clears only the “global-save” partition (`RemoveEMGlobalData()`), and does not clear the “static” partition.
-
-## Fact-check cross-refs (optional)
-
-Primary sources used:
-
-- Declaration parsing + keyword constraints: `emuera.em/Emuera/Runtime/Script/Data/UserDefinedVariable.cs`
-- Name validity/conflict rules: `emuera.em/Emuera/Runtime/Script/Data/IdentifierDictionary.cs`
-- Private scope allocation model: `emuera.em/Emuera/Runtime/Script/Statements/LogicalLine.cs`, `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableToken.cs`
-- Storage partitioning + reset operations: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableData.cs`, `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableEvaluator.cs`
-- Character-data allocation for `CHARADATA`: `emuera.em/Emuera/Runtime/Script/Statements/Variable/CharacterData.cs`

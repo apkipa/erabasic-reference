@@ -77,7 +77,7 @@ A **temporary line** is a currently retained normal logical line with overwrite-
 Shared properties:
 
 - `REUSELASTLINE` creates a temporary line.
-- While retained, a temporary line participates in the normal output model: line-oriented APIs can still see/count it.
+- While retained, a temporary line participates in the normal output model: line-oriented APIs still see/count it.
 - The next operation that appends a new normal visible display line first removes the trailing temporary line, then appends the new line(s).
 - Merely appending more content to the pending print buffer does **not** remove the trailing temporary line, because no new normal visible line has been appended yet.
 
@@ -256,7 +256,7 @@ Observable consequence:
 
 - typed/button-value acceptance is value-based: if at least one selectable button in the active generation matches the submitted value, the wait can accept it,
 - the script cannot distinguish between multiple same-value buttons by typed submission alone,
-- mouse completion can still distinguish by the clicked region and its side-channel data.
+- mouse completion still distinguishes by the clicked region and its side-channel data.
 
 ## 7) HTML-island model
 

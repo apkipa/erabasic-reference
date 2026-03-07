@@ -104,8 +104,6 @@ Consequences:
 - Identifiers cannot contain `-` or `.` in this engine (both are delimiters).
 - The reader does not skip whitespace automatically; callers that allow whitespace must skip it explicitly.
 
-Fact-check cross-ref (optional): `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`.
-
 ## Numeric literals
 
 Supported constant notations include:
@@ -186,7 +184,7 @@ The lexer recognizes these operator tokens in expressions (see `expression-gramm
 
 When parsing assignments, the engine scans for these assignment operators:
 
-- `=` (numeric or string, depending on LHS variable type and context)
+- `=` (numeric or string; the concrete assignment type is determined by the LHS variable type and context)
 - `'+= -= *= /= %= <<= >>= &= |= ^=` (compound assignments)
 - `'=` (string-only assignment operator token; see `expressions.md` for how string assignment is parsed)
 - `++` / `--` are also recognized in assignment/operator scan contexts

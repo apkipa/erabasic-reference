@@ -13,7 +13,8 @@ At runtime, the console can enter a **wait state**. While in that state, normal 
 
 Observable request classes are:
 
-- **Value waits**: expect a value and usually assign `RESULT` / `RESULTS`.
+- **Value waits**: expect a value as the wait result.
+  - Per-instruction docs define whether the accepted value is written to `RESULT` / `RESULTS`, another destination, or no implicit destination.
   - Examples: `INPUT`, `INPUTS`, `TINPUT*`, `BINPUT*`, `INPUTANY`, and their `ONE*` variants.
 - **Confirmation waits**: wait for Enter/any-key/click style confirmation and do not assign `RESULT*`.
   - Examples: `WAIT`, `WAITANYKEY`, `FORCEWAIT`, and `TWAIT` in its confirmation mode.
@@ -164,8 +165,8 @@ Observable rules for this class:
 - the wait remains active for its timer/host-controlled duration,
 - ordinary keyboard/textbox submission does not satisfy it,
 - mouse/button text selection is likewise not treated as submitted input for that wait,
-- it can still be passed by timeout,
-- it can also be bypassed by the same skip/macro-driven continuation rules that apply to other non-value waits.
+- timeout can satisfy it,
+- the same skip/macro-driven continuation rules that apply to other non-value waits can also bypass it.
 
 In other words, this class participates in the wait-state lifecycle, but not in the textbox/button acceptance model.
 
@@ -331,7 +332,7 @@ This shared flow feeds several observable acceptance models:
 - **integer value waits**: accept only valid integer text (or an instruction-defined default path), otherwise reject and keep waiting,
 - **string value waits**: accept submitted text as a string, with instruction-defined empty/default rules,
 - **button waits**: accept only text/value that matches a currently selectable button,
-- **any-value waits**: accept either an integer or a string depending on parse success,
+- **any-value waits**: accept an integer if the submitted text parses as one; otherwise accept a string,
 - **confirmation waits**: accept the confirmation event and continue without assigning `RESULT*`,
 - **no-input waits**: do not accept submitted textbox/button text at all; they continue only when their own wait condition is satisfied,
 - **primitive event waits**: bypass the textbox/button submission model entirely.

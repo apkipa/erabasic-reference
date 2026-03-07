@@ -369,7 +369,7 @@ Which variables are included (engine behavior):
 
 ```text
 Global
-uniqueCode, version, saveText(typically "")
+uniqueCode, version, saveText("")
 GlobalVariablesBinary
 EOF
 OptionalEmGlobalExtensionVariablesBinary
@@ -407,16 +407,16 @@ EOF
 
 ## 4) Legacy text save format (EraDataStream)
 
-When `SystemSaveInBinary=NO`, the engine writes `saveN.sav` and `global.sav` using a line-based legacy format (and it can still read it even when binary saves are enabled).
+When `SystemSaveInBinary=NO`, the engine writes `saveN.sav` and `global.sav` using a line-based legacy format. That format remains loadable even when binary saves are enabled, because the loader first checks for a valid EraBinaryData header and otherwise falls back to this text parser.
 
 The loader’s detection rule is:
 
 - If the file begins with a valid EraBinaryData header (magic + version), it is treated as binary.
-- Otherwise, the engine attempts to parse it as this legacy text format.
+- Otherwise, the engine dispatches the file to this legacy text parser.
 
 Engine quirk:
 
-- If a file has the EraBinaryData magic but an **unknown binary version**, the binary reader creation fails and the engine falls back to attempting text parsing (which will typically fail). A compatible reimplementation should mirror this behavior if “bit-for-bit compatibility” with Emuera’s error handling is desired.
+- If a file has the EraBinaryData magic but an **unknown binary version**, the binary reader creation fails and the engine still falls back to attempting text parsing instead of rejecting the file at the version check boundary. A compatible reimplementation should mirror that fallback attempt if “bit-for-bit compatibility” with Emuera’s error handling is desired.
 
 ### 4.1 Text encoding
 
@@ -551,12 +551,3 @@ The text reader recognizes multiple Emuera extension markers:
 - `__EMUERA_1808_STRAT__`
 
 and uses the marker to decide which extended sections are present and supported.
-
-## Fact-check cross-refs (optional)
-
-- Save slot paths and `.dat` paths: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableEvaluator.cs`
-- `SavDir` / `UseSaveFolder`: `emuera.em/Emuera/Runtime/Config/Config.cs`
-- Base directory layout (`CsvDir/ErbDir/DatDir`): `emuera.em/Emuera/Program.cs`
-- Binary reader/writer and tokens: `emuera.em/Emuera/Runtime/Utils/EraBinaryDataReader.cs`, `emuera.em/Emuera/Runtime/Utils/EraBinaryDataWriter.cs`
-- Legacy text reader/writer and extended sections: `emuera.em/Emuera/Runtime/Utils/EraDataStream.cs`
-- EM extension key sets (`VarExt*.csv`): `emuera.em/Emuera/Runtime/Script/Data/ConstantData.cs`
