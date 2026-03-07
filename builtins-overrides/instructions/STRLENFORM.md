@@ -8,7 +8,7 @@
 - `STRLENFORM [<formString>]`
 
 **Arguments**
-- `<formString>` (optional, default `""`): FORM/formatted string expression (supports `%...%` and `{...}`).
+- `<formString>` (optional, FORM/formatted string; default `""`): its evaluated result is measured; supports `%...%` and `{...}`.
 
 
 **Semantics**

@@ -10,7 +10,7 @@
   - `NEXT`
 
 **Arguments**
-- `<intVarTerm>`: changeable integer variable term (must not be character-data).
+- `<intVarTerm>` (changeable integer variable term): loop counter; must not be character-data.
 - `<start>` (optional, int; default `0`): initial counter value.
 - `<end>` (int): loop bound (exclusive).
 - `<step>` (optional, int; default `1`): increment applied at `NEXT` time.

@@ -12,7 +12,7 @@
 - `returnPixel` is treated as “false” only when it is exactly `0`; any non-zero value selects pixel return.
 
 **Arguments**
-- `html`: string expression interpreted as an HTML string.
+- `html` (string): HTML string.
 - `returnPixel` (optional, int; default `0`)
   - `0` (default): return in half-width character units.
   - non-zero: return in pixels.

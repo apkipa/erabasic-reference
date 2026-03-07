@@ -10,7 +10,7 @@
 **Arguments**
 - `<name>` (string): intended file name component.
 - `<saveText>` (string): intended description text.
-- `<var*>`: one or more changeable non-character variable terms (arrays are allowed; several variable categories are rejected).
+- `<var*>` (one or more changeable non-character variable terms): arrays are allowed; several variable categories are rejected.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.

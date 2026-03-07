@@ -9,7 +9,7 @@
 - `PRINTPLAINFORM <FORM string>`
 
 **Arguments**
-- `<FORM string>`: a FORM argument scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
+- `<FORM string>` (optional, FORM/formatted string; default `""`): scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).

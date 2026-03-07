@@ -28,6 +28,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 ## calls
 
 - [`CALL`](builtins-reference.md#call-instruction) (instruction)
+- [`CALLEVENT`](builtins-reference.md#callevent-instruction) (instruction)
 - [`CALLF`](builtins-reference.md#callf-instruction) (instruction)
 - [`CALLFORM`](builtins-reference.md#callform-instruction) (instruction)
 - [`CALLFORMF`](builtins-reference.md#callformf-instruction) (instruction)
@@ -65,13 +66,16 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`ADDVOIDCHARA`](builtins-reference.md#addvoidchara-instruction) (instruction)
 - [`COPYCHARA`](builtins-reference.md#copychara-instruction) (instruction)
 - [`CUPCHECK`](builtins-reference.md#cupcheck-instruction) (instruction)
+- [`DELALLCHARA`](builtins-reference.md#delallchara-instruction) (instruction)
 - [`DELCHARA`](builtins-reference.md#delchara-instruction) (instruction)
 - [`LOADCHARA`](builtins-reference.md#loadchara-instruction) (instruction)
+- [`PICKUPCHARA`](builtins-reference.md#pickupchara-instruction) (instruction)
 - [`PRINT_ABL`](builtins-reference.md#print_abl-instruction) (instruction)
 - [`PRINT_EXP`](builtins-reference.md#print_exp-instruction) (instruction)
 - [`PRINT_MARK`](builtins-reference.md#print_mark-instruction) (instruction)
 - [`PRINT_PALAM`](builtins-reference.md#print_palam-instruction) (instruction)
 - [`PRINT_TALENT`](builtins-reference.md#print_talent-instruction) (instruction)
+- [`RESET_STAIN`](builtins-reference.md#reset_stain-instruction) (instruction)
 - [`SAVECHARA`](builtins-reference.md#savechara-instruction) (instruction)
 - [`SORTCHARA`](builtins-reference.md#sortchara-instruction) (instruction)
 - [`SWAPCHARA`](builtins-reference.md#swapchara-instruction) (instruction)
@@ -118,6 +122,10 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`WEND`](builtins-reference.md#wend-instruction) (instruction)
 - [`WHILE`](builtins-reference.md#while-instruction) (instruction)
 
+## data
+
+- [`DT_COLUMN_OPTIONS`](builtins-reference.md#dt_column_options-instruction) (instruction)
+
 ## data-blocks
 
 - [`DATA`](builtins-reference.md#data-instruction) (instruction)
@@ -138,11 +146,13 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## debug
 
+- [`ASSERT`](builtins-reference.md#assert-instruction) (instruction)
 - [`DEBUGCLEAR`](builtins-reference.md#debugclear-instruction) (instruction)
 - [`DEBUGPRINT`](builtins-reference.md#debugprint-instruction) (instruction)
 - [`DEBUGPRINTFORM`](builtins-reference.md#debugprintform-instruction) (instruction)
 - [`DEBUGPRINTFORML`](builtins-reference.md#debugprintforml-instruction) (instruction)
 - [`DEBUGPRINTL`](builtins-reference.md#debugprintl-instruction) (instruction)
+- [`THROW`](builtins-reference.md#throw-instruction) (instruction)
 
 ## error-handling
 
@@ -153,6 +163,10 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`GCREATEFROMFILE`](builtins-reference.md#gcreatefromfile-expression-function) (method)
 - [`OUTPUTLOG`](builtins-reference.md#outputlog-expression-function) (method)
+
+## flow
+
+- [`RESTART`](builtins-reference.md#restart-instruction) (instruction)
 
 ## formatting
 
@@ -350,7 +364,10 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## math
 
+- [`CLEARBIT`](builtins-reference.md#clearbit-instruction) (instruction)
+- [`INVERTBIT`](builtins-reference.md#invertbit-instruction) (instruction)
 - [`POWER`](builtins-reference.md#power-instruction) (instruction)
+- [`SETBIT`](builtins-reference.md#setbit-instruction) (instruction)
 - [`TIMES`](builtins-reference.md#times-instruction) (instruction)
 - [`ABS`](builtins-reference.md#abs-expression-function) (method)
 - [`ALLSAMES`](builtins-reference.md#allsames-expression-function) (method)
@@ -454,6 +471,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## text
 
+- [`FORCEKANA`](builtins-reference.md#forcekana-instruction) (instruction)
 - [`SPLIT`](builtins-reference.md#split-instruction) (instruction)
 - [`STRLEN`](builtins-reference.md#strlen-instruction) (instruction)
 - [`STRLENFORM`](builtins-reference.md#strlenform-instruction) (instruction)
@@ -554,9 +572,13 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## variables
 
+- [`CVARSET`](builtins-reference.md#cvarset-instruction) (instruction)
 - [`REF`](builtins-reference.md#ref-instruction) (instruction)
 - [`REFBYNAME`](builtins-reference.md#refbyname-instruction) (instruction)
 - [`SET`](builtins-reference.md#set-instruction) (instruction)
 - [`SWAP`](builtins-reference.md#swap-instruction) (instruction)
+- [`VARI`](builtins-reference.md#vari-instruction) (instruction)
+- [`VARS`](builtins-reference.md#vars-instruction) (instruction)
+- [`VARSET`](builtins-reference.md#varset-instruction) (instruction)
 - [`VARSIZE`](builtins-reference.md#varsize-instruction) (instruction)
 - [`VARSIZE`](builtins-reference.md#varsize-expression-function) (method)

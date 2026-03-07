@@ -12,7 +12,7 @@
 - `TOINT(str)` → `long`
 
 **Arguments**
-- `str`: string expression.
+- `str` (string): input string to parse.
 
 **Semantics**
 - Returns `0` if `str` is `null` or `""`.

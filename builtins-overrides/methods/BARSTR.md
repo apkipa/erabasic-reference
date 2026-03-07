@@ -11,9 +11,9 @@
 - `BARSTR(value, maxValue, length)` → `string`
 
 **Arguments**
-- `value`: int expression (numerator).
-- `maxValue`: int expression (denominator); must evaluate to `> 0`.
-- `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
+- `value` (int): numerator.
+- `maxValue` (int): denominator; must evaluate to `> 0`.
+- `length` (int): bar width; must satisfy `1 <= length <= 99`.
 
 **Semantics**
 - Produces:

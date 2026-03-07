@@ -9,8 +9,8 @@
 
 **Arguments**
 - `<html>` (string): HTML string.
-- `<outParts>` (optional; default `RESULTS`): changeable 1D **non-character** string array variable to receive parts.
-- `<outCount>` (optional; default `RESULT`): changeable integer variable to receive the part count.
+- `<outParts>` (optional, changeable 1D non-character string array variable term; default `RESULTS`): receives the split parts.
+- `<outCount>` (optional, changeable integer variable term; default `RESULT`): receives the part count.
 
 **Semantics**
 - Interprets `<html>` as an HTML string and splits it by scanning for `<...>` regions:

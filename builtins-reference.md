@@ -133,7 +133,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINT;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - `<raw text>` is taken as the raw character sequence after the instruction delimiter.
 - The parser consumes exactly one delimiter character after the keyword:
   - a single space / tab
@@ -202,7 +202,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTL;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -228,7 +228,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTW;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -574,7 +574,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTK;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -600,7 +600,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTKL;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -627,7 +627,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTKW;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -986,7 +986,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTD;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1012,7 +1012,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTDL;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1039,7 +1039,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTDW;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1398,7 +1398,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLE;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1542,7 +1542,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLEK;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1691,7 +1691,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTSINGLED;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1840,7 +1840,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTC;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - If the resulting text is empty, nothing is appended.
 - Output is converted to a fixed-width “cell” string (see below).
 
@@ -1877,7 +1877,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLC;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - If the resulting text is empty, nothing is appended.
 - Output is converted to a fixed-width “cell” string (see below).
 
@@ -1972,7 +1972,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTCK;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
@@ -2001,7 +2001,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLCK;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
@@ -2090,7 +2090,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTCD;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
@@ -2119,7 +2119,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `PRINTLCD;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
@@ -2213,7 +2213,7 @@ In statement form, the engine evaluates the function and writes the return value
   - `ENDDATA`
 
 **Arguments**
-- Optional `<intVarTerm>`: a changeable int variable term that receives the 0-based chosen index.
+- `<intVarTerm>` (optional, changeable int variable term): receives the 0-based chosen index.
 
 **Semantics**
 - Load-time structure rules (enforced by the loader):
@@ -2500,8 +2500,8 @@ ENDDATA
 - `PRINTBUTTON <text>, <buttonValue>`
 
 **Arguments**
-- `<text>` (string expression): label shown in the output.
-- `<buttonValue>` (int or string expression): value associated with the button.
+- `<text>` (string): label shown in the output.
+- `<buttonValue>` (int or string): value associated with the button.
   - Integer values are accepted by integer button waits (`BINPUT` / `ONEBINPUT`).
   - String values are accepted by string button waits (`BINPUTS` / `ONEBINPUTS`).
 
@@ -2611,7 +2611,7 @@ INPUT
 - `PRINTPLAIN <raw text>`
 
 **Arguments**
-- `<raw text>`: the literal remainder of the line (not a string expression).
+- `<raw text>` (optional, raw text; default `""`): the literal remainder of the line; not an expression.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -2643,7 +2643,7 @@ PRINTL
 - `PRINTPLAINFORM <FORM string>`
 
 **Arguments**
-- `<FORM string>`: a FORM argument scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
+- `<FORM string>` (optional, FORM/formatted string; default `""`): scanned by the FORM analyzer (supports `%...%` and `{...}` placeholders).
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -2885,16 +2885,16 @@ PRINT_PALAM TARGET
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
-- Builds a Japanese summary string `s` as follows:
+- Builds a summary string `s` as follows:
   - Let `count[]` be the integer array `ITEM`.
   - Let `names[]` be the string array `ITEMNAME`.
   - Let `length = min(count.Length, names.Length)`.
-  - Start with `s = "所持アイテム："`.
+  - Start with `s = "所持アイテム："` (the engine's fixed Japanese prefix meaning “owned items:”).
   - For each `i` such that `0 <= i < length`:
     - If `count[i] == 0`: continue.
     - If `names[i] != null`: append `names[i]` (note: unlike some other lists, empty string is not filtered out here).
     - Append: `"(" + count[i] + ") "` (note the trailing space).
-  - If no `i` satisfied `count[i] != 0`, append `"なし"`.
+  - If no `i` satisfied `count[i] != 0`, append `"なし"` (the engine's fixed Japanese word meaning “none”).
 - Prints `s`, then ends the line.
 
 **Errors & validation**
@@ -3001,9 +3001,9 @@ DRAWLINE
 - `BAR value, maxValue, length`
 
 **Arguments**
-- `value`: int expression (numerator).
-- `maxValue`: int expression (denominator); must evaluate to `> 0`.
-- `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
+- `value` (int): numerator.
+- `maxValue` (int): denominator; must evaluate to `> 0`.
+- `length` (int): bar width; must satisfy `1 <= length <= 99`.
 
 **Semantics**
 - Computes `filled = clamp(value * length / maxValue, 0, length)` using 64-bit integer arithmetic (integer overflow wraps).
@@ -3066,8 +3066,8 @@ BARL 114, 514, 81
 - `TIMES intVarTerm, realLiteral`
 
 **Arguments**
-- `intVarTerm`: a changeable integer variable term (must not be `CONST`).
-- `realLiteral`: a real-number **literal** parsed as `double` (not an expression).
+- `intVarTerm` (changeable integer variable term): target variable; must not be `CONST`.
+- `realLiteral` (real-number literal): parsed as `double`; not an expression.
 
 **Semantics**
 - Reads `intVarTerm`’s current value, multiplies it by `realLiteral`, then stores `(long)product` back into `intVarTerm`.
@@ -3218,7 +3218,7 @@ Compatibility notes:
 - `INPUTS <defaultFormString>, <mouse> [, <canSkip>]`
 
 **Arguments**
-- `<defaultFormString>` (optional): FORM/formatted string expression used as the default string. If omitted, there is no default.
+- `<defaultFormString>` (optional, FORM/formatted string): its evaluated result is used as the default string. If omitted, there is no default.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
   - Clicking a selectable **normal-output button** can still submit its string as `INPUTS` even when this argument is omitted or `0`.
 - `<canSkip>` (optional, any): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).
@@ -3602,7 +3602,7 @@ Compatibility notes:
 - `REUSELASTLINE <formString>`
 
 **Arguments**
-- `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
+- `<formString>` (optional, FORM/formatted string): parsed like `PRINTFORM*` and used as the temporary line’s content.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -3735,7 +3735,7 @@ CUPCHECK TARGET
 - `ADDCHARA charaNo1, charaNo2, ...`
 
 **Arguments**
-- Each `charaNo`: int expression selecting a character template.
+- Each `charaNo` (int): selects a character template.
 
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
@@ -3766,7 +3766,7 @@ PRINTFORML {CHARANUM}
 - `ADDSPCHARA charaNo1, charaNo2, ...`
 
 **Arguments**
-- Each `charaNo`: int expression selecting a character template.
+- Each `charaNo` (int): selects a character template.
 
 **Semantics**
 - Requires the `CompatiSPChara` config option to be enabled; otherwise this instruction errors before evaluating any arguments.
@@ -3858,7 +3858,7 @@ TARGET = CHARANUM - 1
 - `DELCHARA charaIndex1, charaIndex2, ...`
 
 **Arguments**
-- Each `charaIndex`: int expression selecting an existing character index.
+- Each `charaIndex` (int): selects an existing character index.
 
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but a parse-time warning is emitted for multi-argument uses.
@@ -3895,7 +3895,7 @@ DELCHARA 1, 3
 - `PUTFORM <formString>`
 
 **Arguments**
-- `<formString>` (optional): FORM/formatted string.
+- `<formString>` (optional, FORM/formatted string): its evaluated result is appended to the save-description buffer.
 
 **Semantics**
 - Evaluates `<formString>` to a string.
@@ -3948,7 +3948,7 @@ DELCHARA 1, 3
 - `BEGIN <keyword>`
 
 **Arguments**
-- `<keyword>`: raw string (the entire remainder of the source line after the instruction delimiter).
+- `<keyword>` (raw string): the entire remainder of the source line after the instruction delimiter.
   - Must match one of the supported keywords exactly (see below).
   - The current engine compares this string literally (no automatic trim or case-folding).
 
@@ -4128,7 +4128,7 @@ DELCHARA 1, 3
 - save-system
 
 **Syntax**
-- `DELDATA <slot>`
+- `DELDATA [<slot>]`
 
 **Arguments**
 - `<slot>` (optional, int; default `0`; omission emits a warning): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
@@ -4425,7 +4425,7 @@ DELCHARA 1, 3
   - `ENDSELECT`
 
 **Arguments**
-- `<expr>`: selector expression; may be int or string.
+- `<expr>` (int|string): selector expression.
 
 **Semantics**
 - The loader gathers all `CASE` / `CASEELSE` headers into an ordered list and links them to the matching `ENDSELECT`.
@@ -4609,12 +4609,12 @@ DELCHARA 1, 3
 - control-flow
 
 **Syntax**
-- `FOR <intVarTerm>, <start>, <end> [, <step>]`
+- `FOR <intVarTerm>, [<start>], <end> [, <step>]`
   - `...`
   - `NEXT`
 
 **Arguments**
-- `<intVarTerm>`: changeable integer variable term (must not be character-data).
+- `<intVarTerm>` (changeable integer variable term): loop counter; must not be character-data.
 - `<start>` (optional, int; default `0`): initial counter value.
 - `<end>` (int): loop bound (exclusive).
 - `<step>` (optional, int; default `1`): increment applied at `NEXT` time.
@@ -4632,6 +4632,7 @@ DELCHARA 1, 3
 
 **Examples**
 - `FOR I, 0, 10`
+- `FOR I, , 10`
 - `  PRINTV I`
 - `NEXT`
 
@@ -4892,7 +4893,7 @@ DELCHARA 1, 3
 - `RETURNF <expr>`
 
 **Arguments**
-- `<expr>` (optional): expression whose type should match the function’s declared return type.
+- `<expr>` (optional, expression): its value should match the function’s declared return type.
 
 **Semantics**
 - Sets the method return value for the current expression-function call and exits the method body.
@@ -4922,7 +4923,7 @@ DELCHARA 1, 3
 - `STRLEN [<rawString>]`
 
 **Arguments**
-- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string expression).
+- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string).
 
 **Semantics**
 - Computes length via the engine’s language-aware length counter and assigns it to `RESULT`:
@@ -4948,7 +4949,7 @@ DELCHARA 1, 3
 - `STRLENFORM [<formString>]`
 
 **Arguments**
-- `<formString>` (optional, default `""`): FORM/formatted string expression (supports `%...%` and `{...}`).
+- `<formString>` (optional, FORM/formatted string; default `""`): its evaluated result is measured; supports `%...%` and `{...}`.
 
 **Semantics**
 - Evaluates the formatted string to a string value, then computes its language/encoding length (see `STRLEN` for details).
@@ -4972,7 +4973,7 @@ DELCHARA 1, 3
 - `STRLENU [<rawString>]`
 
 **Arguments**
-- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string expression).
+- `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string).
 
 **Semantics**
 - Computes length as `str.Length` and assigns it to `RESULT`.
@@ -4995,7 +4996,7 @@ DELCHARA 1, 3
 - `STRLENFORMU [<formString>]`
 
 **Arguments**
-- `<formString>` (optional, default `""`): FORM/formatted string expression.
+- `<formString>` (optional, FORM/formatted string; default `""`): its evaluated result is measured.
 
 **Semantics**
 - Evaluates the formatted string to a string value, then assigns `str.Length` to `RESULT`.
@@ -5075,7 +5076,7 @@ DELCHARA 1, 3
 - `ADDCOPYCHARA charaIndex1, charaIndex2, ...`
 
 **Arguments**
-- Each `charaIndex`: int expression selecting an existing character index to copy from.
+- Each `charaIndex` (int): selects an existing character index to copy from.
 
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
@@ -5108,10 +5109,10 @@ ADDCOPYCHARA 0
 **Arguments**
 - `<text>` (string): string expression to split.
 - `<separator>` (string): string expression used as the separator (not a set of characters).
-- `<outParts>` (variable term): changeable array variable term to receive the parts.
+- `<outParts>` (changeable string array variable term): receives the parts.
   - Must be a **string** array variable (1D/2D/3D; character-data arrays are accepted but behave specially).
   - Any indices written in `<outParts>` are ignored for this instruction.
-- `<outCount>` (optional, variable term; default `RESULT`): changeable integer variable term to receive the number of split parts.
+- `<outCount>` (optional, changeable integer variable term; default `RESULT`): receives the number of split parts.
 
 **Semantics**
 - Computes `parts = text.Split(new[] { separator }, StringSplitOptions.None)` (equivalent .NET behavior).
@@ -5166,7 +5167,7 @@ SPLIT "a,b,c", ",", PARTS
     - `b = (rgb & 0x0000FF)`
   - Sets the current text color to `(r, g, b)`.
 - Three-argument form (`r, g, b`):
-  - Validates that each component is within `0..255`.
+  - Validates that each component is within `0 <= component <= 255`.
   - Sets the current text color to `(r, g, b)`.
 - Does not print output.
 
@@ -5270,11 +5271,11 @@ SPLIT "a,b,c", ",", PARTS
 - `SETBGIMAGE <spriteName> [, <depth> [, <opacityByte> ]]`
 
 **Arguments**
-- `<spriteName>` (string): formatted string expression naming a sprite.
+- `<spriteName>` (FORM/formatted string): its evaluated result names a sprite.
   - Sprite lookup is case-insensitive (the engine uppercases before lookup).
   - Only file-backed sprites loaded from `resources/**/*.csv` are accepted; other sprite kinds are ignored.
-- `<depth>` (optional, string; default `0`): formatted string expression parsed by `Int64.Parse`.
-- `<opacityByte>` (optional, string; default `255`): formatted string expression parsed by `Int64.Parse`, then converted to opacity as `value / 255.0`.
+- `<depth>` (optional, FORM/formatted string; default `0`): its evaluated result is parsed by `Int64.Parse`.
+- `<opacityByte>` (optional, FORM/formatted string; default `255`): its evaluated result is parsed by `Int64.Parse`, then converted to opacity as `value / 255.0`.
   - Not clamped.
 
 **Semantics**
@@ -5382,7 +5383,7 @@ SPLIT "a,b,c", ",", PARTS
 - `REMOVEBGIMAGE <spriteName>`
 
 **Arguments**
-- `<spriteName>` (string): formatted string expression.
+- `<spriteName>` (FORM/formatted string): its evaluated result selects the sprite name to remove.
   - Matching is **case-sensitive** against the stored sprite name (which is uppercased during resource loading).
 
 **Semantics**
@@ -5476,7 +5477,7 @@ SPLIT "a,b,c", ",", PARTS
 ## SORTCHARA (instruction)
 
 **Summary**
-- Reorders the engine’s character list (`0 .. CHARANUM-1`) by a key taken from a character-data variable.
+- Reorders the engine’s character list (`0 <= i < CHARANUM`) by a key taken from a character-data variable.
 - Observable behavior: keeps `MASTER` fixed at its numeric position for this instruction.
 
 **Tags**
@@ -5484,14 +5485,14 @@ SPLIT "a,b,c", ",", PARTS
 
 **Syntax**
 - `SORTCHARA`
-- `SORTCHARA FORWARD | BACK`
 - `SORTCHARA <charaVarTerm> [ , FORWARD | BACK ]`
+- `SORTCHARA FORWARD | BACK`
 
 **Arguments**
-- `<charaVarTerm>`: a variable term whose identifier is a character-data variable.
-- Order: `FORWARD` = ascending, `BACK` = descending.
+- `<charaVarTerm>` (optional, character-data variable term; default `NO`): sort key.
+- `FORWARD | BACK` (optional, keyword; default `FORWARD`): sort order.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
-  - Any written chara selector in `<charaVarTerm>` is ignored and not evaluated (the sort always scans `i = 0 .. CHARANUM-1`).
+  - Any written chara selector in `<charaVarTerm>` is ignored and not evaluated (the sort always scans `0 <= i < CHARANUM`).
 
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.
@@ -5605,7 +5606,7 @@ SPLIT "a,b,c", ",", PARTS
 - `DRAWLINEFORM <pattern>`
 
 **Arguments**
-- `<pattern>` (string expression): pattern to repeat.
+- `<pattern>` (string): pattern to repeat.
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -5681,8 +5682,8 @@ SPLIT "a,b,c", ",", PARTS
 - `SWAP <var1>, <var2>`
 
 **Arguments**
-- `<var1>`: a changeable variable term (must not be `CONST`).
-- `<var2>`: a changeable variable term (same type as `<var1>`).
+- `<var1>` (changeable variable term): first swap target; must not be `CONST`.
+- `<var2>` (changeable variable term): second swap target; must have the same type as `<var1>`.
 
 **Semantics**
 - The engine first **fixes** both variable terms’ indices (important when indices contain expressions like `RAND`):
@@ -5754,7 +5755,7 @@ SPLIT "a,b,c", ",", PARTS
 - Otherwise:
   - Writes the legacy RNG state into `RANDDATA`.
   - `RANDDATA` must have length `625`.
-  - Layout: elements `0..623` receive the 624 state words; element `624` receives the current index.
+  - Layout: elements `0` through `623` receive the 624 state words; element `624` receives the current index.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -5784,8 +5785,8 @@ SPLIT "a,b,c", ",", PARTS
 - Otherwise:
   - Loads the legacy RNG state from `RANDDATA`.
   - `RANDDATA` must have length `625`.
-  - Layout: elements `0..623` are the 624 state words; element `624` is the current index.
-  - On load, elements `0..623` are interpreted as unsigned 32-bit values.
+  - Layout: elements `0` through `623` are the 624 state words; element `624` is the current index.
+  - On load, elements `0` through `623` are interpreted as unsigned 32-bit values.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**
@@ -5806,7 +5807,7 @@ SPLIT "a,b,c", ",", PARTS
 - `REDRAW <flags>`
 
 **Arguments**
-- `<flags>` (int expression): redraw flags.
+- `<flags>` (int): redraw flags.
   - Bit `0`:
     - `0`: disable non-forced automatic redraw (`Redraw = None`)
     - `1`: enable normal redraw (`Redraw = Normal`)
@@ -5845,10 +5846,10 @@ SPLIT "a,b,c", ",", PARTS
 - `CALLTRAIN <count>`
 
 **Arguments**
-- `<count>` (int expression): number of commands to take from `SELECTCOM`.
+- `<count>` (int): number of commands to take from `SELECTCOM`.
 
 **Semantics**
-- Reads the current `SELECTCOM` array and enqueues `SELECTCOM[1] .. SELECTCOM[count]` (inclusive) as a command list.
+- Reads the current `SELECTCOM` array and enqueues `SELECTCOM[1]` through `SELECTCOM[count]` (inclusive) as a command list.
 - While this mode is active, the train loop consumes the queued commands automatically instead of waiting for user input.
 - When the queued command list is exhausted, the engine exits the mode and (if present) calls `@CALLTRAINEND`.
 
@@ -5897,7 +5898,7 @@ SPLIT "a,b,c", ",", PARTS
 - `DOTRAIN <trainIndex>`
 
 **Arguments**
-- `<trainIndex>` (int expression): index into `TRAINNAME` (from `train.csv`).
+- `<trainIndex>` (int): index into `TRAINNAME` (from `train.csv`).
 
 **Semantics**
 - Valid only in specific train-phase internal states (e.g. during `@EVENTTRAIN`, `@SHOW_STATUS`, `@SHOW_USERCOM`, or `@EVENTCOMEND` processing).
@@ -5924,7 +5925,7 @@ SPLIT "a,b,c", ",", PARTS
 - `DATA;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
   - Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
 
 **Semantics**
@@ -6066,7 +6067,7 @@ ENDDATA
 - `STRDATA [<strVarTerm>]` ... `ENDDATA`
 
 **Arguments**
-- `<strVarTerm>` (optional; default `RESULTS`): changeable string variable term to receive the result.
+- `<strVarTerm>` (optional, changeable string variable term; default `RESULTS`): receives the result.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).
@@ -6089,40 +6090,289 @@ PRINTFORML RESULTS
 ```
 
 ## SETBIT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets one or more bits in a writable integer variable.
+
+**Tags**
+- math
+
+**Syntax**
+- `SETBIT <integerVariable>, <bit1> [, <bit2> ... ]`
+
+**Arguments**
+- `<integerVariable>` (writable int variable): target variable.
+- `<bitN>` (int): bit position; each value must satisfy `0 <= bit <= 63`.
+
+**Semantics**
+- Evaluates the bit arguments left-to-right.
+- For each evaluated bit `b`, immediately updates `<integerVariable>` with `value |= (1 << b)`.
+- The variable is reread before each step, so later bit expressions observe earlier mutations if they read the same variable.
+- Duplicate bit positions are allowed; the same bit may be processed more than once in one call.
+
+**Errors & validation**
+- Parse / argument-validation error if `<integerVariable>` is missing, is not a writable int variable, or no bit argument is supplied.
+- Parse / argument-validation error if a constant `<bitN>` is outside `0 <= bit <= 63`.
+- Runtime error if an evaluated `<bitN>` is outside `0 <= bit <= 63`.
+- If a later bit errors at runtime, earlier bit changes remain.
+
+**Examples**
+- `SETBIT FLAG, 0`
+- `SETBIT FLAGS, 1, 3, 5`
 
 ## CLEARBIT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Clears one or more bits in a writable integer variable.
+
+**Tags**
+- math
+
+**Syntax**
+- `CLEARBIT <integerVariable>, <bit1> [, <bit2> ... ]`
+
+**Arguments**
+- `<integerVariable>` (writable int variable): target variable.
+- `<bitN>` (int): bit position; each value must satisfy `0 <= bit <= 63`.
+
+**Semantics**
+- Evaluates the bit arguments left-to-right.
+- For each evaluated bit `b`, immediately updates `<integerVariable>` with `value &= ~(1 << b)`.
+- The variable is reread before each step, so later bit expressions observe earlier mutations if they read the same variable.
+- Duplicate bit positions are allowed; the same bit may be processed more than once in one call.
+
+**Errors & validation**
+- Parse / argument-validation error if `<integerVariable>` is missing, is not a writable int variable, or no bit argument is supplied.
+- Parse / argument-validation error if a constant `<bitN>` is outside `0 <= bit <= 63`.
+- Runtime error if an evaluated `<bitN>` is outside `0 <= bit <= 63`.
+- If a later bit errors at runtime, earlier bit changes remain.
+
+**Examples**
+- `CLEARBIT FLAG, 0`
+- `CLEARBIT FLAGS, 1, 3, 5`
 
 ## INVERTBIT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Toggles one or more bits in a writable integer variable.
+
+**Tags**
+- math
+
+**Syntax**
+- `INVERTBIT <integerVariable>, <bit1> [, <bit2> ... ]`
+
+**Arguments**
+- `<integerVariable>` (writable int variable): target variable.
+- `<bitN>` (int): bit position; each value must satisfy `0 <= bit <= 63`.
+
+**Semantics**
+- Evaluates the bit arguments left-to-right.
+- For each evaluated bit `b`, immediately updates `<integerVariable>` with `value ^= (1 << b)`.
+- The variable is reread before each step, so later bit expressions observe earlier mutations if they read the same variable.
+- Duplicate bit positions are allowed; the same bit may be processed more than once in one call.
+
+**Errors & validation**
+- Parse / argument-validation error if `<integerVariable>` is missing, is not a writable int variable, or no bit argument is supplied.
+- Parse / argument-validation error if a constant `<bitN>` is outside `0 <= bit <= 63`.
+- Runtime error if an evaluated `<bitN>` is outside `0 <= bit <= 63`.
+- If a later bit errors at runtime, earlier bit changes remain.
+
+**Examples**
+- `INVERTBIT FLAG, 0`
+- `INVERTBIT FLAGS, 1, 3, 5`
 
 ## DELALLCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Deletes every currently registered character.
+
+**Tags**
+- characters
+
+**Syntax**
+- `DELALLCHARA`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Removes all characters from the current character list.
+- After completion, `CHARANUM` becomes `0`.
+- The instruction is safe when the list is already empty.
+- It does **not** automatically rewrite `MASTER`, `TARGET`, or `ASSI`; scripts that rely on those variables must reset or re-check them afterward.
+
+**Errors & validation**
+- None.
+
+**Examples**
+- `DELALLCHARA`
 
 ## PICKUPCHARA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Keeps only the selected registered characters, reorders them to match the selection order, and deletes the rest.
+
+**Tags**
+- characters
+
+**Syntax**
+- `PICKUPCHARA <charaID> [, <charaID> ... ]`
+
+**Arguments**
+- `<charaID>` (int): selects a currently registered character index.
+
+**Semantics**
+- Evaluates all arguments left-to-right.
+- For ordinary expressions, each value must be a valid current character index.
+- If an argument is the variable `MASTER`, `TARGET`, or `ASSI`, a negative value is ignored instead of rejected.
+- After evaluation, the engine removes duplicate non-negative selections while preserving first-appearance order.
+- The selected characters are moved to the front of the character list in that deduplicated order, and all remaining characters are deleted.
+- `MASTER`, `TARGET`, and `ASSI` are then rebound to the new indices of their old characters if those characters survived; otherwise they become `-1`.
+
+**Errors & validation**
+- Parse / argument-validation error if no argument is supplied.
+- Runtime error if an ordinary argument is outside the current character range.
+- `MASTER`, `TARGET`, and `ASSI` participate with their current numeric values. Their negative case is ignored; other invalid values are not guaranteed to succeed.
+
+**Examples**
+- `PICKUPCHARA MASTER, TARGET`
+- `PICKUPCHARA 3, 1, 3`
 
 ## VARSET (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Fills a writable variable block with one repeated value.
+
+**Tags**
+- variables
+
+**Syntax**
+- `VARSET <variableName>`
+- `VARSET <variableName>, <value>`
+- `VARSET <variableName>, <value>, <startIndex>, <endIndex>`
+
+**Arguments**
+- `<variableName>` (writable variable): target storage block.
+  - The target may name a whole array/block or a character-data target with explicit or implicit character selection.
+- `<value>` (optional; default `0` / `""`): replacement value.
+  - Omission uses `0` for int targets and `""` for string targets.
+- `<startIndex>` / `<endIndex>` (optional, int): range bounds for 1D fill targets.
+  - For 1D targets, omission means `startIndex = 0` and `endIndex = length`.
+  - `endIndex` is exclusive, so `VARSET A, 7, 2, 5` fills `A:2`, `A:3`, and `A:4`.
+
+**Semantics**
+- `VARSET` fills the storage block designated by `<variableName>`.
+- For 1D targets, it fills the half-open range `[startIndex, endIndex)`.
+- If `startIndex > endIndex`, the engine swaps them before filling.
+- For targets whose remaining payload is not a 1D block, the whole addressed block is filled and the range arguments are not used.
+- If `<variableName>` is character-data and omits the character selector, the usual implicit-target rules still apply. For example, `VARSET CSTR, ""` affects only the current implicit target character.
+
+**Errors & validation**
+- Parse / argument-validation error if `<variableName>` is missing, is not a writable variable, is const, or `<value>` has the wrong type.
+- Runtime error if a 1D range bound is outside `0 <= index <= length`.
+
+**Examples**
+- `VARSET FLAG, 0`
+- `VARSET STR, "あああ", 0, 10`
+- `VARSET CFLAG:MASTER:0, 0`
 
 ## CVARSET (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Fills one character-variable element across a range of registered characters.
+
+**Tags**
+- variables
+
+**Syntax**
+- `CVARSET <characterVariable>`
+- `CVARSET <characterVariable>, <index>, <value>`
+- `CVARSET <characterVariable>, <index>, <value>, <startID>, <endID>`
+
+**Arguments**
+- `<characterVariable>` (writable character-data variable): target variable.
+  - 2D character-data variables are not accepted.
+- `<index>` (optional; default `0`): element selector used when `<characterVariable>` has a per-character 1D payload.
+  - May be an int index or a string key accepted by that variable.
+  - If the target has no such 1D payload, this argument is ignored.
+- `<value>` (optional; default `0` / `""`): replacement value.
+  - Omission uses `0` for int targets and `""` for string targets.
+- `<startID>` / `<endID>` (optional, int): registered-character range.
+  - Omission means `startID = 0` and `endID = CHARANUM`.
+  - `endID` is exclusive, so `CVARSET CFLAG, 10, 123, 1, 4` affects character indices `1`, `2`, and `3`.
+
+**Semantics**
+- Applies the assignment to each registered character index in the half-open range `[startID, endID)`.
+- If `startID > endID`, the engine swaps them before filling.
+- If `<characterVariable>` has a 1D per-character payload, `<index>` selects which element is written for each character.
+- If `<characterVariable>` does not have a 1D per-character payload, `<index>` does not change which field is written.
+- If `CHARANUM == 0`, the instruction has no effect.
+
+**Errors & validation**
+- Parse / argument-validation error if `<characterVariable>` is missing, is not a writable character-data variable, is 2D character-data, or `<value>` has the wrong type.
+- Runtime error if `startID` or `endID` is outside `0 <= id <= CHARANUM`.
+- Runtime error if a string `<index>` does not name a defined key for that variable.
+
+**Examples**
+- `CVARSET CFLAG, 10, 123`
+- `CVARSET CSTR, 0, "", 0, CHARANUM`
 
 ## RESET_STAIN (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Resets one character’s `STAIN` array to the engine’s configured default stain table.
+
+**Tags**
+- characters
+
+**Syntax**
+- `RESET_STAIN <charaID>`
+
+**Arguments**
+- `<charaID>` (int): selects an existing registered character.
+
+**Semantics**
+- Replaces the target character’s entire `STAIN` array with the configured default stain values.
+- The default table is the same one used for newly initialized stain state (including `_Replace.csv`-driven defaults when enabled; see `config-items.md`).
+- If the target `STAIN` array is longer than the configured default table, the remaining tail elements are set to `0`.
+- If the target `STAIN` array is shorter than the configured default table, only the leading portion that fits is copied.
+
+**Errors & validation**
+- Runtime error if `<charaID>` is outside the current registered-character range.
+
+**Examples**
+- `RESET_STAIN TARGET`
 
 ## FORCEKANA (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Sets the kana-conversion mode used by output operations that explicitly request kana conversion.
+
+**Tags**
+- text
+
+**Syntax**
+- `FORCEKANA <mode>`
+
+**Arguments**
+- `<mode>` (int): conversion mode.
+  - `0`: no conversion
+  - `1`: hiragana -> katakana
+  - `2`: full-width katakana -> hiragana
+  - `3`: katakana -> hiragana, and half-width katakana are widened first
+
+**Semantics**
+- Updates the persistent kana-conversion state used by print paths that request kana conversion (the `...K` / `K` output family; see the relevant print built-ins and `output-flow.md`).
+- The mode remains in effect until another `FORCEKANA` changes it.
+- It does not retroactively modify text that has already been buffered or printed.
+
+**Errors & validation**
+- Runtime error if `<mode>` is outside `0 <= mode <= 3`.
+
+**Examples**
+- `FORCEKANA 1`
+- `FORCEKANA 0`
 
 ## SKIPDISP (instruction)
 
@@ -6137,7 +6387,7 @@ PRINTFORML RESULTS
 - `SKIPDISP <int expr>`
 
 **Arguments**
-- `<int expr>`: `0` disables skip mode; non-zero enables skip mode.
+- `<int expr>` (int): `0` disables skip mode; non-zero enables skip mode.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.
@@ -6235,9 +6485,9 @@ ENDNOSKIP
 - `ARRAYSHIFT <arrayVar>, <shift>, <default> [, <start> [, <count>]]`
 
 **Arguments**
-- `<arrayVar>`: changeable 1D array variable term.
+- `<arrayVar>` (changeable 1D array variable term): target array.
 - `<shift>` (int): shift offset (can be negative). `0` is a no-op.
-- `<default>`: expression of the same scalar type as the array element type.
+- `<default>` (same scalar type as the array element type): fill value for newly exposed slots.
 - `<start>` (optional, int; default `0`): start index of the shifted segment.
 - `<count>` (optional, int; default remaining length to array end): number of elements in the segment. If explicitly `0`, this is a no-op.
 
@@ -6269,7 +6519,7 @@ ENDNOSKIP
 - `ARRAYREMOVE <arrayVar>, <start>, <count>`
 
 **Arguments**
-- `<arrayVar>`: changeable 1D array variable term.
+- `<arrayVar>` (changeable 1D array variable term): target array.
 - `<start>` (int): start index (0-based).
 - `<count>` (int): number of elements to remove.
 
@@ -6308,7 +6558,7 @@ ENDNOSKIP
 - `ARRAYSORT <arrayVar> [, FORWARD|BACK [, <start> [, <count>]]]`
 
 **Arguments**
-- `<arrayVar>`: changeable 1D array variable term (int or string).
+- `<arrayVar>` (changeable 1D array variable term): target array; must be int or string.
 - `FORWARD|BACK` (optional; default `FORWARD`):
   - `FORWARD`: ascending
   - `BACK`: descending
@@ -6383,7 +6633,7 @@ ENDNOSKIP
 - `SKIPLOG <int expr>`
 
 **Arguments**
-- `<int expr>`: `0` clears message-skip; non-zero enables message-skip.
+- `<int expr>` (int): `0` clears message-skip; non-zero enables message-skip.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.
@@ -6433,16 +6683,21 @@ ENDNOSKIP
 - calls
 
 **Syntax**
-- `CALL <functionName> [, <arg1>, <arg2>, ... ]`
-- `CALL <functionName>(<arg1>, <arg2>, ... )`
-- Optional (currently unused) bracket segment may appear after the function name:
-  - `CALL <functionName>[<subName1>, <subName2>, ...](...)`
+- `CALL <functionName>`
+- `CALL <functionName>()`
+- `CALL <functionName>, <arg1> [, <arg2> ... ]`
+- `CALL <functionName>(<arg1> [, <arg2> ... ])`
+- `CALL <functionName>[<subName1>, <subName2>, ...]`
+- `CALL <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
-- `<functionName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
-- This is **not** a string literal. Quotes are treated as ordinary characters.
-- Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
-- `<argN>`: expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
+- `<functionName>` (raw string token): read up to `(` / `[` / `,` / `;` and then trimmed.
+  - This is **not** a string literal. Quotes are treated as ordinary characters.
+  - Backslash escapes are processed (e.g. `\n`, `\t`, `\s`).
+- `<argN>` (optional, expression): each occurrence is evaluated, passed to the callee, and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<functionName>`.
+  - The current engine accepts and stores them, but they do not affect target resolution or call behavior.
 
 **Semantics**
 - Resolves the target label to a non-event function.
@@ -6547,13 +6802,15 @@ ENDNOSKIP
 - calls
 
 **Syntax**
-- `CALLFORM <formString> [, <arg1>, <arg2>, ... ]`
-- `CALLFORM <formString>(<arg1>, <arg2>, ... )`
+- `CALLFORM <formString>`
+- `CALLFORM <formString>()`
+- `CALLFORM <formString>, <arg1> [, <arg2> ... ]`
+- `CALLFORM <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<formString>`: FORM/formatted string; the evaluated result is used as the function name.
+- `<formString>` (FORM/formatted string): its evaluated result is used as the function name.
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
-- `<argN>`: same as `CALL`.
+- `<argN>` (optional): same as `CALL`.
 
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.
@@ -6734,8 +6991,37 @@ ENDNOSKIP
 - `ENDCATCH`
 
 ## CALLEVENT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Invokes an event function by event-dispatch semantics rather than by ordinary `CALL` semantics.
+
+**Tags**
+- calls
+
+**Syntax**
+- `CALLEVENT <eventFunction>`
+
+**Arguments**
+- `<eventFunction>` (raw event-function name): target event name.
+  - This is not a string expression and no arguments can be passed through `CALLEVENT`.
+
+**Semantics**
+- Resolves `<eventFunction>` as an event-function name.
+- If the name exists as an event function, `CALLEVENT` runs the same grouped event-dispatch sequence described in `runtime-model.md`:
+  - group 0: `#ONLY`
+  - group 1: `#PRI`
+  - group 2: normal
+  - group 3: `#LATER`
+- `#SINGLE` / `#ONLY` affect progression exactly as in ordinary event dispatch.
+- If no event function with that name exists and no non-event function with that name exists, the instruction is a silent no-op.
+
+**Errors & validation**
+- Runtime error if `<eventFunction>` names a non-event function instead of an event function.
+- Runtime error if any event call is already active on the call stack; event calls cannot nest.
+- Load-time warning if a `CALLEVENT` line is written inside an event function body, because such execution would always violate the non-nesting rule.
+
+**Examples**
+- `CALLEVENT EVENTLOAD`
 
 ## CALLF (instruction)
 
@@ -6746,12 +7032,14 @@ ENDNOSKIP
 - calls
 
 **Syntax**
-- `CALLF <methodName> [, <arg1>, <arg2>, ... ]`
-- `CALLF <methodName>(<arg1>, <arg2>, ... )`
+- `CALLF <methodName>`
+- `CALLF <methodName>()`
+- `CALLF <methodName>, <arg1> [, <arg2> ... ]`
+- `CALLF <methodName>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
-- `<argN>`: expressions passed to the method.
+- `<methodName>` (raw string token): read up to `(` / `[` / `,` / `;` and then trimmed.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the method.
 
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.
@@ -6773,12 +7061,14 @@ ENDNOSKIP
 - calls
 
 **Syntax**
-- `CALLFORMF <formString> [, <arg1>, <arg2>, ... ]`
-- `CALLFORMF <formString>(<arg1>, <arg2>, ... )`
+- `CALLFORMF <formString>`
+- `CALLFORMF <formString>()`
+- `CALLFORMF <formString>, <arg1> [, <arg2> ... ]`
+- `CALLFORMF <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
-- `<argN>`: expressions passed to the method.
+- `<formString>` (FORM/formatted string): its evaluated result is used as the method name.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the method.
 
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.
@@ -6800,12 +7090,17 @@ ENDNOSKIP
 
 **Syntax**
 - `CALLSHARP <methodName>`
-- `CALLSHARP <methodName> [, <arg1>, <arg2>, ... ]`
-- `CALLSHARP <methodName>(<arg1>, <arg2>, ... )`
+- `CALLSHARP <methodName>()`
+- `CALLSHARP <methodName>, <arg1> [, <arg2> ... ]`
+- `CALLSHARP <methodName>(<arg1> [, <arg2> ... ])`
+- `CALLSHARP <methodName>[<subName1>, <subName2>, ...]`
+- `CALLSHARP <methodName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<methodName>`: raw string token; matched against the registered plugin method name.
-- `<argN>`: expression; evaluated and passed to the plugin as either a string or an integer.
+- `<methodName>` (raw string token): matched against the registered plugin method name.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the plugin as either a string or an integer.
+- `<subNameN>` (optional): values parsed from the bracket segment accepted by the parser for compatibility.
+  - The current implementation accepts and stores them, but they do not affect plugin-method lookup or invocation.
 
 **Semantics**
 - `CALLSHARP` resolves `<methodName>` to a plugin method registered by the plugin system and calls it.
@@ -6843,8 +7138,31 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - `CALLSHARP MyMethod(X, S)` (equivalent argument parsing)
 
 ## RESTART (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Jumps back to the start of the currently executing function label without leaving the current call frame.
+
+**Tags**
+- flow
+
+**Syntax**
+- `RESTART`
+
+**Arguments**
+- None.
+
+**Semantics**
+- Restarts the current function label from its beginning.
+- The current call frame is preserved: arguments, `LOCAL/LOCALS`, private variables, and other per-call state stay in the same call instance.
+- In particular, `DYNAMIC` private variables are **not** reinitialized just because `RESTART` occurs.
+- If the restarted function eventually returns, it returns to the original caller of the current function, not to the line after `RESTART`.
+- Inside an event dispatch, `RESTART` restarts the current event handler label only; it does not restart the whole event-group sequence.
+
+**Errors & validation**
+- None.
+
+**Examples**
+- `RESTART`
 
 ## GOTO (instruction)
 
@@ -6858,7 +7176,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - `GOTO <labelName>`
 
 **Arguments**
-- `<labelName>`: a raw string token; used to resolve a `$label` relative to the current function.
+- `<labelName>` (raw string token): used to resolve a `$label` relative to the current function.
 
 **Semantics**
 - If the label exists, jumps to the `$label` marker; execution continues at the line after the `$label`.
@@ -6919,7 +7237,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - `GOTOFORM <formString>`
 
 **Arguments**
-- `<formString>`: FORM/formatted string; the evaluated result is used as the `$label` name.
+- `<formString>` (FORM/formatted string): its evaluated result is used as the `$label` name.
 
 **Semantics**
 - Evaluates the label name and jumps if it resolves to a `$label` in the current function.
@@ -7203,8 +7521,8 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
   - `FUNC <formString>`
 
 **Arguments**
-- `<formString>`: a FORM/formatted string expression evaluated to a function name or label name.
-- `<argN>`: optional call arguments (not allowed for `TRYGOTOLIST`).
+- `<formString>` (FORM/formatted string): evaluated to a function name or label name.
+- `<argN>` (optional): call argument; not allowed for `TRYGOTOLIST`.
 
 **Semantics**
 - Not executed as a standalone statement.
@@ -7257,7 +7575,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - `DEBUGPRINT;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw literal text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - Appends the raw literal text to the host's **debug-output buffer**, not to the normal output model.
@@ -7289,7 +7607,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - `DEBUGPRINTL;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw literal text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - Same destination and isolation rules as `DEBUGPRINT`: it writes only to the separate debug-output buffer, not to the normal output model.
@@ -7318,7 +7636,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
 - `DEBUGPRINTFORM <formString>`
 
 **Arguments**
-- `<formString>` (optional, default `""`): FORM/formatted string, parsed like `PRINTFORM*`.
+- `<formString>` (optional, FORM/formatted string; default `""`): parsed like `PRINTFORM*`.
 
 **Semantics**
 - Evaluates `<formString>` using the normal FORM/formatted-string rules, then appends the resulting string to the host's separate debug-output buffer.
@@ -7351,7 +7669,7 @@ DEBUGPRINTFORM "X={VALUE}"
 - `DEBUGPRINTFORML <formString>`
 
 **Arguments**
-- `<formString>` (optional, default `""`): FORM/formatted string, parsed like `PRINTFORM*`.
+- `<formString>` (optional, FORM/formatted string; default `""`): parsed like `PRINTFORM*`.
 
 **Semantics**
 - Evaluates `<formString>` using the normal FORM/formatted-string rules, appends the resulting string to the separate debug-output buffer, then appends one newline there.
@@ -7396,12 +7714,61 @@ DEBUGPRINTFORML "phase={PHASE}"
 - `DEBUGCLEAR`
 
 ## ASSERT (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Debug-only assertion that raises a script error when its condition is false.
+
+**Tags**
+- debug
+
+**Syntax**
+- `ASSERT <bool>`
+
+**Arguments**
+- `<bool>` (int): treated as false when it evaluates to `0`, true otherwise.
+
+**Semantics**
+- In debug mode, evaluates `<bool>`.
+- If the result is non-zero, `ASSERT` does nothing.
+- If the result is `0`, `ASSERT` raises a script error and stops normal script execution.
+- Outside debug mode, `ASSERT` is a complete no-op: the argument is not even parsed or validated.
+
+**Errors & validation**
+- In debug mode, parse / argument-validation errors are handled normally.
+- In debug mode, runtime error if `<bool>` evaluates to `0`.
+- Outside debug mode, `ASSERT` never raises argument-parsing errors because the argument is skipped entirely.
+
+**Examples**
+- `ASSERT TARGET >= 0`
 
 ## THROW (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Forces a script error with a caller-provided message.
+
+**Tags**
+- debug
+
+**Syntax**
+- `THROW`
+- `THROW <formedString>`
+
+**Arguments**
+- `<formedString>` (optional, string; default `""`): error message text.
+  - This uses formed-string parsing, so `{...}` / `%%...%%` interpolation is available.
+
+**Semantics**
+- Evaluates `<formedString>` and immediately raises a script error.
+- The resulting text is shown as the `THROW` message in the engine’s error report.
+- No later statements in the current run are executed unless outer error-handling flow intercepts the error.
+
+**Errors & validation**
+- `THROW` always raises a script error after evaluating its message.
+- Additional parse / evaluation errors can occur while forming `<formedString>`.
+
+**Examples**
+- `THROW Unexpected state: {TARGET}`
+- `THROW`
 
 ## SAVEVAR (instruction)
 
@@ -7417,7 +7784,7 @@ DEBUGPRINTFORML "phase={PHASE}"
 **Arguments**
 - `<name>` (string): intended file name component.
 - `<saveText>` (string): intended description text.
-- `<var*>`: one or more changeable non-character variable terms (arrays are allowed; several variable categories are rejected).
+- `<var*>` (one or more changeable non-character variable terms): arrays are allowed; several variable categories are rejected.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
@@ -7468,7 +7835,7 @@ DEBUGPRINTFORML "phase={PHASE}"
 **Arguments**
 - `<name>` (string): the file name component.
 - `<saveText>` (string): stored in the file as a description.
-- `<charaNo*>`: one or more integer expressions; character indices to save (0-based).
+- `<charaNo*>` (one or more int values): character indices to save (0-based).
 
 **Semantics**
 - Writes a binary file under `Program.DatDir`:
@@ -7531,8 +7898,8 @@ DEBUGPRINTFORML "phase={PHASE}"
 - `REF <refTarget>, <sourceName>`
 
 **Arguments**
-- `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
-- `<sourceName>`: identifier token naming the source variable to bind to.
+- `<refTarget>` (identifier token): intended to be a `REF` variable name; see `variables.md`.
+- `<sourceName>` (identifier token): names the source variable to bind to.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
@@ -7556,8 +7923,8 @@ DEBUGPRINTFORML "phase={PHASE}"
 - `REFBYNAME <refTarget>, <sourceName>`
 
 **Arguments**
-- `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
-- `<sourceName>` (string expression): evaluates to a variable name string.
+- `<refTarget>` (identifier token): intended to be a `REF` variable name; see `variables.md`.
+- `<sourceName>` (string): evaluates to a variable name string.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.
@@ -7633,8 +8000,8 @@ PRINTL ""
 
 **Arguments**
 - `<html>` (string): HTML string.
-- `<outParts>` (optional; default `RESULTS`): changeable 1D **non-character** string array variable to receive parts.
-- `<outCount>` (optional; default `RESULT`): changeable integer variable to receive the part count.
+- `<outParts>` (optional, changeable 1D non-character string array variable term; default `RESULTS`): receives the split parts.
+- `<outCount>` (optional, changeable integer variable term; default `RESULT`): receives the part count.
 
 **Semantics**
 - Interprets `<html>` as an HTML string and splits it by scanning for `<...>` regions:
@@ -7763,7 +8130,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `PRINT_SPACE <width>`
 
 **Arguments**
-- `<width>` (int expression): space width in mixed units.
+- `<width>` (int): space width in mixed units.
   - May be followed by a `px` suffix token to indicate pixels (e.g. `40px`).
   - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `widthPx = width * FontSize / 100`.
 
@@ -7791,15 +8158,15 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `TOOLTIP_SETCOLOR <foreColor>, <backColor>`
 
 **Arguments**
-- `<foreColor>` (int expression): RGB color `0x000000 .. 0xFFFFFF`.
-- `<backColor>` (int expression): RGB color `0x000000 .. 0xFFFFFF`.
+- `<foreColor>` (int): RGB color `0x000000 <= color <= 0xFFFFFF`.
+- `<backColor>` (int): RGB color `0x000000 <= color <= 0xFFFFFF`.
 
 **Semantics**
 - Updates the UI tooltip colors for subsequent tooltips.
 - This instruction executes even when output skipping is active.
 
 **Errors & validation**
-- Runtime error if either color is outside `0 .. 0xFFFFFF`.
+- Runtime error if either color is outside `0 <= color <= 0xFFFFFF`.
 
 **Examples**
 - `TOOLTIP_SETCOLOR 0xFFFFFF, 0x000000`
@@ -7816,7 +8183,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `TOOLTIP_SETDELAY <delayMs>`
 
 **Arguments**
-- `<delayMs>` (int expression): delay in milliseconds.
+- `<delayMs>` (int): delay in milliseconds.
   - Omitted argument is accepted with a warning and treated as `0`.
 
 **Semantics**
@@ -7841,7 +8208,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `TOOLTIP_SETDURATION <durationMs>`
 
 **Arguments**
-- `<durationMs>` (int expression): duration in milliseconds.
+- `<durationMs>` (int): duration in milliseconds.
   - Omitted argument is accepted with a warning and treated as `0`.
 
 **Semantics**
@@ -7860,7 +8227,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 ## INPUTMOUSEKEY (instruction)
 
 **Summary**
-- Waits for a primitive mouse/key event (mouse down, wheel, key press, or timeout) and reports it via `RESULT` / `RESULT:*` (and sometimes `RESULTS`).
+- Waits for a primitive mouse/key event (mouse down, wheel, key press, or timeout) and reports it via `RESULT` / `RESULT:*`; on the mouse-down path it may also write `RESULTS` when a selected string ordinary-output button is involved.
 
 **Tags**
 - io
@@ -7870,7 +8237,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `INPUTMOUSEKEY <timeMs>`
 
 **Arguments**
-- `<timeMs>` (optional, int expression): time limit in milliseconds.
+- `<timeMs>` (optional, int): time limit in milliseconds.
   - If `timeMs > 0`, enables a timeout.
   - If omitted or `timeMs <= 0`, no timeout is used.
 
@@ -7878,7 +8245,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Enters a wait state for *primitive* input events (not text box submission).
 - See also: `input-flow.md` (how primitive waits differ from textbox-segmentation waits) and `cbg-layer.md` (why `RESULT:4` is a separate CBG hit-map channel rather than an ordinary output-button value).
 - This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
-- When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0..5]` (i.e. `RESULT` and `RESULT:1..5`) as follows.
+- When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0]` through `RESULT_ARRAY[5]` (i.e. `RESULT` and `RESULT:1` through `RESULT:5`) as follows.
 
 Event type (`RESULT`):
 
@@ -7911,7 +8278,7 @@ Payload (`RESULT:*`), by event type:
   - `RESULT:3 = 0`, `RESULT:4 = 0`, `RESULT:5 = 0`.
 
 - Timeout (`RESULT == 4`):
-  - `RESULT:1..5 = 0`.
+  - `RESULT:1` through `RESULT:5` are set to `0`.
 
 **Errors & validation**
 - (none)
@@ -7964,7 +8331,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - `VARSIZE <arrayVarName>`
 
 **Arguments**
-- `<arrayVarName>`: an identifier token naming an array variable (not an expression).
+- `<arrayVarName>` (identifier token): names an array variable; not an expression.
   - Must be a 1D/2D/3D array variable (character-data arrays are allowed).
   - `RAND` is rejected (even though it is 1D).
   - Compatibility parsing: any extra characters after the identifier are ignored (with a warning). For example, `VARSIZE ABL:TARGET:0` is treated like `VARSIZE ABL`.
@@ -8023,7 +8390,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - `POWER <dest>, <x>, <y>`
 
 **Arguments**
-- `<dest>`: changeable integer variable term (destination).
+- `<dest>` (changeable integer variable term): destination.
 - `<x>` (int): base.
 - `<y>` (int): exponent.
 
@@ -8055,7 +8422,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - `PRINTCPERLINE [<dest>]`
 
 **Arguments**
-- `<dest>` (optional; default `RESULT`): changeable integer variable term to receive the value.
+- `<dest>` (optional, changeable integer variable term; default `RESULT`): receives the value.
 
 **Semantics**
 - Assigns the configuration value `PrintCPerLine` to `<dest>`.
@@ -8080,7 +8447,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - `SAVENOS [<dest>]`
 
 **Arguments**
-- `<dest>` (optional; default `RESULT`): changeable integer variable term to receive the value.
+- `<dest>` (optional, changeable integer variable term; default `RESULT`): receives the value.
 
 **Semantics**
 - Assigns the configuration value `SaveDataNos` to `<dest>`.
@@ -8145,7 +8512,7 @@ ENCODETOUNI "ABC"
 - `PLAYSOUND <filename> [, <repeat>]`
 
 **Arguments**
-- `<filename>` (string expression): file name or relative path under the sound directory.
+- `<filename>` (string): file name or relative path under the sound directory.
 - `<repeat>` (optional, int; default `1`): number of times to repeat the sound.
   - Values `< 1` are clamped to `1`.
 
@@ -8153,7 +8520,7 @@ ENCODETOUNI "ABC"
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
 - If the file does not exist, no-op.
 - Otherwise, starts playback on a “sound effect slot”:
-  - There are 10 slots (`0..9`).
+  - There are 10 slots (`0 <= slot <= 9`).
   - The engine prefers the first non-playing slot; if all are playing, it reuses slot `0`.
 - Playback is independent from BGM (`PLAYBGM`).
 
@@ -8179,7 +8546,7 @@ ENCODETOUNI "ABC"
 - None.
 
 **Semantics**
-- Stops playback of all sound effect slots (`0..9`).
+- Stops playback of all sound effect slots (`0 <= slot <= 9`).
 - Does not affect BGM (`PLAYBGM`).
 
 **Errors & validation**
@@ -8200,7 +8567,7 @@ ENCODETOUNI "ABC"
 - `PLAYBGM <filename>`
 
 **Arguments**
-- `<filename>` (string expression): file name or relative path under the sound directory.
+- `<filename>` (string): file name or relative path under the sound directory.
 
 **Semantics**
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
@@ -8250,10 +8617,10 @@ ENCODETOUNI "ABC"
 - `SETSOUNDVOLUME <volume>`
 
 **Arguments**
-- `<volume>` (int expression): volume level, clamped to `0 .. 100`.
+- `<volume>` (int): volume level, clamped to `0 <= volume <= 100`.
 
 **Semantics**
-- Applies the volume to all 10 sound effect slots (`0..9`).
+- Applies the volume to all 10 sound effect slots (`0 <= slot <= 9`).
 - If a slot is currently playing, the change takes effect immediately.
 
 **Errors & validation**
@@ -8274,7 +8641,7 @@ ENCODETOUNI "ABC"
 - `SETBGMVOLUME <volume>`
 
 **Arguments**
-- `<volume>` (int expression): volume level, clamped to `0 .. 100`.
+- `<volume>` (int): volume level, clamped to `0 <= volume <= 100`.
 
 **Semantics**
 - Applies the volume to the BGM channel.
@@ -8295,17 +8662,22 @@ ENCODETOUNI "ABC"
 - calls
 
 **Syntax**
-- `TRYCALLF <methodName> [, <arg1>, <arg2>, ... ]`
-- `TRYCALLF <methodName>(<arg1>, <arg2>, ... )`
-- Optional (currently unused) bracket segment may appear after the name:
-  - `TRYCALLF <methodName>[<subName1>, <subName2>, ...](...)`
+- `TRYCALLF <methodName>`
+- `TRYCALLF <methodName>()`
+- `TRYCALLF <methodName>, <arg1> [, <arg2> ... ]`
+- `TRYCALLF <methodName>(<arg1> [, <arg2> ... ])`
+- `TRYCALLF <methodName>[<subName1>, <subName2>, ...]`
+- `TRYCALLF <methodName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
-- `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
-  - This is **not** a string literal or string expression.
+- `<methodName>` (raw string token): read up to `(` / `[` / `,` / `;` and then trimmed.
+  - This is **not** a string literal or string.
   - Quotes are treated as ordinary characters.
-  - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
-- `<argN>`: expressions passed to the target method.
+  - Backslash escapes are processed (e.g. `\n`, `\t`, `\s`).
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the target method.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<methodName>`.
+  - The current engine accepts and stores them, but they do not affect method resolution or call behavior.
 
 **Semantics**
 - Resolution scope:
@@ -8331,12 +8703,14 @@ ENCODETOUNI "ABC"
 - calls
 
 **Syntax**
-- `TRYCALLFORMF <formString> [, <arg1>, <arg2>, ... ]`
-- `TRYCALLFORMF <formString>(<arg1>, <arg2>, ... )`
+- `TRYCALLFORMF <formString>`
+- `TRYCALLFORMF <formString>()`
+- `TRYCALLFORMF <formString>, <arg1> [, <arg2> ... ]`
+- `TRYCALLFORMF <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
-- `<argN>`: expressions passed to the target method.
+- `<formString>` (FORM/formatted string): its evaluated result is used as the method name.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the target method.
 
 **Semantics**
 - Evaluates `<formString>` to a name string, then behaves like `TRYCALLF`.
@@ -8406,7 +8780,7 @@ ENCODETOUNI "ABC"
 **Semantics**
 - Sets the engine’s “reboot on quit” flag, then requests quit (same as `QUIT` for script control flow).
 - Script execution stops immediately.
-- The actual restart is performed by the UI host after the quit request is posted (typically on the next user interaction in the quit state).
+- The UI host performs the actual restart after the quit request is posted; scripts have no further control over that timing.
 
 **Errors & validation**
 - (none)
@@ -8540,7 +8914,7 @@ ENDIF
 - `TOOLTIP_SETFONT <fontName>`
 
 **Arguments**
-- `<fontName>` (string expression): font family name.
+- `<fontName>` (string): font family name.
 
 **Semantics**
 - Stores the font name used by tooltip custom drawing (`TOOLTIP_CUSTOM 1`).
@@ -8564,7 +8938,7 @@ ENDIF
 - `TOOLTIP_SETFONTSIZE <size>`
 
 **Arguments**
-- `<size>` (int expression): font size value passed to the UI font constructor.
+- `<size>` (int): font size value passed to the UI font constructor.
 
 **Semantics**
 - Stores the tooltip font size used by tooltip custom drawing (`TOOLTIP_CUSTOM 1`).
@@ -8588,7 +8962,7 @@ ENDIF
 - `TOOLTIP_CUSTOM <enabled>`
 
 **Arguments**
-- `<enabled>` (int expression): `0` disables custom tooltips; non-zero enables.
+- `<enabled>` (int): `0` disables custom tooltips; non-zero enables.
 
 **Semantics**
 - When enabled, tooltips are drawn via the engine’s custom draw logic, which supports:
@@ -8615,7 +8989,7 @@ ENDIF
 - `TOOLTIP_FORMAT <flags>`
 
 **Arguments**
-- `<flags>` (int expression): bitmask passed through as `.NET` `TextFormatFlags`.
+- `<flags>` (int): bitmask passed through as `.NET` `TextFormatFlags`.
 
 **Semantics**
 - Updates the text format flags used when drawing tooltip text in custom-draw mode (`TOOLTIP_CUSTOM 1`).
@@ -8639,7 +9013,7 @@ ENDIF
 - `TOOLTIP_IMG <enabled>`
 
 **Arguments**
-- `<enabled>` (int expression): `0` disables; non-zero enables.
+- `<enabled>` (int): `0` disables; non-zero enables.
 
 **Semantics**
 - When enabled and tooltips are custom-drawn (`TOOLTIP_CUSTOM 1`):
@@ -8666,7 +9040,7 @@ ENDIF
 - `BINPUT [<default> [, <mouse> [, <canSkip> [, ... ]]]]`
 
 **Arguments**
-- `<default>` (optional, int expression): used only when the submitted text is empty (not used for invalid integer text).
+- `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
   - Clicking a selectable button can still satisfy `BINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
@@ -8728,7 +9102,7 @@ PRINTFORML "picked=" + RESULT
 - `BINPUTS [<default> [, <mouse> [, <canSkip>]]]`
 
 **Arguments**
-- `<default>` (optional, string expression): default string used only when the submitted text is empty.
+- `<default>` (optional, string): default string used only when the submitted text is empty.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
   - Clicking a selectable button can still satisfy `BINPUTS` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
 - `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
@@ -8794,7 +9168,11 @@ PRINTFORML "picked=" + RESULTS
 - `ONEBINPUT [<default> [, <mouse> [, <canSkip> [, ... ]]]]`
 
 **Arguments**
-- Same argument model as `BINPUT`.
+- `<default>` (optional, int): used only when the submitted text is empty (not used for invalid integer text).
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable button can still satisfy `ONEBINPUT` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUT` are also written.
+- `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
+- Extra arguments after `<canSkip>` are accepted by the argument parser but ignored by the runtime.
 
 **Semantics**
 - Same button-matching and default rules as `BINPUT`.
@@ -8828,7 +9206,10 @@ ONEBINPUT
 - `ONEBINPUTS [<default> [, <mouse> [, <canSkip>]]]`
 
 **Arguments**
-- Same argument model as `BINPUTS`.
+- `<default>` (optional, string): default string used only when the submitted text is empty.
+- `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
+  - Clicking a selectable button can still satisfy `ONEBINPUTS` by itself; when `<mouse> != 0`, the same extra mouse side channels as `INPUTS` are also written.
+- `<canSkip>` (optional, int): presence enables the `MesSkip` fast path; its numeric value is ignored (not evaluated).
 
 **Semantics**
 - Same button-matching and default rules as `BINPUTS`.
@@ -8851,16 +9232,127 @@ ONEBINPUTS
 ```
 
 ## DT_COLUMN_OPTIONS (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Updates option metadata for an existing data-table column.
+
+**Tags**
+- data
+
+**Syntax**
+- `DT_COLUMN_OPTIONS <dataTableName>, <columnName>, DEFAULT, <optionValue>`
+- `DT_COLUMN_OPTIONS <dataTableName>, <columnName>, DEFAULT, <optionValue>, DEFAULT, <optionValue>, ...`
+
+**Arguments**
+- `<dataTableName>` (string): data-table name.
+- `<columnName>` (string): column name.
+- `DEFAULT` (option keyword): matched case-insensitively.
+- `<optionValue>` (same type as the column): default value to store for that option.
+  - String columns require a string value.
+  - Numeric columns require an int value.
+
+**Semantics**
+- Requires an existing data table and an existing column.
+- Currently the only supported option keyword is `DEFAULT`.
+- `DEFAULT` changes the column’s default value used for future row/cell operations that consult the column default.
+- If a numeric column uses a narrower integer type than the script value type, the stored default is converted with the same clamping rules as other data-table numeric writes.
+- Repeated option pairs are processed left-to-right; a later `DEFAULT` overrides an earlier one.
+
+**Errors & validation**
+- Parse / argument-validation error if the first two arguments are missing, if an option keyword has no following value, or if an unknown option keyword is used.
+- Runtime error if the named table or column does not exist.
+- Runtime error if `<optionValue>` has the wrong type for the column.
+
+**Examples**
+- `DT_COLUMN_OPTIONS "SHOP", "PRICE", DEFAULT, 0`
+- `DT_COLUMN_OPTIONS "SHOP", "NAME", DEFAULT, "(none)"`
 
 ## VARI (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Declares a function-private dynamic int variable through the scoped-variable instruction extension.
+
+**Tags**
+- variables
+
+**Syntax**
+- `VARI <name>`
+- `VARI <name> = <intValue>`
+- `VARI <name>, <size1>`
+- `VARI <name>, <size1>, <size2>`
+- `VARI <name>, <size1>, <size2>, <size3>`
+
+**Arguments**
+- `<name>` (string): private variable name declared in the containing function.
+- `<intValue>` (optional, int): scalar initializer.
+- `<size1>` (optional, int literal): first array size.
+- `<size2>` (optional, int literal): second array size.
+- `<size3>` (optional, int literal): third array size.
+  - `VARI` supports 1D / 2D / 3D declarations.
+
+**Semantics**
+- Available only when `UseScopedVariableInstruction` is enabled; see `data-files.md` and `grammar.md`.
+- At load time, `VARI` declares a function-private dynamic int variable in the containing function’s private-variable namespace.
+- Name visibility is function-wide after load; other lines in the same function can resolve the variable name regardless of the declaration’s textual position.
+- Executing the `VARI` line reinitializes that variable for the current call:
+  - scalar form resets it, then applies `<intValue>` if present
+  - array form allocates a fresh zero-filled array of the declared size
+- Re-executing the same `VARI` line during one call resets the variable again.
+- On function return, the current call’s storage is discarded like other dynamic private variables.
+- Array declarations do not have element initializers; if `= ...` text is present in an array form, it does not supply array contents.
+
+**Errors & validation**
+- Not available unless `UseScopedVariableInstruction` is enabled.
+- Parse / load error if an array size is not an integer literal or if more than 3 dimensions are requested.
+- Other name-validity rules follow ordinary function-private variable rules; see `variables.md`.
+
+**Examples**
+- `VARI ANSWER = 42`
+- `VARI BUFFER, 16`
 
 ## VARS (instruction)
+
 **Summary**
-- (TODO: not yet documented)
+- Declares a function-private dynamic string variable through the scoped-variable instruction extension.
+
+**Tags**
+- variables
+
+**Syntax**
+- `VARS <name>`
+- `VARS <name> = "<literal>"`
+- `VARS <name>, <size1>`
+- `VARS <name>, <size1>, <size2>`
+- `VARS <name>, <size1>, <size2>, <size3>`
+
+**Arguments**
+- `<name>` (string): private variable name declared in the containing function.
+- `"<literal>"` (optional, double-quoted string literal): scalar initializer.
+  - This is not a general string expression.
+- `<size1>` (optional, int literal): first array size.
+- `<size2>` (optional, int literal): second array size.
+- `<size3>` (optional, int literal): third array size.
+  - `VARS` supports 1D / 2D / 3D declarations.
+
+**Semantics**
+- Available only when `UseScopedVariableInstruction` is enabled; see `data-files.md` and `grammar.md`.
+- At load time, `VARS` declares a function-private dynamic string variable in the containing function’s private-variable namespace.
+- Name visibility is function-wide after load; other lines in the same function can resolve the variable name regardless of the declaration’s textual position.
+- Executing the `VARS` line reinitializes that variable for the current call:
+  - scalar form resets it, then applies the literal initializer if present
+  - array form allocates a fresh empty-string-filled array of the declared size
+- Re-executing the same `VARS` line during one call resets the variable again.
+- On function return, the current call’s storage is discarded like other dynamic private variables.
+- Array declarations do not have element initializers; if `= ...` text is present in an array form, it does not supply array contents.
+
+**Errors & validation**
+- Not available unless `UseScopedVariableInstruction` is enabled.
+- Parse / load error if an array size is not an integer literal, if more than 3 dimensions are requested, or if the scalar initializer is not written as a double-quoted literal.
+- Other name-validity rules follow ordinary function-private variable rules; see `variables.md`.
+
+**Examples**
+- `VARS QUESTION = "生命、宇宙、そして万物についての究極の疑問の答え"`
+- `VARS BUFFER, 8`
 
 ## HTML_PRINT_ISLAND (instruction)
 
@@ -8871,7 +9363,8 @@ ONEBINPUTS
 - io
 
 **Syntax**
-- `HTML_PRINT_ISLAND <html>(, <ignored>)`
+- `HTML_PRINT_ISLAND <html>`
+- `HTML_PRINT_ISLAND <html>, <ignored>`
 
 **Arguments**
 - `<html>` (string): HTML string (see `html-output.md`).
@@ -8956,7 +9449,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `PRINTN;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -9166,7 +9659,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `charaVarTerm` (character-data variable term): selects a character-data variable (scalar or array).
   - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
   - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
-- The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+- The chara selector part of `charaVarTerm` (written selector only): does not affect the search; the function always compares against the scanned chara index `i`.
   - The written chara selector is also not evaluated (no side effects from that expression).
 - `value` (int|string; must match the selected cell type): scalar value to match.
 - `startIndex` (optional, int; default `0`): inclusive start chara index.
@@ -9212,7 +9705,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `charaVarTerm` (character-data variable term): selects a character-data variable (scalar or array).
   - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
   - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
-- The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+- The chara selector part of `charaVarTerm` (written selector only): does not affect the search; the function always compares against the scanned chara index `i`.
   - The written chara selector is also not evaluated (no side effects from that expression).
 - `value` (int|string; must match the selected cell type): scalar value to match.
 - `startIndex` (optional, int; default `0`): inclusive start chara index.
@@ -9662,9 +10155,9 @@ HTML_PRINT_ISLAND_CLEAR
 - `BARSTR(value, maxValue, length)` → `string`
 
 **Arguments**
-- `value`: int expression (numerator).
-- `maxValue`: int expression (denominator); must evaluate to `> 0`.
-- `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
+- `value` (int): numerator.
+- `maxValue` (int): denominator; must evaluate to `> 0`.
+- `length` (int): bar width; must satisfy `1 <= length <= 99`.
 
 **Semantics**
 - Produces:
@@ -9797,7 +10290,7 @@ PRINTFORML %S%
   - `(r << 16) + (g << 8) + b`.
 
 **Errors & validation**
-- Runtime error if any component is outside `0..255`.
+- Runtime error if any component is outside `0 <= component <= 255`.
 
 **Examples**
 - `c = COLOR_FROMRGB(255, 0, 0)` returns `0xFF0000`.
@@ -10101,18 +10594,19 @@ PRINTFORML %S%
 - math
 
 **Syntax**
-- `RAND(max)`
-- `RAND(min, max)`
+- `RAND(<min>, <max>)`
+- `RAND(<max>)`
 
 **Signatures / argument rules**
 - `RAND(max)` → `long`
 - `RAND(min, max)` → `long`
 
 **Arguments**
-- `min` (optional, int; default `0`): inclusive lower bound.
+- `min` (int): inclusive lower bound in the two-argument form.
 - `max` (int): exclusive upper bound.
 
 **Semantics**
+- `RAND(max)` is shorthand for `RAND(0, max)`.
 - Returns a random integer `r` such that `min <= r < max`.
 - RNG engine selection depends on JSON `UseNewRandom`:
   - `UseNewRandom=NO` (legacy mode): uses the legacy SFMT generator with the MT19937 parameter set. The returned value is computed as `min + (nextUInt64 % (max - min))`. This is deterministic for a given seed/state, but it is not perfectly unbiased when `(max - min)` does not divide `2^64`.
@@ -10120,7 +10614,8 @@ PRINTFORML %S%
 - In new mode, the host `System.Random` instance is created when the runtime creates its variable-evaluator state; scripts have no built-in way to reseed or snapshot it.
 
 **Errors & validation**
-- Runtime error if `max <= min`.
+- Parse/argument-validation error if called with no arguments (`RAND()`).
+- Runtime error if `max <= min` after argument evaluation.
   - In particular, `RAND(0)` and `RAND(<negative>)` are errors.
 
 **Examples**
@@ -11128,8 +11623,8 @@ PRINTFORML %S%
 - `ARRAYMSORT(keyArray, array1 [, array2 ...])` → `long`
 
 **Arguments**
-- `keyArray` (array variable term): non-character 1D array variable term (int or string). Must not be `CONST` or a calculated/pseudo variable.
-- `arrayN` (array variable term): one or more non-character array variable terms (1D/2D/3D; int or string). Must not be `CONST` or calculated.
+- `keyArray` (non-character 1D array variable term): sort key array; int or string; must not be `CONST` or a calculated/pseudo variable.
+- `arrayN` (one or more non-character array variable terms): arrays permuted to follow the key order; each may be 1D/2D/3D and int or string; must not be `CONST` or calculated.
   - Any subscripts written in these variable terms are ignored; the function operates on the underlying array storage.
 
 **Semantics**
@@ -11140,7 +11635,7 @@ PRINTFORML %S%
   - int keys: numeric ascending
   - string keys: `string.CompareTo` ordering (current culture)
 - Applies the resulting permutation to each argument array (including `keyArray` itself):
-  - 1D arrays: permutes elements `0 .. n-1`
+  - 1D arrays: permutes elements `0 <= i < n`
   - 2D arrays: permutes rows by the first index (`[row, col]`)
   - 3D arrays: permutes slabs by the first index (`[i, j, k]`)
 - If any argument array’s first dimension is shorter than `n`, the function returns `0`.
@@ -11272,7 +11767,7 @@ ARRAYMSORT(A, B, C)
 - `TOINT(str)` → `long`
 
 **Arguments**
-- `str`: string expression.
+- `str` (string): input string to parse.
 
 **Semantics**
 - Returns `0` if `str` is `null` or `""`.
@@ -11318,7 +11813,7 @@ ARRAYMSORT(A, B, C)
 - `TOUPPER(str)` → `string`
 
 **Arguments**
-- `str`: string expression.
+- `str` (string): input string.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -11346,7 +11841,7 @@ ARRAYMSORT(A, B, C)
 - `TOLOWER(str)` → `string`
 
 **Arguments**
-- `str`: string expression.
+- `str` (string): input string.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -11374,7 +11869,7 @@ ARRAYMSORT(A, B, C)
 - `TOHALF(str)` → `string`
 
 **Arguments**
-- `str`: string expression.
+- `str` (string): input string.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -11402,7 +11897,7 @@ ARRAYMSORT(A, B, C)
 - `TOFULL(str)` → `string`
 
 **Arguments**
-- `str`: string expression.
+- `str` (string): input string.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
@@ -11515,6 +12010,7 @@ PRINTL S
 - io
 
 **Syntax**
+- `HTML_GETPRINTEDSTR()`
 - `HTML_GETPRINTEDSTR(<lineNo>)`
 
 **Signatures / argument rules**
@@ -11525,7 +12021,7 @@ PRINTL S
 - `<lineNo>` (optional, int; default `0`): zero-based index from the newest visible logical line backward.
   - `0` = the most recent currently visible logical output line.
   - `1` = the second most recent currently visible logical output line.
-  - And so on.
+  - Larger values continue counting backward through the currently visible logical lines.
 
 **Semantics**
 - Interprets `<lineNo>` as a non-negative index into the current visible **logical-line** history of the normal output area.
@@ -11612,7 +12108,7 @@ S = HTML_POPPRINTINGSTR()
 - Signature: `string HTML_TOPLAINTEXT(string html)`.
 
 **Arguments**
-- `html`: string expression interpreted as an HTML string.
+- `html` (string): HTML string.
 
 **Semantics**
 - Removes all tag-like regions of the form `<...>` (including button tags and comments).
@@ -11643,7 +12139,7 @@ PRINTFORMW %HTML_TOPLAINTEXT("<b>AAA</b><i><b>BBB</b></i><s>CCC</s>")%
 - Signature: `string HTML_ESCAPE(string text)`.
 
 **Arguments**
-- `text`: string expression.
+- `text` (string): input text.
 
 **Semantics**
 - Replaces:
@@ -11956,7 +12452,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Coordinate convention:
   - this is **not** the raw top-left-based window Y,
   - it uses the engine's shared conversion `clientY - clientHeight`,
-  - so values inside the client area are typically non-positive, with the bottom edge near `0`.
+  - so values inside the client area are non-positive, and larger on-screen Y values map to larger (less negative) results; the bottom edge is the position closest to `0`.
 
 **Errors & validation**
 - None.
@@ -12715,7 +13211,7 @@ R = CBGSETBMAPG(GID)
   - this affects only the CBG/background-button layer,
   - it does not modify the normal output model, pending print buffer, or HTML-island layer.
 - Return value:
-  - returns `0` if `<buttonValue>` is outside `0 .. 0xFFFFFF`,
+  - returns `0` if `<buttonValue>` is outside `0 <= value <= 0xFFFFFF`,
   - otherwise returns `1` after registering the entry.
 
 **Errors & validation**
@@ -12825,7 +13321,7 @@ R = OUTPUTLOG("logs\\scene.txt", 1)
 - `returnPixel` is treated as “false” only when it is exactly `0`; any non-zero value selects pixel return.
 
 **Arguments**
-- `html`: string expression interpreted as an HTML string.
+- `html` (string): HTML string.
 - `returnPixel` (optional, int; default `0`)
   - `0` (default): return in half-width character units.
   - non-zero: return in pixels.
@@ -12865,8 +13361,8 @@ PRINTFORML {HTML_STRINGLEN("<b>B</b>", 1)}
 - Also writes results into `RESULTS` (see semantics).
 
 **Arguments**
-- `html`: string expression interpreted as an HTML string.
-- `width`: integer expression, in half-width character units.
+- `html` (string): HTML string.
+- `width` (int): width in half-width character units.
 
 **Semantics**
 - Returns the first part (the prefix) as an HTML string.
@@ -12913,8 +13409,8 @@ PRINTSL RESULTS:1
 - Signature: `int HTML_STRINGLINES(string html, int width)`.
 
 **Arguments**
-- `html`: string expression interpreted as an HTML string.
-- `width`: integer expression, in half-width character units.
+- `html` (string): HTML string.
+- `width` (int): width in half-width character units.
 
 **Semantics**
 - If `html` is null/empty, returns `0`.
@@ -13045,7 +13541,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
   - string keys: `string.CompareTo` ordering (current culture)
   - direction is controlled by `isAscending`
 - For each variable-term string in `arrayNameList`, resolves it to an array variable and applies the same permutation:
-  - 1D arrays: permutes elements `0 .. n-1`
+  - 1D arrays: permutes elements `0 <= i < n`
   - 2D arrays: permutes rows by the first index (`[row, col]`)
   - 3D arrays: permutes slabs by the first index (`[i, j, k]`)
 - If any target array’s first dimension is shorter than `n`, the function returns `0`.

@@ -16,7 +16,7 @@
 - `charaVarTerm` (character-data variable term): selects a character-data variable (scalar or array).
   - If it is an array, its subscripts (written after the chara selector) select which per-chara cell is compared.
   - If it is an array, those subscript expressions are evaluated once to select the element(s) to compare.
-- The chara selector part of `charaVarTerm` does not affect the search: the function always compares against the scanned chara index `i`.
+- The chara selector part of `charaVarTerm` (written selector only): does not affect the search; the function always compares against the scanned chara index `i`.
   - The written chara selector is also not evaluated (no side effects from that expression).
 - `value` (int|string; must match the selected cell type): scalar value to match.
 - `startIndex` (optional, int; default `0`): inclusive start chara index.

@@ -11,8 +11,8 @@
 - `CALLFORMF <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
-- `<argN>` (optional): zero or more expressions passed to the method.
+- `<formString>` (FORM/formatted string): its evaluated result is used as the method name.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the method.
 
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.

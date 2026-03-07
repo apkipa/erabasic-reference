@@ -10,7 +10,7 @@
 - `DEBUGPRINTFORML <formString>`
 
 **Arguments**
-- `<formString>` (optional, default `""`): FORM/formatted string, parsed like `PRINTFORM*`.
+- `<formString>` (optional, FORM/formatted string; default `""`): parsed like `PRINTFORM*`.
 
 **Semantics**
 - Evaluates `<formString>` using the normal FORM/formatted-string rules, appends the resulting string to the separate debug-output buffer, then appends one newline there.

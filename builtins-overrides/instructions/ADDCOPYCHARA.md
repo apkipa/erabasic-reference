@@ -9,7 +9,7 @@
 - `ADDCOPYCHARA charaIndex1, charaIndex2, ...`
 
 **Arguments**
-- Each `charaIndex`: int expression selecting an existing character index to copy from.
+- Each `charaIndex` (int): selects an existing character index to copy from.
 
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.

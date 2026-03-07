@@ -11,7 +11,7 @@
 - Signature: `string HTML_TOPLAINTEXT(string html)`.
 
 **Arguments**
-- `html`: string expression interpreted as an HTML string.
+- `html` (string): HTML string.
 
 **Semantics**
 - Removes all tag-like regions of the form `<...>` (including button tags and comments).

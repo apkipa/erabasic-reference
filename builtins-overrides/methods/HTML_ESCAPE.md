@@ -11,7 +11,7 @@
 - Signature: `string HTML_ESCAPE(string text)`.
 
 **Arguments**
-- `text`: string expression.
+- `text` (string): input text.
 
 **Semantics**
 - Replaces:

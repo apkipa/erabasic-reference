@@ -8,7 +8,7 @@
 - `ARRAYREMOVE <arrayVar>, <start>, <count>`
 
 **Arguments**
-- `<arrayVar>`: changeable 1D array variable term.
+- `<arrayVar>` (changeable 1D array variable term): target array.
 - `<start>` (int): start index (0-based).
 - `<count>` (int): number of elements to remove.
 

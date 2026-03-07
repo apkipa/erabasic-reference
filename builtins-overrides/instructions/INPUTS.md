@@ -10,7 +10,7 @@
 - `INPUTS <defaultFormString>, <mouse> [, <canSkip>]`
 
 **Arguments**
-- `<defaultFormString>` (optional): FORM/formatted string expression used as the default string. If omitted, there is no default.
+- `<defaultFormString>` (optional, FORM/formatted string): its evaluated result is used as the default string. If omitted, there is no default.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
   - Clicking a selectable **normal-output button** can still submit its string as `INPUTS` even when this argument is omitted or `0`.
 - `<canSkip>` (optional, any): presence enables the `MesSkip` fast path; its value is ignored (not evaluated).

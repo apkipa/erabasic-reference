@@ -10,7 +10,7 @@
 - `DATA;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
   - Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
 
 **Semantics**

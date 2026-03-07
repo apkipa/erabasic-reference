@@ -8,7 +8,7 @@
 - `SAVENOS [<dest>]`
 
 **Arguments**
-- `<dest>` (optional; default `RESULT`): changeable integer variable term to receive the value.
+- `<dest>` (optional, changeable integer variable term; default `RESULT`): receives the value.
 
 **Semantics**
 - Assigns the configuration value `SaveDataNos` to `<dest>`.

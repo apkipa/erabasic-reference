@@ -9,7 +9,7 @@
 - `DELCHARA charaIndex1, charaIndex2, ...`
 
 **Arguments**
-- Each `charaIndex`: int expression selecting an existing character index.
+- Each `charaIndex` (int): selects an existing character index.
 
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but a parse-time warning is emitted for multi-argument uses.

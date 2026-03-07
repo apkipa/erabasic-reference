@@ -11,8 +11,8 @@
 - `ARRAYMSORT(keyArray, array1 [, array2 ...])` → `long`
 
 **Arguments**
-- `keyArray` (array variable term): non-character 1D array variable term (int or string). Must not be `CONST` or a calculated/pseudo variable.
-- `arrayN` (array variable term): one or more non-character array variable terms (1D/2D/3D; int or string). Must not be `CONST` or calculated.
+- `keyArray` (non-character 1D array variable term): sort key array; int or string; must not be `CONST` or a calculated/pseudo variable.
+- `arrayN` (one or more non-character array variable terms): arrays permuted to follow the key order; each may be 1D/2D/3D and int or string; must not be `CONST` or calculated.
   - Any subscripts written in these variable terms are ignored; the function operates on the underlying array storage.
 
 **Semantics**

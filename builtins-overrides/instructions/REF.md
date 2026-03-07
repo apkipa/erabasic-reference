@@ -8,8 +8,8 @@
 - `REF <refTarget>, <sourceName>`
 
 **Arguments**
-- `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
-- `<sourceName>`: identifier token naming the source variable to bind to.
+- `<refTarget>` (identifier token): intended to be a `REF` variable name; see `variables.md`.
+- `<sourceName>` (identifier token): names the source variable to bind to.
 
 **Semantics**
 - The current engine implementation throws a “not implemented” error at runtime.

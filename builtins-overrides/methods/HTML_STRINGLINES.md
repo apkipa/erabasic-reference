@@ -11,8 +11,8 @@
 - Signature: `int HTML_STRINGLINES(string html, int width)`.
 
 **Arguments**
-- `html`: string expression interpreted as an HTML string.
-- `width`: integer expression, in half-width character units.
+- `html` (string): HTML string.
+- `width` (int): width in half-width character units.
 
 **Semantics**
 - If `html` is null/empty, returns `0`.

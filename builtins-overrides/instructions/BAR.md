@@ -8,9 +8,9 @@
 - `BAR value, maxValue, length`
 
 **Arguments**
-- `value`: int expression (numerator).
-- `maxValue`: int expression (denominator); must evaluate to `> 0`.
-- `length`: int expression (bar width); must satisfy `1 <= length <= 99`.
+- `value` (int): numerator.
+- `maxValue` (int): denominator; must evaluate to `> 0`.
+- `length` (int): bar width; must satisfy `1 <= length <= 99`.
 
 **Semantics**
 - Computes `filled = clamp(value * length / maxValue, 0, length)` using 64-bit integer arithmetic (integer overflow wraps).

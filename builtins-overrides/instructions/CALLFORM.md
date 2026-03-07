@@ -11,7 +11,7 @@
 - `CALLFORM <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<formString>`: FORM/formatted string; the evaluated result is used as the function name.
+- `<formString>` (FORM/formatted string): its evaluated result is used as the function name.
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
 - `<argN>` (optional): same as `CALL`.
 

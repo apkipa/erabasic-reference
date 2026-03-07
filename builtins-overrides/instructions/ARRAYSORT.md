@@ -8,7 +8,7 @@
 - `ARRAYSORT <arrayVar> [, FORWARD|BACK [, <start> [, <count>]]]`
 
 **Arguments**
-- `<arrayVar>`: changeable 1D array variable term (int or string).
+- `<arrayVar>` (changeable 1D array variable term): target array; must be int or string.
 - `FORWARD|BACK` (optional; default `FORWARD`):
   - `FORWARD`: ascending
   - `BACK`: descending

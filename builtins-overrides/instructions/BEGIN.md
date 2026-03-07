@@ -8,7 +8,7 @@
 - `BEGIN <keyword>`
 
 **Arguments**
-- `<keyword>`: raw string (the entire remainder of the source line after the instruction delimiter).
+- `<keyword>` (raw string): the entire remainder of the source line after the instruction delimiter.
   - Must match one of the supported keywords exactly (see below).
   - The current engine compares this string literally (no automatic trim or case-folding).
 

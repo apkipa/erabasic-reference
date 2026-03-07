@@ -10,7 +10,7 @@
 - `PRINTLC;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - If the resulting text is empty, nothing is appended.
 - Output is converted to a fixed-width “cell” string (see below).
 

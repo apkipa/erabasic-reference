@@ -8,9 +8,9 @@
 - `ARRAYSHIFT <arrayVar>, <shift>, <default> [, <start> [, <count>]]`
 
 **Arguments**
-- `<arrayVar>`: changeable 1D array variable term.
+- `<arrayVar>` (changeable 1D array variable term): target array.
 - `<shift>` (int): shift offset (can be negative). `0` is a no-op.
-- `<default>`: expression of the same scalar type as the array element type.
+- `<default>` (same scalar type as the array element type): fill value for newly exposed slots.
 - `<start>` (optional, int; default `0`): start index of the shifted segment.
 - `<count>` (optional, int; default remaining length to array end): number of elements in the segment. If explicitly `0`, this is a no-op.
 

@@ -9,7 +9,7 @@
 - `ADDCHARA charaNo1, charaNo2, ...`
 
 **Arguments**
-- Each `charaNo`: int expression selecting a character template.
+- Each `charaNo` (int): selects a character template.
 
 **Semantics**
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.

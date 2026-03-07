@@ -9,7 +9,7 @@
 - `SKIPDISP <int expr>`
 
 **Arguments**
-- `<int expr>`: `0` disables skip mode; non-zero enables skip mode.
+- `<int expr>` (int): `0` disables skip mode; non-zero enables skip mode.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.

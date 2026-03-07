@@ -8,7 +8,7 @@
 - `REFBYNAME <refTarget>, <sourceName>`
 
 **Arguments**
-- `<refTarget>`: identifier token (intended to be a `REF` variable name; see `variables.md`).
+- `<refTarget>` (identifier token): intended to be a `REF` variable name; see `variables.md`.
 - `<sourceName>` (string): evaluates to a variable name string.
 
 **Semantics**

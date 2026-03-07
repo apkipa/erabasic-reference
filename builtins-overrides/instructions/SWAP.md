@@ -8,8 +8,8 @@
 - `SWAP <var1>, <var2>`
 
 **Arguments**
-- `<var1>`: a changeable variable term (must not be `CONST`).
-- `<var2>`: a changeable variable term (same type as `<var1>`).
+- `<var1>` (changeable variable term): first swap target; must not be `CONST`.
+- `<var2>` (changeable variable term): second swap target; must have the same type as `<var1>`.
 
 **Semantics**
 - The engine first **fixes** both variable terms’ indices (important when indices contain expressions like `RAND`):

@@ -11,7 +11,7 @@
 - `PRINT;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - `<raw text>` is taken as the raw character sequence after the instruction delimiter.
 - The parser consumes exactly one delimiter character after the keyword:
   - a single space / tab

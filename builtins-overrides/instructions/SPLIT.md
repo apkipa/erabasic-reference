@@ -10,10 +10,10 @@
 **Arguments**
 - `<text>` (string): string expression to split.
 - `<separator>` (string): string expression used as the separator (not a set of characters).
-- `<outParts>` (variable term): changeable array variable term to receive the parts.
+- `<outParts>` (changeable string array variable term): receives the parts.
   - Must be a **string** array variable (1D/2D/3D; character-data arrays are accepted but behave specially).
   - Any indices written in `<outParts>` are ignored for this instruction.
-- `<outCount>` (optional, variable term; default `RESULT`): changeable integer variable term to receive the number of split parts.
+- `<outCount>` (optional, changeable integer variable term; default `RESULT`): receives the number of split parts.
 
 **Semantics**
 - Computes `parts = text.Split(new[] { separator }, StringSplitOptions.None)` (equivalent .NET behavior).

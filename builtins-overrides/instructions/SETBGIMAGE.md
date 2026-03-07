@@ -9,11 +9,11 @@
 - `SETBGIMAGE <spriteName> [, <depth> [, <opacityByte> ]]`
 
 **Arguments**
-- `<spriteName>` (string): formatted string expression naming a sprite.
+- `<spriteName>` (FORM/formatted string): its evaluated result names a sprite.
   - Sprite lookup is case-insensitive (the engine uppercases before lookup).
   - Only file-backed sprites loaded from `resources/**/*.csv` are accepted; other sprite kinds are ignored.
-- `<depth>` (optional, string; default `0`): formatted string expression parsed by `Int64.Parse`.
-- `<opacityByte>` (optional, string; default `255`): formatted string expression parsed by `Int64.Parse`, then converted to opacity as `value / 255.0`.
+- `<depth>` (optional, FORM/formatted string; default `0`): its evaluated result is parsed by `Int64.Parse`.
+- `<opacityByte>` (optional, FORM/formatted string; default `255`): its evaluated result is parsed by `Int64.Parse`, then converted to opacity as `value / 255.0`.
   - Not clamped.
 
 **Semantics**

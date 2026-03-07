@@ -9,7 +9,7 @@
 - `REMOVEBGIMAGE <spriteName>`
 
 **Arguments**
-- `<spriteName>` (string): formatted string expression.
+- `<spriteName>` (FORM/formatted string): its evaluated result selects the sprite name to remove.
   - Matching is **case-sensitive** against the stored sprite name (which is uppercased during resource loading).
 
 **Semantics**

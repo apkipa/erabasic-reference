@@ -8,7 +8,7 @@
 - `VARSIZE <arrayVarName>`
 
 **Arguments**
-- `<arrayVarName>`: an identifier token naming an array variable (not an expression).
+- `<arrayVarName>` (identifier token): names an array variable; not an expression.
   - Must be a 1D/2D/3D array variable (character-data arrays are allowed).
   - `RAND` is rejected (even though it is 1D).
   - Compatibility parsing: any extra characters after the identifier are ignored (with a warning). For example, `VARSIZE ABL:TARGET:0` is treated like `VARSIZE ABL`.

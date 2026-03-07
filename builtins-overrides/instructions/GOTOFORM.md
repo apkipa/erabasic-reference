@@ -8,7 +8,7 @@
 - `GOTOFORM <formString>`
 
 **Arguments**
-- `<formString>`: FORM/formatted string; the evaluated result is used as the `$label` name.
+- `<formString>` (FORM/formatted string): its evaluated result is used as the `$label` name.
 
 **Semantics**
 - Evaluates the label name and jumps if it resolves to a `$label` in the current function.

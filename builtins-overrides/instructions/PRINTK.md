@@ -10,7 +10,7 @@
 - `PRINTK;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

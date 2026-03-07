@@ -8,8 +8,8 @@
 - `TIMES intVarTerm, realLiteral`
 
 **Arguments**
-- `intVarTerm`: a changeable integer variable term (must not be `CONST`).
-- `realLiteral`: a real-number **literal** parsed as `double` (not an expression).
+- `intVarTerm` (changeable integer variable term): target variable; must not be `CONST`.
+- `realLiteral` (real-number literal): parsed as `double`; not an expression.
 
 **Semantics**
 - Reads `intVarTerm`’s current value, multiplies it by `realLiteral`, then stores `(long)product` back into `intVarTerm`.

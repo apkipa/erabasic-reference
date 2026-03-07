@@ -11,7 +11,7 @@
 **Arguments**
 - `<name>` (string): the file name component.
 - `<saveText>` (string): stored in the file as a description.
-- `<charaNo*>`: one or more integer expressions; character indices to save (0-based).
+- `<charaNo*>` (one or more int values): character indices to save (0-based).
 
 **Semantics**
 - Writes a binary file under `Program.DatDir`:

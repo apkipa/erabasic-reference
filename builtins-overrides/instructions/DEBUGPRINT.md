@@ -11,7 +11,7 @@
 - `DEBUGPRINT;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw literal text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - Appends the raw literal text to the host's **debug-output buffer**, not to the normal output model.

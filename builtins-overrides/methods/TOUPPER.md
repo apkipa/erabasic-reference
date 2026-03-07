@@ -11,7 +11,7 @@
 - `TOUPPER(str)` → `string`
 
 **Arguments**
-- `str`: string expression.
+- `str` (string): input string.
 
 **Semantics**
 - If `str` is null/empty: returns `""`.

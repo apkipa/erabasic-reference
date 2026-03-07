@@ -20,7 +20,7 @@
 - Coordinate convention:
   - this is **not** the raw top-left-based window Y,
   - it uses the engine's shared conversion `clientY - clientHeight`,
-  - so values inside the client area are typically non-positive, with the bottom edge near `0`.
+  - so values inside the client area are non-positive, and larger on-screen Y values map to larger (less negative) results; the bottom edge is the position closest to `0`.
 
 **Errors & validation**
 - None.

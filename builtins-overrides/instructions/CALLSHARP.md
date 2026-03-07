@@ -13,8 +13,8 @@
 - `CALLSHARP <methodName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<methodName>`: raw string token; matched against the registered plugin method name.
-- `<argN>` (optional): zero or more expressions, each evaluated and passed to the plugin as either a string or an integer.
+- `<methodName>` (raw string token): matched against the registered plugin method name.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the plugin as either a string or an integer.
 - `<subNameN>` (optional): values parsed from the bracket segment accepted by the parser for compatibility.
   - The current implementation accepts and stores them, but they do not affect plugin-method lookup or invocation.
 

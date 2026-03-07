@@ -8,7 +8,7 @@
 - `STRDATA [<strVarTerm>]` ... `ENDDATA`
 
 **Arguments**
-- `<strVarTerm>` (optional; default `RESULTS`): changeable string variable term to receive the result.
+- `<strVarTerm>` (optional, changeable string variable term; default `RESULTS`): receives the result.
 
 
 **Semantics**

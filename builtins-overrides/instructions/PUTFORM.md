@@ -9,7 +9,7 @@
 - `PUTFORM <formString>`
 
 **Arguments**
-- `<formString>` (optional): FORM/formatted string.
+- `<formString>` (optional, FORM/formatted string): its evaluated result is appended to the save-description buffer.
 
 **Semantics**
 - Evaluates `<formString>` to a string.

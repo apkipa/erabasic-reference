@@ -8,7 +8,7 @@
 - `POWER <dest>, <x>, <y>`
 
 **Arguments**
-- `<dest>`: changeable integer variable term (destination).
+- `<dest>` (changeable integer variable term): destination.
 - `<x>` (int): base.
 - `<y>` (int): exponent.
 

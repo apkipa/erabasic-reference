@@ -9,7 +9,7 @@
 - `PRINTPLAIN <raw text>`
 
 **Arguments**
-- `<raw text>`: the literal remainder of the line (not a string).
+- `<raw text>` (optional, raw text; default `""`): the literal remainder of the line; not an expression.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).

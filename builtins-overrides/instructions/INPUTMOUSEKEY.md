@@ -1,5 +1,5 @@
 **Summary**
-- Waits for a primitive mouse/key event (mouse down, wheel, key press, or timeout) and reports it via `RESULT` / `RESULT:*` (and sometimes `RESULTS`).
+- Waits for a primitive mouse/key event (mouse down, wheel, key press, or timeout) and reports it via `RESULT` / `RESULT:*`; on the mouse-down path it may also write `RESULTS` when a selected string ordinary-output button is involved.
 
 **Tags**
 - io

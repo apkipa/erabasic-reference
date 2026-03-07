@@ -11,8 +11,8 @@
 - `CALLF <methodName>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
-- `<argN>` (optional): zero or more expressions passed to the method.
+- `<methodName>` (raw string token): read up to `(` / `[` / `,` / `;` and then trimmed.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the method.
 
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.

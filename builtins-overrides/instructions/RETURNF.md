@@ -9,7 +9,7 @@
 - `RETURNF <expr>`
 
 **Arguments**
-- `<expr>` (optional): expression whose type should match the function’s declared return type.
+- `<expr>` (optional, expression): its value should match the function’s declared return type.
 
 
 **Semantics**

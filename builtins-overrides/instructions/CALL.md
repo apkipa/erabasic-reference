@@ -14,10 +14,10 @@
 - The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
-- `<functionName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
+- `<functionName>` (raw string token): read up to `(` / `[` / `,` / `;` and then trimmed.
   - This is **not** a string literal. Quotes are treated as ordinary characters.
   - Backslash escapes are processed (e.g. `\n`, `\t`, `\s`).
-- `<argN>` (optional): zero or more expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
+- `<argN>` (optional, expression): each occurrence is evaluated, passed to the callee, and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
 - `<subNameN>` (optional): values parsed from the bracket segment after `<functionName>`.
   - The current engine accepts and stores them, but they do not affect target resolution or call behavior.
 

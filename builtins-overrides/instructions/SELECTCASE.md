@@ -13,7 +13,7 @@
   - `ENDSELECT`
 
 **Arguments**
-- `<expr>`: selector expression; may be int or string.
+- `<expr>` (int|string): selector expression.
 
 **Semantics**
 - The loader gathers all `CASE` / `CASEELSE` headers into an ordered list and links them to the matching `ENDSELECT`.

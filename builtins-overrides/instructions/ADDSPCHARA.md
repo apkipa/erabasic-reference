@@ -9,7 +9,7 @@
 - `ADDSPCHARA charaNo1, charaNo2, ...`
 
 **Arguments**
-- Each `charaNo`: int expression selecting a character template.
+- Each `charaNo` (int): selects a character template.
 
 **Semantics**
 - Requires the `CompatiSPChara` config option to be enabled; otherwise this instruction errors before evaluating any arguments.

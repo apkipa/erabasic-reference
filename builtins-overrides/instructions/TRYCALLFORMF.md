@@ -11,8 +11,8 @@
 - `TRYCALLFORMF <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
-- `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
-- `<argN>` (optional): zero or more expressions passed to the target method.
+- `<formString>` (FORM/formatted string): its evaluated result is used as the method name.
+- `<argN>` (optional, expression): each occurrence is evaluated and passed to the target method.
 
 **Semantics**
 - Evaluates `<formString>` to a name string, then behaves like `TRYCALLF`.

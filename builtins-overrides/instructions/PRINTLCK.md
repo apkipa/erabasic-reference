@@ -10,7 +10,7 @@
 - `PRINTLCK;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 - Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**

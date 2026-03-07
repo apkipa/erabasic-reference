@@ -11,7 +11,7 @@
 - `DEBUGPRINTL;<raw text>`
 
 **Arguments**
-- `<raw text>` (optional, default `""`): raw literal text, not an expression.
+- `<raw text>` (optional, raw text; default `""`): not an expression.
 
 **Semantics**
 - Same destination and isolation rules as `DEBUGPRINT`: it writes only to the separate debug-output buffer, not to the normal output model.

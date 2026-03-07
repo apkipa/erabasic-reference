@@ -12,8 +12,8 @@
   - `FUNC <formString>`
 
 **Arguments**
-- `<formString>`: a FORM/formatted string expression evaluated to a function name or label name.
-- `<argN>`: optional call arguments (not allowed for `TRYGOTOLIST`).
+- `<formString>` (FORM/formatted string): evaluated to a function name or label name.
+- `<argN>` (optional): call argument; not allowed for `TRYGOTOLIST`.
 
 **Semantics**
 - Not executed as a standalone statement.

@@ -13,7 +13,7 @@
 **Semantics**
 - Sets the engine’s “reboot on quit” flag, then requests quit (same as `QUIT` for script control flow).
 - Script execution stops immediately.
-- The actual restart is performed by the UI host after the quit request is posted (typically on the next user interaction in the quit state).
+- The UI host performs the actual restart after the quit request is posted; scripts have no further control over that timing.
 
 **Errors & validation**
 - (none)

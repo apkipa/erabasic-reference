@@ -9,7 +9,7 @@
 - `SKIPLOG <int expr>`
 
 **Arguments**
-- `<int expr>`: `0` clears message-skip; non-zero enables message-skip.
+- `<int expr>` (int): `0` clears message-skip; non-zero enables message-skip.
 
 **Semantics**
 - Evaluates `<int expr>` to `v`.

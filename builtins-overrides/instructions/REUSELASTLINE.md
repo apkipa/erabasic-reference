@@ -9,7 +9,7 @@
 - `REUSELASTLINE <formString>`
 
 **Arguments**
-- `<formString>` (optional): FORM/formatted string (parsed like `PRINTFORM*`) used as the temporary line’s content.
+- `<formString>` (optional, FORM/formatted string): parsed like `PRINTFORM*` and used as the temporary line’s content.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).

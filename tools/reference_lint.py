@@ -69,6 +69,7 @@ FAIL_ON_CODES = (
     "suspicious-escaped-quote",
     "noncanonical-default-syntax",
     "noncanonical-required-marker",
+    "noncanonical-argument-metadata-placement",
     "noncanonical-omission-warning-phrase",
     "user-doc-source-path-leak",
     "user-doc-internal-symbol-leak",
@@ -269,6 +270,29 @@ _REQUIRED_MARKER_RE = re.compile(r"\(required\s+[^)]+\)")
 
 
 _ARGUMENT_REDUNDANT_EXPRESSION_TYPE_RE = re.compile(r"\(([^)]*\b(?:int|string|bool) expression\b[^)]*)\)", re.IGNORECASE)
+_ARGUMENT_LABEL_WITHOUT_METADATA_PARENS_RE = re.compile(r"^-\s+(.+?):\s+")
+_ARGUMENT_LABEL_WITH_METADATA_PARENS_RE = re.compile(r"^-\s+(.+?)\s+\(([^)]*)\):\s+(.*)$")
+_ARGUMENT_METADATA_KIND_RE = re.compile(r"\b(?:int|string|bool|literal|token|raw|formatted|form|identifier|keyword|variable|term|array|html|ref|chara|expression)\b", re.IGNORECASE)
+_ARGUMENT_DESC_TYPEISH_RE = re.compile(
+    r"^(?:"
+    r"(?:first|second|third|fourth|fifth)\s+array size written as an integer literal"
+    r"|scalar initializer written as a double-quoted literal"
+    r"|(?:a\s+)?FORM/formatted string\b"
+    r"|raw(?:\s+string)?(?:\s+token)?\b"
+    r"|raw(?:\s+literal)?\s+text\b"
+    r"|identifier token\b"
+    r"|changeable\b"
+    r"|integer literal\b"
+    r"|double-quoted literal\b"
+    r"|zero or more expressions\b"
+    r"|one or more\b"
+    r"|expression\b"
+    r")",
+    re.IGNORECASE,
+)
+_ARGUMENT_VARIABLE_TERM_KIND_RE = re.compile(r"^(?:(?:zero|one)\s+or\s+more\s+)?(?:a\s+|an\s+)?([^.:;]+?\bvariable terms?)\b", re.IGNORECASE)
+_ARGUMENT_VARIABLE_TERM_QUALIFIER_RE = re.compile(r"\b(?:\d+d|changeable|non-character|character-data|int|integer|string)\b", re.IGNORECASE)
+_ARGUMENT_DESC_FORMATTED_STRING_RE = re.compile(r"^(?:formatted string expression\b|FORM/formatted string\b)", re.IGNORECASE)
 
 
 def _ordered_unique(items: Iterable[str]) -> list[str]:
@@ -280,6 +304,19 @@ def _ordered_unique(items: Iterable[str]) -> list[str]:
         seen.add(item)
         out.append(item)
     return out
+
+
+def _extract_argument_label_names(prefix: str) -> list[str]:
+    names: list[str] = []
+    for frag in _extract_code_spans(prefix):
+        for arg_name in _scan_argument_names_from_fragment(frag):
+            if arg_name not in names:
+                names.append(arg_name)
+    for arg_name in re.findall(r"<([^<>]+)>", prefix):
+        canon = _canonical_arg_name(arg_name)
+        if canon not in names:
+            names.append(canon)
+    return names
 
 
 def _canonical_arg_name(name: str) -> str:
@@ -611,6 +648,24 @@ def _lint_override_required_markers(*, path: Path, kind: str, name: str) -> list
 
 
 def _lint_override_argument_wording(*, path: Path, kind: str, name: str) -> list[ValidationIssue]:
+    """Lint canonical `Arguments` bullet shape.
+
+    Canonical form:
+    - `- <arg> (metadata): description`
+
+    Authoring rules enforced here:
+    - before the colon, keep only the parameter name / family name
+    - place all argument metadata in the post-name parentheses
+      (type / token-kind / binding-kind / optionality / default / omission behavior)
+    - after the colon, start with the parameter's semantic role / effect, not another
+      type-ish phrase that should have lived in the parentheses
+
+    This intentionally uses one shared lint code for all of these:
+    - metadata written after the colon with no parentheses,
+    - metadata written only partially in parentheses (for example `(optional): int literal ...`), and
+    - parentheses that use only a weaker umbrella kind while the description still starts
+      with a more specific kind phrase that should have lived in the parentheses.
+    """
     issues: list[ValidationIssue] = []
     rel = path.relative_to(REPO_ROOT)
     current_section: str | None = None
@@ -621,8 +676,36 @@ def _lint_override_argument_wording(*, path: Path, kind: str, name: str) -> list
             continue
         if current_section != "Arguments":
             continue
-        if not raw.lstrip().startswith("- "):
+        if not raw.startswith("- "):
             continue
+
+        stripped = raw.strip()
+
+        m_label = _ARGUMENT_LABEL_WITHOUT_METADATA_PARENS_RE.match(stripped)
+        if m_label:
+            prefix = m_label.group(1).strip()
+            if "(" not in prefix and _extract_argument_label_names(prefix):
+                issues.append(ValidationIssue(severity="WARN", code="noncanonical-argument-metadata-placement", kind=kind, name=name, message=f"{rel}:{line_no}: place all argument metadata in parentheses after the argument name (for example: `<arg>` `(int): ...`) instead of writing it after the colon."))
+
+        m_meta = _ARGUMENT_LABEL_WITH_METADATA_PARENS_RE.match(stripped)
+        if m_meta:
+            prefix = m_meta.group(1).strip()
+            meta = m_meta.group(2).strip()
+            desc = m_meta.group(3).strip()
+            meta_l = meta.lower().replace("integer", "int")
+            if _extract_argument_label_names(prefix) and ("optional" in meta_l or "default" in meta_l) and not _ARGUMENT_METADATA_KIND_RE.search(meta) and _ARGUMENT_DESC_TYPEISH_RE.search(desc):
+                issues.append(ValidationIssue(severity="WARN", code="noncanonical-argument-metadata-placement", kind=kind, name=name, message=f"{rel}:{line_no}: the parentheses contain only control metadata such as `optional`/`default`, but the post-colon text still starts with argument-kind metadata; move that metadata into the parentheses (for example: `(optional, int literal)`)."))
+            if _extract_argument_label_names(prefix) and "variable term" in meta_l:
+                m_var = _ARGUMENT_VARIABLE_TERM_KIND_RE.match(desc)
+                if m_var:
+                    desc_kind = m_var.group(1).lower().replace("integer", "int")
+                    meta_tokens = set(_ARGUMENT_VARIABLE_TERM_QUALIFIER_RE.findall(meta_l))
+                    desc_tokens = set(_ARGUMENT_VARIABLE_TERM_QUALIFIER_RE.findall(desc_kind))
+                    if desc_tokens - meta_tokens:
+                        issues.append(ValidationIssue(severity="WARN", code="noncanonical-argument-metadata-placement", kind=kind, name=name, message=f"{rel}:{line_no}: the parentheses use a generic variable-term kind, but the post-colon text starts with a more specific variable-term kind; move the specific kind into the parentheses."))
+            if _extract_argument_label_names(prefix) and re.search(r"\bstring\b", meta_l) and not re.search(r"\b(?:form|formatted)\b", meta_l) and _ARGUMENT_DESC_FORMATTED_STRING_RE.search(desc):
+                issues.append(ValidationIssue(severity="WARN", code="noncanonical-argument-metadata-placement", kind=kind, name=name, message=f"{rel}:{line_no}: the parentheses say `string`, but the post-colon text starts with formatted-string kind metadata; move `FORM/formatted string` into the parentheses."))
+
         m_type = _ARGUMENT_REDUNDANT_EXPRESSION_TYPE_RE.search(raw)
         if not m_type:
             continue
