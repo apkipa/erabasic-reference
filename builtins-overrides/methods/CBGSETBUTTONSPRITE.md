@@ -14,8 +14,8 @@
 
 **Arguments**
 - `<buttonValue>` (int): logical CBG button value associated with this sprite.
-- `<normalSprite>` (required string): sprite name used in the normal state. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
-- `<hoverSprite>` (required string): sprite name used while this button value is currently selected by the CBG hit map. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
+- `<normalSprite>` (string): sprite name used in the normal state. This call shape does not allow omission; an empty string is still a supplied value.
+- `<hoverSprite>` (string): sprite name used while this button value is currently selected by the CBG hit map. This call shape does not allow omission; an empty string is still a supplied value.
 - `<x>`, `<y>` (int): CBG placement coordinates.
 - `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 - `<tooltip>` (optional, string): tooltip text associated with this button sprite.

@@ -22,7 +22,7 @@
     - character-data 1D: `C:chara:x` → sums `C[chara, i]` (the written `x` is ignored)
     - character-data 2D: `C:chara:x:y` → sums `C[chara, x, i]` (the written `y` is ignored)
 - `startIndex` (optional, int; default `0`): inclusive start index in the summed dimension.
-- `endIndex` (optional, int; default = length of the summed dimension): exclusive end index in the summed dimension.
+- `endIndex` (optional, int; default current length of the summed dimension): exclusive end index in the summed dimension.
 
 **Semantics**
 - Returns `Σ arrayVarTerm[...]` over indices `i` with `startIndex <= i < endIndex` using the addressing rules above.

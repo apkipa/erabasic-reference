@@ -9,11 +9,11 @@
 - `SETFONT <fontName>`
 
 **Arguments**
-- `<fontName>` (optional, string expression; default `""`): font face name.
+- `<fontName>` (optional, string; default `""`): font face name.
 
 **Semantics**
-- If `<fontName>` is non-empty, sets the current font face name to that value.
-- If `<fontName>` is empty (including when omitted), resets the current font face name to the configured default font.
+- Non-empty `<fontName>` sets the current font face name.
+- Empty `<fontName>` resets it to the configured default font.
 
 **Errors & validation**
 - (none)

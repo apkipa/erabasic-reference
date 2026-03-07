@@ -17,7 +17,7 @@
   - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
 - `value` (int|string; must match the array element type): target value.
 - `startIndex` (optional, int; default `0`): inclusive start index.
-- `endIndex` (optional, int; default = array length): exclusive end index.
+- `endIndex` (optional, int; default current array length): exclusive end index.
 
 **Semantics**
 - Counts indices `i` with `startIndex <= i < endIndex` where the element equals `value`.

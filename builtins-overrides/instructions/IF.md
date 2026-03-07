@@ -14,7 +14,7 @@
   - `ENDIF`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
+- `<int expr>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates its own condition and then each `ELSEIF` condition in order.

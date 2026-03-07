@@ -16,7 +16,7 @@
 - `arrayVarTerm` (int 1D array variable term): a 1D integer array variable term. Character-data 1D arrays are allowed (the chara selector chooses the character slice).
   - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
 - `startIndex` (optional, int; default `0`): start index.
-- `endIndex` (optional, int; default = array length): end index.
+- `endIndex` (optional, int; default current array length): end index.
 
 **Semantics**
 - Reads `ret = element[startIndex]`, then scans `i` from `startIndex + 1` while `i < endIndex`, and updates `ret = max(ret, element[i])`.

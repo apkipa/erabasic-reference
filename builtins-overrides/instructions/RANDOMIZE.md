@@ -9,7 +9,7 @@
 - `RANDOMIZE <seed>`
 
 **Arguments**
-- `<seed>` (optional): int. If omitted, the seed defaults to `0`.
+- `<seed>` (optional, int; default `0`): seed value.
 
 **Semantics**
 - The legacy RNG used here is SFMT with the MT19937 parameter set.

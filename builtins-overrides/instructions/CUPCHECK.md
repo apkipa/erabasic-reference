@@ -9,7 +9,7 @@
 - `CUPCHECK [charaIndex]`
 
 **Arguments**
-- `charaIndex` (optional, int; default `0` with a warning if omitted): the character index to apply changes to.
+- `charaIndex` (optional, int; default `0`; omission emits a warning): the character index to apply changes to.
 
 **Semantics**
 - Reads the target character’s per-character arrays:

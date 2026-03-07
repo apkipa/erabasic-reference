@@ -2673,7 +2673,7 @@ PRINTL
 - `PRINT_ABL <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
+- `charaIndex` (optional, int; default `0`; omission emits a warning): index into the current character list.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -2712,7 +2712,7 @@ PRINT_ABL TARGET
 - `PRINT_TALENT <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
+- `charaIndex` (optional, int; default `0`; omission emits a warning): index into the current character list.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -2751,7 +2751,7 @@ PRINT_TALENT TARGET
 - `PRINT_MARK <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
+- `charaIndex` (optional, int; default `0`; omission emits a warning): index into the current character list.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -2790,7 +2790,7 @@ PRINT_MARK TARGET
 - `PRINT_EXP <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
+- `charaIndex` (optional, int; default `0`; omission emits a warning): index into the current character list.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -2829,7 +2829,7 @@ PRINT_EXP TARGET
 - `PRINT_PALAM <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
+- `charaIndex` (optional, int; default `0`; omission emits a warning): index into the current character list.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
@@ -3689,7 +3689,7 @@ UPCHECK
 - `CUPCHECK [charaIndex]`
 
 **Arguments**
-- `charaIndex` (optional, int; default `0` with a warning if omitted): the character index to apply changes to.
+- `charaIndex` (optional, int; default `0`; omission emits a warning): the character index to apply changes to.
 
 **Semantics**
 - Reads the target character’s per-character arrays:
@@ -4095,7 +4095,7 @@ DELCHARA 1, 3
 - `LOADDATA [<slot>]`
 
 **Arguments**
-- `<slot>` (optional, int; default `0` with a warning if omitted): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
+- `<slot>` (optional, int; default `0`; omission emits a warning): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
 
 **Semantics**
 - Validates the target save file; if the file is missing/corrupt/mismatched, raises a runtime error.
@@ -4131,7 +4131,7 @@ DELCHARA 1, 3
 - `DELDATA <slot>`
 
 **Arguments**
-- `<slot>` (optional, int; default `0` with a warning if omitted): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
+- `<slot>` (optional, int; default `0`; omission emits a warning): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).
 
 **Semantics**
 - Computes the save file path under `SavDir` as `save{slot:00}.sav`.
@@ -4273,7 +4273,7 @@ DELCHARA 1, 3
   - `<next logical line>`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
+- `<int expr>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.
@@ -4314,7 +4314,7 @@ DELCHARA 1, 3
   - `ENDIF`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
+- `<int expr>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates its own condition and then each `ELSEIF` condition in order.
@@ -4551,7 +4551,7 @@ DELCHARA 1, 3
   - `REND`
 
 **Arguments**
-- `<countExpr>` (optional, int; default `0` with a warning if omitted): number of iterations.
+- `<countExpr>` (optional, int; default `0`; omission emits a warning): number of iterations.
 
 **Semantics**
 - `REPEAT` is implemented as a FOR-like loop over `COUNT:0`:
@@ -4675,7 +4675,7 @@ DELCHARA 1, 3
   - `WEND`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0` with a warning if omitted): loop condition (`0` = false, non-zero = true).
+- `<int expr>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - At `WHILE`, evaluates the condition:
@@ -4756,7 +4756,7 @@ DELCHARA 1, 3
 - `LOOP [<int expr>]`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0` with a warning if omitted): loop condition (`0` = false, non-zero = true).
+- `<int expr>` (optional, int; default `0`; omission emits a warning): loop condition (`0` = false, non-zero = true).
 
 **Semantics**
 - Evaluates the condition:
@@ -5656,11 +5656,11 @@ SPLIT "a,b,c", ",", PARTS
 - `SETFONT <fontName>`
 
 **Arguments**
-- `<fontName>` (optional, string expression; default `""`): font face name.
+- `<fontName>` (optional, string; default `""`): font face name.
 
 **Semantics**
-- If `<fontName>` is non-empty, sets the current font face name to that value.
-- If `<fontName>` is empty (including when omitted), resets the current font face name to the configured default font.
+- Non-empty `<fontName>` sets the current font face name.
+- Empty `<fontName>` resets it to the configured default font.
 
 **Errors & validation**
 - (none)
@@ -5715,7 +5715,7 @@ SPLIT "a,b,c", ",", PARTS
 - `RANDOMIZE <seed>`
 
 **Arguments**
-- `<seed>` (optional): int. If omitted, the seed defaults to `0`.
+- `<seed>` (optional, int; default `0`): seed value.
 
 **Semantics**
 - The legacy RNG used here is SFMT with the MT19937 parameter set.
@@ -6239,7 +6239,7 @@ ENDNOSKIP
 - `<shift>` (int): shift offset (can be negative). `0` is a no-op.
 - `<default>`: expression of the same scalar type as the array element type.
 - `<start>` (optional, int; default `0`): start index of the shifted segment.
-- `<count>` (optional, int; default “to end”): number of elements in the segment. If explicitly `0`, this is a no-op.
+- `<count>` (optional, int; default remaining length to array end): number of elements in the segment. If explicitly `0`, this is a no-op.
 
 **Semantics**
 - If `<arrayVar>` is a character-data 1D array, the shift is applied to the **per-character slice** selected by `<arrayVar>`’s chara selector.
@@ -6313,7 +6313,7 @@ ENDNOSKIP
   - `FORWARD`: ascending
   - `BACK`: descending
 - `<start>` (optional, int; default `0`): subrange start index (only parsed when `FORWARD|BACK` is present).
-- `<count>` (optional, int; default “to end”): subrange length (only parsed when `FORWARD|BACK` is present). If explicitly `0`, this is a no-op.
+- `<count>` (optional, int; default remaining length to array end): subrange length (only parsed when `FORWARD|BACK` is present). If explicitly `0`, this is a no-op.
 
 **Semantics**
 - Order defaults to ascending.
@@ -7677,21 +7677,27 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `PRINT_IMG <src>, <width> [, <height> [, <ypos>]]`
 
 **Arguments**
-- `<src>` (string expression): sprite name.
-- `<srcb>` (optional, string expression): sprite name used when the region is selected/focused.
-  - If this evaluates to `""`, it is treated as omitted.
-- `<srcm>` (optional, string expression): mapping-sprite name used by mouse-input mapping color side channels (see `html-output.md` and `INPUT`).
-- `<width>` / `<height>` / `<ypos>` (optional, int expressions): mixed numeric attributes.
+- `<src>` (string): main sprite name.
+- `<srcb>` (optional, string; default `""`): sprite name used when the region is selected/focused.
+- `<srcm>` (optional, string; default `""`): mapping-sprite name used by mouse-input mapping color side channels (see `html-output.md` and `INPUT`).
+- `<width>` / `<height>` / `<ypos>` (optional, int): mixed numeric attributes.
+  - Numeric arguments are positional: `width`, then `height`, then `ypos`.
   - Each numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `80px`).
   - Without `px`, the value is interpreted as a percentage of the current font size (in pixels): `valuePx = value * FontSize / 100`.
-  - Numeric argument order is `width`, then `height`, then `ypos`.
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Appends an image part to the current print buffer (no implicit newline).
+- Argument parsing is two-phase:
+  - First, `PRINT_IMG` reads up to three leading string slots: `src`, then `srcb`, then `srcm`.
+  - Once the first numeric argument appears, the parse switches to numeric mode, and all remaining arguments must also be numeric.
+- To supply `srcm` while leaving `srcb` absent, pass an empty string placeholder for `srcb`.
+- Empty `srcb` / `srcm` omit the corresponding HTML attribute.
 - The image part is equivalent to emitting an HTML `<img ...>` tag and letting the HTML renderer handle it:
-  - `src=<src>`, `srcb=<srcb>`, `srcm=<srcm>`
-  - `width=<width>`, `height=<height>`, `ypos=<ypos>` (only included when the numeric value is non-zero)
+  - `src=<src>`
+  - `srcb=<srcb>` only when `srcb` is non-empty
+  - `srcm=<srcm>` only when `srcm` is non-empty
+  - `width=<width>`, `height=<height>`, `ypos=<ypos>` only when the numeric value is non-zero
 - See `html-output.md` (“Inline images: `<img ...>`”) for rendering rules:
   - If `height` is omitted or `0`, it defaults to the current font size (pixels).
   - If `width` is omitted or `0`, the original aspect ratio is preserved.
@@ -7699,11 +7705,14 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
   - If the sprite cannot be resolved, the tag is rendered as literal text.
 
 **Errors & validation**
-- Argument parse-time errors if more than 3 numeric arguments are provided, or if string arguments appear after numeric arguments.
+- Parse-time error if `<src>` is omitted.
+- Parse-time error if a string argument appears after numeric arguments have started.
+- Parse-time error if more than 3 numeric arguments are provided.
 
 **Examples**
 - `PRINT_IMG "FACE_001"`
 - `PRINT_IMG "FACE_001", 80px` (explicit pixel width)
+- `PRINT_IMG "FACE_001", "", "FACE_001_MAP"` (set `srcm` while leaving `srcb` absent)
 - `PRINT_IMG "FACE_001", 120, 120` (width/height as percent of font size)
 
 ## PRINT_RECT (instruction)
@@ -7926,9 +7935,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - `AWAIT <timeMs>`
 
 **Arguments**
-- `<timeMs>` (optional, int expression):
-  - If omitted, `AWAIT` yields without sleeping.
-  - Otherwise must satisfy `0 <= timeMs <= 10000`.
+- `<timeMs>` (optional, int; default `0`): sleep duration in milliseconds after processing pending UI events. Must satisfy `0 <= timeMs <= 10000`.
 
 **Semantics**
 - Forces a repaint, sets an internal “sleep” state, processes UI events, and then:
@@ -9882,11 +9889,11 @@ PRINTFORML %S%
 
 **Arguments**
 - `money` (int)
-- `format` (optional, string; default = no custom formatting): passed to `Int64.ToString(format)`.
+- `format` (optional, string; default `""`): numeric format string passed to `Int64.ToString(format)`.
 
 **Semantics**
 - Formats `money`:
-  - if `format` is omitted: uses `money.ToString()`
+  - if `format` is omitted or `""`: uses default numeric formatting (`money.ToString()`)
   - otherwise: uses `money.ToString(format)`
 - Then attaches the currency label (`MoneyLabel`) either as a prefix or suffix depending on `MoneyFirst`:
   - `MoneyFirst = true`: `MoneyLabel + formatted`
@@ -9897,7 +9904,7 @@ PRINTFORML %S%
 
 **Examples**
 - `MONEYSTR(123)` → `"$123"` if `MoneyLabel="$"` and `MoneyFirst=true`.
-- `MONEYSTR(123, \"D6\")` → `"$000123"` under the same config.
+- `MONEYSTR(123, "D6")` → `"$000123"` under the same config.
 
 ## PRINTCPERLINE (expression function)
 
@@ -10465,7 +10472,7 @@ PRINTFORML %S%
     - character-data 1D: `C:chara:x` → sums `C[chara, i]` (the written `x` is ignored)
     - character-data 2D: `C:chara:x:y` → sums `C[chara, x, i]` (the written `y` is ignored)
 - `startIndex` (optional, int; default `0`): inclusive start index in the summed dimension.
-- `endIndex` (optional, int; default = length of the summed dimension): exclusive end index in the summed dimension.
+- `endIndex` (optional, int; default current length of the summed dimension): exclusive end index in the summed dimension.
 
 **Semantics**
 - Returns `Σ arrayVarTerm[...]` over indices `i` with `startIndex <= i < endIndex` using the addressing rules above.
@@ -10548,7 +10555,7 @@ PRINTFORML %S%
   - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
 - `value` (int|string; must match the array element type): target value.
 - `startIndex` (optional, int; default `0`): inclusive start index.
-- `endIndex` (optional, int; default = array length): exclusive end index.
+- `endIndex` (optional, int; default current array length): exclusive end index.
 
 **Semantics**
 - Counts indices `i` with `startIndex <= i < endIndex` where the element equals `value`.
@@ -10731,7 +10738,7 @@ PRINTFORML %S%
 - `arrayVarTerm` (int 1D array variable term): a 1D integer array variable term. Character-data 1D arrays are allowed (the chara selector chooses the character slice).
   - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
 - `startIndex` (optional, int; default `0`): start index.
-- `endIndex` (optional, int; default = array length): end index.
+- `endIndex` (optional, int; default current array length): end index.
 
 **Semantics**
 - Reads `ret = element[startIndex]`, then scans `i` from `startIndex + 1` while `i < endIndex`, and updates `ret = max(ret, element[i])`.
@@ -10809,7 +10816,7 @@ PRINTFORML %S%
 - `arrayVarTerm` (int 1D array variable term): a 1D integer array variable term. Character-data 1D arrays are allowed (the chara selector chooses the character slice).
   - The written subscript of a 1D `arrayVarTerm` is ignored for addressing (but is still validated as an in-range index).
 - `startIndex` (optional, int; default `0`): start index.
-- `endIndex` (optional, int; default = array length): end index.
+- `endIndex` (optional, int; default current array length): end index.
 
 **Semantics**
 - Reads `ret = element[startIndex]`, then scans `i` from `startIndex + 1` while `i < endIndex`, and updates `ret = min(ret, element[i])`.
@@ -10930,7 +10937,7 @@ PRINTFORML %S%
   - int array: int value to match
   - string array: a **regular expression pattern** (see “Semantics”)
 - `startIndex` (optional, int; default `0`): inclusive start index.
-- `endIndex` (optional, int; default = array length): exclusive end index.
+- `endIndex` (optional, int; default current array length): exclusive end index.
 - `exact` (optional, int; default `0`): only meaningful for string arrays.
   - `0`: regex partial match
   - non-zero: regex full-string match
@@ -10956,7 +10963,7 @@ PRINTFORML %S%
 
 **Examples**
 - `i = FINDELEMENT(A, 0)`
-- `i = FINDELEMENT(S, \"^Alice$\", 0, 100, 1)`
+- `i = FINDELEMENT(S, "^Alice$", 0, 100, 1)`
 
 ## FINDLASTELEMENT (expression function)
 
@@ -10986,7 +10993,7 @@ PRINTFORML %S%
 
 **Examples**
 - `i = FINDLASTELEMENT(A, 0)`
-- `i = FINDLASTELEMENT(S, \"Alice\", 0, 100, 1)`  ; exact regex match
+- `i = FINDLASTELEMENT(S, "Alice", 0, 100, 1)`  ; exact regex match
 
 ## INRANGE (expression function)
 
@@ -11040,7 +11047,7 @@ PRINTFORML %S%
 - `min` (int): inclusive lower bound.
 - `max` (int): exclusive upper bound.
 - `startIndex` (optional, int; default `0`): inclusive start index.
-- `endIndex` (optional, int; default = array length): exclusive end index.
+- `endIndex` (optional, int; default current array length): exclusive end index.
 
 **Semantics**
 - Returns how many indices `i` satisfy:
@@ -11234,12 +11241,12 @@ ARRAYMSORT(A, B, C)
 - `TOSTR(i, format)` → `string`
 
 **Arguments**
-- `i`: int.
-- `format` (optional): string expression passed to `Int64.ToString(format)`. If omitted or `null`, uses default formatting.
+- `i` (int): value to format.
+- `format` (optional, string; default `""`): numeric format string passed to `Int64.ToString(format)`.
 
 **Semantics**
-- If `format` is omitted or null: returns `i.ToString()`.
-- Otherwise: returns `i.ToString(format)`.
+- Empty `format` uses default formatting.
+- Otherwise returns `i.ToString(format)`.
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.
@@ -12438,7 +12445,7 @@ R = CBGSETG(GID, 0, 0, 10)
 - Signature: `int CBGSETSPRITE(string spriteName, int x, int y, int zDepth)`.
 
 **Arguments**
-- `<spriteName>` (required string): sprite name to look up and place on the CBG layer. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
+- `<spriteName>` (string): sprite name to look up and place on the CBG layer. This call shape does not allow omission; an empty string is still a supplied value.
 - `<x>`, `<y>` (int): CBG placement coordinates.
 - `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 
@@ -12681,8 +12688,8 @@ R = CBGSETBMAPG(GID)
 
 **Arguments**
 - `<buttonValue>` (int): logical CBG button value associated with this sprite.
-- `<normalSprite>` (required string): sprite name used in the normal state. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
-- `<hoverSprite>` (required string): sprite name used while this button value is currently selected by the CBG hit map. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
+- `<normalSprite>` (string): sprite name used in the normal state. This call shape does not allow omission; an empty string is still a supplied value.
+- `<hoverSprite>` (string): sprite name used while this button value is currently selected by the CBG hit map. This call shape does not allow omission; an empty string is still a supplied value.
 - `<x>`, `<y>` (int): CBG placement coordinates.
 - `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 - `<tooltip>` (optional, string): tooltip text associated with this button sprite.

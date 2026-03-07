@@ -9,9 +9,7 @@
 - `AWAIT <timeMs>`
 
 **Arguments**
-- `<timeMs>` (optional, int expression):
-  - If omitted, `AWAIT` yields without sleeping.
-  - Otherwise must satisfy `0 <= timeMs <= 10000`.
+- `<timeMs>` (optional, int; default `0`): sleep duration in milliseconds after processing pending UI events. Must satisfy `0 <= timeMs <= 10000`.
 
 **Semantics**
 - Forces a repaint, sets an internal “sleep” state, processes UI events, and then:

@@ -1094,7 +1094,7 @@ def _render_method_entry_user(reg: MethodReg) -> str:
 class ValidationIssue:
     severity: str  # "WARN" | "ERROR"
     code: str
-    kind: str  # "instruction" | "method"
+    kind: str  # "instruction" | "method" | "doc"
     name: str
     message: str
 
@@ -1104,11 +1104,6 @@ def _progress_state_raw(secs: dict[str, list[str]]) -> list[str]:
 
 
 def _progress_state_value(secs: dict[str, list[str]]) -> str | None:
-    """
-    Best-effort interpret Progress state markers.
-
-    Returns: "complete" | "partial" | None (not specified)
-    """
     raw = _progress_state_raw(secs)
     if not raw:
         return None
@@ -1121,6 +1116,334 @@ def _progress_state_value(secs: dict[str, list[str]]) -> str | None:
         if t in ("partial", "incomplete", "wip", "draft"):
             return "partial"
     return "invalid"
+
+
+@dataclass(frozen=True)
+class ArgumentDocSpec:
+    name: str
+    optional: bool
+    has_default: bool
+    raw: str
+
+
+_OVERRIDE_SECTION_RE = re.compile(r"^\*\*(.+?)\*\*\s*$")
+_TODO_MARKER_RE = re.compile(r"\b(?:TODO|TBD)\b|\?\?\?|not yet documented", re.IGNORECASE)
+_SOURCE_PATH_RE = re.compile(r"(?:emuera\.em/[^`\s)]+|[A-Za-z0-9_./-]+\.cs(?::\d+)?(?![A-Za-z0-9_]))")
+_RANGE_SHORTHAND_RE = re.compile(r"(?<!\.)\b[A-Za-z_][A-Za-z0-9_]*\.\.[A-Za-z_][A-Za-z0-9_]*\b(?!\.)")
+_SEE_ABOVE_BELOW_RE = re.compile(r"\b(?:above|below|earlier|later|前文|后文|上文|下文)\b", re.IGNORECASE)
+_MD_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+\.md(?:#[^)]+)?)\)")
+_BACKTICK_MD_REF_RE = re.compile(r"`([A-Za-z0-9_./-]+\.md(?:#[A-Za-z0-9_-]+)?)`")
+_INTERNAL_SYMBOL_RES = [
+    re.compile(r"\b[A-Za-z0-9_]+_(?:Instruction|ArgumentBuilder)\b"),
+    re.compile(r"\b(?:ArgumentParser|ExpressionParser|LexicalAnalyzer|ExpressionMediator|ProcessState|AExpression|VariableTerm|GlobalStatic|FunctionArgType|Sp[A-Za-z0-9_]+Argument|GetStrValue|GetIntValue|ReduceExpressionTerm)\b"),
+    re.compile(r"\bexm\.[A-Za-z_][A-Za-z0-9_]*\b"),
+]
+_VAGUE_PHRASE_RES = [
+    re.compile(r"\betc\.\b", re.IGNORECASE),
+    re.compile(r"\band so on\b", re.IGNORECASE),
+    re.compile(r"\bin some cases\b", re.IGNORECASE),
+    re.compile(r"\bsome cases\b", re.IGNORECASE),
+    re.compile(r"\bbasically\b", re.IGNORECASE),
+    re.compile(r"\broughly\b", re.IGNORECASE),
+]
+
+
+def _ordered_unique(items: Iterable[str]) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        if item in seen:
+            continue
+        seen.add(item)
+        out.append(item)
+    return out
+
+
+def _canonical_arg_name(name: str) -> str:
+    if "|" in name:
+        return name
+    name = re.sub(r"\.\.\.$", "", name)
+    name = re.sub(r"\*$", "", name)
+    name = re.sub(r"\d+$", "", name)
+    if len(name) >= 2 and name.endswith("N") and name[-2].islower():
+        name = name[:-1]
+    return name
+
+
+def _scan_override_section_structure(path: Path) -> tuple[list[str], list[tuple[str, int, int]], list[tuple[int, str]]]:
+    titles: list[str] = []
+    duplicates: list[tuple[str, int, int]] = []
+    stray: list[tuple[int, str]] = []
+    seen_lines: dict[str, int] = {}
+    current_title: str | None = None
+    for line_no, raw in enumerate(_lines(path), start=1):
+        m = _OVERRIDE_SECTION_RE.match(raw)
+        if m:
+            title = m.group(1).strip()
+            titles.append(title)
+            if title in seen_lines:
+                duplicates.append((title, seen_lines[title], line_no))
+            else:
+                seen_lines[title] = line_no
+            current_title = title
+            continue
+        if current_title is None and raw.strip():
+            stray.append((line_no, raw.strip()))
+    return titles, duplicates, stray
+
+
+def _extract_code_spans(line: str) -> list[str]:
+    return re.findall(r"`([^`]+)`", line)
+
+
+def _scan_token_stream(text: str) -> list[tuple[str, bool]]:
+    out: list[tuple[str, bool]] = []
+    seen: set[tuple[str, bool]] = set()
+    skip_words = {"int", "long", "string", "bool", "void"}
+    i = 0
+    depth = 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "[":
+            depth += 1
+            i += 1
+            continue
+        if ch == "]":
+            depth = max(0, depth - 1)
+            i += 1
+            continue
+        if ch == "<":
+            j = text.find(">", i + 1)
+            if j == -1:
+                break
+            name = text[i + 1 : j].strip()
+            if name and " " not in name:
+                name = _canonical_arg_name(name)
+                pair = (name, depth > 0)
+                if pair not in seen:
+                    seen.add(pair)
+                    out.append(pair)
+            i = j + 1
+            continue
+        if ch.isalpha() or ch == "_":
+            j = i + 1
+            while j < len(text) and (text[j].isalnum() or text[j] == "_"):
+                j += 1
+            token = text[i:j]
+            k = j
+            while k < len(text) and text[k].isspace():
+                k += 1
+            if text[k : k + 3] == "...":
+                token += "..."
+                k += 3
+            while True:
+                k2 = k
+                while k2 < len(text) and text[k2].isspace():
+                    k2 += 1
+                if k2 >= len(text) or text[k2] != "|":
+                    break
+                k2 += 1
+                while k2 < len(text) and text[k2].isspace():
+                    k2 += 1
+                j2 = k2
+                if j2 >= len(text) or not (text[j2].isalpha() or text[j2] == "_"):
+                    break
+                j2 += 1
+                while j2 < len(text) and (text[j2].isalnum() or text[j2] == "_"):
+                    j2 += 1
+                token += "|" + text[k2:j2]
+                k = j2
+            if token.lower() not in skip_words:
+                token = _canonical_arg_name(token)
+                pair = (token, depth > 0)
+                if pair not in seen:
+                    seen.add(pair)
+                    out.append(pair)
+            i = max(k, j)
+            continue
+        i += 1
+    return out
+
+
+def _scan_syntax_tokens_from_fragment(fragment: str) -> list[tuple[str, bool]]:
+    text = fragment.strip()
+    if text.startswith("<"):
+        return _scan_token_stream(text)
+    first_paren = text.find("(")
+    first_space = text.find(" ")
+    if first_paren != -1 and (first_space == -1 or first_paren < first_space):
+        text = text[first_paren + 1 : text.rfind(")")]
+    else:
+        if first_space == -1:
+            return []
+        text = text[first_space + 1 :]
+    return _scan_token_stream(text)
+
+
+def _scan_argument_names_from_fragment(fragment: str) -> list[str]:
+    return [name for name, _ in _scan_token_stream(fragment.strip())]
+
+
+def _collect_syntax_contract(secs: dict[str, list[str]]) -> tuple[list[str], dict[str, bool]]:
+    forms: list[list[tuple[str, bool]]] = []
+    for raw in secs.get("Syntax", []):
+        code_spans = _extract_code_spans(raw)
+        if not code_spans:
+            continue
+        form_tokens: list[tuple[str, bool]] = []
+        for frag in code_spans:
+            form_tokens.extend(_scan_syntax_tokens_from_fragment(frag))
+        forms.append(form_tokens)
+    if not forms:
+        return [], {}
+
+    order: list[str] = []
+    all_names: list[str] = []
+    per_form: list[dict[str, list[bool]]] = []
+    for form in forms:
+        per_name: dict[str, list[bool]] = {}
+        for name, is_optional in form:
+            if name not in order:
+                order.append(name)
+            per_name.setdefault(name, []).append(is_optional)
+            if name not in all_names:
+                all_names.append(name)
+        per_form.append(per_name)
+
+    can_omit: dict[str, bool] = {}
+    for name in all_names:
+        form_can_omit = False
+        for per_name in per_form:
+            optionalities = per_name.get(name)
+            if not optionalities:
+                form_can_omit = True
+                break
+            if all(optionalities):
+                form_can_omit = True
+                break
+        can_omit[name] = form_can_omit
+    return order, can_omit
+
+
+def _parse_argument_bullets(secs: dict[str, list[str]]) -> tuple[list[str], dict[str, ArgumentDocSpec]]:
+    order: list[str] = []
+    meta: dict[str, ArgumentDocSpec] = {}
+    for raw in secs.get("Arguments", []):
+        if not raw.startswith("- "):
+            continue
+        stripped = raw.strip()
+        if re.match(r"^-\s+Same as\b", stripped):
+            continue
+        if not re.match(r"^-\s+(?:`|Each\s+`|One or more\b|Zero or more\b|None\.)", stripped):
+            continue
+        m = re.match(r"^-\s+(.*?)(?:\s+\(|:|\s+is\b|\s+are\b)", stripped)
+        prefix = m.group(1) if m else stripped[2:]
+        names: list[str] = []
+        for name in _scan_argument_names_from_fragment(prefix):
+            if name not in names:
+                names.append(name)
+        for frag in _extract_code_spans(prefix):
+            for name in _scan_argument_names_from_fragment(frag):
+                if name not in names:
+                    names.append(name)
+        if not names:
+            continue
+        is_optional = bool(re.search(r"\([^)]*\boptional\b", stripped, re.IGNORECASE))
+        has_default = bool(re.search(r"\([^)]*\bdefault\b", stripped, re.IGNORECASE))
+        for name in names:
+            if name not in order:
+                order.append(name)
+            meta.setdefault(name, ArgumentDocSpec(name=name, optional=is_optional, has_default=has_default, raw=stripped))
+    return order, meta
+
+
+def _line_pattern_issues(*, path: Path, kind: str, name: str, lines: list[str], source_path_code: str, internal_symbol_code: str, japanese_code: str, vague_code: str) -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+    rel = path.relative_to(REPO_ROOT)
+    for line_no, raw in enumerate(lines, start=1):
+        if r'\"' in raw:
+            issues.append(ValidationIssue(severity="WARN", code="suspicious-escaped-quote", kind=kind, name=name, message=f"{rel}:{line_no}: contains a backslash-escaped quote (`\\\"`); avoid escaping quotes in Markdown examples/code unless the backslash is literal."))
+        if "default =" in raw:
+            issues.append(ValidationIssue(severity="WARN", code="noncanonical-default-syntax", kind=kind, name=name, message=f"{rel}:{line_no}: uses `default =`; prefer a canonical form such as `default `0`` or `default current array length`."))
+        if re.search(r"\(required\s+[^)]+\)", raw):
+            issues.append(ValidationIssue(severity="WARN", code="noncanonical-required-marker", kind=kind, name=name, message=f"{rel}:{line_no}: uses a `(required ...)` marker; rely on the global default-required rule unless special disambiguation is needed."))
+        if "with a warning if omitted" in raw:
+            issues.append(ValidationIssue(severity="WARN", code="noncanonical-omission-warning-phrase", kind=kind, name=name, message=f"{rel}:{line_no}: uses legacy wording `with a warning if omitted`; prefer `default X; omission emits a warning`."))
+        if _SOURCE_PATH_RE.search(raw):
+            issues.append(ValidationIssue(severity="ERROR", code=source_path_code, kind=kind, name=name, message=f"{rel}:{line_no}: leaks a source path or `.cs` reference into user-facing prose."))
+        if any(p.search(raw) for p in _INTERNAL_SYMBOL_RES):
+            issues.append(ValidationIssue(severity="WARN", code=internal_symbol_code, kind=kind, name=name, message=f"{rel}:{line_no}: mentions engine-internal symbol names; prefer external/observable contract wording."))
+        if _contains_japanese(raw):
+            issues.append(ValidationIssue(severity="WARN", code=japanese_code, kind=kind, name=name, message=f"{rel}:{line_no}: contains Japanese text in user-facing documentation."))
+        if any(p.search(raw) for p in _VAGUE_PHRASE_RES):
+            issues.append(ValidationIssue(severity="WARN", code=vague_code, kind=kind, name=name, message=f"{rel}:{line_no}: contains vague wording that may weaken reimplementation-grade precision."))
+        if _RANGE_SHORTHAND_RE.search(raw):
+            issues.append(ValidationIssue(severity="WARN", code="range-shorthand", kind=kind, name=name, message=f"{rel}:{line_no}: uses `a..b`-style shorthand; prefer explicit inequalities or half-open interval notation."))
+    return issues
+
+
+def _lint_override_structure(*, path: Path, kind: str, name: str, secs: dict[str, list[str]]) -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+    rel = path.relative_to(REPO_ROOT)
+    titles, duplicates, stray = _scan_override_section_structure(path)
+    for title, first_line, dup_line in duplicates:
+        issues.append(ValidationIssue(severity="ERROR", code="duplicate-section", kind=kind, name=name, message=f"{rel}:{dup_line}: duplicate section `**{title}**` (first defined at line {first_line})."))
+    for line_no, content in stray:
+        issues.append(ValidationIssue(severity="ERROR", code="stray-content-outside-sections", kind=kind, name=name, message=f"{rel}:{line_no}: content appears before the first section header: `{content}`"))
+
+    canonical = USER_INSTRUCTION_SECTIONS if kind == "instruction" else USER_METHOD_SECTIONS
+    seen_user = [title for title in titles if title in canonical]
+    indices = [canonical.index(title) for title in seen_user]
+    if indices != sorted(indices):
+        issues.append(ValidationIssue(severity="WARN", code="noncanonical-section-order", kind=kind, name=name, message=f"{rel}: section order is noncanonical ({', '.join(f'`{t}`' for t in seen_user)})."))
+
+    if _progress_state_value(secs) == "complete":
+        for body in secs.values():
+            for raw in body:
+                if _TODO_MARKER_RE.search(raw):
+                    issues.append(ValidationIssue(severity="ERROR", code="complete-entry-has-todo-marker", kind=kind, name=name, message=f"{rel}: marked complete but still contains TODO/TBD/placeholder text."))
+                    return issues
+    return issues
+
+
+def _lint_override_argument_contracts(*, path: Path, kind: str, name: str, secs: dict[str, list[str]]) -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+    rel = path.relative_to(REPO_ROOT)
+    syntax_order, syntax_optional = _collect_syntax_contract(secs)
+    arg_order, arg_meta = _parse_argument_bullets(secs)
+    arg_lines = secs.get("Arguments", [])
+    if any(re.match(r"^\s*-\s+(?:Same as|One or more|Zero or more|Each|None\.)", raw) for raw in arg_lines):
+        for spec in arg_meta.values():
+            if spec.has_default and not spec.optional:
+                issues.append(ValidationIssue(severity="ERROR", code="default-without-optional", kind=kind, name=name, message=f"{rel}: argument `{spec.name}` documents a default but is not marked `optional`."))
+        return issues
+
+    for spec in arg_meta.values():
+        if spec.has_default and not spec.optional:
+            issues.append(ValidationIssue(severity="ERROR", code="default-without-optional", kind=kind, name=name, message=f"{rel}: argument `{spec.name}` documents a default but is not marked `optional`."))
+
+    if not syntax_order or not arg_meta:
+        return issues
+
+    missing = [arg_name for arg_name in syntax_order if arg_name not in arg_meta]
+    if missing:
+        issues.append(ValidationIssue(severity="ERROR", code="missing-argument-doc-for-syntax-placeholder", kind=kind, name=name, message=f"{rel}: syntax placeholders/tokens missing from `Arguments`: {', '.join(f'`{n}`' for n in missing)}."))
+
+    orphan = [arg_name for arg_name in arg_order if arg_name not in syntax_optional]
+    if orphan:
+        issues.append(ValidationIssue(severity="WARN", code="orphan-argument-bullet", kind=kind, name=name, message=f"{rel}: `Arguments` documents names not present in `Syntax`: {', '.join(f'`{n}`' for n in orphan)}."))
+
+    expected_common = [n for n in syntax_order if n in arg_meta]
+    actual_common = [n for n in arg_order if n in syntax_optional]
+    if expected_common and actual_common and expected_common != actual_common:
+        issues.append(ValidationIssue(severity="WARN", code="argument-order-mismatch", kind=kind, name=name, message=f"{rel}: `Arguments` order does not match `Syntax` order."))
+
+    for arg_name in [n for n in syntax_order if n in arg_meta]:
+        syntax_is_optional = syntax_optional[arg_name]
+        doc_is_optional = arg_meta[arg_name].optional
+        if syntax_is_optional != doc_is_optional:
+            issues.append(ValidationIssue(severity="ERROR", code="syntax-optional-mismatch", kind=kind, name=name, message=f"{rel}: `{arg_name}` optionality differs between `Syntax` and `Arguments`."))
+    return issues
 
 
 def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: list[MethodReg]) -> list[ValidationIssue]:
@@ -1136,125 +1459,135 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
     allowed_instruction = set(USER_INSTRUCTION_SECTIONS) | {"Progress state", "Progress"}
     allowed_method = set(USER_METHOD_SECTIONS) | {"Progress state", "Progress"}
 
-    def check_override_file(kind: str, name: str, secs: dict[str, list[str]]) -> None:
+    def check_override_file(kind: str, name: str, path: Path, secs: dict[str, list[str]]) -> None:
+        issues.extend(_line_pattern_issues(path=path, kind=kind, name=name, lines=_lines(path), source_path_code="user-doc-source-path-leak", internal_symbol_code="user-doc-internal-symbol-leak", japanese_code="user-doc-japanese-text", vague_code="banned-vague-phrase"))
+        issues.extend(_lint_override_structure(path=path, kind=kind, name=name, secs=secs))
+        issues.extend(_lint_override_argument_contracts(path=path, kind=kind, name=name, secs=secs))
+
         allowed = allowed_instruction if kind == "instruction" else allowed_method
         unknown = sorted([k for k in secs.keys() if k not in allowed])
-        for k in unknown:
-            issues.append(
-                ValidationIssue(
-                    severity="WARN",
-                    code="unknown-section",
-                    kind=kind,
-                    name=name,
-                    message=f"Unknown override section title: `{k}` (typo?)",
-                )
-            )
+        for section_title in unknown:
+            issues.append(ValidationIssue(severity="WARN", code="unknown-section", kind=kind, name=name, message=f"Unknown override section title: `{section_title}` (typo?)"))
         ps = _progress_state_value(secs)
         if ps == "invalid":
-            issues.append(
-                ValidationIssue(
-                    severity="WARN",
-                    code="invalid-progress-state",
-                    kind=kind,
-                    name=name,
-                    message="Progress state is present but not recognized (use `partial`/`complete`).",
-                )
-            )
+            issues.append(ValidationIssue(severity="WARN", code="invalid-progress-state", kind=kind, name=name, message="Progress state is present but not recognized (use `partial`/`complete`)."))
 
         titles = USER_INSTRUCTION_SECTIONS if kind == "instruction" else USER_METHOD_SECTIONS
-        missing_sections = [
-            t for t in titles if t not in OPTIONAL_USER_SECTIONS and not any(ln.strip() for ln in secs.get(t, []))
-        ]
+        missing_sections = [title for title in titles if title not in OPTIONAL_USER_SECTIONS and not any(ln.strip() for ln in secs.get(title, []))]
         if ps == "complete" and missing_sections:
-            issues.append(
-                ValidationIssue(
-                    severity="WARN",
-                    code="complete-missing-sections",
-                    kind=kind,
-                    name=name,
-                    message="Marked complete but missing user-facing sections: " + ", ".join(f"`{t}`" for t in missing_sections),
-                )
-            )
+            issues.append(ValidationIssue(severity="WARN", code="complete-missing-sections", kind=kind, name=name, message="Marked complete but missing user-facing sections: " + ", ".join(f"`{title}`" for title in missing_sections)))
 
-        # Generic completeness lint: input instructions are high-risk for "silent spec holes".
-        #
-        # If an instruction is engine-flagged `IS_INPUT` and is marked complete, require the semantics text to
-        # explicitly mention empty/invalid input handling unless it defers to another built-in ("Same as ...", "Like ...").
         if ps == "complete" and kind == "instruction" and is_input_instr.get(name, False):
             sem = "\n".join(secs.get("Semantics", []))
             sem_l = sem.lower()
-            if re.search(r"\\b(same as|like)\\s+`[a-z0-9_]+`", sem_l):
+            if re.search(r"\b(same as|like)\s+`[a-z0-9_]+`", sem_l):
                 return
             if "empty" not in sem_l or "invalid" not in sem_l:
-                issues.append(
-                    ValidationIssue(
-                        severity="WARN",
-                        code="complete-missing-input-handling",
-                        kind=kind,
-                        name=name,
-                        message="Marked complete but missing explicit empty/invalid input handling in `Semantics`.",
-                    )
-                )
+                issues.append(ValidationIssue(severity="WARN", code="complete-missing-input-handling", kind=kind, name=name, message="Marked complete but missing explicit empty/invalid input handling in `Semantics`."))
 
-    # Stale override files (exist on disk but not in engine lists).
     for p in sorted(INSTRUCTION_OVERRIDES_DIR.glob("*.md")):
         name = p.stem
         if name not in engine_instr and name != "builtins-progress":
-            issues.append(
-                ValidationIssue(
-                    severity="WARN",
-                    code="stale-override",
-                    kind="instruction",
-                    name=name,
-                    message=f"Override file exists but instruction is not engine-registered: `{p.relative_to(REPO_ROOT)}`",
-                )
-            )
+            issues.append(ValidationIssue(severity="WARN", code="stale-override", kind="instruction", name=name, message=f"Override file exists but instruction is not engine-registered: `{p.relative_to(REPO_ROOT)}`"))
             continue
         secs = _parse_override_sections(_read_text(p))
-        check_override_file("instruction", name, secs)
+        check_override_file("instruction", name, p, secs)
 
     for p in sorted(METHOD_OVERRIDES_DIR.glob("*.md")):
         name = p.stem
         if name not in engine_meth:
-            issues.append(
-                ValidationIssue(
-                    severity="WARN",
-                    code="stale-override",
-                    kind="method",
-                    name=name,
-                    message=f"Override file exists but method is not engine-registered: `{p.relative_to(REPO_ROOT)}`",
-                )
-            )
+            issues.append(ValidationIssue(severity="WARN", code="stale-override", kind="method", name=name, message=f"Override file exists but method is not engine-registered: `{p.relative_to(REPO_ROOT)}`"))
             continue
         secs = _parse_override_sections(_read_text(p))
-        check_override_file("method", name, secs)
+        check_override_file("method", name, p, secs)
 
-    # Missing user-facing docs (engine-registered, but no user-facing sections filled).
     for r in instr_regs:
         if not _has_user_facing_content("instruction", r.name):
-            issues.append(
-                ValidationIssue(
-                    severity="WARN",
-                    code="missing-user-doc",
-                    kind="instruction",
-                    name=r.name,
-                    message="No user-facing override content (will render as TODO).",
-                )
-            )
+            issues.append(ValidationIssue(severity="WARN", code="missing-user-doc", kind="instruction", name=r.name, message="No user-facing override content (will render as TODO)."))
     for r in method_regs:
         if not _has_user_facing_content("method", r.name):
-            issues.append(
-                ValidationIssue(
-                    severity="WARN",
-                    code="missing-user-doc",
-                    kind="method",
-                    name=r.name,
-                    message="No user-facing override content (will render as TODO).",
-                )
-            )
-
+            issues.append(ValidationIssue(severity="WARN", code="missing-user-doc", kind="method", name=r.name, message="No user-facing override content (will render as TODO)."))
     return issues
 
+
+def _iter_authored_doc_paths() -> list[Path]:
+    root = REPO_ROOT / "erabasic-reference"
+    generated = {OUTPUT_MD.resolve(), OUTPUT_ENGINE_MD.resolve(), OUTPUT_INDEX_MD.resolve(), OUTPUT_PROGRESS_MD.resolve()}
+    out: list[Path] = []
+    for path in sorted(root.glob("*.md")):
+        rp = path.resolve()
+        if rp in generated:
+            continue
+        if path.name in {"agents.md", "builtins-reference.md", "builtins-index.md"}:
+            continue
+        out.append(path)
+    return out
+
+
+def _resolve_local_md_ref(from_path: Path, ref: str) -> tuple[Path | None, str | None]:
+    ref = ref.strip()
+    if "://" in ref:
+        return None, None
+    target, anchor = (ref.split("#", 1) + [None])[:2]
+    target = target.strip()
+    if not target:
+        return None, anchor
+    candidates: list[Path] = []
+    if target.startswith("erabasic-reference/"):
+        candidates.append(REPO_ROOT / target)
+    else:
+        candidates.append(from_path.parent / target)
+        candidates.append(REPO_ROOT / "erabasic-reference" / target)
+    for cand in candidates:
+        if cand.exists():
+            return cand.resolve(), anchor
+    return None, anchor
+
+
+def _heading_anchor_set(path: Path) -> set[str]:
+    anchors: set[str] = set()
+    for raw in _lines(path):
+        if not raw.startswith("#"):
+            continue
+        title = raw.lstrip("#").strip()
+        if title:
+            anchors.add(_md_anchor(title))
+    return anchors
+
+
+def validate_authored_docs() -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+    heading_cache: dict[Path, set[str]] = {}
+    for path in _iter_authored_doc_paths():
+        rel = path.relative_to(REPO_ROOT)
+        lines = _lines(path)
+        doc_name = str(rel)
+
+        issues.extend(_line_pattern_issues(path=path, kind="doc", name=doc_name, lines=lines, source_path_code="topic-doc-source-path-leak", internal_symbol_code="topic-doc-internal-symbol-leak", japanese_code="topic-doc-japanese-text", vague_code="topic-doc-vague-phrase"))
+
+        seen_anchor_lines: dict[str, int] = {}
+        for line_no, raw in enumerate(lines, start=1):
+            if raw.startswith("#"):
+                title = raw.lstrip("#").strip()
+                if title:
+                    anchor = _md_anchor(title)
+                    if anchor in seen_anchor_lines:
+                        issues.append(ValidationIssue(severity="WARN", code="duplicate-heading-anchor", kind="doc", name=doc_name, message=f"{rel}:{line_no}: duplicate heading anchor `{anchor}` (first defined at line {seen_anchor_lines[anchor]})."))
+                    else:
+                        seen_anchor_lines[anchor] = line_no
+            if _SEE_ABOVE_BELOW_RE.search(raw):
+                issues.append(ValidationIssue(severity="WARN", code="see-above-below-crossref", kind="doc", name=doc_name, message=f"{rel}:{line_no}: uses unstable relative cross-reference wording like above/below/earlier/later."))
+            refs = _ordered_unique(_MD_LINK_RE.findall(raw) + _BACKTICK_MD_REF_RE.findall(raw))
+            for ref in refs:
+                resolved, anchor = _resolve_local_md_ref(path, ref)
+                if resolved is None:
+                    issues.append(ValidationIssue(severity="ERROR", code="broken-local-crossref", kind="doc", name=doc_name, message=f"{rel}:{line_no}: local markdown reference not found: `{ref}`."))
+                    continue
+                if anchor:
+                    anchors = heading_cache.setdefault(resolved, _heading_anchor_set(resolved))
+                    if anchor not in anchors:
+                        issues.append(ValidationIssue(severity="ERROR", code="broken-local-crossref", kind="doc", name=doc_name, message=f"{rel}:{line_no}: markdown reference target `{ref}` exists, but anchor `#{anchor}` does not."))
+    return issues
 
 def _print_validation_report(issues: list[ValidationIssue], *, verbose: bool) -> None:
     if not issues:
@@ -1636,6 +1969,31 @@ def main(argv: list[str] | None = None) -> int:
             "unknown-section",
             "invalid-progress-state",
             "complete-missing-sections",
+            "complete-entry-has-todo-marker",
+            "duplicate-section",
+            "stray-content-outside-sections",
+            "noncanonical-section-order",
+            "missing-argument-doc-for-syntax-placeholder",
+            "orphan-argument-bullet",
+            "argument-order-mismatch",
+            "syntax-optional-mismatch",
+            "default-without-optional",
+            "suspicious-escaped-quote",
+            "noncanonical-default-syntax",
+            "noncanonical-required-marker",
+            "noncanonical-omission-warning-phrase",
+            "user-doc-source-path-leak",
+            "user-doc-internal-symbol-leak",
+            "user-doc-japanese-text",
+            "banned-vague-phrase",
+            "range-shorthand",
+            "broken-local-crossref",
+            "duplicate-heading-anchor",
+            "see-above-below-crossref",
+            "topic-doc-source-path-leak",
+            "topic-doc-internal-symbol-leak",
+            "topic-doc-japanese-text",
+            "topic-doc-vague-phrase",
         ],
         help="Exit non-zero if any matching validation issue exists (can be repeated).",
     )
@@ -1678,7 +2036,7 @@ def main(argv: list[str] | None = None) -> int:
         for k, v in method_classes.items()
     }
 
-    issues = validate_builtins_overrides(instr_regs, method_regs)
+    issues = validate_builtins_overrides(instr_regs, method_regs) + validate_authored_docs()
     _print_validation_report(issues, verbose=args.report)
 
     exit_code = 0

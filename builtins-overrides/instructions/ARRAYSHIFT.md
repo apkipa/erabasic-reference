@@ -12,7 +12,7 @@
 - `<shift>` (int): shift offset (can be negative). `0` is a no-op.
 - `<default>`: expression of the same scalar type as the array element type.
 - `<start>` (optional, int; default `0`): start index of the shifted segment.
-- `<count>` (optional, int; default “to end”): number of elements in the segment. If explicitly `0`, this is a no-op.
+- `<count>` (optional, int; default remaining length to array end): number of elements in the segment. If explicitly `0`, this is a no-op.
 
 **Semantics**
 - If `<arrayVar>` is a character-data 1D array, the shift is applied to the **per-character slice** selected by `<arrayVar>`’s chara selector.

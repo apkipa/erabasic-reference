@@ -20,7 +20,7 @@
   - int array: int value to match
   - string array: a **regular expression pattern** (see “Semantics”)
 - `startIndex` (optional, int; default `0`): inclusive start index.
-- `endIndex` (optional, int; default = array length): exclusive end index.
+- `endIndex` (optional, int; default current array length): exclusive end index.
 - `exact` (optional, int; default `0`): only meaningful for string arrays.
   - `0`: regex partial match
   - non-zero: regex full-string match
@@ -46,7 +46,7 @@
 
 **Examples**
 - `i = FINDELEMENT(A, 0)`
-- `i = FINDELEMENT(S, \"^Alice$\", 0, 100, 1)`
+- `i = FINDELEMENT(S, "^Alice$", 0, 100, 1)`
 
 **Progress state**
 - complete

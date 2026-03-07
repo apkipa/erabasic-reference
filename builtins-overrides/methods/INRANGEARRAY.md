@@ -18,7 +18,7 @@
 - `min` (int): inclusive lower bound.
 - `max` (int): exclusive upper bound.
 - `startIndex` (optional, int; default `0`): inclusive start index.
-- `endIndex` (optional, int; default = array length): exclusive end index.
+- `endIndex` (optional, int; default current array length): exclusive end index.
 
 **Semantics**
 - Returns how many indices `i` satisfy:

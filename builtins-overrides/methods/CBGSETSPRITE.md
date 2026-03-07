@@ -13,7 +13,7 @@
 - Signature: `int CBGSETSPRITE(string spriteName, int x, int y, int zDepth)`.
 
 **Arguments**
-- `<spriteName>` (required string): sprite name to look up and place on the CBG layer. This argument is required by the call shape; an empty string is still a supplied value, not an omitted argument.
+- `<spriteName>` (string): sprite name to look up and place on the CBG layer. This call shape does not allow omission; an empty string is still a supplied value.
 - `<x>`, `<y>` (int): CBG placement coordinates.
 - `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 

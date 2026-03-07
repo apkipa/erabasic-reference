@@ -24,7 +24,7 @@
 
 **Examples**
 - `i = FINDLASTELEMENT(A, 0)`
-- `i = FINDLASTELEMENT(S, \"Alice\", 0, 100, 1)`  ; exact regex match
+- `i = FINDLASTELEMENT(S, "Alice", 0, 100, 1)`  ; exact regex match
 
 **Progress state**
 - complete

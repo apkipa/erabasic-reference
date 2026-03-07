@@ -128,11 +128,30 @@ If you discover any new observable contract (new built-in behavior, new host/UI 
 - Update `coverage.md` first (add a new tracking bullet/section and mark it ✅/🟡/⛔/🔁 as appropriate).
 - Then implement the actual spec text in the relevant document(s) or built-ins override entry.
 
+## Omitted vs empty vs sentinel discipline
+
+When documenting parameters, argument lists, defaults, or optional tails, explicitly distinguish these cases unless the external contract truly makes them equivalent:
+
+- omitted argument / omitted slot
+- explicit empty value (for example `""`)
+- explicit sentinel value (for example `0`, `-1`)
+- supplied-but-invalid value
+
+Authoring rules:
+- In this reference, parameters are required unless explicitly marked `optional`. `optional` means the argument position is genuinely omittable. Do not describe a parameter as `optional` if the call shape still requires that argument position and only allows an empty value.
+- Only write `default X` when omission is observably equivalent to supplying `X`.
+- State whether omission is handled at parse time, binding time, or runtime semantic handling when that distinction affects observable behavior.
+- State the observable result of omission precisely: error, warning + substitution, silent substitution, preserved prior value, ignored tail, or no effect.
+- Treat coercion / auto-conversion as a separate rule from omission unless the public contract explicitly unifies them.
+- If later optional parameters depend on earlier ones, document the tail behavior explicitly (for example: ignored tail, disabled tail, or per-slot defaults).
+
+For reimplementation-grade entries, the reader should never have to guess whether `omitted`, `""`, `0`, and supplied-but-invalid values are distinct cases or collapsed into one behavior.
+
 ## Completeness checklist for `Progress state: complete`
 
 Before marking an override entry `complete`, sanity-check the most common “spec holes”:
 
-- **Empty / null handling**: distinguish omitted argument vs empty string vs `0` where relevant.
+- **Omitted / empty / sentinel handling**: distinguish omitted argument vs empty string vs `0` / other sentinel values where relevant.
 - **Invalid input / rejection path** (especially for input and parsing built-ins):
   - Does the operation reject and retry (stay in a wait state), clamp, coerce, or error?
   - Are any `RESULT*` / side-channel variables written on rejection, or only on acceptance?

@@ -10,7 +10,7 @@
   - `REND`
 
 **Arguments**
-- `<countExpr>` (optional, int; default `0` with a warning if omitted): number of iterations.
+- `<countExpr>` (optional, int; default `0`; omission emits a warning): number of iterations.
 
 
 **Semantics**

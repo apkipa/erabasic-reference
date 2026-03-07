@@ -12,12 +12,12 @@
 - `TOSTR(i, format)` → `string`
 
 **Arguments**
-- `i`: int.
-- `format` (optional): string expression passed to `Int64.ToString(format)`. If omitted or `null`, uses default formatting.
+- `i` (int): value to format.
+- `format` (optional, string; default `""`): numeric format string passed to `Int64.ToString(format)`.
 
 **Semantics**
-- If `format` is omitted or null: returns `i.ToString()`.
-- Otherwise: returns `i.ToString(format)`.
+- Empty `format` uses default formatting.
+- Otherwise returns `i.ToString(format)`.
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.

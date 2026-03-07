@@ -88,3 +88,8 @@ This reference has two “layers”:
 - **ERH**: header files, processed before ERB, used for global `#DIM/#DIMS` and `#DEFINE`.
 - **FORM syntax**: the `%...%` and `{...}` interpolation used by `PRINTFORM`-family commands and some string contexts.
 - **`\@...\@` (string-ternary literal)**: a conditional string construct used inside FORM and also as a standalone string-expression token.
+
+## Parameter notation
+
+Unless a parameter is explicitly marked `optional`, read it as required.
+If an entry says `optional, ...; default X`, omitting that argument is observably equivalent to supplying `X` unless the entry says otherwise.

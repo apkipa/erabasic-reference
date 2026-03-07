@@ -9,7 +9,7 @@
   - `<next logical line>`
 
 **Arguments**
-- `<int expr>` (optional, int; default `0` with a warning if omitted): condition (`0` = false, non-zero = true).
+- `<int expr>` (optional, int; default `0`; omission emits a warning): condition (`0` = false, non-zero = true).
 
 **Semantics**
 - If the condition is true (non-zero), execution continues normally.

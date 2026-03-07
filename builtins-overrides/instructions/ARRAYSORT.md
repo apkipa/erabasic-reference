@@ -13,7 +13,7 @@
   - `FORWARD`: ascending
   - `BACK`: descending
 - `<start>` (optional, int; default `0`): subrange start index (only parsed when `FORWARD|BACK` is present).
-- `<count>` (optional, int; default “to end”): subrange length (only parsed when `FORWARD|BACK` is present). If explicitly `0`, this is a no-op.
+- `<count>` (optional, int; default remaining length to array end): subrange length (only parsed when `FORWARD|BACK` is present). If explicitly `0`, this is a no-op.
 
 **Semantics**
 - Order defaults to ascending.

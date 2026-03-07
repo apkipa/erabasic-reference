@@ -10,7 +10,7 @@
 - `PRINT_TALENT <charaIndex>`
 
 **Arguments**
-- `charaIndex` (optional, int; default `0` with a warning if omitted): index into the current character list.
+- `charaIndex` (optional, int; default `0`; omission emits a warning): index into the current character list.
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
