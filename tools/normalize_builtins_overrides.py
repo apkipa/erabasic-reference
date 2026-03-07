@@ -19,9 +19,10 @@ import argparse
 import re
 import sys
 
+import reference_common as ref_common
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-OVERRIDES_DIR = REPO_ROOT / "builtins-overrides"
+
+OVERRIDES_DIR = ref_common.OVERRIDES_DIR
 
 
 SECTION_RE = re.compile(r"^\*\*(?P<title>[^*]+)\*\*\s*$")
@@ -39,12 +40,11 @@ class OmittedBlock:
     sub_bullets: list[str]
 
 
-def _read_text(p: Path) -> str:
-    return p.read_text(encoding="utf-8", errors="replace")
+_read_text = ref_common.read_text
 
 
 def _write_text(p: Path, s: str) -> None:
-    p.write_text(s, encoding="utf-8")
+    ref_common.write_text(p, s)
 
 
 def _split_sections(lines: list[str]) -> list[tuple[str, int, int]]:

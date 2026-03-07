@@ -7,12 +7,12 @@
 **Syntax**
 - `HTML_STRINGLINES(html, width)`
 
+**Signatures / argument rules**
+- Signature: `int HTML_STRINGLINES(string html, int width)`.
+
 **Arguments**
 - `html`: string expression interpreted as an HTML string.
 - `width`: integer expression, in half-width character units.
-
-**Signatures / argument rules**
-- Signature: `int HTML_STRINGLINES(string html, int width)`.
 
 **Semantics**
 - If `html` is null/empty, returns `0`.

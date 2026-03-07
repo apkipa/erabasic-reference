@@ -7,15 +7,15 @@
 **Syntax**
 - `HTML_STRINGLEN(html [, returnPixel])`
 
+**Signatures / argument rules**
+- Signature: `int HTML_STRINGLEN(string html, int returnPixel = 0)`.
+- `returnPixel` is treated as “false” only when it is exactly `0`; any non-zero value selects pixel return.
+
 **Arguments**
 - `html`: string expression interpreted as an HTML string.
 - `returnPixel` (optional, int; default `0`)
   - `0` (default): return in half-width character units.
   - non-zero: return in pixels.
-
-**Signatures / argument rules**
-- Signature: `int HTML_STRINGLEN(string html, int returnPixel = 0)`.
-- `returnPixel` is treated as “false” only when it is exactly `0`; any non-zero value selects pixel return.
 
 **Semantics**
 - Computes the rendered output for `html` using the same rules as `HTML_PRINT`.

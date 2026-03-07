@@ -5,7 +5,8 @@
 - io
 
 **Syntax**
-- `HTML_PRINT_ISLAND <html>(, <ignored>)`
+- `HTML_PRINT_ISLAND <html>`
+- `HTML_PRINT_ISLAND <html>, <ignored>`
 
 **Arguments**
 - `<html>` (string): HTML string (see `html-output.md`).

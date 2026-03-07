@@ -7,15 +7,14 @@
 
 **Syntax**
 - `SORTCHARA`
-- `SORTCHARA FORWARD | BACK`
 - `SORTCHARA <charaVarTerm> [ , FORWARD | BACK ]`
+- `SORTCHARA FORWARD | BACK`
 
 **Arguments**
-- `<charaVarTerm>`: a variable term whose identifier is a character-data variable.
-- Order: `FORWARD` = ascending, `BACK` = descending.
+- `<charaVarTerm>` (optional, character-data variable term; default `NO`): sort key.
+- `FORWARD | BACK` (optional, keyword; default `FORWARD`): sort order.
 - If the key variable is an array, the element indices are taken from the variable term’s subscripts after the character selector.
   - Any written chara selector in `<charaVarTerm>` is ignored and not evaluated (the sort always scans `i = 0 .. CHARANUM-1`).
-
 
 **Semantics**
 - Computes a sort key for each character via the engine’s key setter; null strings are treated as empty string.

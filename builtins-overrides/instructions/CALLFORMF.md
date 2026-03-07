@@ -5,12 +5,14 @@
 - calls
 
 **Syntax**
-- `CALLFORMF <formString> [, <arg1>, <arg2>, ... ]`
-- `CALLFORMF <formString>(<arg1>, <arg2>, ... )`
+- `CALLFORMF <formString>`
+- `CALLFORMF <formString>()`
+- `CALLFORMF <formString>, <arg1> [, <arg2> ... ]`
+- `CALLFORMF <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
 - `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
-- `<argN>`: expressions passed to the method.
+- `<argN>` (optional): zero or more expressions passed to the method.
 
 **Semantics**
 - Resolves the evaluated name to an expression function and evaluates it.

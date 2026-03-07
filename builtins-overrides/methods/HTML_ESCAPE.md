@@ -7,11 +7,11 @@
 **Syntax**
 - `HTML_ESCAPE(text)`
 
-**Arguments**
-- `text`: string expression.
-
 **Signatures / argument rules**
 - Signature: `string HTML_ESCAPE(string text)`.
+
+**Arguments**
+- `text`: string expression.
 
 **Semantics**
 - Replaces:

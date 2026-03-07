@@ -5,7 +5,7 @@
 - save-system
 
 **Syntax**
-- `DELDATA <slot>`
+- `DELDATA [<slot>]`
 
 **Arguments**
 - `<slot>` (optional, int; default `0`; omission emits a warning): save slot index. Must be in `[0, 2147483647]` (32-bit signed non-negative).

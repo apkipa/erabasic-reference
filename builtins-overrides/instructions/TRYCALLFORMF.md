@@ -5,12 +5,14 @@
 - calls
 
 **Syntax**
-- `TRYCALLFORMF <formString> [, <arg1>, <arg2>, ... ]`
-- `TRYCALLFORMF <formString>(<arg1>, <arg2>, ... )`
+- `TRYCALLFORMF <formString>`
+- `TRYCALLFORMF <formString>()`
+- `TRYCALLFORMF <formString>, <arg1> [, <arg2> ... ]`
+- `TRYCALLFORMF <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
 - `<formString>`: FORM/formatted string; the evaluated result is used as the method name.
-- `<argN>`: expressions passed to the target method.
+- `<argN>` (optional): zero or more expressions passed to the target method.
 
 **Semantics**
 - Evaluates `<formString>` to a name string, then behaves like `TRYCALLF`.

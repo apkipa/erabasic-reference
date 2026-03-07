@@ -21,6 +21,8 @@ from pathlib import Path
 import re
 import sys
 
+import reference_common as ref_common
+
 
 SECTION_RE = re.compile(r"^\*\*(.+?)\*\*\s*$")
 DEFAULTS_TITLE = "Defaults / optional arguments"
@@ -151,8 +153,7 @@ def migrate_text(text: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    repo_root = Path(__file__).resolve().parents[2]
-    overrides_root = repo_root / "erabasic-reference/builtins-overrides"
+    overrides_root = ref_common.OVERRIDES_DIR
     paths = sorted([*overrides_root.glob("instructions/*.md"), *overrides_root.glob("methods/*.md")])
 
     changed = 0

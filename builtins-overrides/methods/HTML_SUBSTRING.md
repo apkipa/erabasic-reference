@@ -7,13 +7,13 @@
 **Syntax**
 - `HTML_SUBSTRING(html, width)`
 
-**Arguments**
-- `html`: string expression interpreted as an HTML string.
-- `width`: integer expression, in half-width character units.
-
 **Signatures / argument rules**
 - Signature: `string HTML_SUBSTRING(string html, int width)`.
 - Also writes results into `RESULTS` (see semantics).
+
+**Arguments**
+- `html`: string expression interpreted as an HTML string.
+- `width`: integer expression, in half-width character units.
 
 **Semantics**
 - Returns the first part (the prefix) as an HTML string.

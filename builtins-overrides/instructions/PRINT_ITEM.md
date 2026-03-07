@@ -12,16 +12,16 @@
 
 **Semantics**
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
-- Builds a Japanese summary string `s` as follows:
+- Builds a summary string `s` as follows:
   - Let `count[]` be the integer array `ITEM`.
   - Let `names[]` be the string array `ITEMNAME`.
   - Let `length = min(count.Length, names.Length)`.
-  - Start with `s = "所持アイテム："`.
+  - Start with `s = "所持アイテム："` (the engine's fixed Japanese prefix meaning “owned items:”).
   - For each `i` such that `0 <= i < length`:
     - If `count[i] == 0`: continue.
     - If `names[i] != null`: append `names[i]` (note: unlike some other lists, empty string is not filtered out here).
     - Append: `"(" + count[i] + ") "` (note the trailing space).
-  - If no `i` satisfied `count[i] != 0`, append `"なし"`.
+  - If no `i` satisfied `count[i] != 0`, append `"なし"` (the engine's fixed Japanese word meaning “none”).
 - Prints `s`, then ends the line.
 
 **Errors & validation**

@@ -5,6 +5,7 @@
 - io
 
 **Syntax**
+- `HTML_GETPRINTEDSTR()`
 - `HTML_GETPRINTEDSTR(<lineNo>)`
 
 **Signatures / argument rules**
@@ -15,7 +16,7 @@
 - `<lineNo>` (optional, int; default `0`): zero-based index from the newest visible logical line backward.
   - `0` = the most recent currently visible logical output line.
   - `1` = the second most recent currently visible logical output line.
-  - And so on.
+  - Larger values continue counting backward through the currently visible logical lines.
 
 **Semantics**
 - Interprets `<lineNo>` as a non-negative index into the current visible **logical-line** history of the normal output area.

@@ -5,17 +5,22 @@
 - calls
 
 **Syntax**
-- `TRYCALLF <methodName> [, <arg1>, <arg2>, ... ]`
-- `TRYCALLF <methodName>(<arg1>, <arg2>, ... )`
-- Optional (currently unused) bracket segment may appear after the name:
-  - `TRYCALLF <methodName>[<subName1>, <subName2>, ...](...)`
+- `TRYCALLF <methodName>`
+- `TRYCALLF <methodName>()`
+- `TRYCALLF <methodName>, <arg1> [, <arg2> ... ]`
+- `TRYCALLF <methodName>(<arg1> [, <arg2> ... ])`
+- `TRYCALLF <methodName>[<subName1>, <subName2>, ...]`
+- `TRYCALLF <methodName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
   - This is **not** a string literal or string expression.
   - Quotes are treated as ordinary characters.
-  - Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
-- `<argN>`: expressions passed to the target method.
+  - Backslash escapes are processed (e.g. `\n`, `\t`, `\s`).
+- `<argN>` (optional): zero or more expressions passed to the target method.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<methodName>`.
+  - The current engine accepts and stores them, but they do not affect method resolution or call behavior.
 
 **Semantics**
 - Resolution scope:

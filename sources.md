@@ -1,6 +1,6 @@
 # Sources
 
-This reference was assembled by reading and cross-checking the repository states listed below.
+This reference was assembled by reading and cross-checking the repository states listed in this document.
 
 Compatibility baseline used for this reference:
 
@@ -9,16 +9,16 @@ Compatibility baseline used for this reference:
 
 ## Documentation repository (`emuera.em.doc`)
 
-- `emuera.em.doc/docs/Emuera/expression.en.md`
-- `emuera.em.doc/docs/Emuera/operand.en.md`
-- `emuera.em.doc/docs/Emuera/function.en.md`
-- `emuera.em.doc/docs/Emuera/variables.en.md`
-- `emuera.em.doc/docs/Emuera/user_defined_variables.en.md`
-- `emuera.em.doc/docs/Emuera/ERH.en.md`
-- `emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
-- Built-in index: `emuera.em.doc/docs/Reference/README.en.md`
-- Control-flow pages: `emuera.em.doc/docs/Reference/IF.en.md`, `emuera.em.doc/docs/Reference/SELECTCASE.en.md`, etc.
-- EMEE extension: `emuera.em.doc/docs/EMEE/EMEE_Summary.en.md` (for `;^;`)
+- `../emuera.em.doc/docs/Emuera/expression.en.md`
+- `../emuera.em.doc/docs/Emuera/operand.en.md`
+- `../emuera.em.doc/docs/Emuera/function.en.md`
+- `../emuera.em.doc/docs/Emuera/variables.en.md`
+- `../emuera.em.doc/docs/Emuera/user_defined_variables.en.md`
+- `../emuera.em.doc/docs/Emuera/ERH.en.md`
+- `../emuera.em.doc/docs/Emuera/user_defined_in_expression_function.en.md`
+- Built-in index: `../emuera.em.doc/docs/Reference/README.en.md`
+- Control-flow pages: `../emuera.em.doc/docs/Reference/IF.en.md`, `../emuera.em.doc/docs/Reference/SELECTCASE.en.md`, and related control-flow pages.
+- EMEE extension: `../emuera.em.doc/docs/EMEE/EMEE_Summary.en.md` (for `;^;`)
 
 ## Engine source repository (`emuera.em`)
 
@@ -27,7 +27,7 @@ Compatibility baseline used for this reference:
 - FORM scanner, `%...%`/`{...}` placeholders, triple symbols, and `\@...\@`: `emuera.em/Emuera/Runtime/Script/Parser/LexicalAnalyzer.cs`, `emuera.em/Emuera/Runtime/Script/Data/StrForm.cs`, `emuera.em/Emuera/Runtime/Script/Statements/Expression/Term.cs`, `emuera.em/Emuera/Runtime/Utils/LangManager.cs`, `emuera.em/Emuera/Runtime/Utils/CharStream.cs`, `emuera.em/Emuera/Runtime/Script/Parser/SubWord.cs`
 - Argument parsing modes (raw vs expression vs FORM): `emuera.em/Emuera/Runtime/Script/Statements/ArgumentBuilder.cs` (`STR_ArgumentBuilder`, `FORM_STR_ArgumentBuilder`, `STR_EXPRESSION_ArgumentBuilder`), `emuera.em/Emuera/Runtime/Script/Statements/Instraction.Child.cs` (`PRINT_Instruction`)
 - `#...` function attributes parsing: `emuera.em/Emuera/Runtime/Script/Parser/LogicalLineParser.cs`
-- Event attribute grouping (`#ONLY/#PRI/#LATER/#SINGLE`) and sizing reconciliation: `emuera.em/Emuera/Runtime/Script/Data/LabelDictionary.cs`
+- Event attribute grouping and sizing reconciliation: `emuera.em/Emuera/Runtime/Script/Data/LabelDictionary.cs`
 - Method-safe instruction restriction inside `#FUNCTION/#FUNCTIONS`: `emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs` (`setArgument`), `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs` (`IsMethodSafe`)
 - Load pipeline / file order: `emuera.em/Emuera/Runtime/Script/Process.cs`
 - Preload cache population (required for `OpenOnCache(...)` readers): `emuera.em/Emuera/UI/Game/EmueraConsole.cs` (`Initialize`), `emuera.em/Emuera/Runtime/Utils/Preload.cs`

@@ -5,18 +5,19 @@
 - math
 
 **Syntax**
-- `RAND(max)`
-- `RAND(min, max)`
+- `RAND(<min>, <max>)`
+- `RAND(<max>)`
 
 **Signatures / argument rules**
 - `RAND(max)` → `long`
 - `RAND(min, max)` → `long`
 
 **Arguments**
-- `min` (optional, int; default `0`): inclusive lower bound.
+- `min` (int): inclusive lower bound in the two-argument form.
 - `max` (int): exclusive upper bound.
 
 **Semantics**
+- `RAND(max)` is shorthand for `RAND(0, max)`.
 - Returns a random integer `r` such that `min <= r < max`.
 - RNG engine selection depends on JSON `UseNewRandom`:
   - `UseNewRandom=NO` (legacy mode): uses the legacy SFMT generator with the MT19937 parameter set. The returned value is computed as `min + (nextUInt64 % (max - min))`. This is deterministic for a given seed/state, but it is not perfectly unbiased when `(max - min)` does not divide `2^64`.
@@ -24,7 +25,8 @@
 - In new mode, the host `System.Random` instance is created when the runtime creates its variable-evaluator state; scripts have no built-in way to reseed or snapshot it.
 
 **Errors & validation**
-- Runtime error if `max <= min`.
+- Parse/argument-validation error if called with no arguments (`RAND()`).
+- Runtime error if `max <= min` after argument evaluation.
   - In particular, `RAND(0)` and `RAND(<negative>)` are errors.
 
 **Examples**

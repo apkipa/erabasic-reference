@@ -5,17 +5,21 @@
 - calls
 
 **Syntax**
-- `CALL <functionName> [, <arg1>, <arg2>, ... ]`
-- `CALL <functionName>(<arg1>, <arg2>, ... )`
-- Optional (currently unused) bracket segment may appear after the function name:
-  - `CALL <functionName>[<subName1>, <subName2>, ...](...)`
+- `CALL <functionName>`
+- `CALL <functionName>()`
+- `CALL <functionName>, <arg1> [, <arg2> ... ]`
+- `CALL <functionName>(<arg1> [, <arg2> ... ])`
+- `CALL <functionName>[<subName1>, <subName2>, ...]`
+- `CALL <functionName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
+- The bracket segment is accepted for compatibility, but is currently unused.
 
 **Arguments**
 - `<functionName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
-- This is **not** a string literal. Quotes are treated as ordinary characters.
-- Backslash escapes are processed (e.g. `\\n`, `\\t`, `\\s`).
-- `<argN>`: expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
-
+  - This is **not** a string literal. Quotes are treated as ordinary characters.
+  - Backslash escapes are processed (e.g. `\n`, `\t`, `\s`).
+- `<argN>` (optional): zero or more expressions passed to the callee and bound to its `ARG`/`ARGS`-based parameters and/or `#FUNCTION` parameter declarations.
+- `<subNameN>` (optional): values parsed from the bracket segment after `<functionName>`.
+  - The current engine accepts and stores them, but they do not affect target resolution or call behavior.
 
 **Semantics**
 - Resolves the target label to a non-event function.

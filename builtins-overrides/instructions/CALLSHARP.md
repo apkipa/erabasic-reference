@@ -6,12 +6,17 @@
 
 **Syntax**
 - `CALLSHARP <methodName>`
-- `CALLSHARP <methodName> [, <arg1>, <arg2>, ... ]`
-- `CALLSHARP <methodName>(<arg1>, <arg2>, ... )`
+- `CALLSHARP <methodName>()`
+- `CALLSHARP <methodName>, <arg1> [, <arg2> ... ]`
+- `CALLSHARP <methodName>(<arg1> [, <arg2> ... ])`
+- `CALLSHARP <methodName>[<subName1>, <subName2>, ...]`
+- `CALLSHARP <methodName>[<subName1>, <subName2>, ...](<arg1> [, <arg2> ... ])`
 
 **Arguments**
 - `<methodName>`: raw string token; matched against the registered plugin method name.
-- `<argN>`: expression; evaluated and passed to the plugin as either a string or an integer.
+- `<argN>` (optional): zero or more expressions, each evaluated and passed to the plugin as either a string or an integer.
+- `<subNameN>` (optional): values parsed from the bracket segment accepted by the parser for compatibility.
+  - The current implementation accepts and stores them, but they do not affect plugin-method lookup or invocation.
 
 **Semantics**
 - `CALLSHARP` resolves `<methodName>` to a plugin method registered by the plugin system and calls it.

@@ -5,12 +5,14 @@
 - calls
 
 **Syntax**
-- `CALLF <methodName> [, <arg1>, <arg2>, ... ]`
-- `CALLF <methodName>(<arg1>, <arg2>, ... )`
+- `CALLF <methodName>`
+- `CALLF <methodName>()`
+- `CALLF <methodName>, <arg1> [, <arg2> ... ]`
+- `CALLF <methodName>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
 - `<methodName>`: a raw string token read up to `(` / `[` / `,` / `;` and then trimmed.
-- `<argN>`: expressions passed to the method.
+- `<argN>` (optional): zero or more expressions passed to the method.
 
 **Semantics**
 - Resolves `<methodName>` to an expression function and evaluates it with the provided arguments.

@@ -5,13 +5,15 @@
 - calls
 
 **Syntax**
-- `CALLFORM <formString> [, <arg1>, <arg2>, ... ]`
-- `CALLFORM <formString>(<arg1>, <arg2>, ... )`
+- `CALLFORM <formString>`
+- `CALLFORM <formString>()`
+- `CALLFORM <formString>, <arg1> [, <arg2> ... ]`
+- `CALLFORM <formString>(<arg1> [, <arg2> ... ])`
 
 **Arguments**
 - `<formString>`: FORM/formatted string; the evaluated result is used as the function name.
   - If this FORM expression constant-folds to a constant string, the engine treats it like `CALL` for load-time resolution.
-- `<argN>`: same as `CALL`.
+- `<argN>` (optional): same as `CALL`.
 
 **Semantics**
 - Evaluates the function name string, resolves it to a non-event function, binds arguments, and enters the callee.

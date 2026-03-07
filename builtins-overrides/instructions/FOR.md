@@ -5,7 +5,7 @@
 - control-flow
 
 **Syntax**
-- `FOR <intVarTerm>, <start>, <end> [, <step>]`
+- `FOR <intVarTerm>, [<start>], <end> [, <step>]`
   - `...`
   - `NEXT`
 
@@ -28,6 +28,7 @@
 
 **Examples**
 - `FOR I, 0, 10`
+- `FOR I, , 10`
 - `  PRINTV I`
 - `NEXT`
 

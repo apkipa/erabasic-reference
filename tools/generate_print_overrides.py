@@ -1,47 +1,40 @@
 #!/usr/bin/env python3
 """
-Generate manual override snippets for the PRINT-family and PRINTDATA-family instructions.
+Generate current-schema override files for the PRINT / PRINTDATA / DATA families.
 
-These overrides are intentionally "manual" (written out in Markdown) so that:
-  - `builtins-reference.md` stays self-contained and readable
-  - `builtins-overrides/builtins-progress.md` can treat these entries as "covered"
+This is a repo-local maintenance/bootstrap tool for authored override docs under
+`builtins-overrides/instructions/`.
 
-The content here is based on direct engine-source reading (EvilMask/Emuera):
-  - emuera.em/Emuera/Runtime/Script/Statements/Instraction.Child.cs (PRINT_Instruction / PRINT_DATA_Instruction)
-  - emuera.em/Emuera/Runtime/Script/Statements/ArgumentBuilder.cs (STR / FORM / PRINTV / VAR_INT / VAR_STR)
-  - emuera.em/Emuera/Runtime/Script/Loader/ErbLoader.cs (PRINTDATA / STRDATA / DATA / DATALIST nesting rules)
-  - emuera.em/Emuera/UI/Game/EmueraConsole.Print.cs + PrintStringBuffer.cs (flush/lineEnd behavior)
-  - emuera.em/Emuera/Runtime/Script/Statements/ExpressionMediator.cs (OutputToConsole / ConvertStringType / CheckEscape)
-
-By default this script is conservative: it will NOT overwrite existing override files.
-Use --force to overwrite.
+Properties:
+- Emits the current instruction section schema used by `reference_lint.py`
+- Preserves the repo's conservative default: existing files are left untouched
+  unless `--force` is passed
+- Keeps the PRINT / PRINTDATA / DATA family material in one place so it can be
+  regenerated without hand-editing dozens of near-mechanical variants
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 import argparse
 import re
 
+import reference_common as ref_common
+import reference_engine_registry as ref_engine
+import reference_lint as ref_lint
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-PATH_FUNCTION_IDENTIFIER = REPO_ROOT / "emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs"
 
-INSTRUCTION_OVERRIDES_DIR = REPO_ROOT / "erabasic-reference/builtins-overrides/instructions"
+PATH_FUNCTION_IDENTIFIER = ref_engine.PATH_FUNCTION_IDENTIFIER
+INSTRUCTION_OVERRIDES_DIR = ref_common.INSTRUCTION_OVERRIDES_DIR
 
+SECTION_ORDER = [*ref_lint.USER_INSTRUCTION_SECTIONS, "Progress state"]
 
 _ADD_PRINT_RE = re.compile(r"\baddPrintFunction\s*\(\s*FunctionCode\.(?P<name>[A-Z0-9_]+)\s*\)")
 _ADD_PRINTDATA_RE = re.compile(r"\baddPrintDataFunction\s*\(\s*FunctionCode\.(?P<name>[A-Z0-9_]+)\s*\)")
 
 
-def _read_text(p: Path) -> str:
-    return p.read_text(encoding="utf-8", errors="replace")
-
-
-def _write_text(p: Path, s: str) -> None:
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(s, encoding="utf-8")
+_read_text = ref_common.read_text
+_write_text = ref_common.write_text
 
 
 def _extract_print_keywords() -> tuple[list[str], list[str]]:
@@ -51,17 +44,9 @@ def _extract_print_keywords() -> tuple[list[str], list[str]]:
     return prints, printdatas
 
 
-def _md_sections(sections: dict[str, list[str]]) -> str:
+def _render_sections(sections: dict[str, list[str]]) -> str:
     out: list[str] = []
-    for title in [
-        "Summary",
-        "Syntax",
-        "Arguments",
-        "Defaults / optional arguments",
-        "Semantics",
-        "Errors & validation",
-        "Examples",
-    ]:
+    for title in SECTION_ORDER:
         body = sections.get(title, [])
         if not body:
             continue
@@ -71,69 +56,90 @@ def _md_sections(sections: dict[str, list[str]]) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
-def _print_family_overview_bullets() -> list[str]:
-    return [
-        "- This engine implements many PRINT-like commands using a single internal implementation that is selected by the *instruction keyword*.",
-        "- Suffix letters are part of the keyword (e.g. `PRINTFORMW`, `PRINTVKW`, `PRINTFORMSD`).",
-        "- Keyword structure (conceptual; only some combinations exist as registered built-ins):",
-        "  - `PRINT` + optional `SINGLE`",
-        "  - then one of: `(none)` / `V` / `S` / `FORM` / `FORMS`",
-        "  - then optional: `C` / `LC` (fixed-width cell output)",
-        "  - then optional: `K` (kana conversion) / `D` (ignore `SETCOLOR` color)",
-        "  - then optional: `N` (wait for key *without* ending the logical output line)",
-        "  - then optional: `L` (newline) or `W` (newline + wait for key).",
-    ]
+def _with_common_metadata(name: str, sections: dict[str, list[str]]) -> dict[str, list[str]]:
+    out = {title: list(body) for title, body in sections.items()}
+    if name.startswith("PRINTDATA"):
+        tags = ["io", "data-blocks"]
+    elif name.startswith("PRINT"):
+        tags = ["io"]
+    else:
+        tags = ["data-blocks"]
+    out.setdefault("Tags", [f"- {tag}" for tag in tags])
+    out.setdefault("Progress state", ["- complete"])
+    return out
 
 
 def _sections_for_print_base(name: str) -> dict[str, list[str]]:
-    # Detailed write-up lives on PRINT / PRINTDATA; variants refer to it.
-    return {
-        "Summary": [
-            "- Prints a **raw literal string** (the remainder of the source line) into the console output buffer.",
-            "- See also: `PRINTV` (variadic expressions), `PRINTS` (string expression), `PRINTFORM` (FORM scanned at load-time), `PRINTFORMS` (FORM scanned at runtime).",
-            "- This entry also documents **common PRINT-family semantics** (suffix letters, buffering, `K`/`D`, `C`/`LC`).",
-        ],
-        "Syntax": [
-            "- `PRINT`",
-            "- `PRINT <raw text>`",
-            "- `PRINT;<raw text>`",
-        ],
-        "Arguments": [
-            "- `<raw text>` is **not an expression**. It is taken as the raw character sequence after the instruction delimiter.",
-            "- The parser consumes exactly one delimiter character after the keyword:",
-            "  - a single space / tab",
-            "  - or a full-width space if `SystemAllowFullSpace` is enabled",
-            "  - or a semicolon `;`",
-            "- Because only *one* delimiter character is consumed:",
-            "  - `PRINT X` prints `X` (the one space was consumed as delimiter).",
-            "  - `PRINT  X` prints `\" X\"` (the second space remains in the argument).",
-            "  - `PRINT;X` prints `X` (no leading whitespace in the argument).",
-        ],
-        "Defaults / optional arguments": [
-            "- If omitted, the argument is treated as the empty string.",
-        ],
-        "Semantics": [
-            "- Output is appended to the engine’s **print buffer** (it is not necessarily flushed to the UI immediately).",
-            "- Common behavior across the PRINT family:",
-            "  - `...L` variants: after output, flush and append a newline (`Console.NewLine()`).",
-            "  - `...W` variants: like `...L`, then wait for a key (`Console.ReadAnyKey()`).",
-            "  - `...N` variants: wait for a key **without ending the logical output line** (implementation detail: prints with `lineEnd=false` before flushing).",
-            "  - `...K` variants: apply kana conversion to the produced string, as configured by `FORCEKANA` (`ConvertStringType`).",
-            "  - `...D` variants: ignore `SETCOLOR`’s *color* for this output (still respects font style and font name).",
-            "  - `...C` / `...LC` variants: output a fixed-width *cell* using `Config.PrintCLength`; width is measured in **Shift-JIS byte count** (implementation detail).",
-            "- `PRINT` itself:",
-            "  - Uses the raw literal argument as the output string.",
-            "  - Treats the output as ending a logical line (`lineEnd=true`) even though it does not insert a newline by itself.",
-        ],
-        "Errors & validation": [
-            "- None for `PRINT` itself (argument is optional and not parsed as an expression).",
-        ],
-        "Examples": [
-            "- `PRINT Hello`",
-            "- `PRINT;Hello`",
-            "- `PRINT  (leading space is preserved)`",
-        ],
-    }
+    return _with_common_metadata(
+        name,
+        {
+            "Summary": [
+                "- Prints a **raw literal string** (the remainder of the source line) into the console output buffer.",
+                "- This entry also documents **common PRINT-family semantics** (suffix letters, buffering, `K`/`D`, `C`/`LC`).",
+            ],
+            "Syntax": [
+                "- `PRINT`",
+                "- `PRINT <raw text>`",
+                "- `PRINT;<raw text>`",
+            ],
+            "Arguments": [
+                '- `<raw text>` (optional, default `""`): raw text, not an expression.',
+                "- `<raw text>` is taken as the raw character sequence after the instruction delimiter.",
+                "- The parser consumes exactly one delimiter character after the keyword:",
+                "  - a single space / tab",
+                "  - or a full-width space if `SystemAllowFullSpace` is enabled",
+                "  - or a semicolon `;`",
+                "- Because only *one* delimiter character is consumed:",
+                "  - `PRINT X` prints `X` (the one space was consumed as delimiter).",
+                '  - `PRINT  X` prints `" X"` (the second space remains in the argument).',
+                "  - `PRINT;X` prints `X` (no leading whitespace in the argument).",
+            ],
+            "Semantics": [
+                "- Output is appended to the engine’s **pending print buffer**; see `output-flow.md` for the shared layer model.",
+                "- Appending buffered `PRINT*` output does **not** immediately create a visible display-line entry.",
+                "- If output skipping is active (`SKIPDISP`):",
+                "  - these instructions are skipped before execution by the interpreter,",
+                "  - arguments are not evaluated and there are no side effects.",
+                "- Argument/evaluation modes by base variant (before suffix letters):",
+                "  - `PRINT*` (raw): uses the raw literal remainder-of-line (not an expression).",
+                "  - `PRINTS*`: evaluates one string expression.",
+                "  - `PRINTV*`: evaluates a comma-separated list of expressions; each element must be either integer or string; results are concatenated with no separator (left-to-right).",
+                "  - `PRINTFORM*`: parses its argument as a FORM/formatted string at load/parse time, then evaluates it at runtime.",
+                "  - `PRINTFORMS*`: evaluates one string expression to obtain a format-string source, then parses and evaluates it as a FORM string at runtime (see below).",
+                "- Suffix letters and their meaning (parser order is important):",
+                "  - `C` / `LC` (cell output): after building the output string, outputs a fixed-width cell.",
+                "    - `...C` uses right alignment, `...LC` uses left alignment.",
+                "    - This is **not** the same as the newline suffix `L`; for example, `PRINTLC` means “left-aligned cell”, not “PRINTL + C”.",
+                "    - Cell formatting rules are defined by the console implementation; see `PRINTC` / `PRINTLC`.",
+                "    - Cell variants do not use the `...L / ...W / ...N` newline/wait handling; they only append a cell to the buffer.",
+                "  - `K` (kana conversion): applies kana conversion as configured by `FORCEKANA`.",
+                "  - `D` (ignore `SETCOLOR` color): ignores `SETCOLOR`’s *color* for this output (font name/style still apply).",
+                "  - `L` (line end): after printing, flushes the current buffer as visible output and ends the logical line.",
+                "  - `W` (line end + wait): like `L`, then waits for a key.",
+                "  - `N` (flush + wait without line end): flushes current buffered content to visible output, then waits **without** ending the logical line.",
+                "    - the next later flush is merged into the same logical line.",
+                "- FORM-at-runtime behavior (`PRINTFORMS*`):",
+                "  - evaluates the string expression to `src`,",
+                "  - normalizes escapes using the FORM escape rules,",
+                "  - parses `src` as a FORM string up to end-of-line,",
+                "  - evaluates it and prints the result.",
+                "- `PRINT` itself:",
+                "  - uses the raw literal argument as the output string,",
+                "  - appends it with `lineEnd = true`, so when the buffer is later flushed it belongs to a logical line that ends at that point.",
+                "- Buffer/temporary-line boundary:",
+                "  - appending `PRINT*` content to the pending print buffer does not by itself remove a trailing temporary line,",
+                "  - the temporary line is only replaced when later visible output is actually appended.",
+            ],
+            "Errors & validation": [
+                "- None for `PRINT` itself (argument is optional and not parsed as an expression).",
+            ],
+            "Examples": [
+                "- `PRINT Hello`",
+                "- `PRINT;Hello`",
+                "- `PRINT  (leading space is preserved)`",
+            ],
+        },
+    )
 
 
 def _sections_for_print_variant(name: str) -> dict[str, list[str]]:
@@ -219,67 +225,64 @@ def _sections_for_print_variant(name: str) -> dict[str, list[str]]:
 
     shape = parse_keyword(name)
 
-    syntax: list[str] = []
-    args: list[str] = []
-    defaults: list[str] = []
-    semantics: list[str] = [see_print()]
-
-    # Argument mode
     if shape.mode == "RAW":
         syntax = [f"- `{name} [<raw text>]`", f"- `{name};<raw text>`"]
-        args = ["- Optional raw literal text (not an expression)."]
-        defaults = ["- Omitted argument prints the empty string."]
+        arguments = [
+            '- `<raw text>` (optional, default `""`): raw literal text, not an expression.',
+        ]
     elif shape.mode == "V":
         syntax = [f"- `{name} <expr1> [, <expr2> ...]`"]
-        args = [
+        arguments = [
             "- One or more comma-separated expressions (each may be int or string).",
             "- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.",
         ]
-        defaults = ["- None (missing arguments are an error)."]
-        semantics.append("- Concatenates all arguments into a single output string, then prints it.")
     elif shape.mode == "S":
         syntax = [f"- `{name} <string expr>`"]
-        args = ["- A single string expression (must be present)."]
-        defaults = ["- None (missing argument is an error)."]
-        semantics.append("- Evaluates the string expression and prints the result.")
+        arguments = [
+            "- A single string expression (must be present).",
+        ]
     elif shape.mode == "FORM":
         syntax = [f"- `{name} [<FORM string>]`"]
-        args = [
+        arguments = [
             "- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).",
             "- The argument is optional for the `...FORM...` PRINT family (missing means empty string).",
         ]
-        defaults = ["- Omitted argument prints the empty string."]
-        semantics.append("- The formatted string is scanned at load/parse time and evaluated at runtime.")
     elif shape.mode == "FORMS":
         syntax = [f"- `{name} <string expr>`"]
-        args = [
+        arguments = [
             "- A string expression (must be present).",
             "- The resulting string is then treated as a FORM/formatted string **at runtime**.",
         ]
-        defaults = ["- None (missing argument is an error)."]
+    else:
+        raise ValueError(shape.mode)
+
+    semantics: list[str] = [see_print()]
+    if shape.mode == "V":
+        semantics.append("- Concatenates all arguments into a single output string, then prints it.")
+    elif shape.mode == "S":
+        semantics.append("- Evaluates the string expression and prints the result.")
+    elif shape.mode == "FORM":
+        semantics.append("- The formatted string is scanned at load/parse time and evaluated at runtime.")
+    elif shape.mode == "FORMS":
         semantics.extend(
             [
                 "- Evaluates the string expression to produce a format-string source.",
                 "- Applies escape normalization, scans it as a FORM string at runtime, and prints the evaluated result.",
             ]
         )
-    else:
-        raise ValueError(shape.mode)
 
-    # Output shape modifiers
     if shape.is_single:
         semantics.extend(
             [
-                "- Flushes any pending buffered output first, then prints as a **single display line** (`Console.PrintSingleLine`).",
+                "- If the produced output string is empty, this instruction does nothing.",
+                "- Otherwise, flushes any pending buffered output first, then prints as a **single display line**.",
                 "- `PRINTSINGLE*` keywords are separate built-ins; they do not combine with the `...L`/`...W` suffix mechanism.",
             ]
         )
 
     if shape.align in {"C", "LC"}:
-        args.extend(
-            [
-                "- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail).",
-            ]
+        arguments.append(
+            "- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail)."
         )
         semantics.append("- Writes a fixed-width cell; does not append a newline and does not flush immediately.")
         semantics.append("- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).")
@@ -301,83 +304,88 @@ def _sections_for_print_variant(name: str) -> dict[str, list[str]]:
     elif shape.suffix == "W":
         semantics.append("- After printing, flushes and appends a newline, then waits for a key.")
 
-    return {
-        "Summary": [
-            f"- `{name}` is a PRINT-family variant.",
-            see_print(),
-        ],
-        "Syntax": syntax,
-        "Arguments": args,
-        "Defaults / optional arguments": defaults,
-        "Semantics": semantics,
-        "Errors & validation": [
-            "- Argument parsing/type-checking errors follow the underlying argument mode for this variant.",
-        ],
-        "Examples": [
-            f"- `{name} ...`",
-        ],
-    }
+    return _with_common_metadata(
+        name,
+        {
+            "Summary": [
+                f"- `{name}` is a PRINT-family variant.",
+                see_print(),
+            ],
+            "Syntax": syntax,
+            "Arguments": arguments,
+            "Semantics": semantics,
+            "Errors & validation": [
+                "- Argument parsing/type-checking errors follow the underlying argument mode for this variant.",
+            ],
+            "Examples": [
+                f"- `{name} ...`",
+            ],
+        },
+    )
 
 
 def _sections_for_printdata_base() -> dict[str, list[str]]:
-    return {
-        "Summary": [
-            "- Begins a **PRINTDATA block** that contains `DATA` / `DATAFORM` (and optional `DATALIST` groups).",
-            "- At runtime, the engine picks one choice uniformly at random, prints it, then jumps to `ENDDATA`.",
-        ],
-        "Syntax": [
-            "- `PRINTDATA [<intVarTerm>]`",
-            "- Block form:",
-            "  - `PRINTDATA [<intVarTerm>]`",
-            "    - `DATA <raw text>` / `DATAFORM <FORM string>` (one or more choices)",
-            "    - optionally, `DATALIST` ... `ENDLIST` groups to make a multi-line choice",
-            "  - `ENDDATA`",
-        ],
-        "Arguments": [
-            "- Optional `<intVarTerm>`: a changeable int variable term that receives the 0-based chosen index.",
-        ],
-        "Defaults / optional arguments": [
-            "- If `<intVarTerm>` is omitted, the chosen index is not stored anywhere.",
-        ],
-        "Semantics": [
-            "- Load-time structure rules (enforced by the loader):",
-            "  - `PRINTDATA*` must be closed by a matching `ENDDATA`.",
-            "  - `DATA` / `DATAFORM` must appear inside `PRINTDATA*`, `STRDATA`, or inside a `DATALIST` that is itself inside one of those blocks.",
-            "  - Nested `PRINTDATA*` blocks are rejected (warning/error).",
-            "  - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (warning/error).",
-            "- Runtime behavior:",
-            "  - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.",
-            "  - Otherwise:",
-            "    - Choose `choice` uniformly such that `0 <= choice < count` (using the engine RNG).",
-            "    - If `<intVarTerm>` is present, assign it the chosen index.",
-            "    - Print the selected `DATA` entry:",
-            "      - A single `DATA`/`DATAFORM` line prints as one line.",
-            "      - A `DATALIST` entry prints each contained `DATA`/`DATAFORM` line separated by newlines.",
-            "    - If the keyword has `...L`/`...W` behavior, append a newline (and optionally wait for a key).",
-            "    - Jump to the `ENDDATA` line, skipping over the block body.",
-        ],
-        "Errors & validation": [
-            "- Errors/warnings for missing `ENDDATA`, `DATA` outside a block, `ENDLIST` without `DATALIST`, etc., are produced by the loader.",
-            "- The optional `<intVarTerm>` must be a changeable int variable term.",
-        ],
-        "Examples": [
-            "```erabasic",
-            "PRINTDATA CHOICE",
-            "  DATA First option",
-            "  DATA Second option",
-            "ENDDATA",
-            "```",
-            "",
-            "```erabasic",
-            "PRINTDATA",
-            "  DATALIST",
-            "    DATA Line 1",
-            "    DATAFORM Line 2: %TOSTR(RAND:100)%",
-            "  ENDLIST",
-            "ENDDATA",
-            "```",
-        ],
-    }
+    return _with_common_metadata(
+        "PRINTDATA",
+        {
+            "Summary": [
+                "- Begins a **PRINTDATA block** that contains `DATA` / `DATAFORM` (and optional `DATALIST` groups).",
+                "- At runtime, the engine picks one choice uniformly at random, prints it, then jumps to `ENDDATA`.",
+            ],
+            "Syntax": [
+                "- `PRINTDATA [<intVarTerm>]`",
+                "- Block form:",
+                "  - `PRINTDATA [<intVarTerm>]`",
+                "    - `DATA <raw text>` / `DATAFORM <FORM string>` (one or more choices)",
+                "    - optionally, `DATALIST` ... `ENDLIST` groups to make a multi-line choice",
+                "  - `ENDDATA`",
+            ],
+            "Arguments": [
+                "- `<intVarTerm>` (optional, changeable int variable term): receives the 0-based chosen index.",
+            ],
+            "Semantics": [
+                "- Load-time structure rules (enforced by the loader):",
+                "  - `PRINTDATA*` must be closed by a matching `ENDDATA`.",
+                "  - `DATA` / `DATAFORM` must appear inside `PRINTDATA*`, `STRDATA`, or inside a `DATALIST` that is itself inside one of those blocks.",
+                "  - Nested `PRINTDATA*` blocks are a load-time error (the line is marked as error).",
+                "  - `STRDATA` cannot be nested inside `PRINTDATA*` and vice versa (load-time error).",
+                "  - The block body only permits `DATA` / `DATAFORM` / `DATALIST` / `ENDLIST` / `ENDDATA`; any other instruction (and any label definition) inside is a load-time error.",
+                "- Runtime behavior:",
+                "  - If output skipping is active (via `SKIPDISP`), `PRINTDATA*` is skipped entirely (no selection, no assignment to `<intVarTerm>`, and no jump to `ENDDATA`), so control flows through the block lines normally.",
+                "  - If there are no `DATA` choices, nothing is printed and the engine jumps to `ENDDATA`.",
+                "  - Otherwise:",
+                "    - Choose `choice` uniformly such that `0 <= choice < count` (using the engine RNG).",
+                "    - If `<intVarTerm>` is present, assign it the chosen index.",
+                "    - Print the selected `DATA` entry:",
+                "      - A single `DATA`/`DATAFORM` line prints as one line.",
+                "      - A `DATALIST` entry prints each contained `DATA`/`DATAFORM` line separated by newlines.",
+                "    - If the keyword has `...L`/`...W` behavior, append a newline (and optionally wait for a key).",
+                "    - Jump to the `ENDDATA` line, skipping over the block body.",
+            ],
+            "Errors & validation": [
+                "- Load-time structure errors (the line is marked as error) are produced for missing `ENDDATA`, `DATA` outside a block, `ENDLIST` without `DATALIST`, invalid instructions inside the block, etc.",
+                "- Non-fatal loader warnings also exist (e.g. empty choice lists), but the block still loads.",
+                "- The optional `<intVarTerm>` must be a changeable int variable term.",
+            ],
+            "Examples": [
+                "```erabasic",
+                "PRINTDATA CHOICE",
+                "  DATA First option",
+                "  DATA Second option",
+                "ENDDATA",
+                "```",
+                "",
+                "```erabasic",
+                "PRINTDATA",
+                "  DATALIST",
+                "    DATA Line 1",
+                "    DATAFORM Line 2: %TOSTR(RAND:100)%",
+                "  ENDLIST",
+                "ENDDATA",
+                "```",
+            ],
+        },
+    )
 
 
 def _sections_for_printdata_variant(name: str) -> dict[str, list[str]]:
@@ -386,231 +394,234 @@ def _sections_for_printdata_variant(name: str) -> dict[str, list[str]]:
     rest = name[len("PRINTDATA") :] if name.startswith("PRINTDATA") else ""
     has_k = rest.startswith("K")
     has_d = rest.startswith("D")
-    return {
-        "Summary": [
-            f"- `{name}` is a `PRINTDATA`-family block instruction.",
-            "- See `PRINTDATA` for the full block model and structure rules.",
-        ],
-        "Syntax": [
-            f"- `{name} [<intVarTerm>]` ... `ENDDATA`",
-        ],
-        "Arguments": [
-            "- Same as `PRINTDATA`.",
-        ],
-        "Defaults / optional arguments": [
-            "- Same as `PRINTDATA`.",
-        ],
-        "Semantics": [
-            "- Same as `PRINTDATA`, with these differences:",
-            ("  - Applies kana conversion (`...K`) before printing." if has_k else "  - (No kana conversion flag.)"),
-            ("  - Ignores `SETCOLOR`’s color (`...D`) for this output." if has_d else "  - (Honors `SETCOLOR` color.)"),
-            ("  - Appends a newline after printing (`...L`)." if ends_l else "  - (No automatic newline suffix.)"),
-            ("  - Appends a newline and waits for a key (`...W`)." if ends_w else "  - (No automatic wait suffix.)"),
-        ],
-        "Errors & validation": [
-            "- Same as `PRINTDATA`.",
-        ],
-        "Examples": [
-            f"- `{name} CHOICE` ... `ENDDATA`",
-        ],
-    }
+    return _with_common_metadata(
+        name,
+        {
+            "Summary": [
+                f"- `{name}` is a `PRINTDATA`-family block instruction.",
+                "- See `PRINTDATA` for the full block model and structure rules.",
+            ],
+            "Syntax": [
+                f"- `{name} [<intVarTerm>]` ... `ENDDATA`",
+            ],
+            "Arguments": [
+                "- Same as `PRINTDATA`.",
+            ],
+            "Semantics": [
+                "- Same as `PRINTDATA`, with these differences:",
+                ("  - Applies kana conversion (`...K`) before printing." if has_k else "  - (No kana conversion flag.)"),
+                ("  - Ignores `SETCOLOR`’s color (`...D`) for this output." if has_d else "  - (Honors `SETCOLOR` color.)"),
+                ("  - Appends a newline after printing (`...L`)." if ends_l else "  - (No automatic newline suffix.)"),
+                ("  - Appends a newline and waits for a key (`...W`)." if ends_w else "  - (No automatic wait suffix.)"),
+            ],
+            "Errors & validation": [
+                "- Same as `PRINTDATA`.",
+            ],
+            "Examples": [
+                f"- `{name} CHOICE` ... `ENDDATA`",
+            ],
+        },
+    )
 
 
 def _sections_for_data_instructions(name: str) -> dict[str, list[str]]:
     if name == "DATA":
-        return {
-            "Summary": [
-                "- Declares one printable choice inside a surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` block.",
-                "- `DATA` lines are *not* intended to execute as standalone statements; they are consumed by the loader into the surrounding block’s data list.",
-            ],
-            "Syntax": [
-                "- `DATA [<raw text>]`",
-                "- `DATA;<raw text>`",
-            ],
-            "Arguments": [
-                "- Optional raw literal text (not an expression).",
-            ],
-            "Defaults / optional arguments": [
-                "- Omitted argument is treated as empty string.",
-            ],
-            "Semantics": [
-                "- At load time, the loader attaches `DATA` lines to the nearest surrounding block (`PRINTDATA*`, `STRDATA`, or `DATALIST`).",
-                "- At runtime, `PRINTDATA*` / `STRDATA` evaluate the stored `DATA` line as a string and print/concatenate it when selected.",
-            ],
-            "Errors & validation": [
-                "- Using `DATA` outside a valid surrounding block produces loader warnings/errors and the line will not participate in any `PRINTDATA*` / `STRDATA` selection.",
-            ],
-            "Examples": [
-                "```erabasic",
-                "PRINTDATA",
-                "  DATA Hello",
-                "  DATA;World",
-                "ENDDATA",
-                "```",
-            ],
-        }
+        return _with_common_metadata(
+            name,
+            {
+                "Summary": [
+                    "- Declares one printable choice inside a surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` block.",
+                    "- `DATA` lines are *not* intended to execute as standalone statements; they are consumed by the loader into the surrounding block’s data list.",
+                ],
+                "Syntax": [
+                    "- `DATA [<raw text>]`",
+                    "- `DATA;<raw text>`",
+                ],
+                "Arguments": [
+                    '- `<raw text>` (optional, default `""`): raw text, not an expression.',
+                    "- Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.",
+                ],
+                "Semantics": [
+                    "- At load time, the loader attaches `DATA` lines to the nearest surrounding block (`PRINTDATA*`, `STRDATA`, or `DATALIST`).",
+                    "- At runtime, `PRINTDATA*` / `STRDATA` evaluate the stored `DATA` line as a string and print/concatenate it when selected.",
+                ],
+                "Errors & validation": [
+                    "- Using `DATA` outside a valid surrounding block is a load-time error (the line is marked as error) and it will not participate in any `PRINTDATA*` / `STRDATA` selection.",
+                ],
+                "Examples": [
+                    "```erabasic",
+                    "PRINTDATA",
+                    "  DATA Hello",
+                    "  DATA;World",
+                    "ENDDATA",
+                    "```",
+                ],
+            },
+        )
     if name == "DATAFORM":
-        return {
-            "Summary": [
-                "- Like `DATA`, but the text is a FORM/formatted string (scanned at load time).",
-            ],
-            "Syntax": [
-                "- `DATAFORM [<FORM string>]`",
-            ],
-            "Arguments": [
-                "- Optional FORM/formatted string scanned to end-of-line.",
-            ],
-            "Defaults / optional arguments": [
-                "- Omitted argument is treated as empty string.",
-            ],
-            "Semantics": [
-                "- Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.",
-                "- When selected, evaluated to a string at runtime and printed/concatenated.",
-            ],
-            "Errors & validation": [
-                "- Must appear inside a valid surrounding block, same as `DATA`.",
-            ],
-            "Examples": [
-                "```erabasic",
-                "PRINTDATA",
-                "  DATAFORM Hello, %NAME%!",
-                "ENDDATA",
-                "```",
-            ],
-        }
+        return _with_common_metadata(
+            name,
+            {
+                "Summary": [
+                    "- Like `DATA`, but the text is a FORM/formatted string (scanned at load time).",
+                ],
+                "Syntax": [
+                    "- `DATAFORM [<FORM string>]`",
+                ],
+                "Arguments": [
+                    '- `<FORM string>` (optional, default `""`): FORM/formatted string scanned to end-of-line.',
+                ],
+                "Semantics": [
+                    "- Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.",
+                    "- When selected, evaluated to a string at runtime and printed/concatenated.",
+                    "  - The FORM string is scanned at load time and stored as an expression that is evaluated later (so it can still depend on runtime variables).",
+                ],
+                "Errors & validation": [
+                    "- Must appear inside a valid surrounding block; otherwise it is a load-time error (the line is marked as error).",
+                ],
+                "Examples": [
+                    "```erabasic",
+                    "PRINTDATA",
+                    "  DATAFORM Hello, %NAME%!",
+                    "ENDDATA",
+                    "```",
+                ],
+            },
+        )
     if name == "DATALIST":
-        return {
-            "Summary": [
-                "- Starts a **multi-line** choice list inside a surrounding `PRINTDATA*` or `STRDATA` block.",
-                "- Each `DATA` / `DATAFORM` inside the list becomes a separate output line when this choice is selected.",
-            ],
-            "Syntax": [
-                "- `DATALIST`",
-                "  - `DATA ...` / `DATAFORM ...` (one or more)",
-                "- `ENDLIST`",
-            ],
-            "Arguments": [
-                "- None.",
-            ],
-            "Defaults / optional arguments": [
-                "- N/A.",
-            ],
-            "Semantics": [
-                "- At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.",
-            ],
-            "Errors & validation": [
-                "- `DATALIST` outside `PRINTDATA*` / `STRDATA` is rejected by the loader.",
-                "- Missing `ENDLIST` produces loader diagnostics; an empty list produces a warning.",
-            ],
-            "Examples": [
-                "```erabasic",
-                "PRINTDATA",
-                "  DATALIST",
-                "    DATA Line 1",
-                "    DATA Line 2",
-                "  ENDLIST",
-                "ENDDATA",
-                "```",
-            ],
-        }
+        return _with_common_metadata(
+            name,
+            {
+                "Summary": [
+                    "- Starts a **multi-line** choice list inside a surrounding `PRINTDATA*` or `STRDATA` block.",
+                    "- Each `DATA` / `DATAFORM` inside the list becomes a separate output line when this choice is selected.",
+                ],
+                "Syntax": [
+                    "- `DATALIST`",
+                    "  - `DATA ...` / `DATAFORM ...` (one or more)",
+                    "- `ENDLIST`",
+                ],
+                "Arguments": [
+                    "- None.",
+                ],
+                "Semantics": [
+                    "- At load time, the loader accumulates contained `DATA` / `DATAFORM` lines into a single list entry and attaches it to the surrounding `PRINTDATA*` / `STRDATA` block.",
+                ],
+                "Errors & validation": [
+                    "- `DATALIST` must appear inside `PRINTDATA*` or `STRDATA`; otherwise it is a load-time error (the line is marked as error).",
+                    "- Missing `ENDLIST` produces a load-time error at end of file/load.",
+                    "- An empty list produces a non-fatal loader warning, but still creates an empty choice entry.",
+                ],
+                "Examples": [
+                    "```erabasic",
+                    "PRINTDATA",
+                    "  DATALIST",
+                    "    DATA Line 1",
+                    "    DATA Line 2",
+                    "  ENDLIST",
+                    "ENDDATA",
+                    "```",
+                ],
+            },
+        )
     if name == "ENDLIST":
-        return {
-            "Summary": [
-                "- Closes a `DATALIST` block.",
-            ],
-            "Syntax": [
-                "- `ENDLIST`",
-            ],
-            "Arguments": [
-                "- None.",
-            ],
-            "Defaults / optional arguments": [
-                "- N/A.",
-            ],
-            "Semantics": [
-                "- Load-time only structural marker. At runtime it does nothing.",
-            ],
-            "Errors & validation": [
-                "- `ENDLIST` without an open `DATALIST` produces loader diagnostics.",
-            ],
-            "Examples": [
-                "- (See `DATALIST`.)",
-            ],
-        }
+        return _with_common_metadata(
+            name,
+            {
+                "Summary": [
+                    "- Closes a `DATALIST` block.",
+                ],
+                "Syntax": [
+                    "- `ENDLIST`",
+                ],
+                "Arguments": [
+                    "- None.",
+                ],
+                "Semantics": [
+                    "- Load-time only structural marker. At runtime it does nothing.",
+                ],
+                "Errors & validation": [
+                    "- `ENDLIST` without an open `DATALIST` is a load-time error (the line is marked as error).",
+                ],
+                "Examples": [
+                    "- (See `DATALIST`.)",
+                ],
+            },
+        )
     if name == "ENDDATA":
-        return {
-            "Summary": [
-                "- Closes a `PRINTDATA*` or `STRDATA` block.",
-            ],
-            "Syntax": [
-                "- `ENDDATA`",
-            ],
-            "Arguments": [
-                "- None.",
-            ],
-            "Defaults / optional arguments": [
-                "- N/A.",
-            ],
-            "Semantics": [
-                "- Load-time only structural marker. At runtime it does nothing.",
-                "- The loader wires `PRINTDATA*` / `STRDATA` to jump here after printing/selection.",
-            ],
-            "Errors & validation": [
-                "- `ENDDATA` without an open `PRINTDATA*` / `STRDATA` produces loader diagnostics.",
-                "- Closing a block while a `DATALIST` is still open produces a loader diagnostic.",
-            ],
-            "Examples": [
-                "- (See `PRINTDATA`.)",
-            ],
-        }
+        return _with_common_metadata(
+            name,
+            {
+                "Summary": [
+                    "- Closes a `PRINTDATA*` or `STRDATA` block.",
+                ],
+                "Syntax": [
+                    "- `ENDDATA`",
+                ],
+                "Arguments": [
+                    "- None.",
+                ],
+                "Semantics": [
+                    "- Load-time only structural marker. At runtime it does nothing.",
+                    "- The loader wires `PRINTDATA*` / `STRDATA` to jump here after printing/selection.",
+                ],
+                "Errors & validation": [
+                    "- `ENDDATA` without an open `PRINTDATA*` / `STRDATA` is a load-time error (the line is marked as error).",
+                    "- Closing a block while a `DATALIST` is still open is a load-time error.",
+                ],
+                "Examples": [
+                    "- (See `PRINTDATA`.)",
+                ],
+            },
+        )
     if name == "STRDATA":
-        return {
-            "Summary": [
-                "- Like `PRINTDATA`, but instead of printing, it selects a `DATA`/`DATAFORM` choice and concatenates it into a destination string variable.",
-            ],
-            "Syntax": [
-                "- `STRDATA [<strVarTerm>]` ... `ENDDATA`",
-            ],
-            "Arguments": [
-                "- Optional `<strVarTerm>`: changeable string variable term to receive the result.",
-                "- If omitted, defaults to `RESULTS` (engine behavior).",
-            ],
-            "Defaults / optional arguments": [
-                "- Destination defaults to `RESULTS` when omitted.",
-            ],
-            "Semantics": [
-                "- Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).",
-                "- Selects one entry uniformly at random.",
-                "- Concatenates the selected lines with `\\n` between them (for `DATALIST` multi-line entries).",
-                "- Stores the result into the destination variable and jumps to `ENDDATA`.",
-            ],
-            "Errors & validation": [
-                "- The destination must be a changeable string variable term.",
-                "- Same structural diagnostics as `PRINTDATA`.",
-            ],
-            "Examples": [
-                "```erabasic",
-                "STRDATA",
-                "  DATA Hello",
-                "  DATA World",
-                "ENDDATA",
-                "PRINTFORML RESULTS",
-                "```",
-            ],
-        }
+        return _with_common_metadata(
+            name,
+            {
+                "Summary": [
+                    "- Like `PRINTDATA`, but instead of printing, it selects a `DATA`/`DATAFORM` choice and concatenates it into a destination string variable.",
+                ],
+                "Syntax": [
+                    "- `STRDATA [<strVarTerm>]` ... `ENDDATA`",
+                ],
+                "Arguments": [
+                    "- `<strVarTerm>` (optional; default `RESULTS`): changeable string variable term to receive the result.",
+                ],
+                "Semantics": [
+                    "- Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).",
+                    "- Selects one entry uniformly at random.",
+                    "- Concatenates the selected lines with `\\n` between them (for `DATALIST` multi-line entries).",
+                    "- Stores the result into the destination variable and jumps to `ENDDATA`.",
+                    "- If the block contains no `DATA`/`DATAFORM` choices at all, it simply jumps to `ENDDATA` and does **not** assign anything to the destination variable (it remains unchanged).",
+                ],
+                "Errors & validation": [
+                    "- The destination must be a changeable string variable term.",
+                    "- Same structural diagnostics as `PRINTDATA`.",
+                ],
+                "Examples": [
+                    "```erabasic",
+                    "STRDATA",
+                    "  DATA Hello",
+                    "  DATA World",
+                    "ENDDATA",
+                    "PRINTFORML RESULTS",
+                    "```",
+                ],
+            },
+        )
     raise ValueError(f"Unsupported DATA-block instruction: {name}")
 
 
 def _maybe_write_override(name: str, sections: dict[str, list[str]], *, force: bool) -> bool:
-    p = INSTRUCTION_OVERRIDES_DIR / f"{name}.md"
-    if p.exists() and not force:
+    path = INSTRUCTION_OVERRIDES_DIR / f"{name}.md"
+    if path.exists() and not force:
         return False
-    _write_text(p, _md_sections(sections))
+    _write_text(path, _render_sections(sections))
     return True
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description="Generate PRINT / PRINTDATA / DATA family override files.")
     ap.add_argument("--force", action="store_true", help="Overwrite existing override files.")
     args = ap.parse_args()
 
@@ -619,31 +630,28 @@ def main() -> int:
     created = 0
     updated = 0
 
-    # PRINT family
     for kw in print_keywords:
-        secs = _sections_for_print_base(kw) if kw == "PRINT" else _sections_for_print_variant(kw)
+        sections = _sections_for_print_base(kw) if kw == "PRINT" else _sections_for_print_variant(kw)
         path = INSTRUCTION_OVERRIDES_DIR / f"{kw}.md"
         existed = path.exists()
-        wrote = _maybe_write_override(kw, secs, force=args.force)
+        wrote = _maybe_write_override(kw, sections, force=args.force)
         if wrote:
             if existed:
                 updated += 1
             else:
                 created += 1
 
-    # PRINTDATA family
     for kw in printdata_keywords:
-        secs = _sections_for_printdata_base() if kw == "PRINTDATA" else _sections_for_printdata_variant(kw)
+        sections = _sections_for_printdata_base() if kw == "PRINTDATA" else _sections_for_printdata_variant(kw)
         path = INSTRUCTION_OVERRIDES_DIR / f"{kw}.md"
         existed = path.exists()
-        wrote = _maybe_write_override(kw, secs, force=args.force)
+        wrote = _maybe_write_override(kw, sections, force=args.force)
         if wrote:
             if existed:
                 updated += 1
             else:
                 created += 1
 
-    # DATA-block structural instructions (not registered via addPrintFunction)
     for kw in ["DATA", "DATAFORM", "DATALIST", "ENDLIST", "ENDDATA", "STRDATA"]:
         path = INSTRUCTION_OVERRIDES_DIR / f"{kw}.md"
         existed = path.exists()
