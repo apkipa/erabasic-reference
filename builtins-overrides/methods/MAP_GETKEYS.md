@@ -27,7 +27,7 @@
 - Two-argument form with `doOutput != 0` copies keys to `RESULTS` starting at index `0`, sets `RESULT` to the total key count, and returns the scalar `RESULTS` value (`RESULTS:0`, meaning the first copied key or `""`).
 - Three-argument form with `doOutput == 0` returns `""` and writes nothing.
 - Three-argument form with `doOutput != 0` copies keys to `outputArray` starting at index `0`, sets `RESULT` to the total key count, and returns `""`.
-- Copying stops at the destination length, untouched slots are not cleared, and the engine does not sort the keys before enumeration.
+- Copies keys starting at index `0` until the destination fills. Excess keys are ignored; untouched slots are not cleared. Enumeration order is not sorted.
 
 **Errors & validation**
 - None.

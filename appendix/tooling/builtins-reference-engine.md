@@ -18693,7 +18693,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 - `y` (int): pixel y coordinate.
 
 **Semantics**
-- Returns the pixel color as `0xAARRGGBB` in the range `0 <= value <= 0xFFFFFFFF`.
+- Returns the pixel color as an unsigned 32-bit `0xAARRGGBB` value.
 - If the target graphics does not exist or has already been disposed, returns `-1`.
 - If `x < 0`, `x >= width`, or `y >= height`, returns `-1`.
 - Bounds-check bug: negative `y` is not rejected by the wrapper; it falls through to the pixel API instead of returning `-1` cleanly.
@@ -18933,7 +18933,7 @@ R = GDISPOSE(GID)
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
 - Runtime error if `gID` is negative or exceeds 32-bit range.
-- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
+- Runtime error if `cARGB < 0` or `cARGB > 0xFFFFFFFF`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
@@ -19073,7 +19073,7 @@ R = GDISPOSE(GID)
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
 - Runtime error if `gID` is negative or exceeds 32-bit range.
-- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
+- Runtime error if `cARGB < 0` or `cARGB > 0xFFFFFFFF`.
 - Runtime error when the negative-`y` bug path reaches the underlying pixel API.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
@@ -19210,7 +19210,7 @@ R = GDISPOSE(GID)
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
 - Runtime error if `gID` is negative or exceeds 32-bit range.
-- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
+- Runtime error if `cARGB < 0` or `cARGB > 0xFFFFFFFF`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
@@ -19293,7 +19293,7 @@ R = GDISPOSE(GID)
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
 - Runtime error if `gID` is negative or exceeds 32-bit range.
-- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
+- Runtime error if `cARGB < 0` or `cARGB > 0xFFFFFFFF`.
 - Runtime error if the underlying pen constructor rejects `width`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
@@ -19832,7 +19832,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 
 **Semantics**
 - If the graphics surface does not exist or has already been disposed, returns `0`.
-- If `fileNo` is outside `0 <= value <= 2147483647`, returns `0`.
+- If `fileNo < 0` or `fileNo > 2147483647`, returns `0`.
 - Otherwise writes the bitmap to `sav/img{fileNo:0000}.png`, creating the save directory if needed, and returns `1` on success.
 
 **Errors & validation**
@@ -19871,7 +19871,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 
 **Semantics**
 - If the target graphics surface already exists, returns `0` without overwriting it.
-- If `fileNo` is outside `0 <= value <= 2147483647`, returns `0`.
+- If `fileNo < 0` or `fileNo > 2147483647`, returns `0`.
 - Loads from `sav/img{fileNo:0000}.png`.
 - If the file does not exist, cannot be decoded, or exceeds the engine image-size limit, returns `0`.
 - On success creates the graphics surface from that image and returns `1`.
@@ -20004,7 +20004,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 - `time` (int): requested redraw interval in milliseconds.
 
 **Semantics**
-- Accepts only `time >= -2147483648` and `time <= 32767` in this build.
+- This build accepts `-2147483648 <= time <= 32767`.
 - If `time <= 0`, disables the redraw timer.
 - If `1 <= time < 10`, enables the timer with an actual interval of `10` milliseconds.
 - If `time >= 10`, enables the timer with that interval.
@@ -21392,18 +21392,12 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 **Semantics**
 - Selects nodes with `xpath` and returns the full match count.
-- Output destination rules:
-- if the third argument is omitted or is integer `0`, nothing is written,
-- if the third argument is a non-zero integer, matched values are copied to `RESULTS` starting at index `0`,
-- if the third argument is `ref outputArray`, matched values are copied there instead.
-- `outputType` mapping:
-- `1`: `InnerText`,
-- `2`: `InnerXml`,
-- `3`: `OuterXml`,
-- `4`: `Name`,
-- other values or omission: `Value`.
-- Style `0`/default reads `XmlNode.Value`; for element nodes that is `null`, not the element's text content.
-- Copies at most the destination length, does not clear untouched slots, and still returns the total match count rather than the copied count.
+- Third-argument dispatch is type-based: omitted or integer `0` writes nothing; non-zero integer copies projected values to `RESULTS` starting at index `0`; `outputArray` copies there instead.
+- In the array-output form, `outputType` occupies the fourth slot rather than the third.
+- Projection styles are: `0` or other value = `Value`, `1` = `InnerText`, `2` = `InnerXml`, `3` = `OuterXml`, `4` = `Name`.
+- Style `0` reads `XmlNode.Value`. On element nodes, that value is `null`.
+- If you want the element's text content instead, use `outputType = 1` (`InnerText`).
+- Copies start at destination index `0` and stop when the destination fills. Excess matches are ignored; untouched slots are not cleared. The return value remains the full match count.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
   - `for (int i = 0; i < Math.Min(nodes.Count, exm.VEvaluator.RESULTS_ARRAY.Length); i++)`
@@ -21453,20 +21447,14 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - `outputArray` (string[]): destination array for copied values.
 
 **Semantics**
-- Same projection, copy-limit, and return-value rules as `XML_GET`.
-- Unlike `XML_GET`, this form never parses raw XML from the first argument; it always performs stored-document lookup.
-- Output destination rules:
-- if the third argument is omitted or is integer `0`, nothing is written,
-- if the third argument is a non-zero integer, matched values are copied to `RESULTS` starting at index `0`,
-- if the third argument is `ref outputArray`, matched values are copied there instead.
-- `outputType` mapping:
-- `1`: `InnerText`,
-- `2`: `InnerXml`,
-- `3`: `OuterXml`,
-- `4`: `Name`,
-- other values or omission: `Value`.
-- Style `0`/default reads `XmlNode.Value`; for element nodes that is `null`, not the element's text content.
-- Copies at most the destination length, does not clear untouched slots, and still returns the total match count rather than the copied count.
+- Uses stored-document lookup only; unlike `XML_GET`, this form never parses raw XML from the first argument.
+- Otherwise follows the same projection, copy-limit, and return-value rules as `XML_GET`.
+- Third-argument dispatch is type-based: omitted or integer `0` writes nothing; non-zero integer copies projected values to `RESULTS` starting at index `0`; `outputArray` copies there instead.
+- In the array-output form, `outputType` occupies the fourth slot rather than the third.
+- Projection styles are: `0` or other value = `Value`, `1` = `InnerText`, `2` = `InnerXml`, `3` = `OuterXml`, `4` = `Name`.
+- Style `0` reads `XmlNode.Value`. On element nodes, that value is `null`.
+- If you want the element's text content instead, use `outputType = 1` (`InnerText`).
+- Copies start at destination index `0` and stop when the destination fills. Excess matches are ignored; untouched slots are not cleared. The return value remains the full match count.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
   - `for (int i = 0; i < Math.Min(nodes.Count, exm.VEvaluator.RESULTS_ARRAY.Length); i++)`
@@ -21517,15 +21505,15 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - `xmlVar` (string variable): writable string variable containing raw XML.
 
 **Semantics**
-- Target resolution:
-- `XML_SET(xmlId, ...)` mutates a stored document in place,
-- `XML_SET(ref xmlVar, ...)` reparses the variable as XML, applies the mutation to that temporary document, and writes back `OuterXml` only when at least one node matches.
+- First-argument dispatch is type-based. `XML_SET(xmlId, ...)` mutates the stored document in place. `XML_SET(xmlVar, ...)` reparses that variable as XML, applies the mutation to a temporary document, and writes back `OuterXml` only if at least one node matched.
 - Returns the full match count from `xpath`.
 - If no nodes match, no mutation occurs and the function returns `0`.
 - If exactly one node matches, that node is always updated.
 - If more than one node matches and `setAllNodes == 0`, no node is updated even though the match count is still returned.
 - If more than one node matches and `setAllNodes != 0`, every matched node is updated.
-- Style `0` writes `XmlNode.Value`; on element nodes that follows .NET element-value rules and raises a runtime error instead of writing text.
+- Style `0` writes `XmlNode.Value`.
+- On element nodes, that operation raises a runtime error instead of replacing the element's text content.
+- If you want to replace the element's text content instead, use `outputType = 1` (`InnerText`).
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
@@ -22509,7 +22497,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Two-argument form with `doOutput != 0` copies keys to `RESULTS` starting at index `0`, sets `RESULT` to the total key count, and returns the scalar `RESULTS` value (`RESULTS:0`, meaning the first copied key or `""`).
 - Three-argument form with `doOutput == 0` returns `""` and writes nothing.
 - Three-argument form with `doOutput != 0` copies keys to `outputArray` starting at index `0`, sets `RESULT` to the total key count, and returns `""`.
-- Copying stops at the destination length, untouched slots are not cleared, and the engine does not sort the keys before enumeration.
+- Copies keys starting at index `0` until the destination fills. Excess keys are ignored; untouched slots are not cleared. Enumeration order is not sorted.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
   - `array = exm.VEvaluator.RESULTS_ARRAY`
@@ -23359,7 +23347,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - The returned row ids are the values of the table's first column, which is the auto-created `id` primary key.
 - If `outputArray` is omitted, copied ids go to `RESULT:1`, `RESULT:2`, ... and `RESULT:0` is set to the full match count.
 - If `outputArray` is supplied, copied ids go to that array starting at index `0`; `RESULT` is not updated by this path.
-- Copying is clamped to the destination length (`RESULT` loses one slot because index `0` stores the count). Untouched slots are not cleared.
+- Copies row ids until the destination fills. In the `RESULT` form, index `0` stores the count, so at most `length - 1` ids are copied. Untouched slots are not cleared. The return value remains the full match count.
 - The function return value is always the full match count, not the copied count.
 - Explicitly omitted middle arguments remain omitted; for example, supplying only `sortRule` requires an omitted `filterExpression` slot.
 - Engine-extracted notes (key operations):
@@ -23884,7 +23872,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 **Semantics**
 - If the target graphics does not exist or has already been disposed, returns `0`.
-- Otherwise returns the current brush color as `0xAARRGGBB` in the range `0 <= value <= 0xFFFFFFFF`.
+- Otherwise returns the current brush color as an unsigned 32-bit `0xAARRGGBB` value.
 
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
@@ -23922,7 +23910,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 **Semantics**
 - If the target graphics does not exist or has already been disposed, returns `0`.
-- Otherwise returns the current pen color as `0xAARRGGBB` in the range `0 <= value <= 0xFFFFFFFF`.
+- Otherwise returns the current pen color as an unsigned 32-bit `0xAARRGGBB` value.
 
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.

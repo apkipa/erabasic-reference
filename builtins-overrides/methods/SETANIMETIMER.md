@@ -15,7 +15,7 @@
 - `time` (int): requested redraw interval in milliseconds.
 
 **Semantics**
-- Accepts only `time >= -2147483648` and `time <= 32767` in this build.
+- This build accepts `-2147483648 <= time <= 32767`.
 - If `time <= 0`, disables the redraw timer.
 - If `1 <= time < 10`, enables the timer with an actual interval of `10` milliseconds.
 - If `time >= 10`, enables the timer with that interval.

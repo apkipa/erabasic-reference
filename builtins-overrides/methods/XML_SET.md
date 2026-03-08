@@ -26,15 +26,15 @@
 - `xmlVar` (string variable): writable string variable containing raw XML.
 
 **Semantics**
-- Target resolution:
-- `XML_SET(xmlId, ...)` mutates a stored document in place,
-- `XML_SET(ref xmlVar, ...)` reparses the variable as XML, applies the mutation to that temporary document, and writes back `OuterXml` only when at least one node matches.
+- First-argument dispatch is type-based. `XML_SET(xmlId, ...)` mutates the stored document in place. `XML_SET(xmlVar, ...)` reparses that variable as XML, applies the mutation to a temporary document, and writes back `OuterXml` only if at least one node matched.
 - Returns the full match count from `xpath`.
 - If no nodes match, no mutation occurs and the function returns `0`.
 - If exactly one node matches, that node is always updated.
 - If more than one node matches and `setAllNodes == 0`, no node is updated even though the match count is still returned.
 - If more than one node matches and `setAllNodes != 0`, every matched node is updated.
-- Style `0` writes `XmlNode.Value`; on element nodes that follows .NET element-value rules and raises a runtime error instead of writing text.
+- Style `0` writes `XmlNode.Value`.
+- On element nodes, that operation raises a runtime error instead of replacing the element's text content.
+- If you want to replace the element's text content instead, use `outputType = 1` (`InnerText`).
 
 **Errors & validation**
 - Returns `-1` if stored-document lookup is requested and the key does not exist.

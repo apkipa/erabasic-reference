@@ -17,7 +17,7 @@
 
 **Semantics**
 - If the target graphics surface already exists, returns `0` without overwriting it.
-- If `fileNo` is outside `0 <= value <= 2147483647`, returns `0`.
+- If `fileNo < 0` or `fileNo > 2147483647`, returns `0`.
 - Loads from `sav/img{fileNo:0000}.png`.
 - If the file does not exist, cannot be decoded, or exceeds the engine image-size limit, returns `0`.
 - On success creates the graphics surface from that image and returns `1`.

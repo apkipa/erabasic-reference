@@ -24,20 +24,14 @@
 - `outputArray` (string[]): destination array for copied values.
 
 **Semantics**
-- Same projection, copy-limit, and return-value rules as `XML_GET`.
-- Unlike `XML_GET`, this form never parses raw XML from the first argument; it always performs stored-document lookup.
-- Output destination rules:
-- if the third argument is omitted or is integer `0`, nothing is written,
-- if the third argument is a non-zero integer, matched values are copied to `RESULTS` starting at index `0`,
-- if the third argument is `ref outputArray`, matched values are copied there instead.
-- `outputType` mapping:
-- `1`: `InnerText`,
-- `2`: `InnerXml`,
-- `3`: `OuterXml`,
-- `4`: `Name`,
-- other values or omission: `Value`.
-- Style `0`/default reads `XmlNode.Value`; for element nodes that is `null`, not the element's text content.
-- Copies at most the destination length, does not clear untouched slots, and still returns the total match count rather than the copied count.
+- Uses stored-document lookup only; unlike `XML_GET`, this form never parses raw XML from the first argument.
+- Otherwise follows the same projection, copy-limit, and return-value rules as `XML_GET`.
+- Third-argument dispatch is type-based: omitted or integer `0` writes nothing; non-zero integer copies projected values to `RESULTS` starting at index `0`; `outputArray` copies there instead.
+- In the array-output form, `outputType` occupies the fourth slot rather than the third.
+- Projection styles are: `0` or other value = `Value`, `1` = `InnerText`, `2` = `InnerXml`, `3` = `OuterXml`, `4` = `Name`.
+- Style `0` reads `XmlNode.Value`. On element nodes, that value is `null`.
+- If you want the element's text content instead, use `outputType = 1` (`InnerText`).
+- Copies start at destination index `0` and stop when the destination fills. Excess matches are ignored; untouched slots are not cleared. The return value remains the full match count.
 
 **Errors & validation**
 - Returns `-1` if no stored document exists for the resolved key.

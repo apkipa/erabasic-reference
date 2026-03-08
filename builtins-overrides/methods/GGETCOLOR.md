@@ -16,7 +16,7 @@
 - `y` (int): pixel y coordinate.
 
 **Semantics**
-- Returns the pixel color as `0xAARRGGBB` in the range `0 <= value <= 0xFFFFFFFF`.
+- Returns the pixel color as an unsigned 32-bit `0xAARRGGBB` value.
 - If the target graphics does not exist or has already been disposed, returns `-1`.
 - If `x < 0`, `x >= width`, or `y >= height`, returns `-1`.
 - Bounds-check bug: negative `y` is not rejected by the wrapper; it falls through to the pixel API instead of returning `-1` cleanly.

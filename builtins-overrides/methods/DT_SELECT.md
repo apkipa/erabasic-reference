@@ -26,7 +26,7 @@
 - The returned row ids are the values of the table's first column, which is the auto-created `id` primary key.
 - If `outputArray` is omitted, copied ids go to `RESULT:1`, `RESULT:2`, ... and `RESULT:0` is set to the full match count.
 - If `outputArray` is supplied, copied ids go to that array starting at index `0`; `RESULT` is not updated by this path.
-- Copying is clamped to the destination length (`RESULT` loses one slot because index `0` stores the count). Untouched slots are not cleared.
+- Copies row ids until the destination fills. In the `RESULT` form, index `0` stores the count, so at most `length - 1` ids are copied. Untouched slots are not cleared. The return value remains the full match count.
 - The function return value is always the full match count, not the copied count.
 - Explicitly omitted middle arguments remain omitted; for example, supplying only `sortRule` requires an omitted `filterExpression` slot.
 

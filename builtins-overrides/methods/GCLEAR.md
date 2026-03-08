@@ -30,7 +30,7 @@
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
 - Runtime error if `gID` is negative or exceeds 32-bit range.
-- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
+- Runtime error if `cARGB < 0` or `cARGB > 0xFFFFFFFF`.
 
 **Examples**
 - `GCLEAR 0, 0xFFFFFFFF`

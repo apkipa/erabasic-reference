@@ -17,7 +17,7 @@
 
 **Semantics**
 - If the graphics surface does not exist or has already been disposed, returns `0`.
-- If `fileNo` is outside `0 <= value <= 2147483647`, returns `0`.
+- If `fileNo < 0` or `fileNo > 2147483647`, returns `0`.
 - Otherwise writes the bitmap to `sav/img{fileNo:0000}.png`, creating the save directory if needed, and returns `1` on success.
 
 **Errors & validation**

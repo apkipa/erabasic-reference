@@ -15,7 +15,7 @@
 
 **Semantics**
 - If the target graphics does not exist or has already been disposed, returns `0`.
-- Otherwise returns the current pen color as `0xAARRGGBB` in the range `0 <= value <= 0xFFFFFFFF`.
+- Otherwise returns the current pen color as an unsigned 32-bit `0xAARRGGBB` value.
 
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
