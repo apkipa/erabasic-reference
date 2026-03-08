@@ -25,6 +25,10 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`SUMARRAY`](builtins-reference.md#sumarray-expression-function) (method)
 - [`SUMCARRAY`](builtins-reference.md#sumcarray-expression-function) (method)
 
+## audio
+
+- [`EXISTSOUND`](builtins-reference.md#existsound-expression-function) (method)
+
 ## calls
 
 - [`CALL`](builtins-reference.md#call-instruction) (instruction)
@@ -81,9 +85,25 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`SWAPCHARA`](builtins-reference.md#swapchara-instruction) (instruction)
 - [`UPCHECK`](builtins-reference.md#upcheck-instruction) (instruction)
 - [`CMATCH`](builtins-reference.md#cmatch-expression-function) (method)
+- [`CSVABL`](builtins-reference.md#csvabl-expression-function) (method)
+- [`CSVBASE`](builtins-reference.md#csvbase-expression-function) (method)
+- [`CSVCALLNAME`](builtins-reference.md#csvcallname-expression-function) (method)
+- [`CSVCFLAG`](builtins-reference.md#csvcflag-expression-function) (method)
+- [`CSVCSTR`](builtins-reference.md#csvcstr-expression-function) (method)
+- [`CSVEQUIP`](builtins-reference.md#csvequip-expression-function) (method)
+- [`CSVEXP`](builtins-reference.md#csvexp-expression-function) (method)
+- [`CSVJUEL`](builtins-reference.md#csvjuel-expression-function) (method)
+- [`CSVMARK`](builtins-reference.md#csvmark-expression-function) (method)
+- [`CSVMASTERNAME`](builtins-reference.md#csvmastername-expression-function) (method)
+- [`CSVNAME`](builtins-reference.md#csvname-expression-function) (method)
+- [`CSVNICKNAME`](builtins-reference.md#csvnickname-expression-function) (method)
+- [`CSVRELATION`](builtins-reference.md#csvrelation-expression-function) (method)
+- [`CSVTALENT`](builtins-reference.md#csvtalent-expression-function) (method)
 - [`EXISTCSV`](builtins-reference.md#existcsv-expression-function) (method)
 - [`FINDCHARA`](builtins-reference.md#findchara-expression-function) (method)
 - [`FINDLASTCHARA`](builtins-reference.md#findlastchara-expression-function) (method)
+- [`GETCHARA`](builtins-reference.md#getchara-expression-function) (method)
+- [`GETSPCHARA`](builtins-reference.md#getspchara-expression-function) (method)
 - [`INRANGECARRAY`](builtins-reference.md#inrangecarray-expression-function) (method)
 - [`MAXCARRAY`](builtins-reference.md#maxcarray-expression-function) (method)
 - [`MINCARRAY`](builtins-reference.md#mincarray-expression-function) (method)
@@ -93,6 +113,8 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 - [`PRINTCPERLINE`](builtins-reference.md#printcperline-instruction) (instruction)
 - [`SAVENOS`](builtins-reference.md#savenos-instruction) (instruction)
+- [`GETCONFIG`](builtins-reference.md#getconfig-expression-function) (method)
+- [`GETCONFIGS`](builtins-reference.md#getconfigs-expression-function) (method)
 - [`GETDEFBGCOLOR`](builtins-reference.md#getdefbgcolor-expression-function) (method)
 - [`GETDEFCOLOR`](builtins-reference.md#getdefcolor-expression-function) (method)
 - [`GETFOCUSCOLOR`](builtins-reference.md#getfocuscolor-expression-function) (method)
@@ -122,6 +144,23 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`WEND`](builtins-reference.md#wend-instruction) (instruction)
 - [`WHILE`](builtins-reference.md#while-instruction) (instruction)
 
+## csv
+
+- [`CSVABL`](builtins-reference.md#csvabl-expression-function) (method)
+- [`CSVBASE`](builtins-reference.md#csvbase-expression-function) (method)
+- [`CSVCALLNAME`](builtins-reference.md#csvcallname-expression-function) (method)
+- [`CSVCFLAG`](builtins-reference.md#csvcflag-expression-function) (method)
+- [`CSVCSTR`](builtins-reference.md#csvcstr-expression-function) (method)
+- [`CSVEQUIP`](builtins-reference.md#csvequip-expression-function) (method)
+- [`CSVEXP`](builtins-reference.md#csvexp-expression-function) (method)
+- [`CSVJUEL`](builtins-reference.md#csvjuel-expression-function) (method)
+- [`CSVMARK`](builtins-reference.md#csvmark-expression-function) (method)
+- [`CSVMASTERNAME`](builtins-reference.md#csvmastername-expression-function) (method)
+- [`CSVNAME`](builtins-reference.md#csvname-expression-function) (method)
+- [`CSVNICKNAME`](builtins-reference.md#csvnickname-expression-function) (method)
+- [`CSVRELATION`](builtins-reference.md#csvrelation-expression-function) (method)
+- [`CSVTALENT`](builtins-reference.md#csvtalent-expression-function) (method)
+
 ## data
 
 - [`DT_COLUMN_OPTIONS`](builtins-reference.md#dt_column_options-instruction) (instruction)
@@ -144,6 +183,84 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`PRINTDATAW`](builtins-reference.md#printdataw-instruction) (instruction)
 - [`STRDATA`](builtins-reference.md#strdata-instruction) (instruction)
 
+## data-structures
+
+- [`DT_CELL_GET`](builtins-reference.md#dt_cell_get-expression-function) (method)
+- [`DT_CELL_GETS`](builtins-reference.md#dt_cell_gets-expression-function) (method)
+- [`DT_CELL_ISNULL`](builtins-reference.md#dt_cell_isnull-expression-function) (method)
+- [`DT_CELL_SET`](builtins-reference.md#dt_cell_set-expression-function) (method)
+- [`DT_CLEAR`](builtins-reference.md#dt_clear-expression-function) (method)
+- [`DT_COLUMN_ADD`](builtins-reference.md#dt_column_add-expression-function) (method)
+- [`DT_COLUMN_EXIST`](builtins-reference.md#dt_column_exist-expression-function) (method)
+- [`DT_COLUMN_LENGTH`](builtins-reference.md#dt_column_length-expression-function) (method)
+- [`DT_COLUMN_NAMES`](builtins-reference.md#dt_column_names-expression-function) (method)
+- [`DT_COLUMN_REMOVE`](builtins-reference.md#dt_column_remove-expression-function) (method)
+- [`DT_CREATE`](builtins-reference.md#dt_create-expression-function) (method)
+- [`DT_EXIST`](builtins-reference.md#dt_exist-expression-function) (method)
+- [`DT_FROMXML`](builtins-reference.md#dt_fromxml-expression-function) (method)
+- [`DT_NOCASE`](builtins-reference.md#dt_nocase-expression-function) (method)
+- [`DT_RELEASE`](builtins-reference.md#dt_release-expression-function) (method)
+- [`DT_ROW_ADD`](builtins-reference.md#dt_row_add-expression-function) (method)
+- [`DT_ROW_LENGTH`](builtins-reference.md#dt_row_length-expression-function) (method)
+- [`DT_ROW_REMOVE`](builtins-reference.md#dt_row_remove-expression-function) (method)
+- [`DT_ROW_SET`](builtins-reference.md#dt_row_set-expression-function) (method)
+- [`DT_SELECT`](builtins-reference.md#dt_select-expression-function) (method)
+- [`DT_TOXML`](builtins-reference.md#dt_toxml-expression-function) (method)
+- [`MAP_CLEAR`](builtins-reference.md#map_clear-expression-function) (method)
+- [`MAP_CREATE`](builtins-reference.md#map_create-expression-function) (method)
+- [`MAP_EXIST`](builtins-reference.md#map_exist-expression-function) (method)
+- [`MAP_FROMXML`](builtins-reference.md#map_fromxml-expression-function) (method)
+- [`MAP_GET`](builtins-reference.md#map_get-expression-function) (method)
+- [`MAP_GETKEYS`](builtins-reference.md#map_getkeys-expression-function) (method)
+- [`MAP_HAS`](builtins-reference.md#map_has-expression-function) (method)
+- [`MAP_RELEASE`](builtins-reference.md#map_release-expression-function) (method)
+- [`MAP_REMOVE`](builtins-reference.md#map_remove-expression-function) (method)
+- [`MAP_SET`](builtins-reference.md#map_set-expression-function) (method)
+- [`MAP_SIZE`](builtins-reference.md#map_size-expression-function) (method)
+- [`MAP_TOXML`](builtins-reference.md#map_toxml-expression-function) (method)
+- [`XML_ADDATTRIBUTE`](builtins-reference.md#xml_addattribute-expression-function) (method)
+- [`XML_ADDATTRIBUTE_BYNAME`](builtins-reference.md#xml_addattribute_byname-expression-function) (method)
+- [`XML_ADDNODE`](builtins-reference.md#xml_addnode-expression-function) (method)
+- [`XML_ADDNODE_BYNAME`](builtins-reference.md#xml_addnode_byname-expression-function) (method)
+- [`XML_DOCUMENT`](builtins-reference.md#xml_document-expression-function) (method)
+- [`XML_EXIST`](builtins-reference.md#xml_exist-expression-function) (method)
+- [`XML_GET`](builtins-reference.md#xml_get-expression-function) (method)
+- [`XML_GET_BYNAME`](builtins-reference.md#xml_get_byname-expression-function) (method)
+- [`XML_RELEASE`](builtins-reference.md#xml_release-expression-function) (method)
+- [`XML_REMOVEATTRIBUTE`](builtins-reference.md#xml_removeattribute-expression-function) (method)
+- [`XML_REMOVEATTRIBUTE_BYNAME`](builtins-reference.md#xml_removeattribute_byname-expression-function) (method)
+- [`XML_REMOVENODE`](builtins-reference.md#xml_removenode-expression-function) (method)
+- [`XML_REMOVENODE_BYNAME`](builtins-reference.md#xml_removenode_byname-expression-function) (method)
+- [`XML_REPLACE`](builtins-reference.md#xml_replace-expression-function) (method)
+- [`XML_REPLACE_BYNAME`](builtins-reference.md#xml_replace_byname-expression-function) (method)
+- [`XML_SET`](builtins-reference.md#xml_set-expression-function) (method)
+- [`XML_SET_BYNAME`](builtins-reference.md#xml_set_byname-expression-function) (method)
+- [`XML_TOSTR`](builtins-reference.md#xml_tostr-expression-function) (method)
+
+## datatable
+
+- [`DT_CELL_GET`](builtins-reference.md#dt_cell_get-expression-function) (method)
+- [`DT_CELL_GETS`](builtins-reference.md#dt_cell_gets-expression-function) (method)
+- [`DT_CELL_ISNULL`](builtins-reference.md#dt_cell_isnull-expression-function) (method)
+- [`DT_CELL_SET`](builtins-reference.md#dt_cell_set-expression-function) (method)
+- [`DT_CLEAR`](builtins-reference.md#dt_clear-expression-function) (method)
+- [`DT_COLUMN_ADD`](builtins-reference.md#dt_column_add-expression-function) (method)
+- [`DT_COLUMN_EXIST`](builtins-reference.md#dt_column_exist-expression-function) (method)
+- [`DT_COLUMN_LENGTH`](builtins-reference.md#dt_column_length-expression-function) (method)
+- [`DT_COLUMN_NAMES`](builtins-reference.md#dt_column_names-expression-function) (method)
+- [`DT_COLUMN_REMOVE`](builtins-reference.md#dt_column_remove-expression-function) (method)
+- [`DT_CREATE`](builtins-reference.md#dt_create-expression-function) (method)
+- [`DT_EXIST`](builtins-reference.md#dt_exist-expression-function) (method)
+- [`DT_FROMXML`](builtins-reference.md#dt_fromxml-expression-function) (method)
+- [`DT_NOCASE`](builtins-reference.md#dt_nocase-expression-function) (method)
+- [`DT_RELEASE`](builtins-reference.md#dt_release-expression-function) (method)
+- [`DT_ROW_ADD`](builtins-reference.md#dt_row_add-expression-function) (method)
+- [`DT_ROW_LENGTH`](builtins-reference.md#dt_row_length-expression-function) (method)
+- [`DT_ROW_REMOVE`](builtins-reference.md#dt_row_remove-expression-function) (method)
+- [`DT_ROW_SET`](builtins-reference.md#dt_row_set-expression-function) (method)
+- [`DT_SELECT`](builtins-reference.md#dt_select-expression-function) (method)
+- [`DT_TOXML`](builtins-reference.md#dt_toxml-expression-function) (method)
+
 ## debug
 
 - [`ASSERT`](builtins-reference.md#assert-instruction) (instruction)
@@ -154,6 +271,12 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`DEBUGPRINTL`](builtins-reference.md#debugprintl-instruction) (instruction)
 - [`THROW`](builtins-reference.md#throw-instruction) (instruction)
 
+## erd
+
+- [`ERDNAME`](builtins-reference.md#erdname-expression-function) (method)
+- [`GETNUM`](builtins-reference.md#getnum-expression-function) (method)
+- [`GETNUMB`](builtins-reference.md#getnumb-expression-function) (method)
+
 ## error-handling
 
 - [`CATCH`](builtins-reference.md#catch-instruction) (instruction)
@@ -161,8 +284,15 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## files
 
+- [`ENUMFILES`](builtins-reference.md#enumfiles-expression-function) (method)
+- [`EXISTFILE`](builtins-reference.md#existfile-expression-function) (method)
+- [`EXISTSOUND`](builtins-reference.md#existsound-expression-function) (method)
 - [`GCREATEFROMFILE`](builtins-reference.md#gcreatefromfile-expression-function) (method)
+- [`GLOAD`](builtins-reference.md#gload-expression-function) (method)
+- [`GSAVE`](builtins-reference.md#gsave-expression-function) (method)
+- [`LOADTEXT`](builtins-reference.md#loadtext-expression-function) (method)
 - [`OUTPUTLOG`](builtins-reference.md#outputlog-expression-function) (method)
+- [`SAVETEXT`](builtins-reference.md#savetext-expression-function) (method)
 
 ## flow
 
@@ -179,6 +309,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## graphics
 
+- [`BITMAP_CACHE_ENABLE`](builtins-reference.md#bitmap_cache_enable-expression-function) (method)
 - [`CBGCLEAR`](builtins-reference.md#cbgclear-expression-function) (method)
 - [`CBGCLEARBUTTON`](builtins-reference.md#cbgclearbutton-expression-function) (method)
 - [`CBGREMOVEBMAP`](builtins-reference.md#cbgremovebmap-expression-function) (method)
@@ -187,13 +318,38 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`CBGSETBUTTONSPRITE`](builtins-reference.md#cbgsetbuttonsprite-expression-function) (method)
 - [`CBGSETG`](builtins-reference.md#cbgsetg-expression-function) (method)
 - [`CBGSETSPRITE`](builtins-reference.md#cbgsetsprite-expression-function) (method)
+- [`GCLEAR`](builtins-reference.md#gclear-expression-function) (method)
 - [`GCREATE`](builtins-reference.md#gcreate-expression-function) (method)
 - [`GCREATED`](builtins-reference.md#gcreated-expression-function) (method)
 - [`GCREATEFROMFILE`](builtins-reference.md#gcreatefromfile-expression-function) (method)
+- [`GDASHSTYLE`](builtins-reference.md#gdashstyle-expression-function) (method)
 - [`GDISPOSE`](builtins-reference.md#gdispose-expression-function) (method)
+- [`GDRAWG`](builtins-reference.md#gdrawg-expression-function) (method)
+- [`GDRAWGWITHMASK`](builtins-reference.md#gdrawgwithmask-expression-function) (method)
+- [`GDRAWGWITHROTATE`](builtins-reference.md#gdrawgwithrotate-expression-function) (method)
 - [`GDRAWLINE`](builtins-reference.md#gdrawline-expression-function) (method)
+- [`GDRAWSPRITE`](builtins-reference.md#gdrawsprite-expression-function) (method)
+- [`GDRAWTEXT`](builtins-reference.md#gdrawtext-expression-function) (method)
+- [`GFILLRECTANGLE`](builtins-reference.md#gfillrectangle-expression-function) (method)
+- [`GGETBRUSH`](builtins-reference.md#ggetbrush-expression-function) (method)
+- [`GGETCOLOR`](builtins-reference.md#ggetcolor-expression-function) (method)
+- [`GGETFONT`](builtins-reference.md#ggetfont-expression-function) (method)
+- [`GGETFONTSIZE`](builtins-reference.md#ggetfontsize-expression-function) (method)
+- [`GGETFONTSTYLE`](builtins-reference.md#ggetfontstyle-expression-function) (method)
+- [`GGETPEN`](builtins-reference.md#ggetpen-expression-function) (method)
+- [`GGETPENWIDTH`](builtins-reference.md#ggetpenwidth-expression-function) (method)
+- [`GGETTEXTSIZE`](builtins-reference.md#ggettextsize-expression-function) (method)
 - [`GHEIGHT`](builtins-reference.md#gheight-expression-function) (method)
+- [`GLOAD`](builtins-reference.md#gload-expression-function) (method)
+- [`GSAVE`](builtins-reference.md#gsave-expression-function) (method)
+- [`GSETBRUSH`](builtins-reference.md#gsetbrush-expression-function) (method)
+- [`GSETCOLOR`](builtins-reference.md#gsetcolor-expression-function) (method)
+- [`GSETFONT`](builtins-reference.md#gsetfont-expression-function) (method)
+- [`GSETPEN`](builtins-reference.md#gsetpen-expression-function) (method)
 - [`GWIDTH`](builtins-reference.md#gwidth-expression-function) (method)
+- [`SETANIMETIMER`](builtins-reference.md#setanimetimer-expression-function) (method)
+- [`SPRITEANIMEADDFRAME`](builtins-reference.md#spriteanimeaddframe-expression-function) (method)
+- [`SPRITEANIMECREATE`](builtins-reference.md#spriteanimecreate-expression-function) (method)
 - [`SPRITECREATE`](builtins-reference.md#spritecreate-expression-function) (method)
 - [`SPRITECREATED`](builtins-reference.md#spritecreated-expression-function) (method)
 - [`SPRITEDISPOSE`](builtins-reference.md#spritedispose-expression-function) (method)
@@ -206,11 +362,26 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`SPRITESETPOS`](builtins-reference.md#spritesetpos-expression-function) (method)
 - [`SPRITEWIDTH`](builtins-reference.md#spritewidth-expression-function) (method)
 
+## host
+
+- [`HOTKEY_STATE`](builtins-reference.md#hotkey_state-expression-function) (method)
+- [`HOTKEY_STATE_INIT`](builtins-reference.md#hotkey_state_init-expression-function) (method)
+
 ## input
 
+- [`FLOWINPUT`](builtins-reference.md#flowinput-expression-function) (method)
+- [`FLOWINPUTS`](builtins-reference.md#flowinputs-expression-function) (method)
+- [`GETKEY`](builtins-reference.md#getkey-expression-function) (method)
+- [`GETKEYTRIGGERED`](builtins-reference.md#getkeytriggered-expression-function) (method)
+- [`GETTEXTBOX`](builtins-reference.md#gettextbox-expression-function) (method)
+- [`HOTKEY_STATE`](builtins-reference.md#hotkey_state-expression-function) (method)
+- [`HOTKEY_STATE_INIT`](builtins-reference.md#hotkey_state_init-expression-function) (method)
 - [`MOUSEB`](builtins-reference.md#mouseb-expression-function) (method)
 - [`MOUSEX`](builtins-reference.md#mousex-expression-function) (method)
 - [`MOUSEY`](builtins-reference.md#mousey-expression-function) (method)
+- [`MOVETEXTBOX`](builtins-reference.md#movetextbox-expression-function) (method)
+- [`RESUMETEXTBOX`](builtins-reference.md#resumetextbox-expression-function) (method)
+- [`SETTEXTBOX`](builtins-reference.md#settextbox-expression-function) (method)
 
 ## io
 
@@ -360,7 +531,25 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`HTML_STRINGLEN`](builtins-reference.md#html_stringlen-expression-function) (method)
 - [`HTML_STRINGLINES`](builtins-reference.md#html_stringlines-expression-function) (method)
 - [`HTML_SUBSTRING`](builtins-reference.md#html_substring-expression-function) (method)
+- [`LINEISEMPTY`](builtins-reference.md#lineisempty-expression-function) (method)
+- [`LOADTEXT`](builtins-reference.md#loadtext-expression-function) (method)
 - [`OUTPUTLOG`](builtins-reference.md#outputlog-expression-function) (method)
+- [`SAVETEXT`](builtins-reference.md#savetext-expression-function) (method)
+
+## map
+
+- [`MAP_CLEAR`](builtins-reference.md#map_clear-expression-function) (method)
+- [`MAP_CREATE`](builtins-reference.md#map_create-expression-function) (method)
+- [`MAP_EXIST`](builtins-reference.md#map_exist-expression-function) (method)
+- [`MAP_FROMXML`](builtins-reference.md#map_fromxml-expression-function) (method)
+- [`MAP_GET`](builtins-reference.md#map_get-expression-function) (method)
+- [`MAP_GETKEYS`](builtins-reference.md#map_getkeys-expression-function) (method)
+- [`MAP_HAS`](builtins-reference.md#map_has-expression-function) (method)
+- [`MAP_RELEASE`](builtins-reference.md#map_release-expression-function) (method)
+- [`MAP_REMOVE`](builtins-reference.md#map_remove-expression-function) (method)
+- [`MAP_SET`](builtins-reference.md#map_set-expression-function) (method)
+- [`MAP_SIZE`](builtins-reference.md#map_size-expression-function) (method)
+- [`MAP_TOXML`](builtins-reference.md#map_toxml-expression-function) (method)
 
 ## math
 
@@ -387,6 +576,11 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`SIGN`](builtins-reference.md#sign-expression-function) (method)
 - [`SQRT`](builtins-reference.md#sqrt-expression-function) (method)
 
+## numeric
+
+- [`GETEXPLV`](builtins-reference.md#getexplv-expression-function) (method)
+- [`GETPALAMLV`](builtins-reference.md#getpalamlv-expression-function) (method)
+
 ## plugins
 
 - [`CALLSHARP`](builtins-reference.md#callsharp-instruction) (instruction)
@@ -396,6 +590,24 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`DUMPRAND`](builtins-reference.md#dumprand-instruction) (instruction)
 - [`INITRAND`](builtins-reference.md#initrand-instruction) (instruction)
 - [`RANDOMIZE`](builtins-reference.md#randomize-instruction) (instruction)
+
+## reflection
+
+- [`ENUMMACROBEGINSWITH`](builtins-reference.md#enummacrobeginswith-expression-function) (method)
+- [`ENUMMACROENDSWITH`](builtins-reference.md#enummacroendswith-expression-function) (method)
+- [`ENUMMACROWITH`](builtins-reference.md#enummacrowith-expression-function) (method)
+- [`EXISTFUNCTION`](builtins-reference.md#existfunction-expression-function) (method)
+- [`EXISTMETH`](builtins-reference.md#existmeth-expression-function) (method)
+- [`EXISTVAR`](builtins-reference.md#existvar-expression-function) (method)
+- [`GETDOINGFUNCTION`](builtins-reference.md#getdoingfunction-expression-function) (method)
+- [`GETMETH`](builtins-reference.md#getmeth-expression-function) (method)
+- [`GETMETHS`](builtins-reference.md#getmeths-expression-function) (method)
+- [`GETVAR`](builtins-reference.md#getvar-expression-function) (method)
+- [`GETVARS`](builtins-reference.md#getvars-expression-function) (method)
+- [`ISDEFINED`](builtins-reference.md#isdefined-expression-function) (method)
+- [`REGEXPMATCH`](builtins-reference.md#regexpmatch-expression-function) (method)
+- [`SETVAR`](builtins-reference.md#setvar-expression-function) (method)
+- [`VARSETEX`](builtins-reference.md#varsetex-expression-function) (method)
 
 ## resources
 
@@ -416,6 +628,9 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## runtime
 
+- [`CLEARMEMORY`](builtins-reference.md#clearmemory-expression-function) (method)
+- [`GETDOINGFUNCTION`](builtins-reference.md#getdoingfunction-expression-function) (method)
+- [`GETMEMORYUSAGE`](builtins-reference.md#getmemoryusage-expression-function) (method)
 - [`ISSKIP`](builtins-reference.md#isskip-expression-function) (method)
 
 ## save-files
@@ -447,6 +662,13 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`SKIPDISP`](builtins-reference.md#skipdisp-instruction) (instruction)
 - [`SKIPLOG`](builtins-reference.md#skiplog-instruction) (instruction)
 
+## sprites
+
+- [`GDRAWSPRITE`](builtins-reference.md#gdrawsprite-expression-function) (method)
+- [`SETANIMETIMER`](builtins-reference.md#setanimetimer-expression-function) (method)
+- [`SPRITEANIMEADDFRAME`](builtins-reference.md#spriteanimeaddframe-expression-function) (method)
+- [`SPRITEANIMECREATE`](builtins-reference.md#spriteanimecreate-expression-function) (method)
+
 ## string
 
 - [`ENCODETOUNI`](builtins-reference.md#encodetouni-instruction) (instruction)
@@ -454,6 +676,12 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`GETLINESTR`](builtins-reference.md#getlinestr-expression-function) (method)
 - [`HTML_ESCAPE`](builtins-reference.md#html_escape-expression-function) (method)
 - [`HTML_TOPLAINTEXT`](builtins-reference.md#html_toplaintext-expression-function) (method)
+
+## string-key
+
+- [`ERDNAME`](builtins-reference.md#erdname-expression-function) (method)
+- [`GETNUM`](builtins-reference.md#getnum-expression-function) (method)
+- [`GETNUMB`](builtins-reference.md#getnumb-expression-function) (method)
 
 ## system
 
@@ -469,6 +697,11 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`STOPCALLTRAIN`](builtins-reference.md#stopcalltrain-instruction) (instruction)
 - [`UPDATECHECK`](builtins-reference.md#updatecheck-instruction) (instruction)
 
+## system-flow
+
+- [`FLOWINPUT`](builtins-reference.md#flowinput-expression-function) (method)
+- [`FLOWINPUTS`](builtins-reference.md#flowinputs-expression-function) (method)
+
 ## text
 
 - [`FORCEKANA`](builtins-reference.md#forcekana-instruction) (instruction)
@@ -477,13 +710,36 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`STRLENFORM`](builtins-reference.md#strlenform-instruction) (instruction)
 - [`STRLENFORMU`](builtins-reference.md#strlenformu-instruction) (instruction)
 - [`STRLENU`](builtins-reference.md#strlenu-instruction) (instruction)
+- [`CHARATU`](builtins-reference.md#charatu-expression-function) (method)
+- [`CONVERT`](builtins-reference.md#convert-expression-function) (method)
+- [`ENCODETOUNI`](builtins-reference.md#encodetouni-expression-function) (method)
+- [`ESCAPE`](builtins-reference.md#escape-expression-function) (method)
+- [`GDRAWTEXT`](builtins-reference.md#gdrawtext-expression-function) (method)
+- [`GGETFONT`](builtins-reference.md#ggetfont-expression-function) (method)
+- [`GGETFONTSIZE`](builtins-reference.md#ggetfontsize-expression-function) (method)
+- [`GGETFONTSTYLE`](builtins-reference.md#ggetfontstyle-expression-function) (method)
+- [`GGETTEXTSIZE`](builtins-reference.md#ggettextsize-expression-function) (method)
+- [`GSETFONT`](builtins-reference.md#gsetfont-expression-function) (method)
+- [`ISNUMERIC`](builtins-reference.md#isnumeric-expression-function) (method)
+- [`REGEXPMATCH`](builtins-reference.md#regexpmatch-expression-function) (method)
+- [`REPLACE`](builtins-reference.md#replace-expression-function) (method)
+- [`STRCOUNT`](builtins-reference.md#strcount-expression-function) (method)
+- [`STRFIND`](builtins-reference.md#strfind-expression-function) (method)
+- [`STRFINDU`](builtins-reference.md#strfindu-expression-function) (method)
+- [`STRFORM`](builtins-reference.md#strform-expression-function) (method)
+- [`STRJOIN`](builtins-reference.md#strjoin-expression-function) (method)
+- [`STRLENS`](builtins-reference.md#strlens-expression-function) (method)
+- [`STRLENSU`](builtins-reference.md#strlensu-expression-function) (method)
 - [`SUBSTRING`](builtins-reference.md#substring-expression-function) (method)
+- [`SUBSTRINGU`](builtins-reference.md#substringu-expression-function) (method)
 - [`TOFULL`](builtins-reference.md#tofull-expression-function) (method)
 - [`TOHALF`](builtins-reference.md#tohalf-expression-function) (method)
 - [`TOINT`](builtins-reference.md#toint-expression-function) (method)
 - [`TOLOWER`](builtins-reference.md#tolower-expression-function) (method)
 - [`TOSTR`](builtins-reference.md#tostr-expression-function) (method)
 - [`TOUPPER`](builtins-reference.md#toupper-expression-function) (method)
+- [`UNICODE`](builtins-reference.md#unicode-expression-function) (method)
+- [`UNICODEBYTE`](builtins-reference.md#unicodebyte-expression-function) (method)
 
 ## time
 
@@ -526,6 +782,7 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`TOOLTIP_SETDURATION`](builtins-reference.md#tooltip_setduration-instruction) (instruction)
 - [`TOOLTIP_SETFONT`](builtins-reference.md#tooltip_setfont-instruction) (instruction)
 - [`TOOLTIP_SETFONTSIZE`](builtins-reference.md#tooltip_setfontsize-instruction) (instruction)
+- [`BITMAP_CACHE_ENABLE`](builtins-reference.md#bitmap_cache_enable-expression-function) (method)
 - [`CBGCLEAR`](builtins-reference.md#cbgclear-expression-function) (method)
 - [`CBGCLEARBUTTON`](builtins-reference.md#cbgclearbutton-expression-function) (method)
 - [`CBGREMOVEBMAP`](builtins-reference.md#cbgremovebmap-expression-function) (method)
@@ -535,6 +792,8 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`CBGSETG`](builtins-reference.md#cbgsetg-expression-function) (method)
 - [`CBGSETSPRITE`](builtins-reference.md#cbgsetsprite-expression-function) (method)
 - [`CHKFONT`](builtins-reference.md#chkfont-expression-function) (method)
+- [`CLIENTHEIGHT`](builtins-reference.md#clientheight-expression-function) (method)
+- [`CLIENTWIDTH`](builtins-reference.md#clientwidth-expression-function) (method)
 - [`COLOR_FROMNAME`](builtins-reference.md#color_fromname-expression-function) (method)
 - [`COLOR_FROMRGB`](builtins-reference.md#color_fromrgb-expression-function) (method)
 - [`CURRENTALIGN`](builtins-reference.md#currentalign-expression-function) (method)
@@ -551,13 +810,18 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`GETFOCUSCOLOR`](builtins-reference.md#getfocuscolor-expression-function) (method)
 - [`GETFONT`](builtins-reference.md#getfont-expression-function) (method)
 - [`GETSTYLE`](builtins-reference.md#getstyle-expression-function) (method)
+- [`GETTEXTBOX`](builtins-reference.md#gettextbox-expression-function) (method)
 - [`GHEIGHT`](builtins-reference.md#gheight-expression-function) (method)
 - [`GWIDTH`](builtins-reference.md#gwidth-expression-function) (method)
+- [`ISACTIVE`](builtins-reference.md#isactive-expression-function) (method)
 - [`MESSKIP`](builtins-reference.md#messkip-expression-function) (method)
 - [`MOUSEB`](builtins-reference.md#mouseb-expression-function) (method)
 - [`MOUSESKIP`](builtins-reference.md#mouseskip-expression-function) (method)
 - [`MOUSEX`](builtins-reference.md#mousex-expression-function) (method)
 - [`MOUSEY`](builtins-reference.md#mousey-expression-function) (method)
+- [`MOVETEXTBOX`](builtins-reference.md#movetextbox-expression-function) (method)
+- [`RESUMETEXTBOX`](builtins-reference.md#resumetextbox-expression-function) (method)
+- [`SETTEXTBOX`](builtins-reference.md#settextbox-expression-function) (method)
 - [`SPRITECREATE`](builtins-reference.md#spritecreate-expression-function) (method)
 - [`SPRITECREATED`](builtins-reference.md#spritecreated-expression-function) (method)
 - [`SPRITEDISPOSE`](builtins-reference.md#spritedispose-expression-function) (method)
@@ -582,3 +846,33 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`VARSET`](builtins-reference.md#varset-instruction) (instruction)
 - [`VARSIZE`](builtins-reference.md#varsize-instruction) (instruction)
 - [`VARSIZE`](builtins-reference.md#varsize-expression-function) (method)
+
+## xml
+
+- [`XML_ADDATTRIBUTE`](builtins-reference.md#xml_addattribute-expression-function) (method)
+- [`XML_ADDATTRIBUTE_BYNAME`](builtins-reference.md#xml_addattribute_byname-expression-function) (method)
+- [`XML_ADDNODE`](builtins-reference.md#xml_addnode-expression-function) (method)
+- [`XML_ADDNODE_BYNAME`](builtins-reference.md#xml_addnode_byname-expression-function) (method)
+- [`XML_DOCUMENT`](builtins-reference.md#xml_document-expression-function) (method)
+- [`XML_EXIST`](builtins-reference.md#xml_exist-expression-function) (method)
+- [`XML_GET`](builtins-reference.md#xml_get-expression-function) (method)
+- [`XML_GET_BYNAME`](builtins-reference.md#xml_get_byname-expression-function) (method)
+- [`XML_RELEASE`](builtins-reference.md#xml_release-expression-function) (method)
+- [`XML_REMOVEATTRIBUTE`](builtins-reference.md#xml_removeattribute-expression-function) (method)
+- [`XML_REMOVEATTRIBUTE_BYNAME`](builtins-reference.md#xml_removeattribute_byname-expression-function) (method)
+- [`XML_REMOVENODE`](builtins-reference.md#xml_removenode-expression-function) (method)
+- [`XML_REMOVENODE_BYNAME`](builtins-reference.md#xml_removenode_byname-expression-function) (method)
+- [`XML_REPLACE`](builtins-reference.md#xml_replace-expression-function) (method)
+- [`XML_REPLACE_BYNAME`](builtins-reference.md#xml_replace_byname-expression-function) (method)
+- [`XML_SET`](builtins-reference.md#xml_set-expression-function) (method)
+- [`XML_SET_BYNAME`](builtins-reference.md#xml_set_byname-expression-function) (method)
+- [`XML_TOSTR`](builtins-reference.md#xml_tostr-expression-function) (method)
+
+## (uncategorized)
+
+- [`ENUMFUNCBEGINSWITH`](builtins-reference.md#enumfuncbeginswith-expression-function) (method)
+- [`ENUMFUNCENDSWITH`](builtins-reference.md#enumfuncendswith-expression-function) (method)
+- [`ENUMFUNCWITH`](builtins-reference.md#enumfuncwith-expression-function) (method)
+- [`ENUMVARBEGINSWITH`](builtins-reference.md#enumvarbeginswith-expression-function) (method)
+- [`ENUMVARENDSWITH`](builtins-reference.md#enumvarendswith-expression-function) (method)
+- [`ENUMVARWITH`](builtins-reference.md#enumvarwith-expression-function) (method)

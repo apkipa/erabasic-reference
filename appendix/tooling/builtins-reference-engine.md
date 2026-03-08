@@ -13181,7 +13181,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETCHARA (expression function)
 **Summary**
-- (TODO)
+- Returns the first registered character index in the current character list whose `NO` matches the requested character number.
 
 **Metadata**
 - Implementor: `new GetcharaMethod()`
@@ -13189,16 +13189,25 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETCHARA(charaNo [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `GETCHARA(charaNo)` → `long`
+- `GETCHARA(charaNo, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character `NO` to search for in the current registered character list.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
 
 **Semantics**
+- Scans the current registered character list in ascending character-index order and returns the first matching character index.
+- If `CompatiSPChara=NO`:
+  - `spFlag` is accepted but ignored,
+  - the search matches any registered character whose `NO` equals `charaNo`.
+- If `CompatiSPChara=YES`:
+  - omitted / `0`: searches only non-SP registered characters,
+  - non-zero: first searches non-SP registered characters; if no match is found, retries against SP registered characters.
+- Returns `-1` if no matching registered character is found.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetChara(integer)`
   - `long chara = exm.VEvaluator.GetChara_UseSp(integer, false)`
@@ -13206,10 +13215,11 @@ Total (method names in `FunctionMethodCreator`): `266`.
   - `return exm.VEvaluator.GetChara_UseSp(integer, false)`
 
 **Errors & validation**
-- (TODO)
+- No special validation beyond normal integer-argument evaluation.
 
 **Examples**
-- (TODO)
+- `idx = GETCHARA(100)`
+- `IF GETCHARA(100) != -1`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13217,7 +13227,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## GETSPCHARA (expression function)
 **Summary**
-- (TODO)
+- Returns the first registered SP-character index in the current character list whose `NO` matches the requested character number.
 
 **Metadata**
 - Implementor: `new GetspcharaMethod()`
@@ -13225,24 +13235,30 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETSPCHARA(charaNo)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GETSPCHARA(charaNo)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character `NO` to search for among currently registered SP characters.
 
 **Semantics**
+- Scans the current registered character list in ascending character-index order.
+- A match requires both:
+  - `NO == charaNo`, and
+  - the character is currently flagged as SP (`CFLAG:0 != 0`).
+- Returns the first matching registered character index, or `-1` if none exists.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetChara_UseSp(integer, true)`
 
 **Errors & validation**
+- Runtime error if `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `idx = GETSPCHARA(100)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13250,7 +13266,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVNAME (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `NAME` string for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvStrDataMethod(CharacterStrData.NAME)`
@@ -13258,25 +13274,35 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVNAME(charaNo [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `CSVNAME(charaNo)` → `string`
+- `CSVNAME(charaNo, spFlag)` → `string`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its CSV-defined `NAME` string.
+- If that field is absent or `null` in the template, returns `""`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterStrfromCSVData(x, charaStr, y != 0, 0)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `s = CSVNAME(0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13284,7 +13310,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVCALLNAME (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `CALLNAME` string for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvStrDataMethod(CharacterStrData.CALLNAME)`
@@ -13292,25 +13318,35 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVCALLNAME(charaNo [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `CSVCALLNAME(charaNo)` → `string`
+- `CSVCALLNAME(charaNo, spFlag)` → `string`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its CSV-defined `CALLNAME` string.
+- If that field is absent or `null` in the template, returns `""`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterStrfromCSVData(x, charaStr, y != 0, 0)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `s = CSVCALLNAME(0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13318,7 +13354,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVNICKNAME (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `NICKNAME` string for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvStrDataMethod(CharacterStrData.NICKNAME)`
@@ -13326,25 +13362,35 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVNICKNAME(charaNo [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `CSVNICKNAME(charaNo)` → `string`
+- `CSVNICKNAME(charaNo, spFlag)` → `string`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its CSV-defined `NICKNAME` string.
+- If that field is absent or `null` in the template, returns `""`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterStrfromCSVData(x, charaStr, y != 0, 0)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `s = CSVNICKNAME(0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13352,7 +13398,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVMASTERNAME (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `MASTERNAME` string for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvStrDataMethod(CharacterStrData.MASTERNAME)`
@@ -13360,25 +13406,35 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVMASTERNAME(charaNo [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `CSVMASTERNAME(charaNo)` → `string`
+- `CSVMASTERNAME(charaNo, spFlag)` → `string`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its CSV-defined `MASTERNAME` string.
+- If that field is absent or `null` in the template, returns `""`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterStrfromCSVData(x, charaStr, y != 0, 0)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `s = CSVMASTERNAME(0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13386,7 +13442,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVCSTR (expression function)
 **Summary**
-- (TODO)
+- Returns a CSV-defined `CSTR` string entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvcstrMethod()`
@@ -13394,25 +13450,38 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVCSTR(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVCSTR(charaNo, index)` → `string`
+- `CSVCSTR(charaNo, index, spFlag)` → `string`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `CSTR` element index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `CSTR[index]` entry.
+- If the template has no `CSTR` table, returns `""`.
+- If the template has a `CSTR` table and `index` is in range but no explicit entry is defined at that slot, returns `""`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterStrfromCSVData(x, CharacterStrData.CSTR, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `CSTR` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `s = CSVCSTR(0, 2)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13420,7 +13489,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVBASE (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `BASE` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.BASE)`
@@ -13428,25 +13497,38 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVBASE(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVBASE(charaNo, index)` → `long`
+- `CSVBASE(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `BASE` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `BASE[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- `CSVBASE` reads the template table directly; when a live character is created, the same template entries are copied into both runtime `BASE` and `MAXBASE`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `BASE` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVBASE(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13454,7 +13536,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVABL (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `ABL` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.ABL)`
@@ -13462,25 +13544,37 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVABL(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVABL(charaNo, index)` → `long`
+- `CSVABL(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `ABL` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `ABL[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `ABL` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVABL(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13488,7 +13582,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVMARK (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `MARK` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.MARK)`
@@ -13496,25 +13590,37 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVMARK(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVMARK(charaNo, index)` → `long`
+- `CSVMARK(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `MARK` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `MARK[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `MARK` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVMARK(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13522,7 +13628,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVEXP (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `EXP` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.EXP)`
@@ -13530,25 +13636,37 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVEXP(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVEXP(charaNo, index)` → `long`
+- `CSVEXP(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `EXP` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `EXP[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `EXP` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVEXP(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13556,7 +13674,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVRELATION (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `RELATION` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.RELATION)`
@@ -13564,25 +13682,38 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVRELATION(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVRELATION(charaNo, index)` → `long`
+- `CSVRELATION(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `RELATION` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `RELATION[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- For `CSVRELATION`, an undefined slot returns `0`; the runtime default relation value used for live characters is **not** substituted here.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `RELATION` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVRELATION(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13590,7 +13721,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVTALENT (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `TALENT` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.TALENT)`
@@ -13598,25 +13729,37 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVTALENT(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVTALENT(charaNo, index)` → `long`
+- `CSVTALENT(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `TALENT` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `TALENT[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `TALENT` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVTALENT(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13624,7 +13767,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVCFLAG (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `CFLAG` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.CFLAG)`
@@ -13632,25 +13775,37 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVCFLAG(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVCFLAG(charaNo, index)` → `long`
+- `CSVCFLAG(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `CFLAG` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `CFLAG[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `CFLAG` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVCFLAG(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13658,7 +13813,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVEQUIP (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `EQUIP` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.EQUIP)`
@@ -13666,25 +13821,37 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVEQUIP(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVEQUIP(charaNo, index)` → `long`
+- `CSVEQUIP(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `EQUIP` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `EQUIP[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `EQUIP` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVEQUIP(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13692,7 +13859,7 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 ## CSVJUEL (expression function)
 **Summary**
-- (TODO)
+- Returns the CSV-defined `JUEL` integer entry for a character template `NO`.
 
 **Metadata**
 - Implementor: `new CsvDataMethod(CharacterIntData.JUEL)`
@@ -13700,25 +13867,37 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CSVJUEL(charaNo, index [, spFlag])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `CSVJUEL(charaNo, index)` → `long`
+- `CSVJUEL(charaNo, index, spFlag)` → `long`
 
 **Arguments**
-- (TODO)
+- `charaNo` (int): character template `NO` to read.
+- `index` (int): `JUEL` table index to read.
+- `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
+- Looks up a character template by `NO` and returns its `JUEL[index]` entry.
+- If `index` is in range but no explicit entry is defined at that slot, returns `0`.
+- Compatibility quirk:
+  - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y)`
 
 **Errors & validation**
+- Runtime error if `charaNo` does not resolve to a character template.
+- Runtime error if `index` is outside the readable `JUEL` range for that template.
+- Runtime error if `spFlag != 0` while `CompatiSPChara=NO`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(trerror.SPCharacterFeatureDisabled.Text)`
 
 **Examples**
-- (TODO)
+- `n = CSVJUEL(0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -13861,12 +14040,15 @@ Total (method names in `FunctionMethodCreator`): `266`.
 
 **Arguments**
 - `charaNo` (int): character template `NO` to look up.
-- `isSp` (optional, int; default `0`): whether to look up in the SP-character template set.
-  - `0`: normal character templates
-  - non-zero: SP character templates
+- `isSp` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
-- Returns `1` if a character template exists for `charaNo` in the selected template set, otherwise returns `0`.
+- Returns `1` if a character template exists for `charaNo`, otherwise returns `0`.
+- Compatibility quirk:
+  - `isSp != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `isSp` alone to disambiguate duplicate template definitions.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.ExistCsv(no, isSp)`
 
@@ -15906,7 +16088,7 @@ PRINTFORML %S%
 
 ## GETNUM (expression function)
 **Summary**
-- (TODO)
+- Maps a CSV/alias/ERD key name to its integer index for a variable family or user-defined variable.
 
 **Metadata**
 - Implementor: `new GetnumMethod()`
@@ -15915,24 +16097,38 @@ PRINTFORML %S%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GETNUM(varTerm, key [, dimension])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.RefAny | ArgType.AllowConstRef, ArgType.String, ArgType.Int }; OmitStart = 2.
+- `GETNUM(varTerm, key)` → `long`
+- `GETNUM(varTerm, key, dimension)` → `long`
 
 **Arguments**
-- (TODO)
+- `varTerm` (variable term): selects the variable family or user-defined variable name whose key dictionary should be queried.
+  - This function uses the variable identity, not the current cell value.
+  - Any written `:` subscripts do not participate in the lookup itself.
+- `key` (string): key name to resolve.
+- `dimension` (optional, int): ERD dimension selector for user-defined variables.
+  - Omitted: ERD fallback uses the base variable name.
+  - Supplied `n`: ERD fallback uses the dictionary named `name@n`.
 
 **Semantics**
+- First checks the built-in CSV-name / alias dictionary associated with `varTerm`'s variable family.
+- If no built-in match is found, it checks ERD data for the selected variable name (or `name@dimension`) when such ERD data exists.
+- Returns the mapped integer index on success; otherwise returns `-1`.
+- `key = ""` also returns `-1`.
+- `dimension` only affects the ERD fallback path; it does not change built-in CSV-name lookup.
+- `GETNUM(NAME, key)` / `GETNUM(CALLNAME, key)` are allowed even though those families do not accept string-key syntax in ordinary variable-argument positions.
 - Engine-extracted notes (key operations):
   - `if (exm.VEvaluator.Constant.TryKeywordToInteger(out int ret, varCode, key, -1, varname))`
 
 **Errors & validation**
-- (TODO)
+- Parse/type error if `varTerm` is not a variable term or `key` is not string-typed.
+- No runtime error is raised merely because the selected variable family has no key dictionary; that case returns `-1`.
 
 **Examples**
-- (TODO)
+- `n = GETNUM(ABL, "技巧")`
+- `charaNo = GETNUM(CALLNAME, "霊夢")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -15940,7 +16136,7 @@ PRINTFORML %S%
 
 ## GETPALAMLV (expression function)
 **Summary**
-- (TODO)
+- Converts a raw value into a level number by comparing it against the current `PALAMLV` threshold table.
 
 **Metadata**
 - Implementor: `new GetPalamLVMethod()`
@@ -15948,23 +16144,33 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETPALAMLV(value, maxLv)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
+- `GETPALAMLV(value, maxLv)` → `long`
 
 **Arguments**
-- (TODO)
+- `value` (int): value to compare against the current `PALAMLV` thresholds.
+- `maxLv` (int): maximum level boundary to inspect.
 
 **Semantics**
+- Reads the current runtime `PALAMLV` array, not a baked copy.
+- For each `i` with `0 <= i < maxLv`, compares `value` against `PALAMLV:i+1`.
+- Returns the first `i` such that `value < PALAMLV:i+1`.
+- If no such `i` exists, returns `maxLv`.
+- Therefore the result is effectively “how many leading level boundaries are less than or equal to `value`”, capped at `maxLv`.
+- No clamping is applied to `maxLv`:
+  - if `maxLv <= 0`, the loop is skipped and the function returns `maxLv` as-is,
+  - if `maxLv` is larger than the readable `PALAMLV` boundary range, the function fails when it reads past the table.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.getPalamLv(value, maxLv)`
 
 **Errors & validation**
-- (TODO)
+- No special validation beyond normal integer-argument evaluation.
+- Runtime failure if `maxLv` makes the function read beyond the current `PALAMLV` array.
 
 **Examples**
-- (TODO)
+- `lv = GETPALAMLV(PALAM:0, 5)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -15972,7 +16178,7 @@ PRINTFORML %S%
 
 ## GETEXPLV (expression function)
 **Summary**
-- (TODO)
+- Converts a raw value into a level number by comparing it against the current `EXPLV` threshold table.
 
 **Metadata**
 - Implementor: `new GetExpLVMethod()`
@@ -15980,23 +16186,33 @@ PRINTFORML %S%
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETEXPLV(value, maxLv)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
+- `GETEXPLV(value, maxLv)` → `long`
 
 **Arguments**
-- (TODO)
+- `value` (int): value to compare against the current `EXPLV` thresholds.
+- `maxLv` (int): maximum level boundary to inspect.
 
 **Semantics**
+- Reads the current runtime `EXPLV` array, not a baked copy.
+- For each `i` with `0 <= i < maxLv`, compares `value` against `EXPLV:i+1`.
+- Returns the first `i` such that `value < EXPLV:i+1`.
+- If no such `i` exists, returns `maxLv`.
+- Therefore the result is effectively “how many leading level boundaries are less than or equal to `value`”, capped at `maxLv`.
+- No clamping is applied to `maxLv`:
+  - if `maxLv <= 0`, the loop is skipped and the function returns `maxLv` as-is,
+  - if `maxLv` is larger than the readable `EXPLV` boundary range, the function fails when it reads past the table.
 - Engine-extracted notes (key operations):
   - `return exm.VEvaluator.getExpLv(value, maxLv)`
 
 **Errors & validation**
-- (TODO)
+- No special validation beyond normal integer-argument evaluation.
+- Runtime failure if `maxLv` makes the function read beyond the current `EXPLV` array.
 
 **Examples**
-- (TODO)
+- `lv = GETEXPLV(PALAM:0, 5)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16251,7 +16467,7 @@ PRINTFORML %S%
 
 ## GETNUMB (expression function)
 **Summary**
-- (TODO)
+- Like `GETNUM`, but takes the variable name as a string instead of a variable term.
 
 **Metadata**
 - Implementor: `new GetnumBMethod()`
@@ -16260,24 +16476,33 @@ PRINTFORML %S%
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GETNUMB(varName, key)`
 
 **Signatures / argument rules**
-- Argument rules: custom check (no `argumentTypeArray`/`argumentTypeArrayEx` assignment detected).
+- `GETNUMB(varName, key)` → `long`
 
 **Arguments**
-- (TODO)
+- `varName` (string): variable name to resolve at runtime (for example `"ABL"`, `"CALLNAME"`, or a user-defined variable name).
+- `key` (string): key name to resolve.
 
 **Semantics**
+- Resolves `varName` to a variable token at runtime.
+- Then performs the same lookup model as `GETNUM`:
+  - built-in CSV-name / alias dictionary first,
+  - ERD fallback second (using only the base variable name, because this function has no `dimension` argument).
+- Returns the mapped integer index on success; otherwise returns `-1`.
+- `key = ""` also returns `-1`.
 - Engine-extracted notes (key operations):
   - `if (exm.VEvaluator.Constant.TryKeywordToInteger(out int ret, var.Code, key, -1, arguments[0].GetStrValue(exm)))`
 
 **Errors & validation**
+- Runtime error if `varName` does not resolve to a variable name in the current runtime.
+- No runtime error is raised merely because the resolved variable family has no key dictionary; that case returns `-1`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE("GETNUMBの1番目の引数(\"" + arguments[0].GetStrValue(exm) + "\")が変数名ではありません")`
 
 **Examples**
-- (TODO)
+- `n = GETNUMB("ABL", "技巧")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16338,7 +16563,7 @@ ARRAYMSORT(A, B, C)
 
 ## STRLENS (expression function)
 **Summary**
-- (TODO)
+- Returns the length of a string in the engine's language-length unit (the same unit used by `STRLEN`, `SUBSTRING`, and `STRFIND`).
 
 **Metadata**
 - Implementor: `new StrlenMethod()`
@@ -16346,22 +16571,26 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `STRLENS(str)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `STRLENS(str)` → `long`
 
 **Arguments**
-- (TODO)
+- `str` (string): input string.
 
 **Semantics**
-- (TODO)
+- Returns the same count that command-form `STRLEN` would write to `RESULT`.
+- The count is measured under the engine's configured language encoding:
+  - ASCII-only text counts as `str.Length`.
+  - Non-ASCII text counts by encoded byte length.
+- This is **not** Unicode-scalar counting; the result depends on the active language encoding.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `STRLENS("ABC")` → `3`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16369,7 +16598,7 @@ ARRAYMSORT(A, B, C)
 
 ## STRLENSU (expression function)
 **Summary**
-- (TODO)
+- Returns the length of a string in UTF-16 code units.
 
 **Metadata**
 - Implementor: `new StrlenuMethod()`
@@ -16377,22 +16606,25 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `STRLENSU(str)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `STRLENSU(str)` → `long`
 
 **Arguments**
-- (TODO)
+- `str` (string): input string.
 
 **Semantics**
-- (TODO)
+- Returns the same count that command-form `STRLENU` would write to `RESULT`.
+- Equivalent to `.NET` `string.Length`.
+- BMP characters count as `1`.
+- Supplementary characters count as `2` because they occupy a UTF-16 surrogate pair.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `STRLENSU("ABC")` → `3`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16447,7 +16679,7 @@ ARRAYMSORT(A, B, C)
 
 ## SUBSTRINGU (expression function)
 **Summary**
-- (TODO)
+- Returns a substring where `start` and `length` are measured in UTF-16 code units.
 
 **Metadata**
 - Implementor: `new SubstringuMethod()`
@@ -16455,23 +16687,33 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `SUBSTRINGU(str [, start [, length]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `SUBSTRINGU(str)` → `string`
+- `SUBSTRINGU(str, start)` → `string`
+- `SUBSTRINGU(str, start, length)` → `string`
 
 **Arguments**
-- (TODO)
+- `str` (string): input string.
+- `start` (optional, int; default `0`): UTF-16 code-unit start index.
+- `length` (optional, int; default `-1`): UTF-16 code-unit count; `< 0` means "to end".
 
 **Semantics**
-- (TODO)
+- Indexing/counting uses the same unit as `STRLENSU` (`.NET` `string.Length`).
+- Normalization rules:
+  - If `start >= str.Length` or `length == 0`, returns `""`.
+  - If `length < 0` or `length > str.Length`, `length` is first replaced with `str.Length`.
+  - If `start <= 0`, the effective start becomes `0`.
+  - If `start + length > str.Length`, `length` is clamped to the remaining suffix length.
+- After normalization, returns `.NET` `str.Substring(start, length)`.
+- Because indexing is by UTF-16 code unit, a supplementary character occupies two positions and can be split by `start`/`length`.
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `SUBSTRINGU("ABCDE", 1, 2)` → `"BC"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16479,7 +16721,7 @@ ARRAYMSORT(A, B, C)
 
 ## STRFIND (expression function)
 **Summary**
-- (TODO)
+- Searches a string and returns the first match position in the engine's language-length unit.
 
 **Metadata**
 - Implementor: `new StrfindMethod(false)`
@@ -16487,23 +16729,33 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `STRFIND(target, word [, start])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
+- `STRFIND(target, word)` → `long`
+- `STRFIND(target, word, start)` → `long`
 
 **Arguments**
-- (TODO)
+- `target` (string): string to search.
+- `word` (string): substring to find.
+- `start` (optional, int; default `0`): search start position in the same unit as `STRLENS`.
 
 **Semantics**
-- (TODO)
+- Uses ordinal, case-sensitive substring search.
+- `start` is interpreted in the same language-length unit returned by `STRLENS`.
+- Effective start-position rules:
+  - If `start <= 0`, search begins at the start of `target`.
+  - If `start` falls inside a multi-byte character, the effective start moves to the following character boundary.
+  - If the effective start is at or past the end of `target`, returns `-1`.
+- Returns the first match position in the same language-length unit.
+- Returns `-1` if no match is found.
+- If `word == ""`, returns the effective start position when that position is still inside the string; otherwise returns `-1`.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `STRFIND("abcdeabced", "a", 3)` → `5`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16511,7 +16763,7 @@ ARRAYMSORT(A, B, C)
 
 ## STRFINDU (expression function)
 **Summary**
-- (TODO)
+- Searches a string and returns the first match position in UTF-16 code units.
 
 **Metadata**
 - Implementor: `new StrfindMethod(true)`
@@ -16519,23 +16771,30 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `STRFINDU(target, word [, start])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
+- `STRFINDU(target, word)` → `long`
+- `STRFINDU(target, word, start)` → `long`
 
 **Arguments**
-- (TODO)
+- `target` (string): string to search.
+- `word` (string): substring to find.
+- `start` (optional, int; default `0`): UTF-16 code-unit start position.
 
 **Semantics**
-- (TODO)
+- Uses ordinal, case-sensitive substring search.
+- `start` is interpreted in the same unit as `STRLENSU` (`.NET` `string.Length`).
+- If `start < 0` or `start >= target.Length`, returns `-1`.
+- Otherwise returns the first matching UTF-16 code-unit index, or `-1` if no match is found.
+- If `word == ""`, returns `start` when `0 <= start < target.Length`; otherwise returns `-1`.
+- Because indexing is by UTF-16 code unit, a supplementary character occupies two positions and can be split by `start`.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `STRFINDU("abcdeabced", "a", 3)` → `5`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16543,7 +16802,7 @@ ARRAYMSORT(A, B, C)
 
 ## STRCOUNT (expression function)
 **Summary**
-- (TODO)
+- Counts regex matches in a string.
 
 **Metadata**
 - Implementor: `new StrCountMethod()`
@@ -16551,23 +16810,29 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `STRCOUNT(str, pattern)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(string)]`.
+- `STRCOUNT(str, pattern)` → `long`
 
 **Arguments**
-- (TODO)
+- `str` (string): target string.
+- `pattern` (string): regular-expression pattern.
 
 **Semantics**
-- (TODO)
+- Compiles `pattern` as a `.NET` regular expression with default options.
+- Returns `Regex.Matches(str, pattern).Count`.
+- Matching is regex-based, not plain-substring-based.
+- Counted matches are the normal non-overlapping matches returned by `.NET` regex enumeration.
+- Use `ESCAPE(pattern)` first if you want to search for a literal string via regex APIs.
 
 **Errors & validation**
+- Runtime error if `pattern` is not a valid regular expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.InvalidRegexArg.Text, Name, 2, e.Message))`
 
 **Examples**
-- (TODO)
+- `STRCOUNT("aaaa", "aa")` → `2`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16797,7 +17062,7 @@ ARRAYMSORT(A, B, C)
 
 ## LINEISEMPTY (expression function)
 **Summary**
-- (TODO)
+- Returns whether the current in-progress output line is still empty.
 
 **Metadata**
 - Implementor: `new LineIsEmptyMethod()`
@@ -16805,22 +17070,25 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `LINEISEMPTY()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `LINEISEMPTY()` → `long`
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
-- (TODO)
+- Returns `1` if the current printable line buffer has no content yet.
+- Returns `0` once the current line has any visible/button content pending on it.
+- Equivalent observable test: at that point in execution, would a bare `PRINTL` emit only an empty line?
+- Only the current in-progress line matters; already flushed earlier lines do not affect the result.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `IF LINEISEMPTY() != 0`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16828,7 +17096,7 @@ ARRAYMSORT(A, B, C)
 
 ## REPLACE (expression function)
 **Summary**
-- (TODO)
+- Replaces text in a string using regex mode, literal mode, or sequential array-driven regex replacement.
 
 **Metadata**
 - Implementor: `new ReplaceMethod()`
@@ -16836,26 +17104,51 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `REPLACE(base, pattern, replaceArg [, mode])`
+- `REPLACE(base, pattern, replaceArg, 1)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.RefString1D | ArgType.AllowConstRef, ArgType.Int }.
+- `REPLACE(base, pattern, replacement)` → `string`
+- `REPLACE(base, pattern, replacement, mode)` → `string`
+- `REPLACE(base, pattern, replacements, 1)` → `string`
 
 **Arguments**
-- (TODO)
+- `base` (string): input string.
+- `pattern` (string): regex pattern unless `mode == 2`.
+- `replaceArg` (string or non-const 1D string-array variable reference): mode-dependent third argument.
+- `mode` (optional, int; default `0`): replacement mode selector.
+  - `0`: regex replace using a string third argument
+  - `1`: regex replace using successive string-array elements
+  - `2`: literal `.NET` `string.Replace`
+  - all values other than `1` and `2`: same behavior as `0`
 
 **Semantics**
-- (TODO)
+- Regex modes (`mode` omitted / `0` / all values other than `1` and `2`):
+  - Compiles `pattern` as a `.NET` regular expression.
+  - Treats `replaceArg` as a string and returns `Regex.Replace(base, pattern, replaceArg)`.
+  - The replacement text follows normal `.NET` regex-replacement syntax (for example `$1` for capture groups).
+- Sequential array mode (`mode == 1`):
+  - Compiles `pattern` as a `.NET` regular expression.
+  - Requires `replaceArg` to be a non-const 1D string-array variable reference.
+  - For the `k`-th match (0-based), if `k < length(replaceArg)`, the replacement text is `replaceArg[k]`.
+  - If `k >= length(replaceArg)`, the replacement text is `""`.
+- Literal mode (`mode == 2`):
+  - Treats `replaceArg` as a string.
+  - Performs plain `.NET` `base.Replace(pattern, replaceArg)`.
+  - `pattern` is treated as literal text, not a regex.
 
 **Errors & validation**
+- Runtime error if `pattern` is not a valid regular expression in regex modes.
+- Runtime error if `mode == 1` but `replaceArg` is not a non-const 1D string-array variable reference.
+- In literal mode, an empty `pattern` is rejected by the underlying string-replacement routine.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.InvalidRegexArg.Text, Name, 2, e.Message))`
   - `throw new CodeEE(string.Format(trerror.ArgIsNotNDStrArray.Text, Name, 3, 1))`
 
 **Examples**
-- (TODO)
+- `REPLACE("12億3456万7890円", "[^0-9]", "")` → `"1234567890"`
+- `REPLACE("A-B-C", "-", ARR, 1)` with `ARR = ["x", "y"]` → `"AxByC"`
+- `REPLACE("a.b.c", ".", "-", 2)` → `"a-b-c"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16863,7 +17156,7 @@ ARRAYMSORT(A, B, C)
 
 ## UNICODE (expression function)
 **Summary**
-- (TODO)
+- Returns a one-code-unit string for a BMP Unicode value.
 
 **Metadata**
 - Implementor: `new UnicodeMethod()`
@@ -16871,23 +17164,31 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `UNICODE(code)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `UNICODE(code)` → `string`
 
 **Arguments**
-- (TODO)
+- `code` (int): Unicode value to convert.
 
 **Semantics**
-- (TODO)
+- Accepts only `0 <= code <= 0xFFFF`.
+- On success, returns a string containing exactly one UTF-16 code unit.
+- No surrogate-pair composition is performed:
+  - supplementary scalar values above `0xFFFF` are rejected,
+  - values satisfying `0xD800 <= code <= 0xDFFF` are returned as single code units.
+- Control-code handling:
+  - `LF` (`0x000A`) and `CR` (`0x000D`) are allowed,
+  - other control values satisfying `0x0000 <= code <= 0x001E` and values satisfying `0x007F <= code <= 0x009F` cause a warning and return `""`.
 
 **Errors & validation**
+- Runtime error if `code` is outside `0 <= code <= 0xFFFF`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, i, 0, 0xFFFF))`
 
 **Examples**
-- (TODO)
+- `UNICODE(0x2661)` → `"♡"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16895,7 +17196,7 @@ ARRAYMSORT(A, B, C)
 
 ## UNICODEBYTE (expression function)
 **Summary**
-- (TODO)
+- Despite the name, returns the first UTF-32 code value of the string as an integer.
 
 **Metadata**
 - Implementor: `new UnicodeByteMethod()`
@@ -16903,22 +17204,26 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `UNICODEBYTE(str)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `UNICODEBYTE(str)` → `long`
 
 **Arguments**
-- (TODO)
+- `str` (string): source string.
 
 **Semantics**
-- (TODO)
+- Encodes `str` as UTF-32 and returns the first encoded code value.
+- Only the first encoded code point matters; the remainder of the string is ignored.
+- If the string begins with a supplementary character, the returned value can be greater than `0xFFFF`.
+- This is a code-value query, not a raw-byte dump API.
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `str == ""`.
+- Any failure in the underlying UTF-32 conversion propagates as a runtime error.
 
 **Examples**
-- (TODO)
+- `UNICODEBYTE("A")` → `65`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16926,7 +17231,7 @@ ARRAYMSORT(A, B, C)
 
 ## CONVERT (expression function)
 **Summary**
-- (TODO)
+- Converts an integer to its string form in base `2`, `8`, `10`, or `16`.
 
 **Metadata**
 - Implementor: `new ConvertIntMethod()`
@@ -16934,23 +17239,27 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CONVERT(value, toBase)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
+- `CONVERT(value, toBase)` → `string`
 
 **Arguments**
-- (TODO)
+- `value` (int): value to format.
+- `toBase` (int): output base.
 
 **Semantics**
-- (TODO)
+- Accepts only `2`, `8`, `10`, or `16` for `toBase`.
+- Equivalent to `.NET` `Convert.ToString(value, toBase)`.
+- For hexadecimal output, alphabetic digits follow the external `.NET` behavior (`a`-`f`).
 
 **Errors & validation**
+- Runtime error if `toBase` is any value other than `2`, `8`, `10`, or `16`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgShouldBeSpecificValue.Text, Name, 2, "2, 8, 10, 16"))`
 
 **Examples**
-- (TODO)
+- `CONVERT(255, 16)` → `"ff"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16958,7 +17267,7 @@ ARRAYMSORT(A, B, C)
 
 ## ISNUMERIC (expression function)
 **Summary**
-- (TODO)
+- Returns whether a string is accepted by the engine's numeric-literal predicate.
 
 **Metadata**
 - Implementor: `new IsNumericMethod()`
@@ -16966,22 +17275,35 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `ISNUMERIC(str)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `ISNUMERIC(str)` → `long`
 
 **Arguments**
-- (TODO)
+- `str` (string): string to test.
 
 **Semantics**
-- (TODO)
+- Returns `0` immediately if `str` contains any multi-byte character under the current language encoding.
+- Returns `0` if `str` does not start with:
+  - a digit, or
+  - `+` / `-` followed by a digit.
+- Otherwise checks the engine's integer-literal family, plus an optional trailing `.` followed only by decimal digits.
+- Accepted integer-literal features include:
+  - `0x` / `0X` hexadecimal prefixes,
+  - `0b` / `0B` binary prefixes,
+  - `e` / `E` and `p` / `P` exponent markers.
+- Compatibility quirks:
+  - base prefixes are recognized only when the string itself starts with `0`; a leading sign prevents `0x` / `0b` recognition,
+  - after an exponent marker, this predicate requires the next character to be a digit, so signed exponents are **not** accepted here.
+- Returns `1` for accepted text and `0` for most rejected text.
 
 **Errors & validation**
-- (TODO)
+- Some exponent forms can still raise a runtime error instead of returning `0` if exponent evaluation overflows the 64-bit signed range.
 
 **Examples**
-- (TODO)
+- `ISNUMERIC("123")` → `1`
+- `ISNUMERIC("12a")` → `0`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -16989,7 +17311,7 @@ ARRAYMSORT(A, B, C)
 
 ## ESCAPE (expression function)
 **Summary**
-- (TODO)
+- Escapes a string so it can be used as literal text inside regex-based built-ins.
 
 **Metadata**
 - Implementor: `new EscapeMethod()`
@@ -16997,22 +17319,23 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `ESCAPE(str)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `ESCAPE(str)` → `string`
 
 **Arguments**
-- (TODO)
+- `str` (string): input text.
 
 **Semantics**
-- (TODO)
+- Equivalent to `.NET` `Regex.Escape(str)`.
+- Escapes regex metacharacters so the result matches the original text literally when passed to regex-based built-ins such as `REPLACE` or `STRCOUNT`.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `ESCAPE("a+b")` → `"a\+b"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17020,7 +17343,7 @@ ARRAYMSORT(A, B, C)
 
 ## ENCODETOUNI (expression function)
 **Summary**
-- (TODO)
+- Returns the Unicode scalar value at a UTF-16 position in a string.
 
 **Metadata**
 - Implementor: `new EncodeToUniMethod()`
@@ -17028,25 +17351,33 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `ENCODETOUNI(str [, position])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 1.
+- `ENCODETOUNI(str)` → `long`
+- `ENCODETOUNI(str, position)` → `long`
 
 **Arguments**
-- (TODO)
+- `str` (string): source string.
+- `position` (optional, int; default `0`): UTF-16 code-unit index.
 
 **Semantics**
-- (TODO)
+- If `str == ""`, returns `-1` immediately, even if `position` is supplied.
+- Otherwise returns `.NET` `char.ConvertToUtf32(str, position)`.
+- `position` counts UTF-16 code units, not Unicode scalar values.
+- If a supplementary character begins at `position`, the returned value can be greater than `0xFFFF`.
+- If `position` points at the second half of a surrogate pair, or at another invalid UTF-16 sequence, conversion fails with a runtime error.
 
 **Errors & validation**
+- Runtime error if `str != ""` and `position < 0`.
+- Runtime error if `str != ""` and `position >= str.Length`.
+- Runtime error if UTF-16 to scalar conversion fails at the requested position.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 2, position))`
   - `throw new CodeEE(string.Format(trerror.EncodeToUni2ndArgError.Text, Name, position, baseStr))`
 
 **Examples**
-- (TODO)
+- `ENCODETOUNI("A")` → `65`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17054,7 +17385,7 @@ ARRAYMSORT(A, B, C)
 
 ## CHARATU (expression function)
 **Summary**
-- (TODO)
+- Returns the single UTF-16 code unit at a given string position.
 
 **Metadata**
 - Implementor: `new CharAtMethod()`
@@ -17062,22 +17393,26 @@ ARRAYMSORT(A, B, C)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `CHARATU(str, position)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long)]`.
+- `CHARATU(str, position)` → `string`
 
 **Arguments**
-- (TODO)
+- `str` (string): source string.
+- `position` (int): UTF-16 code-unit index.
 
 **Semantics**
-- (TODO)
+- If `position < 0` or `position >= str.Length`, returns `""`.
+- Otherwise returns `.NET` `str[position].ToString()`.
+- Indexing is by UTF-16 code unit, not Unicode scalar value.
+- A supplementary character therefore occupies two positions and is **not** returned as one combined character here.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `CHARATU("ABC", 1)` → `"B"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17132,7 +17467,7 @@ PRINTL S
 
 ## STRFORM (expression function)
 **Summary**
-- (TODO)
+- Parses a string as FORM / formatted text and returns the expanded result without printing it.
 
 **Metadata**
 - Implementor: `new StrFormMethod()`
@@ -17140,24 +17475,30 @@ PRINTL S
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `STRFORM(formatSource)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `STRFORM(formatSource)` → `string`
 
 **Arguments**
-- (TODO)
+- `formatSource` (string): runtime string to parse as FORM / formatted text.
 
 **Semantics**
-- (TODO)
+- Parses `formatSource` using the same FORM/formatted-string expansion model used by `PRINTFORM`-family text.
+- Evaluates embedded substitutions against current runtime state and returns the expanded string.
+- No output line is emitted; only the resulting string is returned.
+- Parsing stops at the first newline in `formatSource`, matching end-of-line FORM scanning.
+- If `formatSource` contains no FORM constructs, the returned string is the same text up to that first newline.
 
 **Errors & validation**
+- Runtime error if `formatSource` is not valid FORM/formatted text.
+- Runtime error if expansion of an embedded substitution fails.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.InvalidFormString.Text, Name, str, e.Message))`
   - `throw new CodeEE(string.Format(trerror.UnexectedFormStringErr.Text, Name, str))`
 
 **Examples**
-- (TODO)
+- `STRFORM("X={1+1}")` → `"X=2"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17165,7 +17506,7 @@ PRINTL S
 
 ## STRJOIN (expression function)
 **Summary**
-- (TODO)
+- Joins a slice of an array into one string.
 
 **Metadata**
 - Implementor: `new JoinMethod()`
@@ -17173,25 +17514,47 @@ PRINTL S
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `STRJOIN(arrayRef [, delimiter [, start [, count]]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.RefAnyArray | ArgType.AllowConstRef, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `STRJOIN(arrayRef)` → `string`
+- `STRJOIN(arrayRef, delimiter)` → `string`
+- `STRJOIN(arrayRef, delimiter, start)` → `string`
+- `STRJOIN(arrayRef, delimiter, start, count)` → `string`
 
 **Arguments**
-- (TODO)
+- `arrayRef` (array variable reference): source array to join. May be an int or string array.
+- `delimiter` (optional, string; default `","`): separator inserted between items.
+- `start` (optional, int; default `0`): first index in the joined slice.
+- `count` (optional, int): number of items to join. If omitted, defaults to `lastDimensionLength - start`.
 
 **Semantics**
+- `arrayRef` must be an array variable reference, not an array-valued expression.
+- Works with 1D, 2D, and 3D arrays:
+  - for 1D arrays, joins along that only dimension,
+  - for 2D/3D arrays, joins along the **last** dimension while keeping earlier indices fixed by `arrayRef`.
+- Omitted `delimiter` uses `","`; explicit `""` is distinct and joins without a separator.
+- Omitted `count` is computed as `lastDimensionLength - start` before range validation.
+  - If that computed value is negative, the call fails with the normal negative-`count` error.
+- Range rules after defaults:
+  - `count < 0` is an error,
+  - `start` and `start + count` must both satisfy `0 <= value <= lastDimensionLength`.
+- Return construction:
+  - string-array elements are concatenated as stored,
+  - int-array elements are converted with normal decimal `ToString()` before joining.
+- If `count == 0`, returns `""`.
 - Engine-extracted notes (key operations):
   - `return VariableEvaluator.GetJoinedStr(p, delimiter, index1, index2)`
 
 **Errors & validation**
+- Runtime error if `arrayRef` is not an array variable reference.
+- Runtime error if `count < 0`.
+- Runtime error if the selected slice is outside the last-dimension bounds.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 4, index2))`
 
 **Examples**
-- (TODO)
+- If `ARR = ["a", "b", "c"]`, `STRJOIN(ARR, "|", 1, 2)` → `"b|c"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17199,7 +17562,7 @@ PRINTL S
 
 ## GETCONFIG (expression function)
 **Summary**
-- (TODO)
+- Looks up a config-like item by name and returns its value in integer form.
 
 **Metadata**
 - Implementor: `new GetConfigMethod(true)`
@@ -17207,18 +17570,36 @@ PRINTL S
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `GETCONFIG(key)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `GETCONFIG(key)` → `long`
 
 **Arguments**
-- (TODO)
+- `key` (string): case-insensitive lookup key.
 
 **Semantics**
-- (TODO)
+- Lookup order is fixed:
+  - first config items,
+  - then replace items,
+  - then debug items.
+- Matching is case-insensitive.
+- Accepted keys:
+  - config items: symbolic name, primary display label, or English display label,
+  - replace/debug items: symbolic name or primary display label.
+- `GETCONFIG` succeeds only when the resolved item materializes as an integer-like value.
+- Integer materialization rules include:
+  - booleans → `1` / `0`,
+  - colors → `0xRRGGBB`,
+  - ordinary integer/long values → that integer,
+  - textual values equal to `YES` / `NO` → `1` / `0`,
+  - other textual values that parse as decimal integers → that integer.
+- If the resolved item materializes as a string-like value, use `GETCONFIGS` instead.
 
 **Errors & validation**
+- Runtime error if `key == ""`.
+- Runtime error if no matching config/replace/debug item exists.
+- Runtime error if the matched item is not available in integer form; the engine tells the caller to use `GETCONFIGS`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsEmptyString.Text, Name, 1))`
   - `throw new CodeEE(errMes)`
@@ -17227,7 +17608,7 @@ PRINTL S
   - `throw new CodeEE(string.Format(trerror.InvalidType.Text, Name, "GETCONFIG"))`
 
 **Examples**
-- (TODO)
+- `size = GETCONFIG("FONTSIZE")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17235,7 +17616,7 @@ PRINTL S
 
 ## GETCONFIGS (expression function)
 **Summary**
-- (TODO)
+- Looks up a config-like item by name and returns its value in string form.
 
 **Metadata**
 - Implementor: `new GetConfigMethod(false)`
@@ -17243,18 +17624,35 @@ PRINTL S
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `GETCONFIGS(key)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `GETCONFIGS(key)` → `string`
 
 **Arguments**
-- (TODO)
+- `key` (string): case-insensitive lookup key.
 
 **Semantics**
-- (TODO)
+- Lookup order is fixed:
+  - first config items,
+  - then replace items,
+  - then debug items.
+- Matching is case-insensitive.
+- Accepted keys:
+  - config items: symbolic name, primary display label, or English display label,
+  - replace/debug items: symbolic name or primary display label.
+- `GETCONFIGS` succeeds only when the resolved item materializes as a string-like value.
+- String materialization rules include:
+  - ordinary string values → that string,
+  - `char` values → a one-character string,
+  - `TextDrawingMode` values → the enum-name string,
+  - other items whose textual form is neither `YES`/`NO` nor a decimal integer → that textual form.
+- If the resolved item materializes as an integer-like value, use `GETCONFIG` instead.
 
 **Errors & validation**
+- Runtime error if `key == ""`.
+- Runtime error if no matching config/replace/debug item exists.
+- Runtime error if the matched item is not available in string form; the engine tells the caller to use `GETCONFIG`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsEmptyString.Text, Name, 1))`
   - `throw new CodeEE(errMes)`
@@ -17263,7 +17661,7 @@ PRINTL S
   - `throw new CodeEE(string.Format(trerror.InvalidType.Text, Name, "GETCONFIG"))`
 
 **Examples**
-- (TODO)
+- `font = GETCONFIGS("FONTNAME")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17719,7 +18117,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 
 ## CLIENTWIDTH (expression function)
 **Summary**
-- (TODO)
+- Returns the current width of the game client's drawable picture-box area, in pixels.
 
 **Metadata**
 - Implementor: `new ClientSizeMethod()`
@@ -17728,25 +18126,29 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CLIENTWIDTH()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `CLIENTWIDTH()` → `long`
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Returns the live width of the current main client drawing surface in pixels.
+- This is a runtime UI measurement, not a saved config value.
+- The result can change while the program is running if the window/client area is resized.
 - Engine-extracted notes (key operations):
   - `return exm.Console.ClientWidth`
   - `return exm.Console.ClientHeight`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("ClientSize:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `w = CLIENTWIDTH()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17754,7 +18156,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 
 ## CLIENTHEIGHT (expression function)
 **Summary**
-- (TODO)
+- Returns the current height of the game client's drawable picture-box area, in pixels.
 
 **Metadata**
 - Implementor: `new ClientSizeMethod()`
@@ -17763,25 +18165,29 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `CLIENTHEIGHT()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `CLIENTHEIGHT()` → `long`
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Returns the live height of the current main client drawing surface in pixels.
+- This is a runtime UI measurement, not a saved config value.
+- The result can change while the program is running if the window/client area is resized.
 - Engine-extracted notes (key operations):
   - `return exm.Console.ClientWidth`
   - `return exm.Console.ClientHeight`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("ClientSize:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `h = CLIENTHEIGHT()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17789,7 +18195,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 
 ## GETKEY (expression function)
 **Summary**
-- (TODO)
+- Polls a Windows virtual-key code and returns whether it is currently down.
 
 **Metadata**
 - Implementor: `new GetKeyStateMethod()`
@@ -17798,24 +18204,32 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GETKEY(keyCode)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GETKEY(keyCode)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyCode` (int): Windows virtual-key code.
 
 **Semantics**
+- If the game window is not active, returns `0`.
+- If `keyCode < 0` or `keyCode > 255`, returns `0`.
+- Otherwise polls Win32 `GetKeyState(keyCode)`.
+- Returns `1` if the polled state is currently down (`GetKeyState(keyCode) < 0`), otherwise `0`.
+- Poll side effect shared with `GETKEYTRIGGERED`:
+  - each call updates the engine's remembered per-key trigger snapshot for that same `keyCode`,
+  - so calling `GETKEY` can affect the next `GETKEYTRIGGERED(keyCode)` result.
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.IsActive)//アクティブでないならスルー`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("異常な分岐")`
 
 **Examples**
-- (TODO)
+- `IF GETKEY(13) != 0`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17823,7 +18237,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 
 ## GETKEYTRIGGERED (expression function)
 **Summary**
-- (TODO)
+- Polls a Windows virtual-key code and returns a one-shot trigger-style result.
 
 **Metadata**
 - Implementor: `new GetKeyStateMethod()`
@@ -17832,24 +18246,38 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GETKEYTRIGGERED(keyCode)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GETKEYTRIGGERED(keyCode)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyCode` (int): Windows virtual-key code.
 
 **Semantics**
+- If the game window is not active, returns `0`.
+- If `keyCode < 0` or `keyCode > 255`, returns `0`.
+- Otherwise polls Win32 `GetKeyState(keyCode)`.
+- Returns `1` exactly when both conditions hold:
+  - the key is currently down (`GetKeyState(keyCode) < 0`), and
+  - the newly observed low-order/toggle-bit-derived snapshot for this `keyCode` differs from the previously remembered snapshot.
+- Otherwise returns `0`.
+- First-poll behavior:
+  - the remembered snapshot starts empty,
+  - so a key already down on the first observed poll for that `keyCode` returns `1`.
+- Poll side effect shared with `GETKEY`:
+  - each call updates the same remembered per-key snapshot used by future trigger checks,
+  - so polling either `GETKEY(keyCode)` or `GETKEYTRIGGERED(keyCode)` can affect later `GETKEYTRIGGERED(keyCode)` results.
 - Engine-extracted notes (key operations):
   - `if (!exm.Console.IsActive)//アクティブでないならスルー`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new ExeEE("異常な分岐")`
 
 **Examples**
-- (TODO)
+- `IF GETKEYTRIGGERED(13) != 0`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17993,7 +18421,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 
 ## ISACTIVE (expression function)
 **Summary**
-- (TODO)
+- Returns whether the game window is currently active.
 
 **Metadata**
 - Implementor: `new IsActiveMethod()`
@@ -18001,23 +18429,26 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ISACTIVE()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `ISACTIVE()` → `long`
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Returns `1` if the game window is active.
+- Returns `0` if it is inactive.
+- This is the same window-activity state that also gates APIs such as `GETKEY*`.
 - Engine-extracted notes (key operations):
   - `return exm.Console.IsActive ? 1 : 0`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `active = ISACTIVE()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18025,7 +18456,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 
 ## SAVETEXT (expression function)
 **Summary**
-- (TODO)
+- Saves a string either to a numbered text-save slot or to an explicit relative path.
 
 **Metadata**
 - Implementor: `new SaveTextMethod()`
@@ -18033,23 +18464,44 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `SAVETEXT(text, target [, forceSavdir [, forceUTF8]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Any, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `SAVETEXT(text, fileNo)` → `long`
+- `SAVETEXT(text, fileNo, forceSavdir)` → `long`
+- `SAVETEXT(text, fileNo, forceSavdir, forceUTF8)` → `long`
+- `SAVETEXT(text, relativePath)` → `long`
+- `SAVETEXT(text, relativePath, forceSavdir)` → `long`
+- `SAVETEXT(text, relativePath, forceSavdir, forceUTF8)` → `long`
 
 **Arguments**
-- (TODO)
+- `text` (string): content to write.
+- `target` (int or string): numbered save slot or explicit relative path.
+- `forceSavdir` (optional, int; default `0`): in numeric-slot mode, non-zero forces the dedicated save-folder path; in explicit-path mode, ignored.
+- `forceUTF8` (optional, int; default `0`): legacy compatibility argument with no observable effect in this build.
 
 **Semantics**
-- (TODO)
+- Numeric-slot mode (`target` is int):
+  - If `target < 0` or `target > 2147483647`, returns `0`.
+  - Resolves the destination filename as `txt{target:00}.txt` in the normal save-text directory, or the forced save-text directory when `forceSavdir != 0`.
+  - Creates the chosen destination directory if needed.
+- Explicit-path mode (`target` is string):
+  - Applies the same safe relative-path normalization used by `EXISTFILE`.
+  - If normalization fails, returns `0`.
+  - If the path's extension is missing or not present in config item `ValidExtension`, rewrites the extension to `.txt`.
+  - Creates any missing parent directories under the resolved path.
+  - `forceSavdir` is ignored.
+- Writing behavior shared by both modes:
+  - writes the exact string content without newline normalization or automatic extra terminators,
+  - writes using the runtime save-text encoding; in this build that encoding is UTF-8 with BOM,
+  - returns `1` on success and `0` on any failure.
 
 **Errors & validation**
-- (TODO)
+- None; failure paths return `0`.
 
 **Examples**
-- (TODO)
+- `SAVETEXT("hello", 2)`
+- `SAVETEXT("hello", "notes/memo.txt")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18057,7 +18509,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 
 ## LOADTEXT (expression function)
 **Summary**
-- (TODO)
+- Loads text either from a numbered text-save slot or from an explicit relative path.
 
 **Metadata**
 - Implementor: `new LoadTextMethod()`
@@ -18065,23 +18517,44 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `LOADTEXT(source [, forceSavdir [, forceUTF8]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `LOADTEXT(fileNo)` → `string`
+- `LOADTEXT(fileNo, forceSavdir)` → `string`
+- `LOADTEXT(fileNo, forceSavdir, forceUTF8)` → `string`
+- `LOADTEXT(relativePath)` → `string`
+- `LOADTEXT(relativePath, forceSavdir)` → `string`
+- `LOADTEXT(relativePath, forceSavdir, forceUTF8)` → `string`
 
 **Arguments**
-- (TODO)
+- `source` (int or string): numbered save slot or explicit relative path.
+- `forceSavdir` (optional, int; default `0`): in numeric-slot mode, non-zero forces the dedicated save-folder path; in explicit-path mode, ignored.
+- `forceUTF8` (optional, int; default `0`): legacy compatibility argument with no observable effect in this build.
 
 **Semantics**
-- (TODO)
+- Numeric-slot mode (`source` is int):
+  - If `source < 0` or `source > 2147483647`, returns `""`.
+  - Resolves the source filename as `txt{source:00}.txt` in the normal save-text directory, or the forced save-text directory when `forceSavdir != 0`.
+- Explicit-path mode (`source` is string):
+  - Applies the same safe relative-path normalization used by `EXISTFILE`.
+  - If normalization fails, returns `""`.
+  - The path must already have an extension present in config item `ValidExtension`; otherwise returns `""`.
+  - `forceSavdir` is ignored.
+- Reading behavior shared by both modes:
+  - if the resolved file does not exist, returns `""`,
+  - reads the entire file,
+  - detects encoding as UTF-8 with BOM / UTF-8 when valid, otherwise falls back to Shift-JIS,
+  - removes every `
+` character from the loaded text before returning it,
+  - returns `""` on any failure.
 
 **Errors & validation**
-- (TODO)
+- None; failure paths return `""`.
 
 **Examples**
-- (TODO)
+- `text = LOADTEXT(2)`
+- `text = LOADTEXT("notes/memo.txt")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18200,7 +18673,7 @@ R = SPRITESETPOS("ICON", 100, 50)
 
 ## GGETCOLOR (expression function)
 **Summary**
-- (TODO)
+- Reads a single pixel from a graphics surface as unsigned ARGB.
 
 **Metadata**
 - Implementor: `new GraphicsGetColorMethod()`
@@ -18209,23 +18682,31 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GGETCOLOR(gID, x, y)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
+- `GGETCOLOR(gID, x, y)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `x` (int): pixel x coordinate.
+- `y` (int): pixel y coordinate.
 
 **Semantics**
-- (TODO)
+- Returns the pixel color as `0xAARRGGBB` in the range `0 <= value <= 0xFFFFFFFF`.
+- If the target graphics does not exist or has already been disposed, returns `-1`.
+- If `x < 0`, `x >= width`, or `y >= height`, returns `-1`.
+- Bounds-check bug: negative `y` is not rejected by the wrapper; it falls through to the pixel API instead of returning `-1` cleanly.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error when the negative-`y` bug path reaches the underlying pixel API.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `color = GGETCOLOR(0, 10, 20)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18418,7 +18899,7 @@ R = GDISPOSE(GID)
 
 ## GCLEAR (expression function)
 **Summary**
-- (TODO)
+- Clears an entire graphics surface, or a clipped rectangle of it, to one color.
 
 **Metadata**
 - Implementor: `new GraphicsClearMethod()`
@@ -18427,25 +18908,37 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GCLEAR(gID, cARGB)`
+- `GCLEAR(gID, cARGB, x, y, width, height)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }.
+- `GCLEAR(gID, cARGB)` → `long`
+- `GCLEAR(gID, cARGB, x, y, width, height)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `cARGB` (int): color in `0xAARRGGBB` form.
+- `x` (optional, int): clip-rectangle x coordinate for the six-argument form.
+- `y` (optional, int): clip-rectangle y coordinate for the six-argument form.
+- `width` (optional, int): clip-rectangle width for the six-argument form.
+- `height` (optional, int): clip-rectangle height for the six-argument form.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- Two-argument form clears the entire surface.
+- Six-argument form sets a clip rectangle and clears only that clipped region.
+- Unlike the rectangle-reading helpers used by other graphics built-ins, the six-argument form performs no wrapper-side range validation on `x`, `y`, `width`, or `height`; each is simply cast to 32-bit integer and passed on.
+- On success returns `1`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GCLEAR 0, 0xFFFFFFFF`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18453,7 +18946,7 @@ R = GDISPOSE(GID)
 
 ## GFILLRECTANGLE (expression function)
 **Summary**
-- (TODO)
+- Fills a rectangle on a graphics surface using the current brush.
 
 **Metadata**
 - Implementor: `new GraphicsFillRectangleMethod()`
@@ -18462,23 +18955,33 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GFILLRECTANGLE(gID, x, y, width, height)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)]`.
+- `GFILLRECTANGLE(gID, x, y, width, height)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `x` (int): rectangle x coordinate.
+- `y` (int): rectangle y coordinate.
+- `width` (int): rectangle width.
+- `height` (int): rectangle height.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- If no brush has been set with `GSETBRUSH`, fills with `Config.BackColor`.
+- Rectangle parsing rejects `width == 0` and `height == 0`, but negative sizes are still forwarded as-is.
+- On success returns `1`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if any rectangle component is outside signed 32-bit range, or if `width` or `height` is `0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GFILLRECTANGLE 0, 10, 20, 100, 50`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18486,7 +18989,7 @@ R = GDISPOSE(GID)
 
 ## GDRAWSPRITE (expression function)
 **Summary**
-- (TODO)
+- Draws a sprite resource onto a graphics surface, optionally through a color matrix.
 
 **Metadata**
 - Implementor: `new GraphicsDrawSpriteMethod()`
@@ -18495,27 +18998,45 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GDRAWSPRITE(destID, spriteName)`
+- `GDRAWSPRITE(destID, spriteName, destX, destY)`
+- `GDRAWSPRITE(destID, spriteName, destX, destY, destWidth, destHeight)`
+- `GDRAWSPRITE(destID, spriteName, destX, destY, destWidth, destHeight, colorMatrix)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String }.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int, ArgType.Int }.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.RefInt2D | ArgType.AllowConstRef }; OmitStart = 6.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.RefInt3D | ArgType.AllowConstRef }; OmitStart = 6.
+- `GDRAWSPRITE(destID, spriteName)` → `long`
+- `GDRAWSPRITE(destID, spriteName, destX, destY)` → `long`
+- `GDRAWSPRITE(destID, spriteName, destX, destY, destWidth, destHeight)` → `long`
+- `GDRAWSPRITE(destID, spriteName, destX, destY, destWidth, destHeight, colorMatrix)` → `long`
 
 **Arguments**
-- (TODO)
+- `destID` (int): destination graphics id.
+- `spriteName` (string): sprite resource name; lookup is case-insensitive.
+- `destX` (optional, int): destination x coordinate.
+- `destY` (optional, int): destination y coordinate.
+- `destWidth` (optional, int): destination width.
+- `destHeight` (optional, int): destination height.
+- `colorMatrix` (optional, int 2D/3D array): 5×5 matrix source; values are divided by `256` before being passed to the color-matrix API.
 
 **Semantics**
-- (TODO)
+- If the destination graphics does not exist or has already been disposed, returns `0`.
+- If the named sprite does not exist or is not created, returns `0`.
+- Two-argument form draws the sprite at `(0, 0)` using the sprite's base destination size.
+- Four-argument form draws at `(destX, destY)` using the sprite's base destination size.
+- Six-argument form draws into the supplied destination rectangle.
+- Seven-argument form behaves like the six-argument form and additionally applies the supplied color matrix.
+- Rectangle parsing rejects `width == 0` and `height == 0`, but negative sizes are still forwarded as-is.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `destID` is negative or exceeds 32-bit range.
+- Runtime error if any rectangle component is outside signed 32-bit range, or if any rectangle width/height is `0`.
+- Runtime error if the referenced color-matrix window does not contain a full 5×5 block.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GDRAWSPRITE 0, "ICON", 10, 20`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18523,7 +19044,7 @@ R = GDISPOSE(GID)
 
 ## GSETCOLOR (expression function)
 **Summary**
-- (TODO)
+- Writes a single pixel on a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsSetColorMethod()`
@@ -18532,23 +19053,33 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GSETCOLOR(gID, cARGB, x, y)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long)]`.
+- `GSETCOLOR(gID, cARGB, x, y)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `cARGB` (int): color in `0xAARRGGBB` form.
+- `x` (int): pixel x coordinate.
+- `y` (int): pixel y coordinate.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- If `x < 0`, `x >= width`, or `y >= height`, returns `0`.
+- On success writes the pixel and returns `1`.
+- Bounds-check bug: negative `y` is not rejected by the wrapper; it falls through to the pixel API instead of returning `0` cleanly.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
+- Runtime error when the negative-`y` bug path reaches the underlying pixel API.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GSETCOLOR 0, 0xFF00FF00, 10, 20`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18556,7 +19087,7 @@ R = GDISPOSE(GID)
 
 ## GDRAWG (expression function)
 **Summary**
-- (TODO)
+- Draws one graphics surface onto another, optionally through a color matrix.
 
 **Metadata**
 - Implementor: `new GraphicsDrawGMethod()`
@@ -18565,25 +19096,43 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GDRAWG(destID, srcID, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight)`
+- `GDRAWG(destID, srcID, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight, colorMatrix)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.RefInt2D | ArgType.AllowConstRef }; OmitStart = 10.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.RefInt3D | ArgType.AllowConstRef }; OmitStart = 10.
+- `GDRAWG(destID, srcID, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight)` → `long`
+- `GDRAWG(destID, srcID, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight, colorMatrix)` → `long`
 
 **Arguments**
-- (TODO)
+- `destID` (int): destination graphics id.
+- `srcID` (int): source graphics id.
+- `destX` (int): destination rectangle x coordinate.
+- `destY` (int): destination rectangle y coordinate.
+- `destWidth` (int): destination rectangle width.
+- `destHeight` (int): destination rectangle height.
+- `srcX` (int): source rectangle x coordinate.
+- `srcY` (int): source rectangle y coordinate.
+- `srcWidth` (int): source rectangle width.
+- `srcHeight` (int): source rectangle height.
+- `colorMatrix` (optional, int 2D/3D array): 5×5 matrix source; values are divided by `256` before being passed to the color-matrix API.
 
 **Semantics**
-- (TODO)
+- If either graphics surface does not exist or has already been disposed, returns `0`.
+- Otherwise draws the selected source rectangle into the selected destination rectangle and returns `1`.
+- Source and destination may be the same graphics surface.
+- Rectangle parsing rejects `width == 0` and `height == 0`, but negative sizes are still forwarded as-is.
+- Color-matrix lookup rules: for 2D arrays, reads a 5×5 block starting at the referenced indices; for 3D arrays, fixes the first index and reads a 5×5 block from the second / third indices.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if any graphics id is negative or exceeds 32-bit range.
+- Runtime error if any rectangle component is outside signed 32-bit range, or if any rectangle width/height is `0`.
+- Runtime error if the referenced color-matrix window does not contain a full 5×5 block.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GDRAWG 0, 1, 0, 0, 100, 100, 0, 0, 100, 100`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18591,7 +19140,7 @@ R = GDISPOSE(GID)
 
 ## GDRAWGWITHMASK (expression function)
 **Summary**
-- (TODO)
+- Draws one graphics surface onto another using a mask surface as per-pixel opacity.
 
 **Metadata**
 - Implementor: `new GraphicsDrawGWithMaskMethod()`
@@ -18600,23 +19149,35 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GDRAWGWITHMASK(destID, srcID, maskID, destX, destY)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)]`.
+- `GDRAWGWITHMASK(destID, srcID, maskID, destX, destY)` → `long`
 
 **Arguments**
-- (TODO)
+- `destID` (int): destination graphics id.
+- `srcID` (int): source graphics id.
+- `maskID` (int): mask graphics id.
+- `destX` (int): destination x coordinate.
+- `destY` (int): destination y coordinate.
 
 **Semantics**
-- (TODO)
+- If any of the three graphics surfaces does not exist or has already been disposed, returns `0`.
+- If `src` and `mask` sizes differ, returns `0`.
+- If `destX + srcWidth > destWidth` or `destY + srcHeight > destHeight`, returns `0`.
+- Otherwise uses the blue channel of the mask image as source opacity, composites onto the destination, and returns `1`.
+- Negative destination coordinates are not pre-rejected by the wrapper; they fall through to the compositor path instead of producing a clean bounds failure.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if any graphics id is negative or exceeds 32-bit range.
+- Runtime error if `destX` or `destY` is outside signed 32-bit range.
+- Runtime error when the negative-coordinate path reaches the underlying compositor with invalid indices.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GDRAWGWITHMASK 0, 1, 2, 10, 20`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18624,7 +19185,7 @@ R = GDISPOSE(GID)
 
 ## GSETBRUSH (expression function)
 **Summary**
-- (TODO)
+- Sets the current fill brush of a graphics surface to a solid color.
 
 **Metadata**
 - Implementor: `new GraphicsSetBrushMethod()`
@@ -18633,23 +19194,28 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GSETBRUSH(gID, cARGB)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
+- `GSETBRUSH(gID, cARGB)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `cARGB` (int): color in `0xAARRGGBB` form.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- On success replaces the current brush with a `SolidBrush` of the requested color and returns `1`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GSETBRUSH 0, 0xFF112233`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18657,7 +19223,7 @@ R = GDISPOSE(GID)
 
 ## GSETFONT (expression function)
 **Summary**
-- (TODO)
+- Sets the font used by `GDRAWTEXT` on a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsSetFontMethod()`
@@ -18666,24 +19232,33 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GSETFONT(gID, fontName, fontSize [, fontStyle])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `GSETFONT(gID, fontName, fontSize)` → `long`
+- `GSETFONT(gID, fontName, fontSize, fontStyle)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `fontName` (string): font family name.
+- `fontSize` (int): pixel size.
+- `fontStyle` (optional, int; default `0`): bitmask `1=bold`, `2=italic`, `4=strikeout`, `8=underline`.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- Tries loaded private font families first, then normal font lookup by name.
+- On success stores both the font object and the requested style bitmask, and returns `1`.
+- The stored font remains attached to that graphics surface until disposal or the next `GSETFONT`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Returns `0` if font creation fails.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GSETFONT 0, "Arial", 48, 1`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -18691,7 +19266,7 @@ R = GDISPOSE(GID)
 
 ## GSETPEN (expression function)
 **Summary**
-- (TODO)
+- Sets the current outline pen of a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsSetPenMethod()`
@@ -18700,23 +19275,31 @@ R = GDISPOSE(GID)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GSETPEN(gID, cARGB, width)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
+- `GSETPEN(gID, cARGB, width)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `cARGB` (int): color in `0xAARRGGBB` form.
+- `width` (int): pen width.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- On success replaces the current pen, preserving the previous dash style / dash cap if a pen was already present.
+- No wrapper-side validation is performed on `width`; it is passed directly to the pen constructor.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if `cARGB` is outside `0 <= value <= 0xFFFFFFFF`.
+- Runtime error if the underlying pen constructor rejects `width`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GSETPEN 0, 0xFFFF0000, 3`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19229,7 +19812,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 
 ## GSAVE (expression function)
 **Summary**
-- (TODO)
+- Saves a created graphics surface to the save directory as a PNG file.
 
 **Metadata**
 - Implementor: `new GraphicsSaveMethod()`
@@ -19238,23 +19821,29 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GSAVE(gID, fileNo)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
+- `GSAVE(gID, fileNo)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `fileNo` (int): save slot number.
 
 **Semantics**
-- (TODO)
+- If the graphics surface does not exist or has already been disposed, returns `0`.
+- If `fileNo` is outside `0 <= value <= 2147483647`, returns `0`.
+- Otherwise writes the bitmap to `sav/img{fileNo:0000}.png`, creating the save directory if needed, and returns `1` on success.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Returns `0` on file-system or image-save failure.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GSAVE 0, 12`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19262,7 +19851,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 
 ## GLOAD (expression function)
 **Summary**
-- (TODO)
+- Loads a saved PNG slot into a not-yet-created graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsLoadMethod()`
@@ -19271,23 +19860,31 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GLOAD(gID, fileNo)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long)]`.
+- `GLOAD(gID, fileNo)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `fileNo` (int): save slot number.
 
 **Semantics**
-- (TODO)
+- If the target graphics surface already exists, returns `0` without overwriting it.
+- If `fileNo` is outside `0 <= value <= 2147483647`, returns `0`.
+- Loads from `sav/img{fileNo:0000}.png`.
+- If the file does not exist, cannot be decoded, or exceeds the engine image-size limit, returns `0`.
+- On success creates the graphics surface from that image and returns `1`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Non-`CodeEE` load failures collapse to return value `0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GLOAD 0, 12`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19295,7 +19892,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 
 ## SPRITEANIMECREATE (expression function)
 **Summary**
-- (TODO)
+- Creates an empty animated sprite resource.
 
 **Metadata**
 - Implementor: `new SpriteAnimeCreateMethod()`
@@ -19304,18 +19901,25 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITEANIMECREATE(spriteName, width, height)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long), typeof(long)]`.
+- `SPRITEANIMECREATE(spriteName, width, height)` → `long`
 
 **Arguments**
-- (TODO)
+- `spriteName` (string): sprite resource name; lookup is case-insensitive.
+- `width` (int): animation canvas width.
+- `height` (int): animation canvas height.
 
 **Semantics**
-- (TODO)
+- If `spriteName == ""`, returns `0`.
+- If a sprite with that name already exists and is created, returns `0`.
+- Otherwise creates an empty animated sprite canvas of the requested size and returns `1`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `width <= 0` or `height <= 0`.
+- Runtime error if `width` or `height` exceeds the engine image-size limit.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Width", pos.X))`
@@ -19324,7 +19928,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
   - `throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Height", AbstractImage.MAX_IMAGESIZE, pos.Y))`
 
 **Examples**
-- (TODO)
+- `SPRITEANIMECREATE "WALK", 64, 64`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19332,7 +19936,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 
 ## SPRITEANIMEADDFRAME (expression function)
 **Summary**
-- (TODO)
+- Adds one frame to an animated sprite from a rectangle inside a graphics surface.
 
 **Metadata**
 - Implementor: `new SpriteAnimeAddFrameMethod()`
@@ -19341,23 +19945,41 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `SPRITEANIMEADDFRAME(spriteName, gID, x, y, width, height, offsetX, offsetY, delay)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(long), typeof(long), typeof(long), typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)]`.
+- `SPRITEANIMEADDFRAME(spriteName, gID, x, y, width, height, offsetX, offsetY, delay)` → `long`
 
 **Arguments**
-- (TODO)
+- `spriteName` (string): target animated-sprite name; lookup is case-insensitive.
+- `gID` (int): source graphics id.
+- `x` (int): source-rectangle x coordinate.
+- `y` (int): source-rectangle y coordinate.
+- `width` (int): source-rectangle width.
+- `height` (int): source-rectangle height.
+- `offsetX` (int): destination offset inside the animation canvas.
+- `offsetY` (int): destination offset inside the animation canvas.
+- `delay` (int): frame duration in milliseconds.
 
 **Semantics**
-- (TODO)
+- If `spriteName == ""`, returns `0`.
+- If no sprite exists with that name, returns `0`.
+- If the sprite name resolves to a non-animation sprite, current build follows a null-path bug and errors instead of cleanly returning `0`.
+- If the source graphics does not exist or has already been disposed, returns `0`.
+- The source rectangle must have positive size and lie fully inside the source graphics; otherwise the function returns `0`.
+- If `delay <= 0` or `delay > 2147483647`, returns `0`.
+- On success appends a frame and returns `1`.
+- Offset clipping quirk: the offset is not rejected when it places the frame partly or wholly outside the animation canvas. The frame is clipped to that canvas and may become visually empty while still consuming its delay time.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if any point/rectangle coordinate is outside signed 32-bit range, or if `width` or `height` is `0`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `SPRITEANIMEADDFRAME "WALK", 0, 0, 0, 32, 32, 16, 16, 100`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19365,7 +19987,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 
 ## SETANIMETIMER (expression function)
 **Summary**
-- (TODO)
+- Configures the redraw timer used for animated sprites during ordinary waits.
 
 **Metadata**
 - Implementor: `new SetAnimeTimerMethod()`
@@ -19373,24 +19995,30 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `SETANIMETIMER(time)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `SETANIMETIMER(time)` → `long`
 
 **Arguments**
-- (TODO)
+- `time` (int): requested redraw interval in milliseconds.
 
 **Semantics**
+- Accepts only `time >= -2147483648` and `time <= 32767` in this build.
+- If `time <= 0`, disables the redraw timer.
+- If `1 <= time < 10`, enables the timer with an actual interval of `10` milliseconds.
+- If `time >= 10`, enables the timer with that interval.
+- Returns `1`.
 - Engine-extracted notes (key operations):
   - `exm.Console.setRedrawTimer((int)i64)`
 
 **Errors & validation**
+- Runtime error if `time < -2147483648` or `time > 32767`.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, i64, int.MinValue, int.MaxValue))`
 
 **Examples**
-- (TODO)
+- `SETANIMETIMER 16`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19603,7 +20231,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## EXISTFILE (expression function)
 **Summary**
-- (TODO)
+- Tests whether a file exists under the executable directory using the engine's safe relative-path normalization.
 
 **Metadata**
 - Implementor: `new ExistFileMethod()`
@@ -19611,22 +20239,29 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `EXISTFILE(relativePath)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `EXISTFILE(relativePath)` → `long`
 
 **Arguments**
-- (TODO)
+- `relativePath` (string): file path relative to the executable directory.
 
 **Semantics**
-- (TODO)
+- Normalizes the supplied path before checking:
+  - `/` is converted to `\`,
+  - literal parent-directory segments `..\` are stripped,
+  - rooted / absolute paths are rejected.
+- The resulting relative path is resolved under the executable directory.
+- Returns `1` if the resolved path exists and is a file.
+- Returns `0` if normalization fails or the resolved file does not exist.
+- This API does **not** apply the `LOADTEXT` / `SAVETEXT` extension allow-list.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `EXISTFILE("csv/VariableSize.csv")` → `1` when that file exists
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19634,7 +20269,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## EXISTVAR (expression function)
 **Summary**
-- (TODO)
+- Tests whether a bare variable name resolves, and returns a bitmask describing its declared shape/type.
 
 **Metadata**
 - Implementor: `new ExistVarMethod()`
@@ -19642,22 +20277,36 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `EXISTVAR(name)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `EXISTVAR(name)` → `long`
 
 **Arguments**
-- (TODO)
+- `name` (string): bare variable name.
 
 **Semantics**
-- (TODO)
+- Resolves `name` as a variable token, not as a full variable-term expression.
+  - Subscripted strings such as `A:0` are not parsed here.
+- Scope lookup follows the runtime's normal variable-token rules:
+  - current private variable first,
+  - then local variable,
+  - then global/system variable.
+- Returns `0` if no variable token is found.
+- Otherwise returns a bitmask with these flags:
+  - `1`: integer-typed
+  - `2`: string-typed
+  - `4`: const
+  - `8`: 2D array
+  - `16`: 3D array
+- No flag distinguishes scalar from 1D array.
+- No flag distinguishes ordinary variables from character-data variables.
 
 **Errors & validation**
-- (TODO)
+- Some names can still raise runtime errors instead of returning `0` when normal variable-token lookup would reject them, for example prohibited variables or local/private lookups with no valid current function context.
 
 **Examples**
-- (TODO)
+- `mask = EXISTVAR("TARGET")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19665,7 +20314,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ISDEFINED (expression function)
 **Summary**
-- (TODO)
+- Tests whether a macro is currently defined.
 
 **Metadata**
 - Implementor: `new IsDefinedMethod()`
@@ -19673,22 +20322,25 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `ISDEFINED(name)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `ISDEFINED(name)` → `long`
 
 **Arguments**
-- (TODO)
+- `name` (string): macro name.
 
 **Semantics**
-- (TODO)
+- Returns `1` if a macro with that name exists in the current macro table.
+- Returns `0` otherwise.
+- This function checks macros only. It does not test variables, labels, or methods.
+- Name matching follows the runtime's normal macro-lookup rules.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `ISDEFINED("MY_MACRO")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19696,7 +20348,45 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMFUNCBEGINSWITH (expression function)
 **Summary**
-- (TODO)
+        - Enumerates user-defined non-event label/method names from loaded scripts whose names begins with the given keyword.
+
+        **Tags**
+        - reflection
+
+        **Syntax**
+        - `ENUMFUNCBEGINSWITH(keyword [, output])`
+
+        **Signatures / argument rules**
+        - `ENUMFUNCBEGINSWITH(keyword)` → `long`
+        - `ENUMFUNCBEGINSWITH(keyword, output)` → `long`
+
+        **Arguments**
+        - `keyword` (string): case-insensitive match key.
+        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
+
+        **Semantics**
+        - Matching is case-insensitive.
+        - If `keyword == ""`, returns `0` and writes nothing.
+        - Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+        - Match rule:
+          - `ENUMFUNCBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
+        - Output destination:
+          - if `output` is omitted, matched names are copied into `RESULTS:*`,
+          - otherwise they are copied into the provided 1D string array.
+        - Return value is the number of names actually copied.
+          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+        - The destination is **not** cleared beyond the copied prefix.
+        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
+
+        **Errors & validation**
+        - Argument type/count errors are rejected by the engine's function-method argument checker.
+
+        **Examples**
+        - `ENUMFUNCBEGINSWITH("TEST")`
+
+        **Progress state**
+        - complete
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Function, EnumNameMethod.EAction.BeginsWith)`
@@ -19729,7 +20419,45 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMFUNCENDSWITH (expression function)
 **Summary**
-- (TODO)
+        - Enumerates user-defined non-event label/method names from loaded scripts whose names ends with the given keyword.
+
+        **Tags**
+        - reflection
+
+        **Syntax**
+        - `ENUMFUNCENDSWITH(keyword [, output])`
+
+        **Signatures / argument rules**
+        - `ENUMFUNCENDSWITH(keyword)` → `long`
+        - `ENUMFUNCENDSWITH(keyword, output)` → `long`
+
+        **Arguments**
+        - `keyword` (string): case-insensitive match key.
+        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
+
+        **Semantics**
+        - Matching is case-insensitive.
+        - If `keyword == ""`, returns `0` and writes nothing.
+        - Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+        - Match rule:
+          - `ENUMFUNCENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
+        - Output destination:
+          - if `output` is omitted, matched names are copied into `RESULTS:*`,
+          - otherwise they are copied into the provided 1D string array.
+        - Return value is the number of names actually copied.
+          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+        - The destination is **not** cleared beyond the copied prefix.
+        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
+
+        **Errors & validation**
+        - Argument type/count errors are rejected by the engine's function-method argument checker.
+
+        **Examples**
+        - `ENUMFUNCENDSWITH("TEST")`
+
+        **Progress state**
+        - complete
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Function, EnumNameMethod.EAction.EndsWith)`
@@ -19762,7 +20490,45 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMFUNCWITH (expression function)
 **Summary**
-- (TODO)
+        - Enumerates user-defined non-event label/method names from loaded scripts whose names contains the given keyword.
+
+        **Tags**
+        - reflection
+
+        **Syntax**
+        - `ENUMFUNCWITH(keyword [, output])`
+
+        **Signatures / argument rules**
+        - `ENUMFUNCWITH(keyword)` → `long`
+        - `ENUMFUNCWITH(keyword, output)` → `long`
+
+        **Arguments**
+        - `keyword` (string): case-insensitive match key.
+        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
+
+        **Semantics**
+        - Matching is case-insensitive.
+        - If `keyword == ""`, returns `0` and writes nothing.
+        - Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+        - Match rule:
+          - `ENUMFUNCWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
+        - Output destination:
+          - if `output` is omitted, matched names are copied into `RESULTS:*`,
+          - otherwise they are copied into the provided 1D string array.
+        - Return value is the number of names actually copied.
+          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+        - The destination is **not** cleared beyond the copied prefix.
+        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
+
+        **Errors & validation**
+        - Argument type/count errors are rejected by the engine's function-method argument checker.
+
+        **Examples**
+        - `ENUMFUNCWITH("TEST")`
+
+        **Progress state**
+        - complete
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Function, EnumNameMethod.EAction.With)`
@@ -19795,7 +20561,45 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMVARBEGINSWITH (expression function)
 **Summary**
-- (TODO)
+        - Enumerates global/system variable names whose names begins with the given keyword.
+
+        **Tags**
+        - reflection
+
+        **Syntax**
+        - `ENUMVARBEGINSWITH(keyword [, output])`
+
+        **Signatures / argument rules**
+        - `ENUMVARBEGINSWITH(keyword)` → `long`
+        - `ENUMVARBEGINSWITH(keyword, output)` → `long`
+
+        **Arguments**
+        - `keyword` (string): case-insensitive match key.
+        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
+
+        **Semantics**
+        - Matching is case-insensitive.
+        - If `keyword == ""`, returns `0` and writes nothing.
+        - Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+        - Match rule:
+          - `ENUMVARBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
+        - Output destination:
+          - if `output` is omitted, matched names are copied into `RESULTS:*`,
+          - otherwise they are copied into the provided 1D string array.
+        - Return value is the number of names actually copied.
+          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+        - The destination is **not** cleared beyond the copied prefix.
+        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
+
+        **Errors & validation**
+        - Argument type/count errors are rejected by the engine's function-method argument checker.
+
+        **Examples**
+        - `ENUMVARBEGINSWITH("TEST")`
+
+        **Progress state**
+        - complete
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Variable, EnumNameMethod.EAction.BeginsWith)`
@@ -19828,7 +20632,45 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMVARENDSWITH (expression function)
 **Summary**
-- (TODO)
+        - Enumerates global/system variable names whose names ends with the given keyword.
+
+        **Tags**
+        - reflection
+
+        **Syntax**
+        - `ENUMVARENDSWITH(keyword [, output])`
+
+        **Signatures / argument rules**
+        - `ENUMVARENDSWITH(keyword)` → `long`
+        - `ENUMVARENDSWITH(keyword, output)` → `long`
+
+        **Arguments**
+        - `keyword` (string): case-insensitive match key.
+        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
+
+        **Semantics**
+        - Matching is case-insensitive.
+        - If `keyword == ""`, returns `0` and writes nothing.
+        - Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+        - Match rule:
+          - `ENUMVARENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
+        - Output destination:
+          - if `output` is omitted, matched names are copied into `RESULTS:*`,
+          - otherwise they are copied into the provided 1D string array.
+        - Return value is the number of names actually copied.
+          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+        - The destination is **not** cleared beyond the copied prefix.
+        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
+
+        **Errors & validation**
+        - Argument type/count errors are rejected by the engine's function-method argument checker.
+
+        **Examples**
+        - `ENUMVARENDSWITH("TEST")`
+
+        **Progress state**
+        - complete
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Variable, EnumNameMethod.EAction.EndsWith)`
@@ -19861,7 +20703,45 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMVARWITH (expression function)
 **Summary**
-- (TODO)
+        - Enumerates global/system variable names whose names contains the given keyword.
+
+        **Tags**
+        - reflection
+
+        **Syntax**
+        - `ENUMVARWITH(keyword [, output])`
+
+        **Signatures / argument rules**
+        - `ENUMVARWITH(keyword)` → `long`
+        - `ENUMVARWITH(keyword, output)` → `long`
+
+        **Arguments**
+        - `keyword` (string): case-insensitive match key.
+        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
+
+        **Semantics**
+        - Matching is case-insensitive.
+        - If `keyword == ""`, returns `0` and writes nothing.
+        - Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+        - Match rule:
+          - `ENUMVARWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
+        - Output destination:
+          - if `output` is omitted, matched names are copied into `RESULTS:*`,
+          - otherwise they are copied into the provided 1D string array.
+        - Return value is the number of names actually copied.
+          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+        - The destination is **not** cleared beyond the copied prefix.
+        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
+
+        **Errors & validation**
+        - Argument type/count errors are rejected by the engine's function-method argument checker.
+
+        **Examples**
+        - `ENUMVARWITH("TEST")`
+
+        **Progress state**
+        - complete
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Variable, EnumNameMethod.EAction.With)`
@@ -19894,7 +20774,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMMACROBEGINSWITH (expression function)
 **Summary**
-- (TODO)
+- Enumerates macro names whose names begins with the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Macro, EnumNameMethod.EAction.BeginsWith)`
@@ -19902,24 +20782,37 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMMACROBEGINSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMMACROBEGINSWITH(keyword)` → `long`
+- `ENUMMACROBEGINSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Macro enumeration uses the current macro table.
+- Match rule:
+  - `ENUMMACROBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMMACROBEGINSWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19927,7 +20820,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMMACROENDSWITH (expression function)
 **Summary**
-- (TODO)
+- Enumerates macro names whose names ends with the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Macro, EnumNameMethod.EAction.EndsWith)`
@@ -19935,24 +20828,37 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMMACROENDSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMMACROENDSWITH(keyword)` → `long`
+- `ENUMMACROENDSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Macro enumeration uses the current macro table.
+- Match rule:
+  - `ENUMMACROENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMMACROENDSWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19960,7 +20866,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMMACROWITH (expression function)
 **Summary**
-- (TODO)
+- Enumerates macro names whose names contains the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Macro, EnumNameMethod.EAction.With)`
@@ -19968,24 +20874,37 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMMACROWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMMACROWITH(keyword)` → `long`
+- `ENUMMACROWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Macro enumeration uses the current macro table.
+- Match rule:
+  - `ENUMMACROWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMMACROWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -19993,7 +20912,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMFILES (expression function)
 **Summary**
-- (TODO)
+- Enumerates files under a relative directory using a wildcard pattern.
 
 **Metadata**
 - Implementor: `new EnumFilesMethod()`
@@ -20001,24 +20920,42 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMFILES(dir [, pattern [, recursive [, output]]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMFILES(dir)` → `long`
+- `ENUMFILES(dir, pattern)` → `long`
+- `ENUMFILES(dir, pattern, recursive)` → `long`
+- `ENUMFILES(dir, pattern, recursive, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `dir` (string): directory path relative to the executable directory.
+- `pattern` (optional, string; default `"*"`): filesystem wildcard pattern.
+- `recursive` (optional, int; default `0`): non-zero enables recursive enumeration.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied relative paths.
 
 **Semantics**
+- Resolves `dir` using the same safe relative-path normalization used by `EXISTFILE`.
+- Returns `-1` if normalization fails or the resolved directory does not exist.
+- Enumerates files using the host filesystem's wildcard matching rules.
+- If `recursive == 0`, searches only the top directory.
+- If `recursive != 0`, searches all subdirectories.
+- Every returned path is converted back to a path relative to the executable directory.
+- Output destination:
+  - if `output` is omitted, copied paths go to `RESULTS:*`,
+  - otherwise they go to the provided 1D string array.
+- Return value is the number of paths actually copied.
+  - This is `min(foundCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is not cleared beyond the copied prefix.
+- Returns `-1` if enumeration throws.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `count = ENUMFILES("csv", "*.csv", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20026,7 +20963,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## GETVAR (expression function)
 **Summary**
-- (TODO)
+- Parses a string as an integer variable term and returns its current value.
 
 **Metadata**
 - Implementor: `new GetVarMethod()`
@@ -20034,24 +20971,32 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETVAR(varExpr)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `GETVAR(varExpr)` → `long`
 
 **Arguments**
-- (TODO)
+- `varExpr` (string): text that must parse to an integer variable term.
 
 **Semantics**
-- (TODO)
+- Re-parses `varExpr` at runtime using the normal expression parser.
+- `varExpr` must reduce to a variable term.
+- Constants are allowed.
+- Array elements are allowed if `varExpr` includes valid subscripts.
+- Scope-sensitive names (for example locals/private variables) follow the current runtime context exactly as if the same variable term had appeared directly in script code.
 
 **Errors & validation**
+- Runtime error if `varExpr` does not parse to a variable term.
+- Runtime error if the resolved term is not integer-typed.
+- Runtime error if normal variable evaluation of that term fails.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.IsNotVar.Text, name))`
   - `throw new CodeEE(string.Format(trerror.IsNotInt.Text, name))`
 
 **Examples**
-- (TODO)
+- `value = GETVAR("TARGET")`
+- `value = GETVAR("ARRAY:3")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20059,7 +21004,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## GETVARS (expression function)
 **Summary**
-- (TODO)
+- Parses a string as a string variable term and returns its current value.
 
 **Metadata**
 - Implementor: `new GetVarsMethod()`
@@ -20067,24 +21012,32 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETVARS(varExpr)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `GETVARS(varExpr)` → `string`
 
 **Arguments**
-- (TODO)
+- `varExpr` (string): text that must parse to a string variable term.
 
 **Semantics**
-- (TODO)
+- Re-parses `varExpr` at runtime using the normal expression parser.
+- `varExpr` must reduce to a variable term.
+- Constants are allowed.
+- Array elements are allowed if `varExpr` includes valid subscripts.
+- Scope-sensitive names (for example locals/private variables) follow the current runtime context exactly as if the same variable term had appeared directly in script code.
 
 **Errors & validation**
+- Runtime error if `varExpr` does not parse to a variable term.
+- Runtime error if the resolved term is not string-typed.
+- Runtime error if normal variable evaluation of that term fails.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.IsNotVar.Text, name))`
   - `throw new CodeEE(string.Format(trerror.IsNotStr.Text, name))`
 
 **Examples**
-- (TODO)
+- `text = GETVARS("TARGETS")`
+- `text = GETVARS("NAMES:3")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20092,7 +21045,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## SETVAR (expression function)
 **Summary**
-- (TODO)
+- Parses a string as a writable variable term and assigns one value to it.
 
 **Metadata**
 - Implementor: `new SetVarMethod()`
@@ -20100,26 +21053,36 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `SETVAR(varExpr, value)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Any }.
+- `SETVAR(varExpr, value)` → `long`
 
 **Arguments**
-- (TODO)
+- `varExpr` (string): text that must parse to a writable variable term.
+- `value` (int|string): value to assign; its type must match the resolved variable type.
 
 **Semantics**
-- (TODO)
+- Re-parses `varExpr` at runtime using the normal expression parser.
+- `varExpr` must reduce to a non-const variable term.
+- The assignment target can be a scalar variable or one addressed array element.
+- If the resolved target is string-typed, `value` must be string-typed.
+- If the resolved target is integer-typed, `value` must be integer-typed.
+- Returns `1` after a successful assignment.
 
 **Errors & validation**
+- Runtime error if `varExpr` does not parse to a writable variable term.
+- Runtime error if the resolved target is const.
+- Runtime error if `value` has the wrong type for the resolved target.
+- Runtime error if normal target evaluation/assignment fails.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.IsNotVar.Text, name))`
   - `throw new CodeEE(string.Format(trerror.IsNotInt.Text, name))`
   - `throw new CodeEE(string.Format(trerror.IsNotStr.Text, name))`
 
 **Examples**
-- (TODO)
+- `SETVAR("TARGET", 5)`
+- `SETVAR("NAMES:3", "Alice")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20127,7 +21090,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## VARSETEX (expression function)
 **Summary**
-- (TODO)
+- Parses a string as a variable term and bulk-writes a value across a last-dimension slice.
 
 **Metadata**
 - Implementor: `new VarSetExMethod()`
@@ -20135,26 +21098,57 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `VARSETEX(varExpr, value [, setAllDims [, from [, to]]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Any, ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `VARSETEX(varExpr, value)` → `long`
+- `VARSETEX(varExpr, value, setAllDims)` → `long`
+- `VARSETEX(varExpr, value, setAllDims, from)` → `long`
+- `VARSETEX(varExpr, value, setAllDims, from, to)` → `long`
 
 **Arguments**
-- (TODO)
+- `varExpr` (string): text that must parse to a writable variable term.
+- `value` (int|string): fill value; its type must match the resolved variable type.
+- `setAllDims` (optional, int; default `1`): for integer 2D/3D arrays, non-zero fills all leading-dimension slices; `0` fills only the currently addressed slice.
+- `from` (optional, int; default `0`): inclusive start position on the last dimension.
+- `to` (optional, int): exclusive end position on the last dimension.
 
 **Semantics**
-- (TODO)
+- Re-parses `varExpr` at runtime using the normal expression parser.
+- `varExpr` must reduce to a non-const variable term.
+- Type rule:
+  - string targets require string `value`,
+  - integer targets require integer `value`.
+- Scalar-target quirk:
+  - if `varExpr` resolves to a scalar variable rather than an array/slice, this function performs no write and still returns `1`.
+- Range defaults:
+  - omitted `from` defaults to `0`,
+  - omitted `to` defaults to the last-dimension length for 1D arrays,
+  - omitted `to` defaults to dimension-1 length for 2D arrays,
+  - omitted `to` defaults to `0` for 3D arrays in this build.
+- The effective loop start is floored by any already-specified last-dimension index embedded inside `varExpr`.
+  - In other words, writes begin at `max(from, embeddedLastDimIndex)`.
+- Write behavior by target kind:
+  - 1D arrays: fills the selected `[from, to)` slice.
+  - Integer 2D/3D arrays with `setAllDims != 0`: fills every leading-dimension slice over the selected last-dimension range.
+  - Integer 2D/3D arrays with `setAllDims == 0`: fills only the currently addressed leading-dimension slice.
+  - String 2D/3D arrays: `setAllDims` is ignored; only the currently addressed slice is filled.
+- If the effective start is greater than or equal to `to`, no elements are written and the function still returns `1`.
+- Returns `1` whenever the operation completes without a runtime error.
 
 **Errors & validation**
+- Runtime error if `varExpr` does not parse to a writable variable term.
+- Runtime error if the resolved target is const.
+- Runtime error if `value` has the wrong type for the resolved target.
+- Runtime error if array access goes out of range during the write loop.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.IsNotVar.Text, name))`
   - `throw new CodeEE(string.Format(trerror.SetStrToInt.Text, name))`
   - `throw new CodeEE(string.Format(trerror.SetIntToStr.Text, name))`
 
 **Examples**
-- (TODO)
+- `VARSETEX("ARR", -1, 0, 3, 5)`
+- `VARSETEX("NAMES", "dog")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20237,7 +21231,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## REGEXPMATCH (expression function)
 **Summary**
-- (TODO)
+- Counts regex matches and can optionally expose captured group values.
 
 **Metadata**
 - Implementor: `new RegexpMatchMethod()`
@@ -20245,27 +21239,50 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `REGEXPMATCH(str, pattern [, outputFlag])`
+- `REGEXPMATCH(str, pattern, groupCount, matches)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.RefInt, ArgType.RefString1D }.
+- `REGEXPMATCH(str, pattern)` → `long`
+- `REGEXPMATCH(str, pattern, outputFlag)` → `long`
+- `REGEXPMATCH(str, pattern, groupCount, matches)` → `long`
 
 **Arguments**
-- (TODO)
+- `str` (string): target string.
+- `pattern` (string): regular-expression pattern.
+- `outputFlag` (optional, int; default `0`): when non-zero, writes capture output into `RESULTS:*` and writes group count into `RESULT:1`.
+- `groupCount` (ref int): destination for the number of regex groups.
+- `matches` (ref 1D string array): destination for flattened group outputs.
 
 **Semantics**
+- Compiles `pattern` as a `.NET` regular expression with default options.
+- Returns the number of matches in `str`.
+- Group-count rule:
+  - the reported group count is `.NET` `Regex.GetGroupNumbers().Length`,
+  - this includes group `0` (the whole match).
+- Output modes:
+  - if `outputFlag != 0`, writes the group count to `RESULT:1` and writes flattened match/group values to `RESULTS:*`,
+  - if `groupCount, matches` references are supplied, writes the group count to `groupCount` and flattened values to `matches`.
+- Flattening order:
+  - iterate matches in match order,
+  - for each match, iterate groups in `.NET` `Regex.GetGroupNames()` order,
+  - append each `match.Groups[name].Value`.
+- Output truncation/retention:
+  - flattened output stops when the destination string array is full,
+  - any remaining output is discarded,
+  - destination entries beyond the copied prefix are not cleared,
+  - if there are no matches, the string destination is left unchanged.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT_ARRAY[1] = reg.GetGroupNumbers().Length`
   - `if (ret > 0) Output(matches, reg, exm.VEvaluator.RESULTS_ARRAY)`
 
 **Errors & validation**
+- Runtime error if `pattern` is not a valid regular expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.InvalidRegexArg.Text, Name, 2, e.Message))`
 
 **Examples**
-- (TODO)
+- `count = REGEXPMATCH("Apple Banana Car", ".(.{2})\b")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20273,7 +21290,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_DOCUMENT (expression function)
 **Summary**
-- (TODO)
+- Creates a stored XML document under a key.
 
 **Metadata**
 - Implementor: `new XmlDocumentMethod(XmlDocumentMethod.Operation.Create)`
@@ -20281,26 +21298,29 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `XML_DOCUMENT(xmlId, xmlContent)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String }.
-- ArgTypeList: ArgTypes = { ArgType.Any }.
+- `XML_DOCUMENT(xmlId, xmlContent)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int|string): storage key; integer values are converted to decimal strings.
+- `xmlContent` (string): XML text to parse and store.
 
 **Semantics**
+- Uses the process-local stored-document table shared by the `XML_*` built-ins.
+- If a document already exists for the resolved key, returns `0` and leaves that document unchanged.
+- Otherwise parses `xmlContent`, stores the resulting document under the key, and returns `1`.
 - Engine-extracted notes (key operations):
   - `var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Runtime error if `xmlContent` is not well-formed XML.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlGetError.Text, xml, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_DOCUMENT("menu", "<root/>")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20308,7 +21328,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_RELEASE (expression function)
 **Summary**
-- (TODO)
+- Removes a stored XML document by key.
 
 **Metadata**
 - Implementor: `new XmlDocumentMethod(XmlDocumentMethod.Operation.Release)`
@@ -20316,26 +21336,27 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `XML_RELEASE(xmlId)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String }.
-- ArgTypeList: ArgTypes = { ArgType.Any }.
+- `XML_RELEASE(xmlId)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int|string): storage key; integer values are converted to decimal strings.
 
 **Semantics**
+- If a document exists for the resolved key, it is removed and the function returns `1`.
+- If no document exists for that key, the function returns `0`.
 - Engine-extracted notes (key operations):
   - `var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlGetError.Text, xml, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_RELEASE(0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20343,7 +21364,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_GET (expression function)
 **Summary**
-- (TODO)
+- Selects XML nodes and optionally copies their projected values to a string array.
 
 **Metadata**
 - Implementor: `new XmlGetMethod()`
@@ -20352,29 +21373,52 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_GET(xmlOrId, xpath [, doOutput [, outputType]])`
+- `XML_GET(xmlOrId, xpath, outputArray [, outputType])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String, ArgType.RefString1D, ArgType.Int }; OmitStart = 3.
+- `XML_GET(xmlOrId, xpath)` → `long`
+- `XML_GET(xmlOrId, xpath, doOutput)` → `long`
+- `XML_GET(xmlOrId, xpath, doOutput, outputType)` → `long`
+- `XML_GET(xmlOrId, xpath, ref outputArray)` → `long`
+- `XML_GET(xmlOrId, xpath, ref outputArray, outputType)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlOrId` (int|string): integer values resolve a stored document by decimal-string key; string values in this non-`_BYNAME` form are parsed as raw XML text for this call.
+- `xpath` (string): XPath expression evaluated against the selected document.
+- `doOutput` (optional, int; default `0`): non-zero copies to `RESULTS`; `0` leaves outputs untouched.
+- `outputType` (optional, int; default `0`): projection style.
+- `outputArray` (string[]): destination array for copied values.
 
 **Semantics**
+- Selects nodes with `xpath` and returns the full match count.
+- Output destination rules:
+- if the third argument is omitted or is integer `0`, nothing is written,
+- if the third argument is a non-zero integer, matched values are copied to `RESULTS` starting at index `0`,
+- if the third argument is `ref outputArray`, matched values are copied there instead.
+- `outputType` mapping:
+- `1`: `InnerText`,
+- `2`: `InnerXml`,
+- `3`: `OuterXml`,
+- `4`: `Name`,
+- other values or omission: `Value`.
+- Style `0`/default reads `XmlNode.Value`; for element nodes that is `null`, not the element's text content.
+- Copies at most the destination length, does not clear untouched slots, and still returns the total match count rather than the copied count.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
   - `for (int i = 0; i < Math.Min(nodes.Count, exm.VEvaluator.RESULTS_ARRAY.Length); i++)`
   - `OutPutNode(nodes[i], exm.VEvaluator.RESULTS_ARRAY, i, outputStyle)`
 
 **Errors & validation**
+- Returns `-1` if integer-key lookup is requested and no stored document exists for that key.
+- Runtime error if raw-XML parsing fails.
+- Runtime error if `xpath` is not a valid XPath expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlGetError.Text, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlGetPathError.Text, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_GET("<root><a>1</a></root>", "/root/a", 1, 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20382,7 +21426,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_GET_BYNAME (expression function)
 **Summary**
-- (TODO)
+- Selects nodes from a stored XML document and optionally copies their projected values to a string array.
 
 **Metadata**
 - Implementor: `new XmlGetMethod(true)`
@@ -20391,29 +21435,52 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_GET_BYNAME(xmlName, xpath [, doOutput [, outputType]])`
+- `XML_GET_BYNAME(xmlName, xpath, outputArray [, outputType])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String, ArgType.RefString1D, ArgType.Int }; OmitStart = 3.
+- `XML_GET_BYNAME(xmlName, xpath)` → `long`
+- `XML_GET_BYNAME(xmlName, xpath, doOutput)` → `long`
+- `XML_GET_BYNAME(xmlName, xpath, doOutput, outputType)` → `long`
+- `XML_GET_BYNAME(xmlName, xpath, ref outputArray)` → `long`
+- `XML_GET_BYNAME(xmlName, xpath, ref outputArray, outputType)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlName` (int|string): stored-document key; string values are used directly, and integer values are also accepted here and converted to decimal strings.
+- `xpath` (string): XPath expression evaluated against the stored document.
+- `doOutput` (optional, int; default `0`): non-zero copies to `RESULTS`; `0` leaves outputs untouched.
+- `outputType` (optional, int; default `0`): projection style.
+- `outputArray` (string[]): destination array for copied values.
 
 **Semantics**
+- Same projection, copy-limit, and return-value rules as `XML_GET`.
+- Unlike `XML_GET`, this form never parses raw XML from the first argument; it always performs stored-document lookup.
+- Output destination rules:
+- if the third argument is omitted or is integer `0`, nothing is written,
+- if the third argument is a non-zero integer, matched values are copied to `RESULTS` starting at index `0`,
+- if the third argument is `ref outputArray`, matched values are copied there instead.
+- `outputType` mapping:
+- `1`: `InnerText`,
+- `2`: `InnerXml`,
+- `3`: `OuterXml`,
+- `4`: `Name`,
+- other values or omission: `Value`.
+- Style `0`/default reads `XmlNode.Value`; for element nodes that is `null`, not the element's text content.
+- Copies at most the destination length, does not clear untouched slots, and still returns the total match count rather than the copied count.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
   - `for (int i = 0; i < Math.Min(nodes.Count, exm.VEvaluator.RESULTS_ARRAY.Length); i++)`
   - `OutPutNode(nodes[i], exm.VEvaluator.RESULTS_ARRAY, i, outputStyle)`
 
 **Errors & validation**
+- Returns `-1` if no stored document exists for the resolved key.
+- Runtime error if `xpath` is not a valid XPath expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlGetError.Text, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlGetPathError.Text, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_GET_BYNAME("menu", "/root/a", 1, 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20421,7 +21488,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_SET (expression function)
 **Summary**
-- (TODO)
+- Assigns a string to selected XML nodes.
 
 **Metadata**
 - Implementor: `new XmlSetMethod()`
@@ -20430,28 +21497,49 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_SET(xmlId, xpath, value [, setAllNodes [, outputType]])`
+- `XML_SET(xmlVar, xpath, value [, setAllNodes [, outputType]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
+- `XML_SET(xmlId, xpath, value)` → `long`
+- `XML_SET(xmlId, xpath, value, setAllNodes)` → `long`
+- `XML_SET(xmlId, xpath, value, setAllNodes, outputType)` → `long`
+- `XML_SET(ref xmlVar, xpath, value)` → `long`
+- `XML_SET(ref xmlVar, xpath, value, setAllNodes)` → `long`
+- `XML_SET(ref xmlVar, xpath, value, setAllNodes, outputType)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int): stored-document key, converted to a decimal string.
+- `xpath` (string): XPath expression evaluated against the selected document.
+- `value` (string): replacement text.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero updates all of them; `0` leaves them all unchanged.
+- `outputType` (optional, int; default `0`): write mode; `0` = `Value`, `1` = `InnerText`, `2` = `InnerXml`; other values clamp to `0`.
+- `xmlVar` (string variable): writable string variable containing raw XML.
 
 **Semantics**
+- Target resolution:
+- `XML_SET(xmlId, ...)` mutates a stored document in place,
+- `XML_SET(ref xmlVar, ...)` reparses the variable as XML, applies the mutation to that temporary document, and writes back `OuterXml` only when at least one node matches.
+- Returns the full match count from `xpath`.
+- If no nodes match, no mutation occurs and the function returns `0`.
+- If exactly one node matches, that node is always updated.
+- If more than one node matches and `setAllNodes == 0`, no node is updated even though the match count is still returned.
+- If more than one node matches and `setAllNodes != 0`, every matched node is updated.
+- Style `0` writes `XmlNode.Value`; on element nodes that follows .NET element-value rules and raises a runtime error instead of writing text.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if stored-document lookup is requested and the key does not exist.
+- Runtime error if `xmlVar` does not contain well-formed XML.
+- Runtime error if `xpath` is not a valid XPath expression.
+- Runtime error if the chosen write mode is invalid for the matched node type.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_SET(0, "/root/a/@id", "42")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20459,7 +21547,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_SET_BYNAME (expression function)
 **Summary**
-- (TODO)
+- Assigns a string to selected nodes in a stored XML document.
 
 **Metadata**
 - Implementor: `new XmlSetMethod(true)`
@@ -20468,28 +21556,36 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_SET_BYNAME(xmlName, xpath, value [, setAllNodes [, outputType]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
+- `XML_SET_BYNAME(xmlName, xpath, value)` → `long`
+- `XML_SET_BYNAME(xmlName, xpath, value, setAllNodes)` → `long`
+- `XML_SET_BYNAME(xmlName, xpath, value, setAllNodes, outputType)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlName` (string): stored-document key.
+- `xpath` (string): XPath expression evaluated against the stored document.
+- `value` (string): replacement text.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero updates all of them; `0` leaves them all unchanged.
+- `outputType` (optional, int; default `0`): write mode; `0` = `Value`, `1` = `InnerText`, `2` = `InnerXml`; other values clamp to `0`.
 
 **Semantics**
+- Uses stored-document lookup only; raw XML text is not accepted in this form.
+- Otherwise follows the same match-count, `setAllNodes`, and write-mode rules as `XML_SET`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if no stored document exists for `xmlName`.
+- Runtime error if `xpath` is not a valid XPath expression.
+- Runtime error if the chosen write mode is invalid for the matched node type.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_SET_BYNAME("menu", "/root/a/@id", "42")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20497,7 +21593,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_EXIST (expression function)
 **Summary**
-- (TODO)
+- Checks whether a stored XML document exists.
 
 **Metadata**
 - Implementor: `new XmlDocumentMethod(XmlDocumentMethod.Operation.Check)`
@@ -20505,26 +21601,27 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `XML_EXIST(xmlId)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String }.
-- ArgTypeList: ArgTypes = { ArgType.Any }.
+- `XML_EXIST(xmlId)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int|string): storage key; integer values are converted to decimal strings.
 
 **Semantics**
+- Returns `1` if a stored document exists for the resolved key.
+- Returns `0` otherwise.
 - Engine-extracted notes (key operations):
   - `var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlGetError.Text, xml, e.Message))`
 
 **Examples**
-- (TODO)
+- `IF XML_EXIST("menu")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20532,7 +21629,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_TOSTR (expression function)
 **Summary**
-- (TODO)
+- Returns the serialized text of a stored XML document.
 
 **Metadata**
 - Implementor: `new XmlToStrMethod()`
@@ -20540,24 +21637,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `XML_TOSTR(xmlId)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any }.
+- `XML_TOSTR(xmlId)` → `string`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int|string): storage key; integer values are converted to decimal strings.
 
 **Semantics**
+- If a stored document exists for the resolved key, returns its current `OuterXml`.
+- If no stored document exists for that key, returns `""`.
 - Engine-extracted notes (key operations):
   - `var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `PRINTFORM %XML_TOSTR("menu")%`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20565,7 +21663,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_ADDNODE (expression function)
 **Summary**
-- (TODO)
+- Inserts an XML element parsed from text at positions selected by XPath.
 
 **Metadata**
 - Implementor: `new XmlAddNodeMethod(XmlAddNodeMethod.Operation.Node)`
@@ -20574,31 +21672,47 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_ADDNODE(xmlId, xpath, childXml [, methodType [, setAllNodes]])`
+- `XML_ADDNODE(xmlVar, xpath, childXml [, methodType [, setAllNodes]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
+- `XML_ADDNODE(xmlId, xpath, childXml)` → `long`
+- `XML_ADDNODE(xmlId, xpath, childXml, methodType)` → `long`
+- `XML_ADDNODE(xmlId, xpath, childXml, methodType, setAllNodes)` → `long`
+- `XML_ADDNODE(ref xmlVar, xpath, childXml)` → `long`
+- `XML_ADDNODE(ref xmlVar, xpath, childXml, methodType)` → `long`
+- `XML_ADDNODE(ref xmlVar, xpath, childXml, methodType, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int): stored-document key, converted to a decimal string.
+- `xpath` (string): selects insertion targets.
+- `childXml` (string): XML text whose document element becomes the inserted node.
+- `methodType` (optional, int; default `0`): `0` append as child, `1` insert before the matched node, `2` insert after the matched node; other values clamp to `0`.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero performs insertion attempts for all of them; `0` leaves them all unchanged.
+- `xmlVar` (string variable): writable string variable containing raw XML.
 
 **Semantics**
+- Target resolution matches `XML_SET`: stored-document lookup for `xmlId`, or parse / write-back behavior for `ref xmlVar`.
+- Returns the full match count from `xpath`.
+- If no nodes match, no mutation occurs and the function returns `0`.
+- If exactly one node matches, insertion is attempted regardless of `setAllNodes`.
+- If more than one node matches and `setAllNodes == 0`, no insertion occurs even though the match count is still returned.
+- Multi-match quirk: the engine constructs one inserted node and reuses it for every successful insertion instead of cloning it. Each later successful insertion moves that same node again, so the final document contains the inserted node only at the last successful target.
+- When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if stored-document lookup is requested and the key does not exist.
+- Runtime error if `xmlVar` or `childXml` is not well-formed XML.
+- Runtime error if `xpath` is not a valid XPath expression.
+- Single-target before/after insertion returns `0` if the matched node has no parent; other unsupported target kinds follow the underlying XML API failure path.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_ADDNODE(0, "/root/list", "<item/>")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20606,7 +21720,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_ADDNODE_BYNAME (expression function)
 **Summary**
-- (TODO)
+- Inserts an XML element parsed from text into a stored XML document.
 
 **Metadata**
 - Implementor: `new XmlAddNodeMethod(XmlAddNodeMethod.Operation.Node, true)`
@@ -20615,31 +21729,36 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_ADDNODE_BYNAME(xmlName, xpath, childXml [, methodType [, setAllNodes]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
+- `XML_ADDNODE_BYNAME(xmlName, xpath, childXml)` → `long`
+- `XML_ADDNODE_BYNAME(xmlName, xpath, childXml, methodType)` → `long`
+- `XML_ADDNODE_BYNAME(xmlName, xpath, childXml, methodType, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlName` (string): stored-document key.
+- `xpath` (string): selects insertion targets.
+- `childXml` (string): XML text whose document element becomes the inserted node.
+- `methodType` (optional, int; default `0`): `0` append as child, `1` insert before the matched node, `2` insert after the matched node; other values clamp to `0`.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero performs insertion attempts for all of them; `0` leaves them all unchanged.
 
 **Semantics**
+- Uses stored-document lookup only; raw XML text is not accepted in this form.
+- Otherwise follows the same match-count, `methodType`, and multi-match node-reuse rules as `XML_ADDNODE`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if no stored document exists for `xmlName`.
+- Runtime error if `childXml` is not well-formed XML.
+- Runtime error if `xpath` is not a valid XPath expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_ADDNODE_BYNAME("menu", "/root/list", "<item/>")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20647,7 +21766,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_REMOVENODE (expression function)
 **Summary**
-- (TODO)
+- Removes nodes selected by XPath.
 
 **Metadata**
 - Implementor: `new XmlRemoveNodeMethod(XmlRemoveNodeMethod.Operation.Node)`
@@ -20656,28 +21775,44 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_REMOVENODE(xmlId, xpath [, setAllNodes])`
+- `XML_REMOVENODE(xmlVar, xpath [, setAllNodes])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
+- `XML_REMOVENODE(xmlId, xpath)` → `long`
+- `XML_REMOVENODE(xmlId, xpath, setAllNodes)` → `long`
+- `XML_REMOVENODE(ref xmlVar, xpath)` → `long`
+- `XML_REMOVENODE(ref xmlVar, xpath, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int): stored-document key, converted to a decimal string.
+- `xpath` (string): selects removal targets.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero removes all of them; `0` leaves them all unchanged.
+- `xmlVar` (string variable): writable string variable containing raw XML.
 
 **Semantics**
+- Target resolution matches `XML_SET`.
+- Returns the full match count from `xpath`.
+- If no nodes match, no mutation occurs and the function returns `0`.
+- If exactly one node matches, removal is attempted regardless of `setAllNodes`.
+- If more than one node matches and `setAllNodes == 0`, no node is removed even though the match count is still returned.
+- If more than one node matches and `setAllNodes != 0`, removal is attempted for every matched node; per-node failures in that loop do not change the returned count.
+- A document element can be removed; the resulting document then serializes as an empty string.
+- When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if stored-document lookup is requested and the key does not exist.
+- Runtime error if `xmlVar` is not well-formed XML.
+- Runtime error if `xpath` is not a valid XPath expression.
+- Single-target removal returns `0` when the matched node cannot be removed because it has no parent.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_REMOVENODE(0, "/root/item", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20685,7 +21820,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_REMOVENODE_BYNAME (expression function)
 **Summary**
-- (TODO)
+- Removes nodes selected by XPath from a stored XML document.
 
 **Metadata**
 - Implementor: `new XmlRemoveNodeMethod(XmlRemoveNodeMethod.Operation.Node, true)`
@@ -20694,28 +21829,32 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_REMOVENODE_BYNAME(xmlName, xpath [, setAllNodes])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
+- `XML_REMOVENODE_BYNAME(xmlName, xpath)` → `long`
+- `XML_REMOVENODE_BYNAME(xmlName, xpath, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlName` (string): stored-document key.
+- `xpath` (string): selects removal targets.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero removes all of them; `0` leaves them all unchanged.
 
 **Semantics**
+- Uses stored-document lookup only; raw XML text is not accepted in this form.
+- Otherwise follows the same match-count, `setAllNodes`, and root-removal rules as `XML_REMOVENODE`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if no stored document exists for `xmlName`.
+- Runtime error if `xpath` is not a valid XPath expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_REMOVENODE_BYNAME("menu", "/root/item", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20723,7 +21862,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_REPLACE (expression function)
 **Summary**
-- (TODO)
+- Replaces either an entire stored XML document or selected nodes with a new XML element.
 
 **Metadata**
 - Implementor: `new XmlReplaceMethod()`
@@ -20732,29 +21871,47 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_REPLACE(xmlId, newXml)`
+- `XML_REPLACE(xmlId, xpath, newXml [, setAllNodes])`
+- `XML_REPLACE(xmlVar, xpath, newXml [, setAllNodes])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String }.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 3.
+- `XML_REPLACE(xmlId, newXml)` → `long`
+- `XML_REPLACE(xmlId, xpath, newXml)` → `long`
+- `XML_REPLACE(xmlId, xpath, newXml, setAllNodes)` → `long`
+- `XML_REPLACE(ref xmlVar, xpath, newXml)` → `long`
+- `XML_REPLACE(ref xmlVar, xpath, newXml, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int|string): in the two-argument form this is always a stored-document key; integer values are converted to decimal strings.
+- `newXml` (string): XML text whose document element becomes the replacement node, or the whole new stored document in the two-argument form.
+- `xpath` (string): selects replacement targets.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero replaces all of them; `0` leaves them all unchanged.
+- `xmlVar` (string variable): writable string variable containing raw XML for the three-/four-argument form.
 
 **Semantics**
+- Two-argument form: parses `newXml` and replaces the entire stored document for `xmlId`; raw XML variables are not accepted in this form.
+- Three-/four-argument forms: target resolution matches `XML_SET`.
+- Selected-node replacement returns the full match count from `xpath`.
+- If no nodes match, no mutation occurs and the function returns `0`.
+- If exactly one node matches, replacement is attempted regardless of `setAllNodes`.
+- If more than one node matches and `setAllNodes == 0`, no node is replaced even though the match count is still returned.
+- Multi-match quirk: the engine constructs one replacement node and reuses it for every successful replacement instead of cloning it. Each later successful replacement moves that same node again, so only the last successful replacement remains in the final document.
+- When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if stored-document lookup is requested and the key does not exist.
+- Runtime error if `newXml` or `xmlVar` is not well-formed XML.
+- Runtime error if `xpath` is not a valid XPath expression.
+- Single-target replacement returns `0` when the matched node cannot be replaced because it has no parent.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_REPLACE(0, "/root/item", "<other/>", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20762,7 +21919,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_REPLACE_BYNAME (expression function)
 **Summary**
-- (TODO)
+- Replaces selected nodes in a stored XML document with a new XML element.
 
 **Metadata**
 - Implementor: `new XmlReplaceMethod(true)`
@@ -20771,29 +21928,34 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_REPLACE_BYNAME(xmlName, xpath, newXml [, setAllNodes])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Any, ArgType.String }.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 3.
+- `XML_REPLACE_BYNAME(xmlName, xpath, newXml)` → `long`
+- `XML_REPLACE_BYNAME(xmlName, xpath, newXml, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlName` (string): stored-document key.
+- `xpath` (string): selects replacement targets.
+- `newXml` (string): XML text whose document element becomes the replacement node.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero replaces all of them; `0` leaves them all unchanged.
 
 **Semantics**
+- Uses stored-document lookup only; raw XML text is not accepted in this form.
+- Otherwise follows the same match-count, `setAllNodes`, and multi-match node-reuse rules as the three-/four-argument form of `XML_REPLACE`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if no stored document exists for `xmlName`.
+- Runtime error if `newXml` is not well-formed XML.
+- Runtime error if `xpath` is not a valid XPath expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_REPLACE_BYNAME("menu", "/root/item", "<other/>", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20801,7 +21963,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_ADDATTRIBUTE (expression function)
 **Summary**
-- (TODO)
+- Creates an XML attribute and inserts it at positions selected by XPath.
 
 **Metadata**
 - Implementor: `new XmlAddNodeMethod(XmlAddNodeMethod.Operation.Attribute)`
@@ -20810,31 +21972,51 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_ADDATTRIBUTE(xmlId, xpath, attrName [, attrValue [, methodType [, setAllNodes]]])`
+- `XML_ADDATTRIBUTE(xmlVar, xpath, attrName [, attrValue [, methodType [, setAllNodes]]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
+- `XML_ADDATTRIBUTE(xmlId, xpath, attrName)` → `long`
+- `XML_ADDATTRIBUTE(xmlId, xpath, attrName, attrValue)` → `long`
+- `XML_ADDATTRIBUTE(xmlId, xpath, attrName, attrValue, methodType)` → `long`
+- `XML_ADDATTRIBUTE(xmlId, xpath, attrName, attrValue, methodType, setAllNodes)` → `long`
+- `XML_ADDATTRIBUTE(ref xmlVar, xpath, attrName)` → `long`
+- `XML_ADDATTRIBUTE(ref xmlVar, xpath, attrName, attrValue)` → `long`
+- `XML_ADDATTRIBUTE(ref xmlVar, xpath, attrName, attrValue, methodType)` → `long`
+- `XML_ADDATTRIBUTE(ref xmlVar, xpath, attrName, attrValue, methodType, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int): stored-document key, converted to a decimal string.
+- `xpath` (string): selects insertion targets.
+- `attrName` (string): attribute name to create.
+- `attrValue` (optional, string; default `""`): attribute value.
+- `methodType` (optional, int; default `0`): `0` append to the matched element, `1` insert before the matched attribute, `2` insert after the matched attribute; other values clamp to `0`.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero performs insertion attempts for all of them; `0` leaves them all unchanged.
+- `xmlVar` (string variable): writable string variable containing raw XML.
 
 **Semantics**
+- Target resolution matches `XML_SET`.
+- Returns the full match count from `xpath`.
+- Method `0` is for matched element nodes. Methods `1` and `2` are for matched attribute nodes.
+- If no nodes match, no mutation occurs and the function returns `0`.
+- If exactly one node matches, insertion is attempted regardless of `setAllNodes`.
+- If more than one node matches and `setAllNodes == 0`, no insertion occurs even though the match count is still returned.
+- Multi-match quirk: the engine constructs one attribute object and reuses it for every successful insertion instead of cloning it. Each later successful insertion moves that same attribute again, so the final document retains that new attribute only at the last successful target.
+- When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if stored-document lookup is requested and the key does not exist.
+- Runtime error if `xmlVar` is not well-formed XML.
+- Runtime error if `xpath` is not a valid XPath expression.
+- Method `0` on non-element targets and other unsupported target kinds follow the underlying XML API failure path.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_ADDATTRIBUTE(0, "/root/item", "id", "42")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20842,7 +22024,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_ADDATTRIBUTE_BYNAME (expression function)
 **Summary**
-- (TODO)
+- Creates an XML attribute and inserts it into a stored XML document.
 
 **Metadata**
 - Implementor: `new XmlAddNodeMethod(XmlAddNodeMethod.Operation.Attribute, true)`
@@ -20851,31 +22033,37 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_ADDATTRIBUTE_BYNAME(xmlName, xpath, attrName [, attrValue [, methodType [, setAllNodes]]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
+- `XML_ADDATTRIBUTE_BYNAME(xmlName, xpath, attrName)` → `long`
+- `XML_ADDATTRIBUTE_BYNAME(xmlName, xpath, attrName, attrValue)` → `long`
+- `XML_ADDATTRIBUTE_BYNAME(xmlName, xpath, attrName, attrValue, methodType)` → `long`
+- `XML_ADDATTRIBUTE_BYNAME(xmlName, xpath, attrName, attrValue, methodType, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlName` (string): stored-document key.
+- `xpath` (string): selects insertion targets.
+- `attrName` (string): attribute name to create.
+- `attrValue` (optional, string; default `""`): attribute value.
+- `methodType` (optional, int; default `0`): `0` append to the matched element, `1` insert before the matched attribute, `2` insert after the matched attribute; other values clamp to `0`.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero performs insertion attempts for all of them; `0` leaves them all unchanged.
 
 **Semantics**
+- Uses stored-document lookup only; raw XML text is not accepted in this form.
+- Otherwise follows the same match-count, target-kind, and multi-match attribute-reuse rules as `XML_ADDATTRIBUTE`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if no stored document exists for `xmlName`.
+- Runtime error if `xpath` is not a valid XPath expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_ADDATTRIBUTE_BYNAME("menu", "/root/item", "id", "42")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20883,7 +22071,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_REMOVEATTRIBUTE (expression function)
 **Summary**
-- (TODO)
+- Removes attributes selected by XPath.
 
 **Metadata**
 - Implementor: `new XmlRemoveNodeMethod(XmlRemoveNodeMethod.Operation.Attribute)`
@@ -20892,28 +22080,43 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_REMOVEATTRIBUTE(xmlId, xpath [, setAllNodes])`
+- `XML_REMOVEATTRIBUTE(xmlVar, xpath [, setAllNodes])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
+- `XML_REMOVEATTRIBUTE(xmlId, xpath)` → `long`
+- `XML_REMOVEATTRIBUTE(xmlId, xpath, setAllNodes)` → `long`
+- `XML_REMOVEATTRIBUTE(ref xmlVar, xpath)` → `long`
+- `XML_REMOVEATTRIBUTE(ref xmlVar, xpath, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlId` (int): stored-document key, converted to a decimal string.
+- `xpath` (string): selects removal targets.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero removes all of them; `0` leaves them all unchanged.
+- `xmlVar` (string variable): writable string variable containing raw XML.
 
 **Semantics**
+- Target resolution matches `XML_SET`.
+- Returns the full match count from `xpath`.
+- This form is for attribute nodes; a single non-attribute match returns `0` instead of removing anything.
+- If no nodes match, no mutation occurs and the function returns `0`.
+- If exactly one attribute matches, it is removed regardless of `setAllNodes`.
+- If more than one node matches and `setAllNodes == 0`, no attribute is removed even though the match count is still returned.
+- If more than one node matches and `setAllNodes != 0`, removal is attempted for every matched node; per-node failures in that loop do not change the returned count.
+- When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if stored-document lookup is requested and the key does not exist.
+- Runtime error if `xmlVar` is not well-formed XML.
+- Runtime error if `xpath` is not a valid XPath expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_REMOVEATTRIBUTE(0, "/root/item/@id", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20921,7 +22124,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## XML_REMOVEATTRIBUTE_BYNAME (expression function)
 **Summary**
-- (TODO)
+- Removes attributes selected by XPath from a stored XML document.
 
 **Metadata**
 - Implementor: `new XmlRemoveNodeMethod(XmlRemoveNodeMethod.Operation.Attribute, true)`
@@ -20930,28 +22133,32 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `XML_REMOVEATTRIBUTE_BYNAME(xmlName, xpath [, setAllNodes])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.RefString, ArgType.String, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }; OmitStart = 2.
+- `XML_REMOVEATTRIBUTE_BYNAME(xmlName, xpath)` → `long`
+- `XML_REMOVEATTRIBUTE_BYNAME(xmlName, xpath, setAllNodes)` → `long`
 
 **Arguments**
-- (TODO)
+- `xmlName` (string): stored-document key.
+- `xpath` (string): selects removal targets.
+- `setAllNodes` (optional, int; default `0`): when multiple nodes match, non-zero removes all of them; `0` leaves them all unchanged.
 
 **Semantics**
+- Uses stored-document lookup only; raw XML text is not accepted in this form.
+- Otherwise follows the same match-count and target-kind rules as `XML_REMOVEATTRIBUTE`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataXmlDocument`
 
 **Errors & validation**
+- Returns `-1` if no stored document exists for `xmlName`.
+- Runtime error if `xpath` is not a valid XPath expression.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
   - `throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message))`
 
 **Examples**
-- (TODO)
+- `XML_REMOVEATTRIBUTE_BYNAME("menu", "/root/item/@id", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20959,7 +22166,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_CREATE (expression function)
 **Summary**
-- (TODO)
+- Creates an empty named map.
 
 **Metadata**
 - Implementor: `new MapManagementMethod(MapManagementMethod.Operation.Create)`
@@ -20967,23 +22174,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_CREATE(mapName)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `MAP_CREATE(mapName)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
 
 **Semantics**
+- If a map with that name already exists, returns `0` and leaves it unchanged.
+- Otherwise creates an empty map and returns `1`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `MAP_CREATE("session")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20991,7 +22200,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_EXIST (expression function)
 **Summary**
-- (TODO)
+- Checks whether a named map exists.
 
 **Metadata**
 - Implementor: `new MapManagementMethod(MapManagementMethod.Operation.Check)`
@@ -20999,23 +22208,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_EXIST(mapName)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `MAP_EXIST(mapName)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
 
 **Semantics**
+- Returns `1` if the map exists.
+- Returns `0` otherwise.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `IF MAP_EXIST("session")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21023,7 +22234,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_RELEASE (expression function)
 **Summary**
-- (TODO)
+- Deletes a named map.
 
 **Metadata**
 - Implementor: `new MapManagementMethod(MapManagementMethod.Operation.Release)`
@@ -21031,23 +22242,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_RELEASE(mapName)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `MAP_RELEASE(mapName)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
 
 **Semantics**
+- If the map exists, it is removed.
+- The function always returns `1`, even when the map was already absent.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `MAP_RELEASE("session")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21055,7 +22268,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_GET (expression function)
 **Summary**
-- (TODO)
+- Returns the value stored for a key in a named map.
 
 **Metadata**
 - Implementor: `new MapGetStrMethod(MapGetStrMethod.Operation.Get)`
@@ -21063,20 +22276,18 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_GET(mapName, key)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string)]`.
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 1.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.Int }.
+- `MAP_GET(mapName, key)` → `string`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
+- `key` (string): lookup key.
 
 **Semantics**
+- If the map exists and contains `key`, returns the stored string value.
+- If the map does not exist or the key is absent, returns `""`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
   - `array = exm.VEvaluator.RESULTS_ARRAY`
@@ -21084,10 +22295,10 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
   - `return arguments.Count == 2 ? exm.VEvaluator.RESULTS : ""`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `PRINTFORM %MAP_GET("session", "token")%`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21095,7 +22306,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_CLEAR (expression function)
 **Summary**
-- (TODO)
+- Removes all entries from a named map.
 
 **Metadata**
 - Implementor: `new MapDataOperationMethod(MapDataOperationMethod.Operation.Clear)`
@@ -21103,26 +22314,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_CLEAR(mapName)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `MAP_CLEAR(mapName)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
 
 **Semantics**
+- If the map exists, clears every entry and returns `1`.
+- If the map does not exist, returns `-1`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `MAP_CLEAR("session")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21130,7 +22340,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_SIZE (expression function)
 **Summary**
-- (TODO)
+- Returns the entry count of a named map.
 
 **Metadata**
 - Implementor: `new MapDataOperationMethod(MapDataOperationMethod.Operation.Size)`
@@ -21138,26 +22348,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_SIZE(mapName)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `MAP_SIZE(mapName)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
 
 **Semantics**
+- If the map exists, returns its current entry count.
+- If the map does not exist, returns `-1`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `PRINTFORML {MAP_SIZE("session")}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21165,7 +22374,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_HAS (expression function)
 **Summary**
-- (TODO)
+- Checks whether a named map contains a key.
 
 **Metadata**
 - Implementor: `new MapDataOperationMethod(MapDataOperationMethod.Operation.Has)`
@@ -21173,26 +22382,26 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_HAS(mapName, key)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `MAP_HAS(mapName, key)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
+- `key` (string): lookup key.
 
 **Semantics**
+- If the map does not exist, returns `-1`.
+- Otherwise returns `1` when `key` exists, or `0` when it does not.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `IF MAP_HAS("session", "token")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21200,7 +22409,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_SET (expression function)
 **Summary**
-- (TODO)
+- Adds or overwrites a key-value entry in a named map.
 
 **Metadata**
 - Implementor: `new MapDataOperationMethod(MapDataOperationMethod.Operation.Set)`
@@ -21208,26 +22417,27 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_SET(mapName, key, value)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `MAP_SET(mapName, key, value)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
+- `key` (string): entry key.
+- `value` (string): stored value.
 
 **Semantics**
+- If the map does not exist, returns `-1`.
+- Otherwise stores `value` under `key`, replacing any previous value, and returns `1`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `MAP_SET("session", "token", "abc")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21235,7 +22445,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_REMOVE (expression function)
 **Summary**
-- (TODO)
+- Deletes a key from a named map.
 
 **Metadata**
 - Implementor: `new MapDataOperationMethod(MapDataOperationMethod.Operation.Remove)`
@@ -21243,26 +22453,26 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_REMOVE(mapName, key)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `MAP_REMOVE(mapName, key)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
+- `key` (string): entry key.
 
 **Semantics**
+- If the map does not exist, returns `-1`.
+- Otherwise removes `key` if present and returns `1` either way.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `MAP_REMOVE("session", "token")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21270,7 +22480,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_GETKEYS (expression function)
 **Summary**
-- (TODO)
+- Enumerates the keys stored in a named map.
 
 **Metadata**
 - Implementor: `new MapGetStrMethod(MapGetStrMethod.Operation.GetKeys)`
@@ -21278,20 +22488,28 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_GETKEYS(mapName)`
+- `MAP_GETKEYS(mapName, doOutput)`
+- `MAP_GETKEYS(mapName, outputArray, doOutput)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string)]`.
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 1.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.Int }.
+- `MAP_GETKEYS(mapName)` → `string`
+- `MAP_GETKEYS(mapName, doOutput)` → `string`
+- `MAP_GETKEYS(mapName, outputArray, doOutput)` → `string`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
+- `doOutput` (optional, int; default `0`): non-zero enables array output in the two- and three-argument forms.
+- `outputArray` (optional, string[]): destination array for copied keys.
 
 **Semantics**
+- If the map does not exist, returns `""` and does not write any outputs.
+- One-argument form returns a comma-joined key list with no escaping. Keys containing commas therefore make the returned string ambiguous.
+- Two-argument form with `doOutput == 0` returns `""` and writes nothing.
+- Two-argument form with `doOutput != 0` copies keys to `RESULTS` starting at index `0`, sets `RESULT` to the total key count, and returns the scalar `RESULTS` value (`RESULTS:0`, meaning the first copied key or `""`).
+- Three-argument form with `doOutput == 0` returns `""` and writes nothing.
+- Three-argument form with `doOutput != 0` copies keys to `outputArray` starting at index `0`, sets `RESULT` to the total key count, and returns `""`.
+- Copying stops at the destination length, untouched slots are not cleared, and the engine does not sort the keys before enumeration.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
   - `array = exm.VEvaluator.RESULTS_ARRAY`
@@ -21299,10 +22517,10 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
   - `return arguments.Count == 2 ? exm.VEvaluator.RESULTS : ""`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `MAP_GETKEYS("session", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21310,7 +22528,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_TOXML (expression function)
 **Summary**
-- (TODO)
+- Serializes a named map to XML-like text.
 
 **Metadata**
 - Implementor: `new MapGetStrMethod(MapGetStrMethod.Operation.ToXml)`
@@ -21318,20 +22536,18 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_TOXML(mapName)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(string)]`.
-- `argumentTypeArray = [typeof(string)]`.
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 1.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.Int }.
+- `MAP_TOXML(mapName)` → `string`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
 
 **Semantics**
+- If the map does not exist, returns `""`.
+- Otherwise returns text in the form `<map><p><k>...</k><v>...</v></p>...</map>` using the map's native enumeration order.
+- Keys and values are inserted without XML escaping. Special characters such as `<`, `>`, or `&` therefore produce malformed or structurally changed output.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
   - `array = exm.VEvaluator.RESULTS_ARRAY`
@@ -21339,10 +22555,10 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
   - `return arguments.Count == 2 ? exm.VEvaluator.RESULTS : ""`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `data '= MAP_TOXML("session")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21350,7 +22566,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MAP_FROMXML (expression function)
 **Summary**
-- (TODO)
+- Imports key-value pairs from XML-like text into an existing named map.
 
 **Metadata**
 - Implementor: `new MapFromXmlMethod()`
@@ -21358,24 +22574,31 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MAP_FROMXML(mapName, xmlMap)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(string)]`.
+- `MAP_FROMXML(mapName, xmlMap)` → `long`
 
 **Arguments**
-- (TODO)
+- `mapName` (string): map identifier.
+- `xmlMap` (string): source text expected to contain `/map/p` entries.
 
 **Semantics**
+- If the map does not exist, returns `0`.
+- Parses `xmlMap`, selects `/map/p`, and for each selected node requires exactly one `./k` child and exactly one `./v` child.
+- Imported keys use `k.InnerText`; imported values use `v.InnerXml`.
+- The map is not cleared first. Imported entries overwrite existing keys they mention and leave all other existing entries untouched.
+- Returns `1` after successful parsing even if no usable pairs were imported.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataStringMaps`
 
 **Errors & validation**
+- Runtime error if `xmlMap` is not well-formed XML.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message))`
 
 **Examples**
-- (TODO)
+- `MAP_FROMXML("session", data)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21383,7 +22606,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_CREATE (expression function)
 **Summary**
-- (TODO)
+- Creates an empty named `DataTable` with an automatic primary-key column.
 
 **Metadata**
 - Implementor: `new DataTableManagementMethod(DataTableManagementMethod.Operation.Create)`
@@ -21391,25 +22614,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_CREATE(tableName)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(long)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `DT_CREATE(tableName)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
 
 **Semantics**
+- If a table with that name already exists, returns `0` and leaves it unchanged.
+- Otherwise creates a new table with `CaseSensitive = true`, auto-adds an `id` column of type `int64`, marks it non-null / unique / primary-key, and returns `1`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `DT_CREATE("db")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21417,7 +22640,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_EXIST (expression function)
 **Summary**
-- (TODO)
+- Checks whether a named `DataTable` exists.
 
 **Metadata**
 - Implementor: `new DataTableManagementMethod(DataTableManagementMethod.Operation.Check)`
@@ -21425,25 +22648,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_EXIST(tableName)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(long)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `DT_EXIST(tableName)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
 
 **Semantics**
+- Returns `1` if the table exists.
+- Returns `0` otherwise.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `IF DT_EXIST("db")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21451,7 +22674,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_RELEASE (expression function)
 **Summary**
-- (TODO)
+- Deletes a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableManagementMethod(DataTableManagementMethod.Operation.Release)`
@@ -21459,25 +22682,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_RELEASE(tableName)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(long)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `DT_RELEASE(tableName)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
 
 **Semantics**
+- If the table exists, it is removed.
+- The function always returns `1`, even when the table was already absent.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `DT_RELEASE("db")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21485,7 +22708,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_NOCASE (expression function)
 **Summary**
-- (TODO)
+- Toggles case-sensitive string comparison for a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableManagementMethod(DataTableManagementMethod.Operation.Case)`
@@ -21493,25 +22716,26 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_NOCASE(tableName, ignoreCase)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(long)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `DT_NOCASE(tableName, ignoreCase)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `ignoreCase` (int): non-zero makes the table case-insensitive; `0` restores case-sensitive comparison.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Otherwise sets `CaseSensitive` to `false` when `ignoreCase != 0`, or to `true` when `ignoreCase == 0`, and returns `1`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `DT_NOCASE("db", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21519,7 +22743,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_CLEAR (expression function)
 **Summary**
-- (TODO)
+- Removes all rows from a named `DataTable` without changing its columns.
 
 **Metadata**
 - Implementor: `new DataTableManagementMethod(DataTableManagementMethod.Operation.Clear)`
@@ -21527,25 +22751,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_CLEAR(tableName)`
 
 **Signatures / argument rules**
-- Argument rules: multiple `argumentTypeArray` assignments detected (name/branch dependent).
-- `argumentTypeArray = [typeof(string), typeof(long)]`.
-- `argumentTypeArray = [typeof(string)]`.
+- `DT_CLEAR(tableName)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Otherwise clears all rows, keeps the schema intact, and returns `1`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `DT_CLEAR("db")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21553,7 +22777,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_COLUMN_ADD (expression function)
 **Summary**
-- (TODO)
+- Adds a column to a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableColumnManagementMethod(DataTableColumnManagementMethod.Operation.Create)`
@@ -21562,28 +22786,36 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `DT_COLUMN_ADD(tableName, columnName [, type [, nullable]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(string)]`.
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Any, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `DT_COLUMN_ADD(tableName, columnName)` → `long`
+- `DT_COLUMN_ADD(tableName, columnName, type)` → `long`
+- `DT_COLUMN_ADD(tableName, columnName, type, nullable)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `columnName` (string): column name.
+- `type` (optional, int|string): column type; integer codes are `1=int8`, `2=int16`, `3=int32`, `4=int64`, `5=string`; string names must be the exact lowercase spellings `int8`, `int16`, `int32`, `int64`, or `string`.
+- `nullable` (optional, int; default `1`): non-zero allows `NULL`; `0` disallows it.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Column-name collisions are checked through `DataTable` column lookup, so case variants such as `id` and `ID` count as the same existing column.
+- If the column already exists, returns `0`.
+- If `type` is omitted, the new column uses `string` type.
+- Otherwise creates the column and returns `1`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
   - `else output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
+- Runtime error if `type` is present but not one of the supported integer codes or exact lowercase type names.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.UnsupportedType.Text, Name))`
 
 **Examples**
-- (TODO)
+- `DT_COLUMN_ADD("db", "name")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21591,7 +22823,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_COLUMN_NAMES (expression function)
 **Summary**
-- (TODO)
+- Copies column names from a named `DataTable` to a string array.
 
 **Metadata**
 - Implementor: `new DataTableColumnManagementMethod(DataTableColumnManagementMethod.Operation.Names)`
@@ -21600,28 +22832,33 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `DT_COLUMN_NAMES(tableName)`
+- `DT_COLUMN_NAMES(tableName, outputArray)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(string)]`.
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Any, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `DT_COLUMN_NAMES(tableName)` → `long`
+- `DT_COLUMN_NAMES(tableName, outputArray)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `outputArray` (optional, string[]): destination array; if omitted, `RESULTS` is used.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Copies names in column order starting at destination index `0` and returns the full column count.
+- The auto-created `id` column is included.
+- No destination clearing is performed.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
   - `else output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
+- Runtime error if the destination array is shorter than the column count; this build does not clamp the copy length here.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.UnsupportedType.Text, Name))`
 
 **Examples**
-- (TODO)
+- `DT_COLUMN_NAMES("db", names)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21629,7 +22866,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_COLUMN_EXIST (expression function)
 **Summary**
-- (TODO)
+- Checks whether a named `DataTable` contains a column and reports its type.
 
 **Metadata**
 - Implementor: `new DataTableColumnManagementMethod(DataTableColumnManagementMethod.Operation.Check)`
@@ -21638,28 +22875,30 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `DT_COLUMN_EXIST(tableName, columnName)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(string)]`.
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Any, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `DT_COLUMN_EXIST(tableName, columnName)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `columnName` (string): column name.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- If the column does not exist, returns `0`.
+- Otherwise returns the type code `1=int8`, `2=int16`, `3=int32`, `4=int64`, or `5=string`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
   - `else output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.UnsupportedType.Text, Name))`
 
 **Examples**
-- (TODO)
+- `PRINTFORML {DT_COLUMN_EXIST("db", "name")}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21667,7 +22906,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_COLUMN_REMOVE (expression function)
 **Summary**
-- (TODO)
+- Removes a column from a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableColumnManagementMethod(DataTableColumnManagementMethod.Operation.Remove)`
@@ -21676,28 +22915,30 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `DT_COLUMN_REMOVE(tableName, columnName)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(string)]`.
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Any, ArgType.Int }; OmitStart = 2.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `DT_COLUMN_REMOVE(tableName, columnName)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `columnName` (string): column name.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- If the column exists and its name is not `id` under case-insensitive comparison, removes it and returns `1`.
+- If the column does not exist, or it resolves to the protected `id` column, returns `0`.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
   - `else output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
+- None.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.UnsupportedType.Text, Name))`
 
 **Examples**
-- (TODO)
+- `DT_COLUMN_REMOVE("db", "age")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21705,7 +22946,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_COLUMN_LENGTH (expression function)
 **Summary**
-- (TODO)
+- Returns the column count of a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableLengthMethod(DataTableLengthMethod.Operation.Column)`
@@ -21713,23 +22954,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_COLUMN_LENGTH(tableName)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `DT_COLUMN_LENGTH(tableName)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Otherwise returns the current number of columns, including the auto-created `id` column.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `PRINTFORML {DT_COLUMN_LENGTH("db")}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21737,7 +22980,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_ROW_ADD (expression function)
 **Summary**
-- (TODO)
+- Adds a row to a named `DataTable` and returns its generated `id` value.
 
 **Metadata**
 - Implementor: `new DataTableRowSetMethod(DataTableRowSetMethod.Operation.Add)`
@@ -21745,30 +22988,43 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_ROW_ADD(tableName [, columnName, columnValue] ...)`
+- `DT_ROW_ADD(tableName, columnNames, columnValues, count)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.VariadicString, ArgType.VariadicAny }; OmitStart = 1; MatchVariadicGroup = true.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.RefAny1D, ArgType.Int }.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.VariadicString, ArgType.VariadicAny }; MatchVariadicGroup = true.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.RefString1D, ArgType.RefAny1D, ArgType.Int }.
+- `DT_ROW_ADD(tableName)` → `long`
+- `DT_ROW_ADD(tableName, columnName, columnValue [, columnName, columnValue] ...)` → `long`
+- `DT_ROW_ADD(tableName, columnNames, columnValues, count)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `columnName` (optional, string): column name in the variadic pair form.
+- `columnValue` (optional, int|string): value in the variadic pair form; its type must match the destination column type.
+- `columnNames` (string[]): column names in the array form.
+- `columnValues` (int[]|string[]): homogeneous value array in the array form; mixed string/integer array input is not supported.
+- `count` (int): requested number of array-form assignments.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Creates a new row, auto-generates its `id`, then applies assignments.
+- Calling `DT_ROW_ADD(tableName)` with no assignments is valid and still creates a row.
+- Array-form assignments use `min(count, len(columnNames), len(columnValues))`; if that effective count is `<= 0`, no assignments are performed and the row is still added.
+- Integer writes to `int8` / `int16` / `int32` columns are clamped to the destination range.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked; case variants such as `ID` still resolve to the primary-key column and can overwrite it.
+- If an error occurs during assignment, the new row is not added because insertion happens only after all assignments finish.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
+- Runtime error if a named column does not exist.
+- Runtime error if a supplied value type does not match the destination column type.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.DTCanNotEditIdColumn.Text, Name, key))`
   - `throw new CodeEE(string.Format(trerror.DTLackOfNamedColumn.Text, Name, key, name))`
   - `throw new CodeEE(string.Format(trerror.DTInvalidDataType.Text, Name, key, name))`
 
 **Examples**
-- (TODO)
+- `id = DT_ROW_ADD("db", "name", "Alice")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21776,7 +23032,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_ROW_SET (expression function)
 **Summary**
-- (TODO)
+- Edits an existing row in a named `DataTable` selected by `id`.
 
 **Metadata**
 - Implementor: `new DataTableRowSetMethod(DataTableRowSetMethod.Operation.Set)`
@@ -21784,30 +23040,44 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_ROW_SET(tableName, idValue [, columnName, columnValue] ...)`
+- `DT_ROW_SET(tableName, idValue, columnNames, columnValues, count)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.VariadicString, ArgType.VariadicAny }; OmitStart = 1; MatchVariadicGroup = true.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.RefAny1D, ArgType.Int }.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.VariadicString, ArgType.VariadicAny }; MatchVariadicGroup = true.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.RefString1D, ArgType.RefAny1D, ArgType.Int }.
+- `DT_ROW_SET(tableName, idValue)` → `long`
+- `DT_ROW_SET(tableName, idValue, columnName, columnValue [, columnName, columnValue] ...)` → `long`
+- `DT_ROW_SET(tableName, idValue, columnNames, columnValues, count)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `idValue` (int): primary-key value of the row to edit.
+- `columnName` (optional, string): column name in the variadic pair form.
+- `columnValue` (optional, int|string): value in the variadic pair form; its type must match the destination column type.
+- `columnNames` (string[]): column names in the array form.
+- `columnValues` (int[]|string[]): homogeneous value array in the array form; mixed string/integer array input is not supported.
+- `count` (int): requested number of array-form assignments.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- If no row exists with primary-key `idValue`, returns `-2`.
+- Returns the number of assignments actually performed.
+- Array-form assignments use `min(count, len(columnNames), len(columnValues))`; if that effective count is `<= 0`, returns `0` without changing the row.
+- Integer writes to `int8` / `int16` / `int32` columns are clamped to the destination range.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked; case variants such as `ID` still resolve to the primary-key column and can overwrite it.
+- Assignments are applied sequentially to the already-existing row, so earlier writes remain visible if a later write throws a runtime error.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
+- Runtime error if a named column does not exist.
+- Runtime error if a supplied value type does not match the destination column type.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.DTCanNotEditIdColumn.Text, Name, key))`
   - `throw new CodeEE(string.Format(trerror.DTLackOfNamedColumn.Text, Name, key, name))`
   - `throw new CodeEE(string.Format(trerror.DTInvalidDataType.Text, Name, key, name))`
 
 **Examples**
-- (TODO)
+- `DT_ROW_SET("db", id, "age", 18)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21815,7 +23085,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_ROW_REMOVE (expression function)
 **Summary**
-- (TODO)
+- Removes one or more rows from a named `DataTable` by `id`.
 
 **Metadata**
 - Implementor: `new DataTableRowRemoveMethod()`
@@ -21823,25 +23093,33 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_ROW_REMOVE(tableName, idValue)`
+- `DT_ROW_REMOVE(tableName, idValues, count)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }.
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefInt1D, ArgType.Int }.
+- `DT_ROW_REMOVE(tableName, idValue)` → `long`
+- `DT_ROW_REMOVE(tableName, idValues, count)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `idValue` (int): single primary-key value to remove.
+- `idValues` (int[]): source array of primary-key values in the bulk form.
+- `count` (int): requested number of `idValues` elements to consider.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Single-row form removes the row whose primary key equals `idValue`, returning `1` on success or `0` if that row does not exist.
+- Array form uses `min(count, len(idValues))`; if that effective count is `<= 0`, returns `0`.
+- Array form builds an `id IN (...)` selection from that prefix and removes every matching row, returning the number of removed rows.
+- Duplicate ids in the input array do not produce duplicate removals because selection happens through a single `IN (...)` query.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if the generated `id IN (...)` selection is rejected by the underlying `DataTable` expression engine.
 
 **Examples**
-- (TODO)
+- `DT_ROW_REMOVE("db", id)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21849,7 +23127,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_ROW_LENGTH (expression function)
 **Summary**
-- (TODO)
+- Returns the row count of a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableLengthMethod(DataTableLengthMethod.Operation.Row)`
@@ -21857,23 +23135,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_ROW_LENGTH(tableName)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `DT_ROW_LENGTH(tableName)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Otherwise returns the current row count.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `PRINTFORML {DT_ROW_LENGTH("db")}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21881,7 +23161,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_CELL_GET (expression function)
 **Summary**
-- (TODO)
+- Reads a cell as an integer from a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableCellGetMethod(DataTableCellGetMethod.Operation.Get)`
@@ -21889,24 +23169,32 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_CELL_GET(tableName, row, columnName [, asId])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 3.
+- `DT_CELL_GET(tableName, row, columnName)` → `long`
+- `DT_CELL_GET(tableName, row, columnName, asId)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `row` (int): row index when `asId == 0`, or primary-key value when `asId != 0`.
+- `columnName` (string): column name.
+- `asId` (optional, int; default `0`): non-zero selects by `id`; `0` selects by zero-based row index.
 
 **Semantics**
+- If the table does not exist, returns `0`.
+- If the selected row or column does not exist, returns `0`.
+- If the selected cell is `NULL`, returns `0`.
+- Otherwise converts the stored value with `Convert.ToInt64(...)` and returns the result.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if the stored value cannot be converted to `long`; for example, a non-numeric string cell read through `DT_CELL_GET` throws instead of returning `0`.
 
 **Examples**
-- (TODO)
+- `PRINTFORML {DT_CELL_GET("db", 0, "age")}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21914,7 +23202,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_CELL_ISNULL (expression function)
 **Summary**
-- (TODO)
+- Checks whether a selected cell is `NULL` in a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableCellGetMethod(DataTableCellGetMethod.Operation.IsNull)`
@@ -21922,24 +23210,31 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_CELL_ISNULL(tableName, row, columnName [, asId])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 3.
+- `DT_CELL_ISNULL(tableName, row, columnName)` → `long`
+- `DT_CELL_ISNULL(tableName, row, columnName, asId)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `row` (int): row index when `asId == 0`, or primary-key value when `asId != 0`.
+- `columnName` (string): column name.
+- `asId` (optional, int; default `0`): non-zero selects by `id`; `0` selects by zero-based row index.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- If the selected row or column does not exist, returns `-2`.
+- Otherwise returns `1` when the selected cell contains `NULL`, or `0` when it contains a value.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `IF DT_CELL_ISNULL("db", id, "age", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21947,7 +23242,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_CELL_GETS (expression function)
 **Summary**
-- (TODO)
+- Reads a cell as a string from a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableCellGetMethod(DataTableCellGetMethod.Operation.Gets)`
@@ -21955,24 +23250,33 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_CELL_GETS(tableName, row, columnName [, asId])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Int }; OmitStart = 3.
+- `DT_CELL_GETS(tableName, row, columnName)` → `string`
+- `DT_CELL_GETS(tableName, row, columnName, asId)` → `string`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `row` (int): row index when `asId == 0`, or primary-key value when `asId != 0`.
+- `columnName` (string): column name.
+- `asId` (optional, int; default `0`): non-zero selects by `id`; `0` selects by zero-based row index.
 
 **Semantics**
+- If the table does not exist, returns `""`.
+- If the selected row or column does not exist, returns `""`.
+- If the selected cell is `NULL`, returns `""`.
+- Otherwise returns `value.ToString()`.
+- Numeric cells therefore come back as their decimal string form.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `PRINTFORM %DT_CELL_GETS("db", 0, "name")%`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -21980,7 +23284,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_CELL_SET (expression function)
 **Summary**
-- (TODO)
+- Writes a value, or `NULL`, into a selected cell of a named `DataTable`.
 
 **Metadata**
 - Implementor: `new DataTableCellSetMethod()`
@@ -21988,24 +23292,38 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_CELL_SET(tableName, row, columnName)`
+- `DT_CELL_SET(tableName, row, columnName, value)`
+- `DT_CELL_SET(tableName, row, columnName, value, asId)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Any, ArgType.Int }; OmitStart = 3.
+- `DT_CELL_SET(tableName, row, columnName)` → `long`
+- `DT_CELL_SET(tableName, row, columnName, value)` → `long`
+- `DT_CELL_SET(tableName, row, columnName, value, asId)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `row` (int): row index when `asId == 0`, or primary-key value when `asId != 0`.
+- `columnName` (string): column name.
+- `value` (optional, int|string): replacement value; omission writes `NULL`.
+- `asId` (optional, int; default `0`): non-zero selects by `id`; `0` selects by zero-based row index. This slot is available only when `value` is present.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- If `columnName` resolves to `id` under case-insensitive comparison, returns `0` and refuses the write.
+- If the selected row or column does not exist, returns `-3`.
+- If `value` is omitted, writes `NULL` and returns `1`.
+- If `value` is present but its type does not match the destination column type, returns `-2`.
+- Integer writes to `int8` / `int16` / `int32` columns are clamped to the destination range.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None beyond normal argument evaluation.
 
 **Examples**
-- (TODO)
+- `DT_CELL_SET("db", 0, "age", 18)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22013,7 +23331,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_SELECT (expression function)
 **Summary**
-- (TODO)
+- Runs a `DataTable.Select(...)` query and outputs matching row ids.
 
 **Metadata**
 - Implementor: `new DataTableSelectMethod()`
@@ -22021,24 +23339,37 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_SELECT(tableName [, filterExpression [, sortRule [, outputArray]]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.RefInt1D }; OmitStart = 1.
+- `DT_SELECT(tableName)` → `long`
+- `DT_SELECT(tableName, filterExpression)` → `long`
+- `DT_SELECT(tableName, filterExpression, sortRule)` → `long`
+- `DT_SELECT(tableName, filterExpression, sortRule, outputArray)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `filterExpression` (optional, string): `DataTable.Select` filter expression; omission selects every row.
+- `sortRule` (optional, string): `DataTable.Select` sort rule; omission leaves the default order unchanged.
+- `outputArray` (optional, int[]): destination array for row ids; if omitted, `RESULT` is used instead.
 
 **Semantics**
+- If the table does not exist, returns `-1`.
+- Delegates filtering and sorting directly to `DataTable.Select(...)`.
+- The returned row ids are the values of the table's first column, which is the auto-created `id` primary key.
+- If `outputArray` is omitted, copied ids go to `RESULT:1`, `RESULT:2`, ... and `RESULT:0` is set to the full match count.
+- If `outputArray` is supplied, copied ids go to that array starting at index `0`; `RESULT` is not updated by this path.
+- Copying is clamped to the destination length (`RESULT` loses one slot because index `0` stores the count). Untouched slots are not cleared.
+- The function return value is always the full match count, not the copied count.
+- Explicitly omitted middle arguments remain omitted; for example, supplying only `sortRule` requires an omitted `filterExpression` slot.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `filterExpression` or `sortRule` is rejected by the underlying `DataTable.Select` parser.
 
 **Examples**
-- (TODO)
+- `count = DT_SELECT("db", "age >= 18", "age ASC", ids)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22046,7 +23377,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_TOXML (expression function)
 **Summary**
-- (TODO)
+- Serializes a named `DataTable` to XML and also exposes its schema XML.
 
 **Metadata**
 - Implementor: `new DataTableToXmlMethod()`
@@ -22054,24 +23385,30 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_TOXML(tableName)`
+- `DT_TOXML(tableName, schemaOutput)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString }; OmitStart = 1.
+- `DT_TOXML(tableName)` → `string`
+- `DT_TOXML(tableName, schemaOutput)` → `string`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `schemaOutput` (optional, string variable): destination for schema XML; if omitted, schema is written to `RESULTS:1`.
 
 **Semantics**
+- If the table does not exist, returns `""`.
+- On success, returns the data XML produced by `DataTable.WriteXml(...)`.
+- Also writes the schema XML produced by `DataTable.WriteXmlSchema(...)`.
+- If `schemaOutput` is omitted, that schema string is written to `RESULTS:1`; `RESULTS:0` is not used for this function.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `data '= DT_TOXML("db", schema)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22079,7 +23416,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## DT_FROMXML (expression function)
 **Summary**
-- (TODO)
+- Loads a named `DataTable` from schema XML plus data XML.
 
 **Metadata**
 - Implementor: `new DataTableFromXmlMethod()`
@@ -22087,23 +23424,28 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `DT_FROMXML(tableName, schemaXml, dataXml)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string), typeof(string), typeof(string)]`.
+- `DT_FROMXML(tableName, schemaXml, dataXml)` → `long`
 
 **Arguments**
-- (TODO)
+- `tableName` (string): table identifier.
+- `schemaXml` (string): schema XML consumed by `ReadXmlSchema(...)`.
+- `dataXml` (string): data XML consumed by `ReadXml(...)`.
 
 **Semantics**
+- Builds a fresh `DataTable`, reads `schemaXml`, then reads `dataXml` into it.
+- If both reads succeed, replaces the existing named table or creates a new one and returns `1`.
+- If any step fails, returns `0` and leaves the previously stored table unchanged.
 - Engine-extracted notes (key operations):
   - `var dict = exm.VEvaluator.VariableData.DataDataTables`
 
 **Errors & validation**
-- (TODO)
+- None; all load/parse failures collapse to return value `0`.
 
 **Examples**
-- (TODO)
+- `DT_FROMXML("db", schema, data)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22111,7 +23453,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## MOVETEXTBOX (expression function)
 **Summary**
-- (TODO)
+- Schedules a custom textbox position/width for the next textbox-position apply point used by input waits.
 
 **Metadata**
 - Implementor: `new MoveTextBoxMethod()`
@@ -22119,24 +23461,34 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `MOVETEXTBOX(xOffset, yOffset, width)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
+- `MOVETEXTBOX(xOffset, yOffset, width)` → `long`
 
 **Arguments**
-- (TODO)
+- `xOffset` (int): requested left offset.
+- `yOffset` (int): requested bottom offset.
+- `width` (int): requested textbox width.
 
 **Semantics**
+- Does not immediately move the textbox widget.
+- Instead stores a pending textbox placement that is later applied when the host processes textbox-position changes for primitive input waits.
+- Placement normalization:
+  - `xOffset` is clamped so the textbox stays inside the client area with a minimum width allowance of `50`,
+  - `yOffset` is interpreted from the bottom edge and clamped so the textbox stays fully visible,
+  - `width` is clamped to at least `50` and at most the current host-allowed width.
+- The pending position remains until it is applied or replaced.
+- Returns `1`.
 - Engine-extracted notes (key operations):
   - `if (resume) exm.Console.Window.ResetTextBoxPos()`
   - `else exm.Console.Window.SetTextBoxPos(`
 
 **Errors & validation**
-- (TODO)
+- None beyond normal integer-argument evaluation.
 
 **Examples**
-- (TODO)
+- `MOVETEXTBOX(50, 30, 300)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22144,7 +23496,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## RESUMETEXTBOX (expression function)
 **Summary**
-- (TODO)
+- Immediately restores the textbox to its original/default position.
 
 **Metadata**
 - Implementor: `new MoveTextBoxMethod(true)`
@@ -22152,24 +23504,30 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `RESUMETEXTBOX(dummyX, dummyY, dummyWidth)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
+- `RESUMETEXTBOX(dummyX, dummyY, dummyWidth)` → `long`
 
 **Arguments**
-- (TODO)
+- `dummyX` (int): ignored.
+- `dummyY` (int): ignored.
+- `dummyWidth` (int): ignored.
 
 **Semantics**
+- Current-build quirk: the function is registered with a three-integer call shape, but ignores all three values.
+- Restores the textbox position/size to the host's remembered original/default textbox placement immediately.
+- Clears the pending custom textbox-position state.
+- Returns `1`.
 - Engine-extracted notes (key operations):
   - `if (resume) exm.Console.Window.ResetTextBoxPos()`
   - `else exm.Console.Window.SetTextBoxPos(`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors follow the current three-integer registration.
 
 **Examples**
-- (TODO)
+- `RESUMETEXTBOX(0, 0, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22177,7 +23535,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## EXISTSOUND (expression function)
 **Summary**
-- (TODO)
+- Tests whether a file exists under the runtime's `sound` path prefix.
 
 **Metadata**
 - Implementor: `new ExistSoundMethod()`
@@ -22185,22 +23543,27 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `EXISTSOUND(mediaFile)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `EXISTSOUND(mediaFile)` → `long`
 
 **Arguments**
-- (TODO)
+- `mediaFile` (string): path suffix appended to the `sound` directory prefix.
 
 **Semantics**
-- (TODO)
+- Resolves the path as `./sound/<mediaFile>` under the host's current working directory, then canonicalizes it with the platform's full-path resolver.
+- Returns `1` if that resolved path exists as a file.
+- Returns `0` otherwise.
+- No safe-path normalization is applied here:
+  - subdirectories are allowed,
+  - parent-directory segments such as `..` are not stripped before full-path resolution.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `EXISTSOUND("bgm/theme.ogg")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22208,7 +23571,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## EXISTFUNCTION (expression function)
 **Summary**
-- (TODO)
+- Tests whether a user-defined script function/method label exists, with optional case-insensitive search override.
 
 **Metadata**
 - Implementor: `new ExistFunctionMethod()`
@@ -22216,23 +23579,34 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `EXISTFUNCTION(funcName [, ignoreCase])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int }; OmitStart = 1.
+- `EXISTFUNCTION(funcName)` → `long`
+- `EXISTFUNCTION(funcName, ignoreCase)` → `long`
 
 **Arguments**
-- (TODO)
+- `funcName` (string): target script function label name.
+- `ignoreCase` (optional, int; default `0`): non-zero forces a case-insensitive name scan.
 
 **Semantics**
-- (TODO)
+- Searches only user-defined script labels in the current non-event callable label table.
+- Built-in expression functions are not counted here.
+- Return codes:
+  - `0`: not found,
+  - `1`: ordinary script function label,
+  - `2`: numeric method label,
+  - `3`: string method label.
+- Name matching:
+  - if `ignoreCase` is omitted or `0`, lookup follows the runtime's current string-comparison mode,
+  - if `ignoreCase != 0`, the function performs an explicit case-insensitive scan regardless of the current string-comparison mode.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `kind = EXISTFUNCTION("SHOP")`
+- `kind = EXISTFUNCTION("shop", 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22240,7 +23614,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GDRAWGWITHROTATE (expression function)
 **Summary**
-- (TODO)
+- Draws one graphics surface onto another with rotation.
 
 **Metadata**
 - Implementor: `new GraphicsDrawGWithRotateMethod()`
@@ -22249,24 +23623,36 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GDRAWGWITHROTATE(destID, srcID, angle)`
+- `GDRAWGWITHROTATE(destID, srcID, angle, centerX, centerY)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 3.
+- `GDRAWGWITHROTATE(destID, srcID, angle)` → `long`
+- `GDRAWGWITHROTATE(destID, srcID, angle, centerX, centerY)` → `long`
 
 **Arguments**
-- (TODO)
+- `destID` (int): destination graphics id.
+- `srcID` (int): source graphics id.
+- `angle` (int): clockwise rotation angle in degrees.
+- `centerX` (optional, int): rotation-center x coordinate.
+- `centerY` (optional, int): rotation-center y coordinate.
 
 **Semantics**
-- (TODO)
+- If either graphics surface does not exist or has already been disposed, returns `0`.
+- Three-argument form uses the source image center `(srcWidth / 2, srcHeight / 2)` as the rotation center.
+- Five-argument form uses the supplied center coordinates.
+- On success draws the rotated source and returns `1`.
+- Current-build quirk: the destination graphics transform is not reset afterward, so later draw calls on the same graphics observe the accumulated transform.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if either graphics id is negative or exceeds 32-bit range.
+- Runtime error if `centerX` or `centerY` is outside signed 32-bit range.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GDRAWGWITHROTATE 0, 1, 90`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22274,7 +23660,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GDRAWTEXT (expression function)
 **Summary**
-- (TODO)
+- Draws a string onto a graphics surface and exposes measured size through `RESULT`.
 
 **Metadata**
 - Implementor: `new GraphicsDrawStringMethod()`
@@ -22283,25 +23669,38 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GDRAWTEXT(gID, text)`
+- `GDRAWTEXT(gID, text, x, y)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `GDRAWTEXT(gID, text)` → `long`
+- `GDRAWTEXT(gID, text, x, y)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `text` (string): text to draw.
+- `x` (optional, int; default `0`): draw x coordinate.
+- `y` (optional, int; default `0`): draw y coordinate.
 
 **Semantics**
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- Two-argument form draws at `(0, 0)`.
+- Four-argument form draws at `(x, y)`.
+- Fill / outline behavior follows the current graphics state: the fill uses the current brush or `Config.ForeColor` when no brush is set, and the outline uses the current pen or `Config.ForeColor` when no pen is set.
+- Font behavior follows the current graphics state: if no font has been set with `GSETFONT`, drawing uses `Config.FontName` at size `100` with the current console font style.
+- On success returns `1`, stores measured width in `RESULT:1`, and stores measured height in `RESULT:2`. `RESULT:0` is not used by this function.
 - Engine-extracted notes (key operations):
   - `long[] resultArray = exm.VEvaluator.RESULT_ARRAY`
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if `x` or `y` is outside signed 32-bit range.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GDRAWTEXT 0, "Hello", 20, 30`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22309,7 +23708,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GGETFONT (expression function)
 **Summary**
-- (TODO)
+- Returns the current font family name of a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsStateStrMethod()`
@@ -22318,24 +23717,28 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GGETFONT(gID)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GGETFONT(gID)` → `string`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `""`.
+- Otherwise returns the stored font family name.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if no font has been set yet.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":Abnormal branching")`
 
 **Examples**
-- (TODO)
+- `PRINTFORM %GGETFONT(0)%`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22343,7 +23746,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GGETFONTSIZE (expression function)
 **Summary**
-- (TODO)
+- Returns the current font size of a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsStateMethod()`
@@ -22352,24 +23755,28 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GGETFONTSIZE(gID)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GGETFONTSIZE(gID)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- Otherwise returns the stored font size as an integer.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if no font has been set yet.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `PRINTFORML {GGETFONTSIZE(0)}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22377,7 +23784,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GGETFONTSTYLE (expression function)
 **Summary**
-- (TODO)
+- Returns the current font-style bitmask of a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsStateMethod()`
@@ -22386,24 +23793,28 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GGETFONTSTYLE(gID)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GGETFONTSTYLE(gID)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- Otherwise returns the stored style bitmask using `1=bold`, `2=italic`, `4=strikeout`, `8=underline`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if no font has been set yet.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `PRINTFORML {GGETFONTSTYLE(0)}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22411,7 +23822,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GGETTEXTSIZE (expression function)
 **Summary**
-- (TODO)
+- Measures text with an explicit font specification.
 
 **Metadata**
 - Implementor: `new GraphicsGetTextSizeMethod()`
@@ -22420,25 +23831,33 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GGETTEXTSIZE(text, fontName, fontSize [, fontStyle])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }; OmitStart = 3.
+- `GGETTEXTSIZE(text, fontName, fontSize)` → `long`
+- `GGETTEXTSIZE(text, fontName, fontSize, fontStyle)` → `long`
 
 **Arguments**
-- (TODO)
+- `text` (string): text to measure.
+- `fontName` (string): font family name.
+- `fontSize` (int): pixel size.
+- `fontStyle` (optional, int; default `0`): bitmask `1=bold`, `2=italic`, `4=strikeout`, `8=underline`.
 
 **Semantics**
+- Measures the string using the supplied font specification without drawing anything.
+- Returns the measured width.
+- Also stores the measured height in `RESULT:1`. Other `RESULT` slots are not written by this function.
 - Engine-extracted notes (key operations):
   - `long[] resultArray = exm.VEvaluator.RESULT_ARRAY`
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if the underlying font creation or measurement path fails.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `width = GGETTEXTSIZE("Hello", "Arial", 48, 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22446,7 +23865,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GGETBRUSH (expression function)
 **Summary**
-- (TODO)
+- Returns the current brush color of a graphics surface as unsigned ARGB.
 
 **Metadata**
 - Implementor: `new GraphicsStateMethod()`
@@ -22455,24 +23874,28 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GGETBRUSH(gID)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GGETBRUSH(gID)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- Otherwise returns the current brush color as `0xAARRGGBB` in the range `0 <= value <= 0xFFFFFFFF`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if no brush has been set yet.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `PRINTFORML {GGETBRUSH(0)}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22480,7 +23903,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GGETPEN (expression function)
 **Summary**
-- (TODO)
+- Returns the current pen color of a graphics surface as unsigned ARGB.
 
 **Metadata**
 - Implementor: `new GraphicsStateMethod()`
@@ -22489,24 +23912,28 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GGETPEN(gID)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GGETPEN(gID)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- Otherwise returns the current pen color as `0xAARRGGBB` in the range `0 <= value <= 0xFFFFFFFF`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if no pen has been set yet.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `PRINTFORML {GGETPEN(0)}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22514,7 +23941,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GGETPENWIDTH (expression function)
 **Summary**
-- (TODO)
+- Returns the current pen width of a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsStateMethod()`
@@ -22523,24 +23950,28 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GGETPENWIDTH(gID)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long)]`.
+- `GGETPENWIDTH(gID)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- Otherwise returns the current pen width truncated to `long`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if no pen has been set yet.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
   - `throw new ExeEE("GraphicsState:" + Name + ":異常な分岐")`
 
 **Examples**
-- (TODO)
+- `PRINTFORML {GGETPENWIDTH(0)}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22548,7 +23979,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GETMEMORYUSAGE (expression function)
 **Summary**
-- (TODO)
+- Returns the current process working-set size in bytes.
 
 **Metadata**
 - Implementor: `new GetUsingMemoryMethod()`
@@ -22556,22 +23987,24 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETMEMORYUSAGE()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETMEMORYUSAGE()` → `long`
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
-- (TODO)
+- Returns the current process `WorkingSet64` value.
+- The unit is bytes.
+- This is an operating-system working-set measurement, not a managed-heap-only measurement.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `bytes = GETMEMORYUSAGE()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22579,7 +24012,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## CLEARMEMORY (expression function)
 **Summary**
-- (TODO)
+- Forces a garbage collection and returns the change in process working-set size.
 
 **Metadata**
 - Implementor: `new ClearMemoryMethod()`
@@ -22587,22 +24020,27 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `CLEARMEMORY()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `CLEARMEMORY()` → `long`
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
-- (TODO)
+- Measures the current process working set.
+- Runs `GC.Collect()`.
+- Measures the working set again.
+- Returns `before - after` in bytes.
+- A positive value means the working set became smaller.
+- A negative value is possible if the working set becomes larger instead.
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `freed = CLEARMEMORY()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22610,7 +24048,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## GETTEXTBOX (expression function)
 **Summary**
-- (TODO)
+- Returns the current contents of the host textbox widget.
 
 **Metadata**
 - Implementor: `new GetTextBoxMethod()`
@@ -22618,23 +24056,26 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETTEXTBOX()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETTEXTBOX()` → `string`
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Returns the textbox's current text exactly as stored by the host widget at call time.
+- This does not wait for input.
+- This reads the live widget state, not a saved snapshot.
 - Engine-extracted notes (key operations):
   - `return exm.Console.Window.TextBox.Text`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `s = GETTEXTBOX()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22642,7 +24083,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## SETTEXTBOX (expression function)
 **Summary**
-- (TODO)
+- Replaces the current contents of the host textbox widget.
 
 **Metadata**
 - Implementor: `new ChangeTextBoxMethod()`
@@ -22650,23 +24091,25 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `SETTEXTBOX(text)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(string)]`.
+- `SETTEXTBOX(text)` → `long`
 
 **Arguments**
-- (TODO)
+- `text` (string): replacement textbox content.
 
 **Semantics**
+- Immediately replaces the textbox widget's text with `text`.
+- Returns `1`.
 - Engine-extracted notes (key operations):
   - `exm.Console.Window.ChangeTextBox(arguments[0].GetStrValue(exm))`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `SETTEXTBOX("search text")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22674,7 +24117,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 
 ## ERDNAME (expression function)
 **Summary**
-- (TODO)
+- Reverse-maps an integer value back to an ERD key name for a user-defined variable.
 
 **Metadata**
 - Implementor: `new ErdNameMethod()`
@@ -22683,24 +24126,42 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `ERDNAME(varTerm, value [, dimension])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.RefAny | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }; OmitStart = 2.
+- `ERDNAME(varTerm, value)` → `string`
+- `ERDNAME(varTerm, value, dimension)` → `string`
 
 **Arguments**
-- (TODO)
+- `varTerm` (variable term): selects the declared variable name whose ERD dictionary should be queried.
+  - This function uses only the identifier name.
+  - Any written `:` subscripts do not participate in the reverse lookup itself.
+- `value` (int): integer value to reverse-map.
+- `dimension` (optional, int): ERD dimension selector.
+  - Omitted: uses the base ERD dictionary `name`.
+  - Supplied `n`: uses the ERD dictionary `name@n`.
 
 **Semantics**
+- Performs reverse lookup against ERD dictionaries only.
+- Built-in CSV-name / alias tables are not consulted.
+- Returns the matching key string if the selected ERD dictionary contains an entry whose value equals `value`.
+- Returns `""` if:
+  - `value < 0`,
+  - no matching ERD dictionary exists,
+  - or no key in that dictionary maps to `value`.
+- If multiple ERD keys share the same integer value, scripts should not rely on a stable public choice among them.
 - Engine-extracted notes (key operations):
   - `if (exm.VEvaluator.Constant.TryIntegerToKeyword(out string ret, value, varname))`
 
 **Errors & validation**
-- (TODO)
+- Parse/type error if `varTerm` is not a variable term.
+- Otherwise, missing ERD data is not an error; it returns `""`.
 
 **Examples**
-- (TODO)
+```erabasic
+S = ERDNAME(HOGE3D, 0, 1)
+S = ERDNAME(HOGE3D, 1, 2)
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22854,7 +24315,7 @@ S = GETDISPLAYLINE(0)
 
 ## GDASHSTYLE (expression function)
 **Summary**
-- (TODO)
+- Sets the dash style and dash cap of the current pen on a graphics surface.
 
 **Metadata**
 - Implementor: `new GraphicsSetDashStyleMethod()`
@@ -22863,23 +24324,30 @@ S = GETDISPLAYLINE(0)
 - Note: implementation appears to branch on the method name (`Name`), so aliases may differ by name.
 
 **Syntax**
-- (TODO)
+- `GDASHSTYLE(gID, dashStyle, dashCap)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = [typeof(long), typeof(long), typeof(long)]`.
+- `GDASHSTYLE(gID, dashStyle, dashCap)` → `long`
 
 **Arguments**
-- (TODO)
+- `gID` (int): graphics id.
+- `dashStyle` (int): numeric value written directly to `Pen.DashStyle`.
+- `dashCap` (int): numeric value written directly to `Pen.DashCap`.
 
 **Semantics**
-- (TODO)
+- If the target graphics does not exist or has already been disposed, returns `0`.
+- If no pen has been set yet, this function first creates one in `Config.ForeColor` with width `1`.
+- Then writes the requested dash style / dash cap and returns `1`.
 
 **Errors & validation**
+- Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
+- Runtime error if `gID` is negative or exceeds 32-bit range.
+- Runtime error if the underlying pen rejects the requested enum values.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name))`
 
 **Examples**
-- (TODO)
+- `GDASHSTYLE 0, 1, 3`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22887,7 +24355,7 @@ S = GETDISPLAYLINE(0)
 
 ## GETDOINGFUNCTION (expression function)
 **Summary**
-- (TODO)
+- Returns the name of the currently executing parent label/function.
 
 **Metadata**
 - Implementor: `new GetDoingFunctionMethod()`
@@ -22895,23 +24363,25 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `GETDOINGFUNCTION()`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArray = []`.
+- `GETDOINGFUNCTION()` → `string`
 
 **Arguments**
-- (TODO)
+- None.
 
 **Semantics**
+- Returns the current scanning line's parent label name.
+- Returns `""` if there is no active running function context, for example from a system-wait debug context.
 - Engine-extracted notes (key operations):
   - `LogicalLine line = exm.Process.GetScaningLine()`
 
 **Errors & validation**
-- (TODO)
+- None.
 
 **Examples**
-- (TODO)
+- `fn = GETDOINGFUNCTION()`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22919,7 +24389,7 @@ S = GETDISPLAYLINE(0)
 
 ## FLOWINPUT (expression function)
 **Summary**
-- (TODO)
+- Updates persistent system-flow integer-input behavior flags and defaults.
 
 **Metadata**
 - Implementor: `new FlowInputMethod()`
@@ -22927,16 +24397,33 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `FLOWINPUT(defaultValue [, allowMouseInput [, allowSkip [, forceSkip]]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `FLOWINPUT(defaultValue)` → `long`
+- `FLOWINPUT(defaultValue, allowMouseInput)` → `long`
+- `FLOWINPUT(defaultValue, allowMouseInput, allowSkip)` → `long`
+- `FLOWINPUT(defaultValue, allowMouseInput, allowSkip, forceSkip)` → `long`
 
 **Arguments**
-- (TODO)
+- `defaultValue` (int): stored default integer value for later system-flow waits.
+- `allowMouseInput` (optional, int): when supplied, non-zero enables system-flow mouse/default handling; `0` disables it.
+- `allowSkip` (optional, int): when supplied, non-zero enables skip-driven default resolution for later system-flow waits; `0` disables it.
+- `forceSkip` (optional, int): when supplied, non-zero forces later system-flow waits to prefill the default result immediately; `0` disables it.
 
 **Semantics**
+- This function does not perform an input wait by itself.
+- It mutates persistent process-level flags used later by system-flow waits such as title/shop/save/load flow input prompts.
+- Field update rules:
+  - `defaultValue` is always overwritten,
+  - each later optional flag is overwritten only when that argument is supplied,
+  - omitted later arguments leave their previous stored values unchanged.
+- Future system-flow waits use these stored values as follows:
+  - if `allowMouseInput != 0`, the wait request carries an integer default and enables system-flow mouse input,
+  - if `allowSkip != 0` and message-skip is active, the default integer result is prefilled before the wait state is entered,
+  - if `forceSkip != 0`, the default integer result is prefilled before the wait state is entered even without message-skip.
+- These flags affect only system-flow waits built on the engine's dedicated system-input path, not ordinary script `INPUT*` statements.
+- Returns `0`.
 - Engine-extracted notes (key operations):
   - `exm.Process.flowinputDef = arguments[0].GetIntValue(exm)`
   - `exm.Process.flowinput = arguments[1].GetIntValue(exm) != 0 ? true : false`
@@ -22944,10 +24431,10 @@ S = GETDISPLAYLINE(0)
   - `exm.Process.flowinputForceSkip = arguments[3].GetIntValue(exm) != 0 ? true : false`
 
 **Errors & validation**
-- (TODO)
+- None beyond normal integer-argument evaluation.
 
 **Examples**
-- (TODO)
+- `FLOWINPUT(0, 1, 1, 0)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22955,7 +24442,7 @@ S = GETDISPLAYLINE(0)
 
 ## FLOWINPUTS (expression function)
 **Summary**
-- (TODO)
+- Updates persistent system-flow string-input mode and its stored default string.
 
 **Metadata**
 - Implementor: `new FlowInputsMethod()`
@@ -22963,25 +24450,36 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `FLOWINPUTS(enableStringMode [, defaultString])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.String }; OmitStart = 1.
+- `FLOWINPUTS(enableStringMode)` → `long`
+- `FLOWINPUTS(enableStringMode, defaultString)` → `long`
 
 **Arguments**
-- (TODO)
+- `enableStringMode` (int): non-zero switches future system-flow waits to string-input mode; `0` switches them back to integer-input mode.
+- `defaultString` (optional, string): stored default string for later system-flow waits.
 
 **Semantics**
+- This function does not perform an input wait by itself.
+- It mutates persistent process-level state used later by system-flow waits.
+- Field update rules:
+  - `enableStringMode` is always overwritten,
+  - `defaultString` is overwritten only when supplied,
+  - omitted `defaultString` leaves the previous stored default string unchanged.
+- When string mode is enabled, future system-flow waits request string input instead of integer input.
+- The stored default string is injected into the actual wait request only when `FLOWINPUT`'s mouse/default mode is also enabled.
+- These flags affect only system-flow waits built on the engine's dedicated system-input path, not ordinary script `INPUT*` statements.
+- Returns `0`.
 - Engine-extracted notes (key operations):
   - `exm.Process.flowinputString = arguments[0].GetIntValue(exm) != 0 ? true : false`
   - `exm.Process.flowinputDefString = arguments[1].GetStrValue(exm)`
 
 **Errors & validation**
-- (TODO)
+- None beyond normal argument evaluation.
 
 **Examples**
-- (TODO)
+- `FLOWINPUTS(1, "")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -22989,7 +24487,7 @@ S = GETDISPLAYLINE(0)
 
 ## GETMETH (expression function)
 **Summary**
-- (TODO)
+- Dynamically calls a user-defined numeric in-expression function by name.
 
 **Metadata**
 - Implementor: `new GetMethMethod()`
@@ -22997,25 +24495,41 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETMETH(name [, defaultValue [, args ...]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.Int, ArgType.VariadicAny }; OmitStart = 1.
+- `GETMETH(name)` → `long`
+- `GETMETH(name, defaultValue)` → `long`
+- `GETMETH(name, defaultValue [, args ...])` → `long`
 
 **Arguments**
-- (TODO)
+- `name` (string): target method name.
+- `defaultValue` (optional, int): fallback return used only when no matching user-defined method is found.
+- `args...` (optional, any): arguments forwarded to the resolved target method.
 
 **Semantics**
-- (TODO)
+- Resolves only user-defined in-expression functions/methods.
+- Built-in expression functions are not searched here.
+- `defaultValue` is a reserved fallback slot and is **not** forwarded to the target call.
+  - To pass call arguments without a fallback, omit that slot explicitly.
+- If no matching user-defined method is found:
+  - returns `defaultValue` when it is present,
+  - otherwise raises a runtime error.
+- If a same-name script label exists but is not a method, this is an error, not a `not found` fallback case.
+- If a matching method exists but the forwarded arguments are invalid, this is an error, not a fallback case.
+- If a matching method exists but returns string type, this function raises a numeric-type mismatch error.
 
 **Errors & validation**
+- Runtime error when no method is found and `defaultValue` is omitted.
+- Runtime error when the name resolves to a non-method script label.
+- Runtime error when the resolved call fails argument validation.
+- Runtime error when the resolved method is not integer-typed.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.NotDefinedUserFunc.Text, name))`
   - `throw new CodeEE(string.Format(trerror.IsNotInt.Text, name))`
 
 **Examples**
-- (TODO)
+- `score = GETMETH("MYSCORE", 0, 1, 2)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -23023,7 +24537,7 @@ S = GETDISPLAYLINE(0)
 
 ## GETMETHS (expression function)
 **Summary**
-- (TODO)
+- Dynamically calls a user-defined string in-expression function by name.
 
 **Metadata**
 - Implementor: `new GetMethsMethod()`
@@ -23031,25 +24545,41 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `GETMETHS(name [, defaultValue [, args ...]])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }; OmitStart = 1.
+- `GETMETHS(name)` → `string`
+- `GETMETHS(name, defaultValue)` → `string`
+- `GETMETHS(name, defaultValue [, args ...])` → `string`
 
 **Arguments**
-- (TODO)
+- `name` (string): target method name.
+- `defaultValue` (optional, string): fallback return used only when no matching user-defined method is found.
+- `args...` (optional, any): arguments forwarded to the resolved target method.
 
 **Semantics**
-- (TODO)
+- Resolves only user-defined in-expression functions/methods.
+- Built-in expression functions are not searched here.
+- `defaultValue` is a reserved fallback slot and is **not** forwarded to the target call.
+  - To pass call arguments without a fallback, omit that slot explicitly.
+- If no matching user-defined method is found:
+  - returns `defaultValue` when it is present,
+  - otherwise raises a runtime error.
+- If a same-name script label exists but is not a method, this is an error, not a `not found` fallback case.
+- If a matching method exists but the forwarded arguments are invalid, this is an error, not a fallback case.
+- If a matching method exists but returns integer type, this function raises a string-type mismatch error.
 
 **Errors & validation**
+- Runtime error when no method is found and `defaultValue` is omitted.
+- Runtime error when the name resolves to a non-method script label.
+- Runtime error when the resolved call fails argument validation.
+- Runtime error when the resolved method is not string-typed.
 - Engine-extracted notes (throws/errors):
   - `throw new CodeEE(string.Format(trerror.NotDefinedUserFunc.Text, name))`
   - `throw new CodeEE(string.Format(trerror.IsNotStr.Text, name))`
 
 **Examples**
-- (TODO)
+- `name = GETMETHS("MYNAME", "", 1, 2)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -23057,7 +24587,7 @@ S = GETDISPLAYLINE(0)
 
 ## EXISTMETH (expression function)
 **Summary**
-- (TODO)
+- Tests whether a user-defined in-expression function is callable with zero arguments.
 
 **Metadata**
 - Implementor: `new ExistMethMethod()`
@@ -23065,22 +24595,32 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `true`
 
 **Syntax**
-- (TODO)
+- `EXISTMETH(name)`
 
 **Signatures / argument rules**
-- Argument rules: custom check (no `argumentTypeArray`/`argumentTypeArrayEx` assignment detected).
+- `EXISTMETH(name)` → `long`
 
 **Arguments**
-- (TODO)
+- `name` (string): target method name.
 
 **Semantics**
-- (TODO)
+- Resolves only user-defined in-expression functions/methods.
+- Built-in expression functions are not searched here.
+- Resolution is attempted with zero forwarded call arguments.
+- Returns `0` if:
+  - no matching user-defined method is found,
+  - the same-name label is not a method,
+  - or zero-argument resolution fails.
+- Otherwise returns a bitmask describing the resolved zero-arg callable result type:
+  - `1`: callable as integer,
+  - `2`: callable as string,
+  - `3`: supports both.
 
 **Errors & validation**
-- (TODO)
+- None; resolution failures collapse to `0`.
 
 **Examples**
-- (TODO)
+- `kind = EXISTMETH("MYSCORE")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -23088,7 +24628,7 @@ S = GETDISPLAYLINE(0)
 
 ## BITMAP_CACHE_ENABLE (expression function)
 **Summary**
-- (TODO)
+- Toggles bitmap-cache rendering for subsequently created output lines.
 
 **Metadata**
 - Implementor: `new BitmapCacheEnableMethod()`
@@ -23096,23 +24636,26 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `BITMAP_CACHE_ENABLE(enable)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int }; OmitStart = 1.
+- `BITMAP_CACHE_ENABLE(enable)` → `long`
 
 **Arguments**
-- (TODO)
+- `enable` (int): non-zero enables bitmap-cache mode for future lines; `0` disables it.
 
 **Semantics**
-- (TODO)
+- Sets the console's persistent `bitmapCacheEnabledForNextLine` flag.
+- Each future printed line copies that flag when the line object is created.
+- Existing already-created lines are not retroactively changed.
+- The setting remains in effect for subsequent lines until another call changes it.
+- Returns `0`.
 
 **Errors & validation**
-- (TODO)
+- None beyond normal integer-argument evaluation.
 
 **Examples**
-- (TODO)
+- `BITMAP_CACHE_ENABLE(1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -23120,7 +24663,7 @@ S = GETDISPLAYLINE(0)
 
 ## HOTKEY_STATE (expression function)
 **Summary**
-- (TODO)
+- Writes one entry in the host hotkey state array used by the optional hotkey subsystem.
 
 **Metadata**
 - Implementor: `new HotkeyStateMethod()`
@@ -23128,23 +24671,26 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `HOTKEY_STATE(index, value)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int, ArgType.Int }; OmitStart = 1.
+- `HOTKEY_STATE(index, value)` → `long`
 
 **Arguments**
-- (TODO)
+- `index` (int): state-array index to update.
+- `value` (int): new value to store.
 
 **Semantics**
-- (TODO)
+- Writes `state[index] = value` in the host hotkey state array.
+- This affects only the optional host hotkey subsystem; by itself it does not enable hotkeys.
+- Returns `0`.
 
 **Errors & validation**
-- (TODO)
+- Runtime error if the state array was not initialized first via `HOTKEY_STATE_INIT`.
+- Runtime error if `index` is outside the allocated state-array bounds.
 
 **Examples**
-- (TODO)
+- `HOTKEY_STATE(2, 1)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -23152,7 +24698,7 @@ S = GETDISPLAYLINE(0)
 
 ## HOTKEY_STATE_INIT (expression function)
 **Summary**
-- (TODO)
+- Allocates/reinitializes the host hotkey state array used by the optional hotkey subsystem.
 
 **Metadata**
 - Implementor: `new HotkeyStateInitMethod()`
@@ -23160,23 +24706,25 @@ S = GETDISPLAYLINE(0)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `HOTKEY_STATE_INIT(size)`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.Int }; OmitStart = 1.
+- `HOTKEY_STATE_INIT(size)` → `long`
 
 **Arguments**
-- (TODO)
+- `size` (int): new state-array length.
 
 **Semantics**
-- (TODO)
+- Allocates a new hotkey state array of length `size`.
+- Any previous hotkey state array contents are discarded.
+- This prepares the array later used by `HOTKEY_STATE` and the optional hotkey subsystem.
+- Returns `0`.
 
 **Errors & validation**
-- (TODO)
+- Runtime error if `size` is negative or otherwise invalid for array allocation.
 
 **Examples**
-- (TODO)
+- `HOTKEY_STATE_INIT(8)`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)

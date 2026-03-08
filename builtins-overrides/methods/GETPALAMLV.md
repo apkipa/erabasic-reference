@@ -1,0 +1,35 @@
+**Summary**
+- Converts a raw value into a level number by comparing it against the current `PALAMLV` threshold table.
+
+**Tags**
+- numeric
+
+**Syntax**
+- `GETPALAMLV(value, maxLv)`
+
+**Signatures / argument rules**
+- `GETPALAMLV(value, maxLv)` → `long`
+
+**Arguments**
+- `value` (int): value to compare against the current `PALAMLV` thresholds.
+- `maxLv` (int): maximum level boundary to inspect.
+
+**Semantics**
+- Reads the current runtime `PALAMLV` array, not a baked copy.
+- For each `i` with `0 <= i < maxLv`, compares `value` against `PALAMLV:i+1`.
+- Returns the first `i` such that `value < PALAMLV:i+1`.
+- If no such `i` exists, returns `maxLv`.
+- Therefore the result is effectively “how many leading level boundaries are less than or equal to `value`”, capped at `maxLv`.
+- No clamping is applied to `maxLv`:
+  - if `maxLv <= 0`, the loop is skipped and the function returns `maxLv` as-is,
+  - if `maxLv` is larger than the readable `PALAMLV` boundary range, the function fails when it reads past the table.
+
+**Errors & validation**
+- No special validation beyond normal integer-argument evaluation.
+- Runtime failure if `maxLv` makes the function read beyond the current `PALAMLV` array.
+
+**Examples**
+- `lv = GETPALAMLV(PALAM:0, 5)`
+
+**Progress state**
+- complete

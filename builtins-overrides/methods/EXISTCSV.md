@@ -13,12 +13,15 @@
 
 **Arguments**
 - `charaNo` (int): character template `NO` to look up.
-- `isSp` (optional, int; default `0`): whether to look up in the SP-character template set.
-  - `0`: normal character templates
-  - non-zero: SP character templates
+- `isSp` (optional, int; default `0`): legacy SP-character compatibility argument.
+  - `0`: ordinary call shape.
+  - non-zero: accepted only when `CompatiSPChara=YES`.
 
 **Semantics**
-- Returns `1` if a character template exists for `charaNo` in the selected template set, otherwise returns `0`.
+- Returns `1` if a character template exists for `charaNo`, otherwise returns `0`.
+- Compatibility quirk:
+  - `isSp != 0` is accepted only when `CompatiSPChara=YES`,
+  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `isSp` alone to disambiguate duplicate template definitions.
 
 **Errors & validation**
 - Runtime error if `isSp != 0` while the compatibility option “use SP characters” is disabled (`CompatiSPChara = false`).
@@ -28,4 +31,3 @@
 
 **Progress state**
 - complete
-
