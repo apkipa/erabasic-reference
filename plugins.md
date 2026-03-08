@@ -314,9 +314,9 @@ The output-facing helpers are thin host calls; they do not reparse ERB source un
   - `oneInput` controls the request's single-input mode.
   - `timelimit > 0` enables the host timer path for that wait request.
 - `WaitInput(...)` does **not** configure a typed ERB input mode such as integer/string/button input.
-  - In this build it behaves as a host-side pause/wait request rather than a typed `INPUT*` equivalent.
+  - In this engine it behaves as a host-side pause/wait request rather than a typed `INPUT*` equivalent.
   - When the wait later completes, the accepted input is echoed to output, but no typed value is dispatched into the script input handlers through this helper alone.
-- `ReadAnyKey()` is a misleading name in this build: the plugin-exposed zero-argument form waits for Enter or a click, not for an arbitrary keyboard key.
+- `ReadAnyKey()` is a misleading name in this engine: the plugin-exposed zero-argument form waits for Enter or a click, not for an arbitrary keyboard key.
 - `Await(time)` enters the host sleep/wait state, processes pending UI events, and sleeps for `time` milliseconds when `time > 0`.
 - `Quit(force: false)` requests normal host shutdown. `Quit(force: true)` uses the host's force-quit path instead.
 - `ForceStopTimer()` stops the host-side input timer mechanism if one is active.

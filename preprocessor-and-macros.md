@@ -41,7 +41,7 @@ All directives below are **case-insensitive** under the engine’s configured co
 Notes:
 
 - Nested `[SKIPSTART]` is warned as a duplicate; skip mode remains active.
-- While skip mode is active, the loader still recognizes and processes further preprocessor directives (so nesting inside skip blocks still affects the internal preprocessor stacks), but non-preprocessor lines are ignored.
+- While skip mode is active, the loader still recognizes and processes further preprocessor directives (so nesting inside skip blocks still affects preprocessor nesting state), but non-preprocessor lines are ignored.
 
 #### `[IF_DEBUG] ... [ELSEIF] ... [ELSE] ... [ENDIF]`
 
@@ -67,7 +67,7 @@ The loader uses warnings for most preprocessor mistakes (and continues loading):
 - unexpected/mismatched end markers (e.g. `[ENDIF]` without an open IF, `[SKIPEND]` without `[SKIPSTART]`) → warning
 - invalid bracket syntax (e.g. missing closing `]`) → warning
 
-At end-of-file, if there are unmatched directives left on the internal stack, the loader emits **one** warning for the topmost missing end marker.
+At end-of-file, if there are unmatched directives left in preprocessor nesting state, the loader emits **one** warning for the topmost missing end marker.
 
 ### 1.4 Interaction with line continuation blocks (`{...}`)
 
@@ -93,17 +93,17 @@ lexes as if it were:
 
     X = 5 + 5
 
-### 2.1 Declaration model (this engine flavor)
+### 2.1 Declaration model (this engine)
 
 - `#DEFINE NAME ...replacement...` declares a macro named `NAME`.
 - Empty macros are allowed: `#DEFINE NAME` defines `NAME` with an empty replacement.
 - The engine checks macro names for collisions with reserved identifiers and emits warnings/errors accordingly.
 
-Function-like macros (`#DEFINE NAME(arg1,...) ...`) are recognized by older/other code paths, but **this codebase rejects them in ERH** (declaring one is an error).
+Function-like macros (`#DEFINE NAME(arg1,...) ...`) are recognized by older/other code paths, but **this engine rejects them in ERH** (declaring one is an error).
 
 ### 2.2 Expansion model (token-based, bounded)
 
-Expansion happens after lexing, over the `WordCollection`:
+Expansion happens after lexing, over the token sequence:
 
 - The lexer scans left-to-right.
 - When it sees an identifier token matching a macro name, it replaces that one identifier token with the macro’s replacement token sequence.

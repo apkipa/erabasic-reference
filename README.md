@@ -11,7 +11,7 @@ This folder is intended to be **self-contained**: you should be able to read and
 This reference has two “layers”:
 
 - **Spec-facing**: rules you need for a compatible implementation.
-- **Implementation-oriented notes**: how this specific engine is wired internally (helpful, but not always normative).
+- **Engine-behavior notes**: engine-specific behavior that helps match compatibility boundaries, even when it is not purely normative.
 
 ### Spec-facing (core language)
 

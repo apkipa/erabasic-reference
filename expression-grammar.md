@@ -292,7 +292,7 @@ Notable rule:
 
 ## 8) Non-normative: Emuera’s expression parsing and evaluation model
 
-This section is **not** part of EraBasic’s expression *syntax*. It is an implementation note that helps explain where certain expression work happens (parse time vs runtime).
+This section is **not** part of EraBasic’s expression *syntax*. It is a supplementary engine-model note that helps explain where certain expression work happens (parse time vs runtime).
 
 ### 8.1 Parse time: operator-precedence reduction → expression tree
 

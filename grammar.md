@@ -479,7 +479,7 @@ erh_directive   ::= "DEFINE" WS IDENT WS macro_replacement
                  ;
 ```
 
-Key implementation notes:
+Key compatibility notes:
 
 - `#DEFINE` in this engine supports **empty macros** (no replacement tokens), but **does not allow function-like macros** (`NAME(arg1,...)`): those are explicitly rejected.
 - `#FUNCTION/#FUNCTIONS` in ERH are recognized by the loader, but are currently not implemented and therefore error if encountered.
