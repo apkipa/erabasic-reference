@@ -26,7 +26,8 @@ This allows writing method names as standalone statements (without `=` assignmen
 
 Statement form (best-effort description):
 - A line whose keyword matches an expression function name is executed by a shared internal instruction (`METHOD_Instruction`).
-- The argument text is parsed as comma-separated expressions (parentheses are allowed but not required).
+- Instruction-style separation still applies after the keyword: `TOSTR 42` or `TOSTR (42)` can work, but `TOSTR(42)` is rejected before method-argument parsing begins.
+- The remaining argument text is parsed as comma-separated expressions.
 - The engine validates argument types/count using the method’s own argument checker.
 - The method is evaluated; if it returns:
   - `long`: assigns `RESULT` (integer).

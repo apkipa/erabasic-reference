@@ -82,5 +82,6 @@ When parsing a normal ERB statement line (not a label, not `#`, not a preprocess
 
 - If the first character is `+` or `-`, the parser routes the line into the **prefix increment/decrement statement** special-case (`++X` / `--X`).
 - If the line starts with `+`/`-` but is not actually `++`/`--`, the line is rejected as an invalid line (it is not treated as a general “expression statement”).
+- This special-case covers only the **prefix** whole-line forms because they are detected from the first character. Standalone postfix forms (`X++` / `X--`) are also accepted by the engine, but they reach the later assignment-candidate path instead; see `grammar.md`.
 
 This is an engine parsing rule, not a general EraBasic grammar rule.

@@ -80,7 +80,7 @@ arglist_sig     ::= "(" arglist_define ")"
                   | "," arglist_define
                   ;
 
-statement_line  ::= prefix_incdec
+statement_line  ::= incdec_stmt
                   | instruction_stmt
                   | assignment_stmt
                   ;
@@ -260,14 +260,13 @@ Assignment operators accepted by the lexer in assignment context:
 - `+=`, `-=`, `*=`, `/=`, `%=`
 - `<<=`, `>>=`
 - `|=`, `&=`, `^=`
-- postfix `++`, `--`
+- postfix `++`, `--` (recognized by the lexer here, but factored out as `incdec_stmt` in the user-facing statement grammar)
 - string assignment operator `'=`
 
 ```ebnf
 assignment_stmt  ::= VAR_TERM assign_op assign_rhs ;
 assign_op        ::= "=" | "==" | "+=" | "-=" | "*=" | "/=" | "%="
                    | "<<=" | ">>=" | "|=" | "&=" | "^="
-                   | "++" | "--"
                    | "'="
                    ;
 assign_rhs       ::= assignment_rhs_region ;
@@ -275,7 +274,7 @@ assign_rhs       ::= assignment_rhs_region ;
 
 Notes:
 
-- The exact RHS parsing depends on the LHS variable’s type (integer vs string) and on the operator. Some operators require the RHS to be empty (postfix `++/--`).
+- The exact RHS parsing depends on the LHS variable’s type (integer vs string) and on the operator. Standalone postfix `++/--` are covered by `incdec_stmt`, so `assignment_stmt` itself always has an RHS region.
 - For integer variables, multiple comma-separated RHS values can be accepted for array assignment when using `=`.
 - For string variables:
   - `=` parses the RHS using the **formatted-string (FORM) scanner**, not the normal expression lexer.
