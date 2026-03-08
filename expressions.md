@@ -189,13 +189,14 @@ Highlights:
 
 `++` and `--` are available both:
 
-- as **statement forms** (a whole line), and
+- as **whole-line statement forms** (`++X`, `--X`, `X++`, `X--`), and
 - as **expression operators** inside larger expressions.
 
 They apply only to **integer** (numeric) variable terms and have side effects:
 
 - Prefix `++X` / `--X` increments/decrements `X` and yields the **new** value.
 - Postfix `X++` / `X--` increments/decrements `X` and yields the **old** value.
+- When used as a whole-line statement, that yielded value is discarded; only the side effect remains observable.
 
 They are rejected if the operand is not a variable term or is a const variable.
 

@@ -185,6 +185,7 @@ Constraints:
 - The parser accepts **at most one** postfix `++/--` on a primary; forms such as `X++++` are rejected.
 - The parser also rejects combining prefix and postfix increment/decrement on the same primary (for example `++X++`).
 - `X++` / `X--` yield the **old** value.
+- The same prefix/postfix `++/--` forms are also accepted as standalone statements; see `grammar.md`.
 
 ### 4.4 Binary operator ladder
 

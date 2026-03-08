@@ -207,11 +207,15 @@ Constraints enforced by the engine:
 
 ## 6) EBNF: statement forms
 
-### 6.1 Prefix increment / decrement
+### 6.1 Standalone increment / decrement
 
 ```ebnf
-prefix_incdec   ::= ("++" | "--") VAR_TERM ;
+incdec_stmt     ::= ("++" | "--") VAR_TERM
+                  | VAR_TERM ("++" | "--")
+                  ;
 ```
+
+As a standalone statement, the yielded value is discarded; only the variable update is observable.
 
 ### 6.2 Instruction statement (generic)
 
@@ -248,7 +252,7 @@ Important compatibility detail:
 
 - Assignment syntax is routed through a dedicated assignment-instruction path rather than through a normal user-callable `SET` keyword.
 - As a result, writing a line that literally starts with `SET ...` does **not** invoke assignment behavior.
-- Assignment statements and standalone prefix `++X` / `--X` lines are still represented as ordinary `InstructionLine`s and are executed by the normal interpreter loop like other instruction lines.
+- Assignment statements and standalone increment/decrement lines (`++X`, `--X`, `X++`, `X--`) are still represented as ordinary `InstructionLine`s and are executed by the normal interpreter loop like other instruction lines.
 
 Assignment operators accepted by the lexer in assignment context:
 

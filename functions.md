@@ -51,26 +51,51 @@ Expression functions (built-in methods and user-defined `#FUNCTION/#FUNCTIONS`) 
 
 - `X = FOO(1, 2)`
 
-This engine also supports statement-style invocation in two different ways:
+This engine also supports statement-level method execution in three related forms:
 
 1) **Statement-form method execution (keyword = method name)**
 
 - If a line’s keyword matches a registered expression function name, the engine executes that function and writes:
   - numeric result → `RESULT`
   - string result → `RESULTS`
-- This is available only when the method name is also registered as an instruction keyword (no conflict with an existing instruction keyword).
+- This path exists only when no ordinary instruction keyword already owns that name. Built-in methods and user-defined `#FUNCTION/#FUNCTIONS` are auto-exposed in statement form only on non-conflicting names.
+- Statement form still uses instruction-style argument parsing, not expression-call syntax.
+  - Valid standalone line: `TOSTR 42`
+  - Invalid standalone line: `TOSTR(42)`
 
 2) **`CALLF` / `CALLFORMF` (explicit method-name call)**
 
 - `CALLF` / `CALLFORMF` resolve and evaluate an expression function by name.
 - In this engine, these instructions **do not** assign the return value into `RESULT/RESULTS` (the value is computed and discarded).
-  - Use expression-call form (assignment) if you need the value.
+  - Use expression-call form or statement-form method execution if you need the value in `RESULT` / `RESULTS`.
 
 3) **`TRYCALLF` / `TRYCALLFORMF` (soft user-method call)**
 
 - These resolve only **user-defined** expression functions (`#FUNCTION/#FUNCTIONS`). Built-in expression methods are not part of this lookup.
 - If no callable user-defined expression function is resolved, the instruction is a no-op.
 - Like `CALLF`, the return value is computed and discarded.
+
+Examples:
+
+```erabasic
+TOSTR 12
+; writes RESULTS = "12"
+
+CALLF TOSTR, 12
+; computes "12" but does not write RESULTS
+```
+
+```erabasic
+@ADD1(ARG:0)
+#FUNCTION
+    RETURNF ARG:0 + 1
+
+ADD1 41
+; if no ordinary instruction named ADD1 exists, writes RESULT = 42
+
+TRYCALLF ADD1, 41
+; runs the user-defined method if it exists, but still does not write RESULT
+```
 
 Important boundary rule:
 
