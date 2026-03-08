@@ -91,7 +91,7 @@ Where described today:
 
 - ✅ Label grammar (allowed chars, begin-with-digit rules, case-sensitivity).
 - ✅ Duplicate labels, multi-definition ordering, and event grouping rules.
-- 🟡 Interaction with “event function” categories and attributes (runtime meaning is partly in `runtime-model.md`).
+- ✅ Interaction with “event function” categories and attributes: event-name set, grouped dispatch order, return-driven control flow, and `CompatiCallEvent` compatibility behavior are specified across `labels.md` and `runtime-model.md`.
 
 Where described today:
 
@@ -135,7 +135,7 @@ Where described today:
 - ✅ Short-circuit semantics (`&&`, `||`, `!&`, `!|`, ternary; `^^` does not short-circuit).
 - ✅ Ternary operators (numeric `? #` and string `\@ ? # \@`), including parse rules and nesting.
 - ✅ Increment/decrement (`++/--`) as statement and expression operators (variable-only, const rejection, prefix vs postfix result value).
-- 🟡 String comparison semantics in expressions (ordering/equality, case-sensitivity, and config-dependent comparison modes).
+- 🟡 String comparison semantics in expressions (especially the full config-dependent comparison matrix and any remaining corner cases beyond the documented core rules).
 - 🟡 Numeric edge cases and exception behavior:
   - division/modulo by zero
   - negative division/modulo semantics
@@ -144,12 +144,12 @@ Where described today:
 
 ### 6.3 String expressions and FORM syntax
 
-- 🟡 Formal definition of “string expression” vs “raw string argument”.
+- ✅ Formal definition of “string expression” vs “raw string argument” at the language/tooling boundary.
 - ✅ `%...%` and `{...}` interpolation grammar, compilation, and evaluation semantics.
 - ✅ `@"..."` rules (FORM-in-string-expression literal) and `\@...\@` string-ternary literal form.
 - ✅ Escape rules inside FORM literal segments.
 - 🟡 Where FORM is accepted vs treated as literal text (command-category-dependent).
-- 🟡 Load-time expression normalization/optimization that can affect observable evaluation (constant folding and “restructuring”).
+- ✅ Load-time expression normalization/optimization that can affect observable evaluation (constant folding and “restructuring”).
 
 Where described today:
 
@@ -201,8 +201,8 @@ Where described today:
 
 ## 9) Error/warning model (core)
 
-- 🟡 Taxonomy of parse-time vs load-time vs runtime errors.
-- 🟡 Warning vs error behavior for missing functions, reserved words, overrides, etc.
+- ✅ Taxonomy of parse-time vs load-time vs runtime errors.
+- 🟡 Warning vs error behavior for every individual diagnostic family is still incomplete, but the core warning/error model and error-line mechanics are specified.
 - ✅ Line/position reporting and how concatenated lines map to file locations.
 
 Where described today:
@@ -222,18 +222,18 @@ This matters for compatibility because:
 
 Coverage target (core-compat requirements):
 
-- 🟡 Enumerate phases and legal transitions.
-- 🟡 Specify which labels are called in each phase (including required/optional labels and default fallbacks when labels are missing).
-- 🟡 Specify mandatory “must execute `BEGIN`” contracts (and error behavior when violated), e.g. `@SYSTEM_TITLE`, `@EVENTFIRST`, `@EVENTEND`, `@EVENTTURNEND`, and post-load hooks.
-- 🟡 Specify the key variable initialization/reset performed when entering phases (e.g. TRAIN pre-initialization, whether SHOP skips `@EVENTSHOP` after load).
-- 🟡 Specify which parts are configurable via `_replace.csv` / config (e.g. input ranges) vs fixed.
-- 🟡 Specify the minimal host I/O contract that system flow depends on:
+- ✅ Enumerate phases and legal transitions.
+- ✅ Specify which labels are called in each phase (including required/optional labels and default fallbacks when labels are missing).
+- ✅ Specify mandatory “must execute `BEGIN`” contracts (and error behavior when violated), including `@SYSTEM_TITLE`, `@EVENTFIRST`, `@EVENTEND`, `@EVENTTURNEND`, and the distinct post-load fallback path.
+- ✅ Specify the key variable initialization/reset performed when entering phases (including TRAIN pre-initialization and the post-load SHOP fallback that skips `@EVENTSHOP`).
+- 🟡 Specify which parts are configurable via `_replace.csv` / config (including a tighter inventory of host message texts/ranges that are data-driven vs fixed).
+- ✅ Specify the minimal host I/O contract that system flow depends on:
   - system input request behavior (integer parsing, defaults, and retry behavior on invalid input)
   - console output buffering concepts referenced by system flow (e.g. “temporary line” affecting re-prompt vs full redraw)
 
 Where described today:
 
-- 🟡 `system-flow.md` (system phases, entry points, and phase-entry resets)
+- ✅ `system-flow.md` (system phases, entry points, required transitions, save/load UI flow, and phase-entry resets)
 
 ## 11) Built-in commands/functions
 
@@ -287,16 +287,16 @@ Where described today:
 ### 11.2 Input model (console)
 
 - ✅ Shared input-request lifecycle, submission paths, segment draining/discard rules, one-input segment semantics, and `MesSkip` auto-advance model: `input-flow.md`.
-- 🟡 Choice input:
-  - how the engine decides that input is expected (e.g. after printing buttons vs explicit input instructions)
-  - what forms of user input are accepted (button click vs typed number) and their precedence
+- ✅ Choice/input-request entry conditions and shared submission paths:
+  - how waits become active (explicit input instructions vs selectable buttons already present)
+  - button-click submission vs textbox submission, including the boundary against `CBG` hit-maps
 - 🟡 Integer input parsing contract:
-  - trimming, sign handling, and rejection conditions
-  - retry/prompt loop behavior on invalid input
-  - default value behavior when the user submits an empty input (if supported by that prompt)
-- 🟡 Time-limited input and “one input” vs “multi input” request kinds (where supported by built-ins)
+  - shared trimming/sign/rejection behavior is documented
+  - per-prompt retry/default rules and host-side invalid-input messaging still need fuller per-built-in coverage
+- 🟡 Time-limited input and request-kind differences beyond the shared model (per built-in timeout/cancel/result contracts).
 - 🟡 Blocking input instructions and their observable effects on output:
-  - `INPUT` / `WAIT` / `TINPUT` family: whether they flush pending output before waiting, and what they return on timeout/cancel
+  - the shared wait/submission flow is documented
+  - per built-in flush points and timeout/cancel return values still need fuller catalog coverage
 - 🟡 Keyboard/mouse state built-ins and their interaction with the input loop:
   - `GETKEY`, `GETKEYTRIGGERED`, `MOUSEX`, `MOUSEY`, `MOUSEB`, `MOUSESKIP` (coordinate system, polling vs event semantics, and when values update)
 - ✅ Mouse input “mapping color” side channel for `<img srcm='...'>`:
@@ -331,7 +331,7 @@ Where described today:
 
 ### 11.5 Save/load UI behaviors beyond on-disk formats
 
-- 🟡 Save/load phase hooks and default fallback behavior when optional hooks are missing.
+- ✅ Save/load phase hooks and default fallback behavior when optional hooks are missing.
 - 🟡 Save-slot “sidecar” files written/read by built-ins (often used by games for save/load UIs):
   - image: `SavDir/img{index:0000}.png` (via `GSAVE/GLOAD`)
   - text: `SavDir/txt{index:00}.txt` (via `SAVETEXT/LOADTEXT`)
@@ -367,7 +367,9 @@ These items are **observable engine features** but are deferred because they are
  - ✅ Expression grammar (EBNF + precedence): `expression-grammar.md`.
  - ✅ FORM/formatted-string subgrammar: `formatted-strings.md`.
 4) 🟡 Finish the **runtime model** for variables, call stack, and control-flow constructs.
-   - 🟡 Core runtime model (stack, events, scopes) exists but still has gaps: `runtime-model.md`.
-5) 🟡 Specify the **system phase state machine** (host flow) as a reimplementable contract (TITLE/SHOP/TRAIN/...): `system-flow.md`.
+   - 🟡 Core runtime model (stack, events, scopes, and event-dispatch mechanics) exists but still has gaps: `runtime-model.md`.
+5) 🟡 Specify the **system phase state machine** (host flow) as a reimplementable contract (TITLE/SHOP/TRAIN/...).
+   - ✅ Core phase/state-machine contract is now documented in `system-flow.md`; remaining gaps are mainly narrower config/data-driven detail.
 6) 🟡 Specify **typical-game UI contracts** for output/input/HTML and the commonly used UI built-ins.
+   - 🟡 Shared output/input/HTML models are mostly documented; remaining gaps are concentrated in per-built-in edge contracts and some resource/file helper surfaces.
 7) ⛔ Add a **conformance test suite plan** (golden tests) that validates parsing + typical-game execution, plus a minimal host-flow harness.
