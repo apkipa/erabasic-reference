@@ -88,6 +88,8 @@ Event label names (engine built-in set):
 
 These labels are treated as event functions even if you write them like normal `@NAME` labels.
 
+`event function` is a narrower classification than `system label`. Event functions participate in event dispatch (`CALLEVENT` and host-triggered event hooks), while other system labels such as `@SHOW_SHOP` or `@SYSTEM_TITLE` are special entry points but are not event-dispatch targets.
+
 Other label names are “system labels” (engine built-in names plus regex-matched names). They are not necessarily event labels; they are just recognized as special names by the engine:
 
 - `SHOW_STATUS`

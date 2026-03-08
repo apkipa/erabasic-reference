@@ -17,6 +17,8 @@ At runtime, the engine alternates between:
 
 When a system hook finishes (e.g. `@SYSTEM_TITLE`), if the engine has no further script to execute, it continues system flow. In this document, "returns normally" means the hook unwinds back to the host/system-flow boundary without leaving behind a pending phase transition. Some hooks **must** perform a phase transition before returning normally—most commonly via `BEGIN`, but also via paths such as successful `LOADDATA` or `QUIT`—or the engine errors (see §2).
 
+The `@EVENT...` hooks mentioned in this document are **host-driven event dispatch** entry points, not ordinary `CALL` targets. Their shared grouped-dispatch model is specified in `runtime-model.md`.
+
 ### 1.2 Phase transitions (`BEGIN`)
 
 `BEGIN <keyword>` requests a transition into a system phase (see `builtins-reference.md` → `BEGIN`).

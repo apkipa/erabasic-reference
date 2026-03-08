@@ -194,6 +194,14 @@ This engine distinguishes “target not found” from “name exists but is the 
   - Missing method → error.
   - Name resolves to a normal non-method `@function` → wrong-kind error.
 
+### Event-call paths at a glance
+
+There are three distinct ways an event-function name can be reached:
+
+- **Host/system dispatch**: built-in phase flow can invoke event hooks such as `@EVENTFIRST` / `@EVENTTRAIN`; this uses event-dispatch semantics (see `system-flow.md` and `runtime-model.md` §5).
+- **`CALLEVENT`**: script-side explicit event dispatch; this also uses event-dispatch semantics.
+- **Ordinary `CALL` / `JUMP`**: these do **not** use event dispatch. By default they reject event-function targets; with `CompatiCallEvent=YES`, they instead call only the first-defined event label as a compatibility non-event entry point.
+
 ### `CompatiCallEvent`
 
 `CompatiCallEvent` is the main compatibility switch that changes ordinary call resolution.

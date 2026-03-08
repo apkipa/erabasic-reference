@@ -252,6 +252,13 @@ Event-ness is determined by the function name matching the engine's built-in eve
 
 Event functions are also treated as “system” labels by the loader. Exact naming rules (including other system-label names/patterns) are in `labels.md`.
 
+This section defines the shared **event-dispatch** model used when an event function is invoked either:
+
+- by host/system flow at a built-in event hook (see `system-flow.md`), or
+- by script via `CALLEVENT`.
+
+Ordinary `CALL` / `JUMP` do **not** use this dispatch path by default; see §5.5.
+
 ### 5.2 Multiple definitions and grouping order
 
 Event functions can be defined multiple times across files; the loader later groups all same-name event labels into the four ordered dispatch buckets listed in this subsection.

@@ -9834,6 +9834,7 @@ ENDCATCH
 ## CALLEVENT (instruction)
 **Summary**
 - Invokes an event function by event-dispatch semantics rather than by ordinary `CALL` semantics.
+- This is the script-side explicit entry point for event dispatch.
 
 **Metadata**
 - Arg spec: `STR` (see #argument-spec-str) (inferred from `CALLEVENT_Instruction` ArgBuilder assignment)

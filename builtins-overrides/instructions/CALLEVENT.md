@@ -1,5 +1,6 @@
 **Summary**
 - Invokes an event function by event-dispatch semantics rather than by ordinary `CALL` semantics.
+- This is the script-side explicit entry point for event dispatch.
 
 **Tags**
 - calls
