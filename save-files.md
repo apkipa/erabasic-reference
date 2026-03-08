@@ -63,10 +63,12 @@ The declaration keywords `SAVEDATA`, `GLOBAL`, and `CHARADATA` (for user-defined
 At a high level:
 
 - **Normal save slot** (`saveN.sav`, via `SAVEDATA/LOADDATA` and the save UI):
-  - saves all characters plus “normal savedata” variables
-  - does not persist `GLOBAL/GLOBALS` unless explicitly included by separate global-save logic
+  - saves all character records plus the engine's **normal-save** variable payload
+  - this includes built-in non-global savedata variables and non-global user-defined `SAVEDATA` variables
+  - it does not persist `GLOBAL/GLOBALS` or ERH `GLOBAL` user variables
 - **Global save** (`global.sav`, via `SAVEGLOBAL/LOADGLOBAL`):
-  - saves only the engine’s global buckets (not normal savedata)
+  - saves the engine's **global-save** payload: built-in `GLOBAL/GLOBALS` plus user-defined ERH variables that are both `GLOBAL` and `SAVEDATA`
+  - it does not include normal-save variables or character records
 - **Variable bundle** (`var_{name}.dat`, via `SAVEVAR/LOADVAR`):
   - (not implemented in this engine build) would save only the explicitly named variables (a curated list chosen by the script)
 - **Character bundle** (`chara_{name}.dat`, via `SAVECHARA/LOADCHARA`):
@@ -85,10 +87,16 @@ In this engine, the summary text is produced through two main paths:
 
 Load operations are not all “replace everything”. In this engine:
 
-- Normal slot load (`LOADDATA` / save UI load) is a full game-state load:
-  - the engine resets variables to defaults, clears characters, then loads characters and savedata variables from the file.
+- Normal slot load (`LOADDATA` / save UI load) is a full **normal-save** state load:
+  - before reading the file, the engine resets the normal non-global runtime buckets to defaults: local stores, static non-global user variables, non-global built-in variables, and the current character list.
+  - it then loads the file's normal-save payload: character records, built-in non-global savedata variables, and non-global user-defined `SAVEDATA` variables.
+  - `GLOBAL/GLOBALS` and ERH `GLOBAL` user variables are not reset by this path.
+  - local stores and ERB private `STATIC` variables are not restored from the save file; after load they remain in their reset/default state.
   - for EM extension Map/XML/DT, it clears only the normal-slot extension partition before reading new values.
-- Global load (`LOADGLOBAL`) loads only the global buckets:
+- Global load (`LOADGLOBAL`) loads only the **global-save** payload:
+  - it does **not** perform `RESETGLOBAL` first.
+  - it loads built-in `GLOBAL/GLOBALS` plus the ERH user-defined `GLOBAL SAVEDATA` subset.
+  - ERH `GLOBAL` user variables without `SAVEDATA` keep their current in-memory values across `LOADGLOBAL`.
   - it clears only the global-save EM extension partition before reading new values.
 - Variable bundle load (`LOADVAR`) would be a **partial overwrite** (but is not implemented in this engine build):
   - it would load only the variables present in the `.dat` file and leave all other variables unchanged.

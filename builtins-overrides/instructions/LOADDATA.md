@@ -12,12 +12,17 @@
 
 **Semantics**
 - Validates the target save file; if the file is missing/corrupt/mismatched, raises a runtime error.
-- Loads the save slot and replaces the current saveable state (characters and variables) with the loaded contents.
+- Before applying the loaded payload, the engine resets the normal non-global runtime buckets to their default state: local stores, static non-global user variables, non-global built-in variables, and the current character list.
+- It then loads the save slot payload into the normal-save partitions.
+  - `GLOBAL/GLOBALS` and ERH `GLOBAL` user variables are **not** reset by this instruction.
+  - Private `STATIC` variables and local stores are **not** restored from the save file; after `LOADDATA` they remain in their reset/default state.
+- Within the partitions that are actually stored in a normal save slot, the loaded file contents replace the current runtime values.
 - Sets the pseudo variables:
   - `LASTLOAD_NO` to the loaded slot number
   - `LASTLOAD_TEXT` to the saved `<saveText>`
   - `LASTLOAD_VERSION` to the save file’s recorded script version
 - Clears the EraBasic call stack, discarding the current call context.
+  - Any live private `DYNAMIC` instances or private `REF` bindings from that old stack disappear at this boundary.
 - Runs post-load system hooks (if they exist), in this order:
   - `SYSTEM_LOADEND`
   - `EVENTLOAD`

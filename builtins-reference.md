@@ -4109,8 +4109,8 @@ DELCHARA 1, 3
   - Includes a special autosave entry `99` when applicable.
   - Uses `100` as the “back/cancel” input.
   - After selecting a valid slot:
-    - Loads the slot file (as `save{slot:00}.sav` under `SavDir`).
-    - Discards the previous saved process state.
+    - Loads the slot's normal-save payload into runtime state (same load/reset model as `LOADDATA`).
+    - Clears the previous live call stack / execution context and discards the previously saved process state.
     - Enters the same post-load system hook sequence as `LOADDATA`:
       - `SYSTEM_LOADEND` (if present)
       - `EVENTLOAD` (if present)
@@ -4180,12 +4180,17 @@ DELCHARA 1, 3
 
 **Semantics**
 - Validates the target save file; if the file is missing/corrupt/mismatched, raises a runtime error.
-- Loads the save slot and replaces the current saveable state (characters and variables) with the loaded contents.
+- Before applying the loaded payload, the engine resets the normal non-global runtime buckets to their default state: local stores, static non-global user variables, non-global built-in variables, and the current character list.
+- It then loads the save slot payload into the normal-save partitions.
+  - `GLOBAL/GLOBALS` and ERH `GLOBAL` user variables are **not** reset by this instruction.
+  - Private `STATIC` variables and local stores are **not** restored from the save file; after `LOADDATA` they remain in their reset/default state.
+- Within the partitions that are actually stored in a normal save slot, the loaded file contents replace the current runtime values.
 - Sets the pseudo variables:
   - `LASTLOAD_NO` to the loaded slot number
   - `LASTLOAD_TEXT` to the saved `<saveText>`
   - `LASTLOAD_VERSION` to the save file’s recorded script version
 - Clears the EraBasic call stack, discarding the current call context.
+  - Any live private `DYNAMIC` instances or private `REF` bindings from that old stack disappear at this boundary.
 - Runs post-load system hooks (if they exist), in this order:
   - `SYSTEM_LOADEND`
   - `EVENTLOAD`
@@ -4275,12 +4280,17 @@ DELCHARA 1, 3
 
 **Semantics**
 - Attempts to load `global.sav` under `SavDir`.
+- This instruction does **not** perform `RESETGLOBAL` first.
+  - Built-in `GLOBAL/GLOBALS` are loaded from the file.
+  - ERH user variables are reloaded only for the `GLOBAL SAVEDATA` subset.
+  - ERH `GLOBAL` variables without `SAVEDATA` keep their current in-memory values across `LOADGLOBAL`.
 - On success:
   - Loads the global variable data from the file (format depends on file type).
   - Sets `RESULT = 1`.
 - On failure:
   - Sets `RESULT = 0`.
 - Before attempting to read, the loader removes certain Emuera-private global extension data; if loading then fails, this removal may still have occurred.
+- It does not clear the current call stack, does not run post-load system hooks, and does not touch the current character list or non-global runtime buckets.
 - See also: `save-files.md` (directories, partitions, and on-disk formats)
 
 **Errors & validation**
@@ -4304,8 +4314,13 @@ DELCHARA 1, 3
 - None.
 
 **Semantics**
-- Resets non-global variables to their default values (global variables are not reset).
+- Resets the normal non-global resettable buckets to their default state:
+  - local stores (`LOCAL/LOCALS`, `ARG/ARGS`),
+  - static non-global user-defined variables,
+  - non-global built-in variables.
 - Disposes and clears the character list.
+- Leaves built-in `GLOBAL/GLOBALS` and ERH `GLOBAL` user-defined variables untouched.
+- Does **not** directly walk current live private `DYNAMIC` instances or private `REF` bindings; those disappear only when their owning call frames are later unwound or cleared.
 - Removes Emuera-private save-related extension data (e.g. XML/maps/data-table extensions).
 - Resets output style to defaults.
 - Does not assign `RESULT`/`RESULTS`.
@@ -4331,8 +4346,9 @@ DELCHARA 1, 3
 - None.
 
 **Semantics**
-- Resets global variables to their default values.
+- Resets built-in `GLOBAL/GLOBALS` and ERH `GLOBAL` user-defined variables to their default values.
 - Removes Emuera-private global/static extension data (e.g. XML/maps global/static extensions).
+- Does not touch local stores, non-global variables, or the current character list.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**

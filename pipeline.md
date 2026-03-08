@@ -194,7 +194,7 @@ High-level phases:
 For each enabled ERB line, the loader classifies it by its first non-whitespace character:
 
 - `[` (but not `[[`) → ERB preprocessor directive (handled immediately; does not become a `LogicalLine`)
-- `#` → sharp directive, but only valid immediately after a function label line (`@...`)
+- `#` → sharp directive, but only inside the current function's post-label sharp block (zero or more consecutive `#...` lines immediately after `@...`, before the first non-`#` logical line)
 - `@` / `$` → label line (`FunctionLabelLine` / `GotoLabelLine`)
 - otherwise → statement line (`InstructionLine` or `InvalidLine`)
 

@@ -11,8 +11,9 @@
 - None.
 
 **Semantics**
-- Resets global variables to their default values.
+- Resets built-in `GLOBAL/GLOBALS` and ERH `GLOBAL` user-defined variables to their default values.
 - Removes Emuera-private global/static extension data (e.g. XML/maps global/static extensions).
+- Does not touch local stores, non-global variables, or the current character list.
 - Does not assign `RESULT`/`RESULTS`.
 
 **Errors & validation**

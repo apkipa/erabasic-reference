@@ -56,12 +56,13 @@ Supported directives in this engine:
 
 These directives are parsed as identifiers (no expressions; no quoting), and (in this implementation) are case-sensitive.
 
-## 4) ERB “sharp lines”: `#...` after a function label
+## 4) ERB post-label “sharp lines”: `#...` metadata block
 
 In ERB:
 
-- If a line starts with `#` and the **previous logical line** was a function label (`@...`), it is parsed as a function attribute/metadata line (examples: `#LOCALSIZE`, `#DIM`, `#FUNCTIONS`, etc.).
-- Otherwise, a `#` line is invalid in that position (warned and ignored as metadata; the engine does not treat it as a statement).
+- After an ERB function label (`@...`), the engine accepts a consecutive post-label block of `#...` metadata lines (examples: `#LOCALSIZE`, `#DIM`, `#FUNCTIONS`).
+- This sharp block remains valid only until the first non-`#` logical line of that function (for example a statement line or `$...` label line).
+- Outside that post-label block, a `#` line is invalid in that position (warned and ignored as metadata; the engine does not treat it as a statement).
 
 In ERH:
 

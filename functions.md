@@ -351,7 +351,7 @@ Typical pattern:
 
 Rules (engine-accurate):
 
-- A `REF` parameter must be a **private** variable declared with `#DIM REF` / `#DIMS REF` immediately after the label (see `variables.md`).
+- A `REF` parameter must be a **private** variable declared with `#DIM REF` / `#DIMS REF` in the same function's post-label `#...` declaration block (see `variables.md`).
 - In the label signature, a `REF` parameter is written as that variable name (no subscript is required for `REF` parameters).
 - At the call site, the corresponding actual argument must be a **variable term** (not an arbitrary expression).
 - The actual argument’s variable must have `Dimension != 0` (i.e. it must be an array-like variable; many built-in scalar variables cannot be passed by ref).

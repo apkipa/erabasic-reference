@@ -21,6 +21,7 @@ Valid separators are:
 Important implication:
 
 - If you write more than one space after the instruction name, only the first is consumed. Any remaining spaces become part of the raw argument slice; their later effect is defined by the active argument parsing mode.
+- Expression functions that are accepted as standalone statements use this same instruction-statement separator rule. So `TOSTR 42` can be parsed as statement-form method execution, but whole-line `TOSTR(42)` is rejected before method-argument parsing begins.
 
 ### 1.1 Omitted argument slots are instruction-family specific
 
@@ -52,11 +53,12 @@ The engine does **not** strip inline comments before argument parsing. Instead, 
 Practical rule:
 
 - If an instruction uses an **expression** argument builder, `X ; comment` works as an inline comment.
-- If an instruction uses a **FORM** or **raw string** argument builder, `;` is literal (so inline comments are not available in the usual way).
+- If an instruction uses a **FORM** or **raw string** argument builder, `;` is usually literal (so inline comments are not available in the usual way).
+- Important exception: delimiter-limited target-field parsers such as `CALLFORM` / `CALLFORMF` / `FUNC` target names stop at `;` instead of treating it as literal content, because those fields are parsed in a special `(... [ , ;` termination mode rather than as full-to-EOL FORM/raw arguments.
 
-## 3) The three core parsing families
+## 3) The core parsing families
 
-From a compatibility perspective, most built-in instructions fall into one of these families:
+From a compatibility perspective, most built-in instructions fall into one of these families or the hybrid pattern in §3.4:
 
 ### 3.0 Identifier-only arguments (no expression parsing)
 
@@ -107,6 +109,26 @@ These builders treat the argument as the raw remaining substring:
 
 This mode is used by some “raw text” instructions (notably some `PRINT...` variants).
 
+### 3.4 Hybrid call-target parsers (target field + optional tail)
+
+Some builders do **not** parse the whole argument slice with one uniform mode. Instead, they split it into two layers:
+
+1) a **target field** parsed first, using either raw-text or FORM scanning with the special termination set `(` / `[` / `,` / `;`, then
+2) an optional **tail** parsed from the remaining text as subnames and/or ordinary expression arguments.
+
+Observable consequences:
+
+- `;` does not behave like ordinary full-line FORM/raw parsing here: it terminates the target field before the tail is parsed.
+- The target field is trimmed only by the rules of that target parser (for example, `CALL` trims half-width spaces/tabs around the raw target name).
+- Subnames `[...]` and call arguments are parsed only from the remaining suffix after the target field.
+
+Main users of this pattern in this engine:
+
+- call/jump built-ins such as `CALL`, `JUMP`, `GOTO`, `CALLF`, `CALLFORM`, `CALLFORMF`, and their `TRY*` variants
+- `FUNC` lines inside `TRY*LIST ... ENDFUNC`
+
+See `functions.md`, `formatted-strings.md`, and `grammar.md` for the call-target details.
+
 ## 4) String assignment is special (`=` vs `'=`)
 
 String variable assignment has two distinct RHS parsers:
@@ -122,8 +144,8 @@ You do not need full per-instruction semantics to classify its argument parsing 
 
 Practical classification procedure:
 
-1) Determine whether the instruction reads its argument tail as an identifier, an expression list, a FORM string, or a raw string.
-2) Map it to one of the families in §3.
+1) Determine whether the instruction reads its argument tail as an identifier, an expression list, a FORM string, a raw string, or the hybrid call-target pattern in §3.4.
+2) Map it to the corresponding family/rule set in §3.
 
 Common high-impact examples (as implemented by this engine):
 

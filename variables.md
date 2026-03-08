@@ -407,7 +407,7 @@ Emuera supports user-defined variables via `#DIM` (numeric) and `#DIMS` (string)
 
 They exist in two scopes:
 
-- **Private variables**: declared by `#DIM/#DIMS` *inside an ERB function* (a `#...` line immediately after an `@LABEL` line).
+- **Private variables**: declared by `#DIM/#DIMS` *inside an ERB function*, in that function's post-label `#...` declaration block (the consecutive sharp-line block immediately after `@LABEL`).
 - **Global variables**: declared by `#DIM/#DIMS` *inside ERH headers*.
 
 ### 1) Declaration syntax (engine-accurate)
@@ -464,9 +464,12 @@ If you omit all sizes:
 
 If you provide sizes, they must satisfy:
 
+- For ordinary (non-`REF`) variables, size omission is **all-or-nothing**:
+  - omitting the size list entirely is allowed,
+  - but once the size list starts after `NAME,`, each size slot must contain an expression; forms such as `#DIM X,10,` or `#DIM X,,20` are invalid.
 - Each provided `sizeN` must be a compile-time constant integer (`SingleLongTerm`) and must satisfy `1 <= sizeN <= 1000000`.
 - You may specify up to **3** sizes (1D/2D/3D).
-- The product `size1 * size2 * size3` must be `<= 1000000` (missing sizes are not part of the product).
+- The total element count must be `<= 1000000`: for 1D declarations this means `size1`, for 2D `size1 * size2`, and for 3D `size1 * size2 * size3`.
 
 If a size expression does not reduce to a constant integer, or is out of range, the declaration fails.
 
@@ -476,7 +479,7 @@ An initializer list is permitted only when all of these hold:
 
 - the variable is **not** `REF`
 - the variable is **not** `CHARADATA`
-- the variable is **1D** (0–1 size values were provided)
+- the variable is **1D** (either no explicit size list was given, or exactly one explicit size was given)
 
 Initializer rules:
 
@@ -485,8 +488,23 @@ Initializer rules:
 - If a size was specified:
   - the initializer count must be `<= size`
   - for `CONST`, the initializer count must equal `size`
+  - if the initializer count is smaller than `size`, the remaining cells use the language default for that variable type (`0` for `#DIM`; empty string at script-observable level for `#DIMS`)
 - If no size was specified:
   - the array length becomes the initializer count
+- Any later reinitialization of that variable restores the same declared default contents across the full declared length.
+
+Example:
+
+```erabasic
+#DIM XXX, 5 = 1, 2, 3
+```
+
+- Declared length: `5`
+- Declared default contents: `[1, 2, 3, 0, 0]`
+- Later reinitialization restores the same contents:
+  - `RESETDATA` for non-`GLOBAL` static storage
+  - `RESETGLOBAL` for ERH `GLOBAL` storage
+  - function-entry allocation for private `DYNAMIC` storage
 
 If you write `CONST` without an initializer, the declaration fails.
 
@@ -504,7 +522,7 @@ Constraints:
 
 Private variables can be either:
 
-- `STATIC` (default): storage persists across calls to the same function label.
+- `STATIC` (default): storage persists across repeated calls to that same function definition; it is not reallocated per call frame.
 - `DYNAMIC`: storage is (re)allocated on function entry and discarded on return; recursive calls therefore get distinct per-call storage.
 
 Constraints:
@@ -516,7 +534,7 @@ Constraints:
 
 Initializer application:
 
-- For 1D private variables with an initializer list, those initializer values are copied into the array on each `DYNAMIC` allocation, and also used as the “default state” for `STATIC` variables when the engine resets locals.
+- For 1D private variables with an initializer list, those initializer values are copied into the array on each `DYNAMIC` allocation. For `STATIC` variables, the same initializer data is used when reset-time reinitialization restores that variable to its declared default contents.
 
 ### 7) `REF` (reference variables, private only)
 
@@ -525,7 +543,7 @@ Initializer application:
 In this engine:
 
 - Global `#DIM/#DIMS` declarations with `REF` are treated as “not implemented” and fail during ERH processing.
-- Private `REF` variables are supported and are primarily used for **pass-by-reference parameters** in user-defined functions.
+- Private `REF` variables are supported. Their script-visible binding path is **pass-by-reference parameters** in user-defined functions.
 
 Dimension syntax for `REF`:
 
@@ -669,3 +687,35 @@ When loading from disk, this engine clears only the corresponding EM extension p
 
 - Normal slot load clears only the normal-save partition.
 - Global load clears only the global-save partition, and does not clear the static partition.
+
+#### 6.4 Practical storage-bucket matrix
+
+- `LOCAL/LOCALS`, `ARG/ARGS`:
+  - `ResetData()` resets every existing store to defaults.
+  - Normal save load (`LOADDATA` / `LOADGAME`) performs that same local-store reset before loading, but does not restore any local-store payload from the save file, so these families end in their default state.
+  - `ResetGlobalData()` / `LOADGLOBAL` do not touch them.
+- ERB private `STATIC` variables:
+  - `ResetData()` resets them to their declared default contents.
+  - Normal save load also resets them first and does not reload them from the save file, so they end in their declared default contents.
+  - `ResetGlobalData()` / `LOADGLOBAL` do not touch them.
+- ERB private `DYNAMIC` variables and private `REF` bindings:
+  - Neither reset routine directly walks the live per-call instances/bindings.
+  - Existing instances disappear only when their owning call frames unwind or are cleared.
+  - In particular, `LOADDATA` / successful `LOADGAME` clear the previous call stack after loading, so any live `DYNAMIC` instances or `REF` bindings from that old stack disappear at that boundary.
+  - Fresh function entry allocates/binds them again.
+- ERH non-`GLOBAL` user variables:
+  - `ResetData()` resets them to their declared default contents.
+  - Normal save load resets them first; those marked `SAVEDATA` are then overwritten from the normal save file, while non-`SAVEDATA` ones remain at defaults.
+  - `ResetGlobalData()` / `LOADGLOBAL` do not touch them.
+- Built-in `GLOBAL/GLOBALS`:
+  - `ResetGlobalData()` resets them to defaults.
+  - `LOADGLOBAL` loads them from `global.sav`.
+  - `ResetData()` / normal save load leave them unchanged.
+- ERH `GLOBAL` user variables:
+  - `ResetGlobalData()` resets them to their declared default contents.
+  - `LOADGLOBAL` reloads only the `GLOBAL SAVEDATA` subset from `global.sav`; ERH `GLOBAL` variables without `SAVEDATA` keep their current in-memory values across `LOADGLOBAL`.
+  - `ResetData()` / normal save load leave them unchanged.
+- `CHARADATA` user variables:
+  - `ResetData()` removes the current `CharacterList`, so all current character-variable instances disappear with it.
+  - Normal save load discards the current character list and replaces it with the save file's character records.
+  - `ResetGlobalData()` / `LOADGLOBAL` do not touch the current character list.

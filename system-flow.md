@@ -196,7 +196,12 @@ Re-prompt vs restart behavior after `@USERSHOP` / `@EVENTBUY`:
 
 ## 7) LOADDATAEND (post-load hook sequence)
 
-After a successful `LOADDATA <slot>` or a successful selection in the `LOADGAME` UI, the engine:
+After a successful `LOADDATA <slot>` or a successful selection in the `LOADGAME` UI, the engine has already:
+
+- applied the save file's normal-save payload to runtime state,
+- cleared the previous script call stack / execution context,
+
+and then:
 
 1) calls `@SYSTEM_LOADEND` if it exists,
 2) then calls `@EVENTLOAD` if it exists.
@@ -263,8 +268,8 @@ If the user selects:
   - if the selected normal slot belongs to a different page, the UI switches to that page and redraws instead of attempting the load.
   - if there is no data in the slot: print the selected slot number as a normal line, then print the host's standard no-data error line (`データがありません` by default), then rebuild the load UI.
   - otherwise:
-    - load the slot’s save state,
-    - clear the previous execution context,
+    - load the slot's normal-save payload into runtime state,
+    - clear the previous execution context / call stack,
     - enter the LOADDATAEND hook sequence (§7).
 - any other integer value: show the host's standard invalid-value temporary line (`無効な値です` by default) and re-open the same load prompt.
 

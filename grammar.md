@@ -21,7 +21,7 @@ This document starts from the **enabled logical line** stream after those steps.
 After leading whitespace is skipped (with config-gated full-width space handling), an enabled ERB line is classified by its first character:
 
 1) Preprocessor directive: `[` *but not* `[[` (handled before parse; not a statement).
-2) Function attribute / declaration line: `#...` (only valid immediately after an `@...` function label line).
+2) Function attribute / declaration line: `#...` (only valid in the function's post-label sharp block: zero or more consecutive `#...` lines immediately after an `@...` function label, before the first non-`#` logical line).
 3) Label line:
    - `@...` defines a function label.
    - `$...` defines a local “goto label”.
@@ -96,7 +96,7 @@ Notes:
 
 ## 4) `#...` lines inside ERB functions (sharp lines)
 
-In ERB, `#...` lines are only accepted **immediately after** an `@...` label line; otherwise a warning is produced and the line is ignored.
+In ERB, `#...` lines are accepted only in the function's **post-label sharp block**: zero or more consecutive `#...` lines immediately following an `@...` label, before the first non-`#` logical line of that function. Outside that position, a warning is produced and the line is ignored.
 
 ```ebnf
 sharp_directive ::=
@@ -162,7 +162,7 @@ Notes:
 - `dim_size` and each `CONST_TERM` must reduce to a compile-time constant (integer for `#DIM`, string for `#DIMS`).
 - Maximum dimension is 3 (and `CHARADATA` reduces that further; see `variables.md`).
 - Initializers are allowed only for non-`REF`, non-`CHARADATA`, 1D variables.
-- `REF` has special size syntax: commas indicate dimension and explicit sizes must be `0`; empty fields between commas are permitted for `REF` (see `variables.md`).
+- For ordinary variables, `dim_sizes` does not permit empty size slots once the size list has started. `REF` is the special case: there commas indicate dimension, explicit sizes must be `0`, and empty fields between commas are permitted (see `variables.md`).
 - Compatibility quirk: while sharp-directive keyword matching follows `IgnoreCase`, this engine determines “is string?” using a later case-sensitive equality check against `"DIMS"`.
 
 Additional compatibility quirk (case-sensitivity inside some sharp directives):
