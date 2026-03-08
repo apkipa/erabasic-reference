@@ -22,7 +22,7 @@
 - If `src` and `mask` sizes differ, returns `0`.
 - If `destX + srcWidth > destWidth` or `destY + srcHeight > destHeight`, returns `0`.
 - Otherwise uses the blue channel of the mask image as source opacity, composites onto the destination, and returns `1`.
-- Negative destination coordinates are not pre-rejected by the wrapper; they fall through to the compositor path instead of producing a clean bounds failure.
+- Negative destination coordinates are not rejected by the wrapper. They fall through to the compositor path instead of producing a clean bounds failure.
 
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.

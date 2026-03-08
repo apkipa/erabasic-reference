@@ -31,7 +31,7 @@
 - If no nodes match, no mutation occurs and the function returns `0`.
 - If exactly one node matches, replacement is attempted regardless of `setAllNodes`.
 - If more than one node matches and `setAllNodes == 0`, no node is replaced even though the match count is still returned.
-- Multi-match quirk: the engine constructs one replacement node and reuses it for every successful replacement instead of cloning it. Each later successful replacement moves that same node again, so only the last successful replacement remains in the final document.
+- Multi-match quirk: one replacement node is reused for every successful replacement; it is not cloned per target. Each later replacement moves it again, so only the last successful replacement remains in the final document.
 - When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 
 **Errors & validation**

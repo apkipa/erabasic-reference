@@ -29,7 +29,7 @@
 - Returns the number of assignments actually performed.
 - Array-form assignments use `min(count, len(columnNames), len(columnValues))`; if that effective count is `<= 0`, returns `0` without changing the row.
 - Integer writes to `int8` / `int16` / `int32` columns are clamped to the destination range.
-- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked; case variants such as `ID` still resolve to the primary-key column and can overwrite it.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked. Case variants such as `ID` still resolve to the primary-key column and can overwrite it.
 - Assignments are applied sequentially to the already-existing row, so earlier writes remain visible if a later write throws a runtime error.
 
 **Errors & validation**

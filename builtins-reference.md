@@ -3501,7 +3501,7 @@ Compatibility notes:
 - Observable visibility rule: by the time the instruction has put the console into its timed wait state, any pending print-buffer content from the current execution pass has already been materialized to retained normal output, so the current output is visible to the user.
 - See also: `input-flow.md` (shared wait-state lifecycle, timed completion model, and `MesSkip` auto-advance behavior).
 - If `<mode> == 0`: enters the same Enter/click confirmation wait surface as `WAIT`, but with a time limit.
-- If `<mode> != 0`: enters a no-input timed wait. Ordinary textbox/button submission does not satisfy it; execution continues only when the time limit expires or when skip/macro-driven continuation bypasses the wait under the shared non-value-wait rules.
+- If `<mode> != 0`: enters a no-input timed wait. Ordinary textbox/button submission does not satisfy it. Execution continues only when the time limit expires, or when skip/macro-driven continuation bypasses the wait under the shared non-value-wait rules.
 - When the time limit elapses, execution continues automatically.
 - Does not assign `RESULT`/`RESULTS`.
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -4359,7 +4359,7 @@ DELCHARA 1, 3
 - If the condition is true (non-zero), execution continues normally.
 - If the condition is false (zero), the engine advances the program counter one extra time (skipping exactly one logical line).
 - Load-time validation enforces an inherent limitation of this “skip the next line” model:
-  - If the following line is a **partial instruction** (structural marker / block delimiter; e.g. `IF`, `ELSE`, `CASE`, loop markers), the engine warns because skipping marker lines breaks block structure.
+  - If the following line is a **partial instruction** (structural marker / block delimiter such as `IF`, `ELSE`, `CASE`, or loop markers), the engine warns because skipping it would break block structure.
   - If the following line is a `$label` line, the engine warns.
   - If there is no following executable line (EOF / next `@label`), the engine warns.
   - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns.
@@ -9988,7 +9988,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If that field is absent or `null` in the template, returns `""`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10024,7 +10024,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If that field is absent or `null` in the template, returns `""`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10060,7 +10060,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If that field is absent or `null` in the template, returns `""`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10096,7 +10096,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If that field is absent or `null` in the template, returns `""`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10134,7 +10134,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If the template has a `CSTR` table and `index` is in range but no explicit entry is defined at that slot, returns `""`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10173,7 +10173,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `CSVBASE` reads the template table directly; when a live character is created, the same template entries are copied into both runtime `BASE` and `MAXBASE`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10211,7 +10211,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If `index` is in range but no explicit entry is defined at that slot, returns `0`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10249,7 +10249,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If `index` is in range but no explicit entry is defined at that slot, returns `0`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10287,7 +10287,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If `index` is in range but no explicit entry is defined at that slot, returns `0`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10326,7 +10326,7 @@ HTML_PRINT_ISLAND_CLEAR
 - For `CSVRELATION`, an undefined slot returns `0`; the runtime default relation value used for live characters is **not** substituted here.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10364,7 +10364,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If `index` is in range but no explicit entry is defined at that slot, returns `0`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10402,7 +10402,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If `index` is in range but no explicit entry is defined at that slot, returns `0`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10440,7 +10440,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If `index` is in range but no explicit entry is defined at that slot, returns `0`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10478,7 +10478,7 @@ HTML_PRINT_ISLAND_CLEAR
 - If `index` is in range but no explicit entry is defined at that slot, returns `0`.
 - Compatibility quirk:
   - `spFlag != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `spFlag` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `spFlag` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `charaNo` does not resolve to a character template.
@@ -10606,7 +10606,7 @@ HTML_PRINT_ISLAND_CLEAR
 - Returns `1` if a character template exists for `charaNo`, otherwise returns `0`.
 - Compatibility quirk:
   - `isSp != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `isSp` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `isSp` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `isSp != 0` while the compatibility option “use SP characters” is disabled (`CompatiSPChara = false`).
@@ -11351,7 +11351,7 @@ PRINTFORML %S%
   - `YYYYMMDDHHMMSSmmm` (year, month, day, hour, minute, second, millisecond; local time).
 - Components are combined as:
   - `(((((year * 100 + month) * 100 + day) * 100 + hour) * 100 + minute) * 100 + second) * 1000 + millisecond`.
-- Note: the engine reads each component from `DateTime.Now` separately; if the system clock crosses a boundary while evaluating, different components may come from different instants.
+- Note: the engine reads each component from `DateTime.Now` separately. If the system clock crosses a boundary during evaluation, different components may come from different instants.
 
 **Errors & validation**
 - (none)
@@ -14810,7 +14810,7 @@ R = GDISPOSE(GID)
 - If `src` and `mask` sizes differ, returns `0`.
 - If `destX + srcWidth > destWidth` or `destY + srcHeight > destHeight`, returns `0`.
 - Otherwise uses the blue channel of the mask image as source opacity, composites onto the destination, and returns `1`.
-- Negative destination coordinates are not pre-rejected by the wrapper; they fall through to the compositor path instead of producing a clean bounds failure.
+- Negative destination coordinates are not rejected by the wrapper. They fall through to the compositor path instead of producing a clean bounds failure.
 
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
@@ -15310,8 +15310,8 @@ R = CBGSETBMAPG(GID)
 
 **Arguments**
 - `<buttonValue>` (int): logical CBG button value associated with this sprite.
-- `<normalSprite>` (string): sprite name used in the normal state. This call shape does not allow omission; an empty string is still a supplied value.
-- `<hoverSprite>` (string): sprite name used while this button value is currently selected by the CBG hit map. This call shape does not allow omission; an empty string is still a supplied value.
+- `<normalSprite>` (string): sprite name used in the normal state. This call shape does not allow omission; `""` is still a supplied value.
+- `<hoverSprite>` (string): sprite name used while this button value is currently selected by the CBG hit map. This call shape does not allow omission; `""` is still a supplied value.
 - `<x>`, `<y>` (int): CBG placement coordinates.
 - `<zDepth>` (int): CBG depth; must be a 32-bit signed integer and must not be `0`.
 - `<tooltip>` (optional, string): tooltip text associated with this button sprite.
@@ -16794,7 +16794,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - If exactly one node matches, that node is always updated.
 - If more than one node matches and `setAllNodes == 0`, no node is updated even though the match count is still returned.
 - If more than one node matches and `setAllNodes != 0`, every matched node is updated.
-- Style `0` writes `XmlNode.Value`. On element nodes, that operation raises a runtime error instead of replacing the element's text content. Use `outputType = 1` (`InnerText`) if you want to replace the element's text content instead.
+- Style `0` writes `XmlNode.Value`. On element nodes, that raises a runtime error instead of replacing the element's text content. Use `outputType = 1` (`InnerText`) to replace the element's text content instead.
 
 **Errors & validation**
 - Returns `-1` if stored-document lookup is requested and the key does not exist.
@@ -16932,7 +16932,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - If no nodes match, no mutation occurs and the function returns `0`.
 - If exactly one node matches, insertion is attempted regardless of `setAllNodes`.
 - If more than one node matches and `setAllNodes == 0`, no insertion occurs even though the match count is still returned.
-- Multi-match quirk: the engine constructs one inserted node and reuses it for every successful insertion instead of cloning it. Each later successful insertion moves that same node again, so the final document contains the inserted node only at the last successful target.
+- Multi-match quirk: one inserted node is reused for every successful insertion; it is not cloned per target. Each later insertion moves it again, so the final document contains it only at the last successful target.
 - When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 
 **Errors & validation**
@@ -17091,7 +17091,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - If no nodes match, no mutation occurs and the function returns `0`.
 - If exactly one node matches, replacement is attempted regardless of `setAllNodes`.
 - If more than one node matches and `setAllNodes == 0`, no node is replaced even though the match count is still returned.
-- Multi-match quirk: the engine constructs one replacement node and reuses it for every successful replacement instead of cloning it. Each later successful replacement moves that same node again, so only the last successful replacement remains in the final document.
+- Multi-match quirk: one replacement node is reused for every successful replacement; it is not cloned per target. Each later replacement moves it again, so only the last successful replacement remains in the final document.
 - When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 
 **Errors & validation**
@@ -17176,7 +17176,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - If no nodes match, no mutation occurs and the function returns `0`.
 - If exactly one node matches, insertion is attempted regardless of `setAllNodes`.
 - If more than one node matches and `setAllNodes == 0`, no insertion occurs even though the match count is still returned.
-- Multi-match quirk: the engine constructs one attribute object and reuses it for every successful insertion instead of cloning it. Each later successful insertion moves that same attribute again, so the final document retains that new attribute only at the last successful target.
+- Multi-match quirk: one attribute object is reused for every successful insertion; it is not cloned per target. Each later insertion moves it again, so the final document retains it only at the last successful target.
 - When operating on `ref xmlVar`, the variable is rewritten to `OuterXml` only if at least one node matched.
 
 **Errors & validation**
@@ -17987,9 +17987,9 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - If the table does not exist, returns `-1`.
 - Creates a new row, auto-generates its `id`, then applies assignments.
 - Calling `DT_ROW_ADD(tableName)` with no assignments is valid and still creates a row.
-- Array-form assignments use `min(count, len(columnNames), len(columnValues))`; if that effective count is `<= 0`, no assignments are performed and the row is still added.
+- Array-form assignments use `min(count, len(columnNames), len(columnValues))`. If that effective count is `<= 0`, no assignments are performed and the row is still added.
 - Integer writes to `int8` / `int16` / `int32` columns are clamped to the destination range.
-- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked; case variants such as `ID` still resolve to the primary-key column and can overwrite it.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked. Case variants such as `ID` still resolve to the primary-key column and can overwrite it.
 - If an error occurs during assignment, the new row is not added because insertion happens only after all assignments finish.
 
 **Errors & validation**
@@ -18032,7 +18032,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Returns the number of assignments actually performed.
 - Array-form assignments use `min(count, len(columnNames), len(columnValues))`; if that effective count is `<= 0`, returns `0` without changing the row.
 - Integer writes to `int8` / `int16` / `int32` columns are clamped to the destination range.
-- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked; case variants such as `ID` still resolve to the primary-key column and can overwrite it.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked. Case variants such as `ID` still resolve to the primary-key column and can overwrite it.
 - Assignments are applied sequentially to the already-existing row, so earlier writes remain visible if a later write throws a runtime error.
 
 **Errors & validation**
@@ -18136,7 +18136,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Column lookup follows `DataTable` rules and is case-insensitive in practice.
 
 **Errors & validation**
-- Runtime error if the stored value cannot be converted to `long`; for example, a non-numeric string cell read through `DT_CELL_GET` throws instead of returning `0`.
+- Runtime error if the stored value cannot be converted to `long`. For example, a non-numeric string cell read through `DT_CELL_GET` throws instead of returning `0`.
 
 **Examples**
 - `PRINTFORML {DT_CELL_GET("db", 0, "age")}`

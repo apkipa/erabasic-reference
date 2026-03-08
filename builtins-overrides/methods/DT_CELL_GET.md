@@ -26,7 +26,7 @@
 - Column lookup follows `DataTable` rules and is case-insensitive in practice.
 
 **Errors & validation**
-- Runtime error if the stored value cannot be converted to `long`; for example, a non-numeric string cell read through `DT_CELL_GET` throws instead of returning `0`.
+- Runtime error if the stored value cannot be converted to `long`. For example, a non-numeric string cell read through `DT_CELL_GET` throws instead of returning `0`.
 
 **Examples**
 - `PRINTFORML {DT_CELL_GET("db", 0, "age")}`

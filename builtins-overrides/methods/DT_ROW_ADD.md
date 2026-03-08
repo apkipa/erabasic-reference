@@ -26,9 +26,9 @@
 - If the table does not exist, returns `-1`.
 - Creates a new row, auto-generates its `id`, then applies assignments.
 - Calling `DT_ROW_ADD(tableName)` with no assignments is valid and still creates a row.
-- Array-form assignments use `min(count, len(columnNames), len(columnValues))`; if that effective count is `<= 0`, no assignments are performed and the row is still added.
+- Array-form assignments use `min(count, len(columnNames), len(columnValues))`. If that effective count is `<= 0`, no assignments are performed and the row is still added.
 - Integer writes to `int8` / `int16` / `int32` columns are clamped to the destination range.
-- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked; case variants such as `ID` still resolve to the primary-key column and can overwrite it.
+- Column lookup follows `DataTable` rules and is case-insensitive in practice. Guard quirk: only the exact lowercase name `id` is blocked. Case variants such as `ID` still resolve to the primary-key column and can overwrite it.
 - If an error occurs during assignment, the new row is not added because insertion happens only after all assignments finish.
 
 **Errors & validation**

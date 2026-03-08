@@ -21,7 +21,7 @@
 - Returns `1` if a character template exists for `charaNo`, otherwise returns `0`.
 - Compatibility quirk:
   - `isSp != 0` is accepted only when `CompatiSPChara=YES`,
-  - but this build does not expose a separate stable public selector for duplicate normal/SP templates that share the same `NO`; do not rely on `isSp` alone to disambiguate duplicate template definitions.
+  - this build does not expose a stable public selector for duplicate normal/SP templates that share the same `NO`, so `isSp` alone is not a reliable disambiguator.
 
 **Errors & validation**
 - Runtime error if `isSp != 0` while the compatibility option “use SP characters” is disabled (`CompatiSPChara = false`).

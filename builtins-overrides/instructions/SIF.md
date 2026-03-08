@@ -15,7 +15,7 @@
 - If the condition is true (non-zero), execution continues normally.
 - If the condition is false (zero), the engine advances the program counter one extra time (skipping exactly one logical line).
 - Load-time validation enforces an inherent limitation of this “skip the next line” model:
-  - If the following line is a **partial instruction** (structural marker / block delimiter; e.g. `IF`, `ELSE`, `CASE`, loop markers), the engine warns because skipping marker lines breaks block structure.
+  - If the following line is a **partial instruction** (structural marker / block delimiter such as `IF`, `ELSE`, `CASE`, or loop markers), the engine warns because skipping it would break block structure.
   - If the following line is a `$label` line, the engine warns.
   - If there is no following executable line (EOF / next `@label`), the engine warns.
   - If there is at least one physically empty line between `SIF` and the next logical line, the engine warns.

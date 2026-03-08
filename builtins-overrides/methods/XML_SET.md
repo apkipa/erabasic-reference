@@ -32,7 +32,7 @@
 - If exactly one node matches, that node is always updated.
 - If more than one node matches and `setAllNodes == 0`, no node is updated even though the match count is still returned.
 - If more than one node matches and `setAllNodes != 0`, every matched node is updated.
-- Style `0` writes `XmlNode.Value`. On element nodes, that operation raises a runtime error instead of replacing the element's text content. Use `outputType = 1` (`InnerText`) if you want to replace the element's text content instead.
+- Style `0` writes `XmlNode.Value`. On element nodes, that raises a runtime error instead of replacing the element's text content. Use `outputType = 1` (`InnerText`) to replace the element's text content instead.
 
 **Errors & validation**
 - Returns `-1` if stored-document lookup is requested and the key does not exist.
