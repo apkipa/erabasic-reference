@@ -32,7 +32,7 @@ Important line kinds:
 - `NullLine` — file boundary markers (start/end).
 - `InvalidLine` / `InvalidLabelLine` — parse/load errors.
 
-Note: an “assignment statement” (e.g. `A = 1`, `STR '= "x"`, `X++`) is also stored as an `InstructionLine`, implemented via a parser-internal pseudo instruction (`SETFunction`). See `grammar.md` for details.
+Note: an “assignment statement” (e.g. `A = 1`, `STR '= "x"`, `X++`) is still represented as an `InstructionLine` rather than a separate line kind. See `grammar.md` for the user-facing syntax details.
 
 ### 1.1 Program counter update order (engine-accurate)
 
@@ -124,40 +124,32 @@ A frame contains (conceptually):
 
 The interpreter's current-line pointer is set to the frame's `CurrentLabel` on entry.
 
-### 3.0 The actual stack: `functionList` and `ScriptEnd`
+### 3.0 Effective call-stack boundary and script end
 
-Internally, the engine stores call frames in a `functionList` (a `List<CalledFunction>`).
+The runtime stores call frames in a stack.
 
-- The **active frame** is `functionList[^1]` (top of stack).
-- “Script end” is defined as `functionList.Count == currentMin` (not necessarily “stack is empty”; see §3.1).
+- The **active frame** is the top of that stack.
+- Outside expression-function evaluation, “script end” means “there is no remaining call frame to execute”.
+- During expression-function evaluation, the engine temporarily treats the pre-call stack depth as the stopping boundary instead (see §3.1).
 
-When a call frame is entered (`IntoFunction(...)`):
+When a call frame is entered:
 
-- The frame is appended to `functionList`.
-- `CurrentLine` is set to the callee’s `@LABEL` line (the marker), so the next interpreter iteration begins executing at `@LABEL.NextLine` due to the “ShiftNextLine before execute” model.
+- A new frame is pushed onto the stack.
+- The current-line pointer is set to the callee’s `@LABEL` line (the marker), so the next interpreter iteration begins executing at `@LABEL.NextLine` due to the “ShiftNextLine before execute” model.
 
-When a call frame finishes (`Return(...)` for normal functions/events, `ReturnF(...)` for expression functions):
+When a call frame finishes:
 
-- The engine pops one frame from `functionList` (with special handling for `IsJump`, see §4.2).
-- `CurrentLine` is set to the caller’s return marker line (`ReturnAddress`), so the next iteration resumes at `ReturnAddress.NextLine`.
+- The engine pops one frame (with special handling for `JUMP`, see §4.2).
+- The current-line pointer is set to the caller’s return marker line, so the next iteration resumes at the line after that return marker.
 
-### 3.1 `currentMin`: a “do not pop below this” boundary
+### 3.1 Extra stop boundary used by expression functions
 
-Internally, the engine also tracks an integer boundary `currentMin`.
+During user-defined expression function evaluation (`#FUNCTION/#FUNCTIONS`), the engine records the stack depth that existed before the method call and temporarily treats that depth as a “do not pop below here” boundary.
 
-Most of the time:
+This ensures:
 
-- `currentMin = 0`
-- the active call stack is the entire `functionList`
-
-During user-defined expression function evaluation (`#FUNCTION/#FUNCTIONS`), the engine temporarily sets:
-
-- `currentMin = functionList.Count` (the current depth)
-
-and then runs the script loop for the method call. This ensures:
-
-- the method’s internal frames can be pushed/popped without disturbing the outer (non-method) call frames
-- “script end” for method evaluation means `functionList.Count == currentMin` rather than “stack is empty”
+- the method's own nested calls can push and pop normally without disturbing the outer non-method caller context
+- method evaluation stops when control returns to that saved depth, not only when the entire script stack becomes empty
 
 ## 4) Calling non-event functions (`CALL` / `JUMP`) and returning (`RETURN`)
 
@@ -217,15 +209,15 @@ Note: `RETURNFORM` is a specialized variant that returns numeric values parsed f
 Engine-accurate behavior:
 
 - `RETURNF` does **not** write `RESULT`/`RESULTS`.
-- Instead it writes the dedicated expression-function return slot and pops exactly one “method call” frame (down to `currentMin`).
+- Instead it writes the dedicated expression-function return slot and returns control to the pre-method call boundary described in §3.1.
 
 ### 4.5 Implicit return at end of function
 
 If execution “falls off the end” of a function body (the interpreter reaches the next `@LABEL` or file end without a `RETURN`):
 
-- for non-method functions, the engine sets `RESULT:0 = 0` (via `VEvaluator.RESULT = 0`) and then returns
+- for non-method functions, the engine sets `RESULT:0 = 0` and then returns
 - it does not clear `RESULT:1+`
-- for expression functions (`#FUNCTION/#FUNCTIONS`), it returns with the dedicated expression-function return slot left `null` (the expression evaluator then supplies the default `0` / `""`), and it does not assign `RESULT`
+- for expression functions (`#FUNCTION/#FUNCTIONS`), it leaves the dedicated expression-function return slot empty (the expression evaluator then supplies the default `0` / `""`), and it does not assign `RESULT`
 
 ### 4.6 `RESULT` / `RESULTS` are global variables, not per-frame
 
@@ -242,19 +234,19 @@ In addition to `RETURN` / implicit return, this engine has other entry points th
 This matters because `RESULT`/`RESULTS` are global and are not saved/restored.
 
 - **Expression functions executed as standalone statements**:
-  - If a logical line’s *keyword* matches a registered expression function name, the engine executes it via an internal shared instruction and writes:
+  - If a logical line’s *keyword* matches a registered expression-function name, and no normal instruction keyword already owns that name, the engine can execute it as a statement and writes:
     - `RESULT` when the function returns numeric (`long`)
     - `RESULTS` when the function returns string (`string`)
-  - Not all expression functions are callable in statement form: the engine only registers method names as instruction keywords when there is no conflict with an existing instruction keyword.
+  - Not all expression functions are callable in statement form; name conflicts with existing instruction keywords block this statement-form entry path.
 - **`CALLF` / `CALLFORMF`**:
-  - These explicitly call an expression function by name, but (in this codebase) they do **not** assign the return value into `RESULT`/`RESULTS`.
+  - These explicitly call an expression function by name, but in this engine they do **not** assign the return value into `RESULT`/`RESULTS`.
   - If you need the value, call the function in an expression (e.g. `X = FOO(...)`) or use statement-form method execution where available.
 
 ## 5) Event functions (`@EVENT...`) and `#PRI/#LATER/#SINGLE/#ONLY`
 
 ### 5.1 Which names are “event functions”
 
-Event-ness is determined by the function name matching a hard-coded set, including:
+Event-ness is determined by the function name matching the engine's built-in event-name set, including:
 
 - `EVENTFIRST`, `EVENTTRAIN`, `EVENTSHOP`, `EVENTBUY`, `EVENTCOM`, `EVENTTURNEND`, `EVENTCOMEND`, `EVENTEND`, `EVENTLOAD`
 
@@ -359,7 +351,7 @@ If a formal parameter is `REF`, the call-site argument must be a variable term t
 
 The engine then passes an `Array` reference to the callee, rather than copying values.
 
-Additional constraints enforced by this codebase’s type checker:
+Additional constraints enforced by this engine's type checker:
 
 - The actual argument must be a variable term (not an arbitrary expression).
 - The actual argument must not be:
@@ -386,12 +378,12 @@ However, the engine already contains a “per-character slice” transport path 
 
 Binding lifetime (engine-accurate):
 
-- Private `REF` variables are “scoped” via `ScopeIn/ScopeOut` just like other dynamic private variables.
-  - On function entry, the engine clears them to an **unbound** state (`array = null`) and pushes the previous binding (if any) to an internal stack.
-  - The argument binder then assigns the new binding (`SetRef(actualArray)`).
-  - On function exit, the engine restores the previous binding (or returns to unbound).
+- Private `REF` variables are scoped like other dynamic private variables.
+  - On function entry, they start in an **unbound** state.
+  - The argument binder then assigns the new array binding for this call.
+  - On function exit, the previous binding is restored (or the formal returns to unbound).
 
-Implementation note: the argument transporter has a special case for character variables, but the `REF` parameter matcher is invoked with `allowChara=false`, so that path is normally unreachable in user-defined function calls.
+Boundary note: the engine already has a latent “per-character slice” transport rule, but accepted user-defined calls never reach it because the user-facing `REF`-actual checker rejects character-data variables before reference binding begins.
 
 ## 7) Variable storage and scope (core)
 
@@ -403,7 +395,7 @@ Local-variable families are implemented as “local variable stores” keyed by 
 
 - `ARG/ARGS` are resized during label sorting based on each function label’s declared/used argument indices.
 - `LOCAL/LOCALS` have default sizes and can be overridden per function via `#LOCALSIZE/#LOCALSSIZE` for non-event functions.
-  - In this codebase, `#LOCALSIZE/#LOCALSSIZE` on event functions are warned and ignored, so event functions effectively use the default sizes.
+  - In this engine, `#LOCALSIZE/#LOCALSSIZE` on event functions are warned and ignored, so event functions effectively use the default sizes.
 
 Important compatibility property:
 
@@ -450,10 +442,10 @@ When parsing an expression function call `NAME(...)`, Emuera resolves the name u
 
 Evaluating a user-defined method term runs script code:
 
-1) The engine increments a method call depth counter (`methodStack`) and errors if it exceeds a fixed limit (prevents stack overflow).
-2) It temporarily sets a “minimum call depth boundary” so the method call’s internal frames can be popped without disturbing outer non-method frames.
+1) The engine increments a nested-method-call depth counter and errors if it exceeds a fixed limit (prevents runaway recursion/stack growth).
+2) It records the current call-stack depth as the temporary stop boundary described in §3.1.
 3) It sets the method’s return address to the current executing line.
-4) It enters the method function via `IntoFunction(...)` and runs the script interpreter loop until the method returns via `RETURNF` (or end-of-function return behavior).
+4) It enters the method function and runs the script interpreter loop until the method returns via `RETURNF` (or end-of-function return behavior).
 5) The method return value is stored in the dedicated expression-function return slot and returned to the expression evaluator.
 
 If the method returns no value (`RETURNF` with no expression, or falling off the end of the function), the expression evaluator uses a default:
@@ -467,21 +459,21 @@ This engine enforces a hard restriction on which instructions may appear inside 
 
 During load, for each instruction line inside a method function:
 
-- if the instruction’s metadata flag `METHOD_SAFE` is not set, the loader emits a warning and marks that line as an **error line** (so execution will fail if reached).
+- if the instruction is not marked as method-safe by the engine, the loader emits a warning and marks that line as an **error line** (so execution will fail if reached).
 
 Consequences:
 
-- `RETURN` / `RETURNFORM` are **not** method-safe in this codebase; methods must use `RETURNF`.
+- `RETURN` / `RETURNFORM` are **not** method-safe in this engine; methods must use `RETURNF`.
 - Many other instruction families (notably UI/input/wait and normal `CALL`/`JUMP`) are also not method-safe.
 
 This is an engine compatibility rule (not a general EraBasic language rule): a reimplementation targeting this engine must reproduce this restriction to match which scripts are accepted as valid.
 
 ## 9) Error and warning behavior (runtime-critical)
 
-This codebase distinguishes:
+This engine distinguishes:
 
 - **warnings**: recorded and often printed during load; execution may proceed
-- **errors** (`CodeEE`): abort the current instruction/function/method evaluation
+- **errors**: abort the current instruction/function/method evaluation
 
 Compatibility-critical toggle:
 

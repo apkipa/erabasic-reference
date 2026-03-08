@@ -2,20 +2,20 @@
 
 ## Folder layout (engine assumptions)
 
-This Emuera codebase assumes a conventional “game root” directory containing `erb/` and `csv/`.
+This engine assumes a conventional “game root” directory containing `erb/` and `csv/`.
 
 ### Root directory selection
 
-On startup, the engine selects `ExeDir` as:
+On startup, the engine selects `ExeDir` as either:
 
-- `AppContext.BaseDirectory`, but
-- if a `Data/erb` directory exists under that base directory, it uses `AppContext.BaseDirectory/Data` instead.
+- the executable directory itself, or
+- its `Data/` subdirectory when `Data/erb` exists there.
 
-So the selected root is always one of exactly two directories: the executable directory itself, or its `Data/` subdirectory when `Data/erb` exists.
+So the selected root is always one of exactly those two directories.
 
 ### Expected subdirectories
 
-Under `ExeDir`, the engine uses these directories (trailing path separator is normalized internally):
+Under `ExeDir`, the engine uses these directories:
 
 - `erb/` — ERB scripts (`*.ERB`) and headers (`*.ERH`)
 - `csv/` — config layers and CSV tables (`*.CSV`, `*.ALS`, `_Rename.csv`, etc.)
@@ -31,13 +31,13 @@ Compatibility note (saves):
 
 ### Case sensitivity of directory names (important)
 
-The engine hard-codes directory names such as `csv` and `erb` when building paths (see `Program.SetDirPaths`).
+The engine expects literal directory names such as `csv` and `erb` when building paths.
 
 On typical Windows deployments this is not observable, but on case-sensitive filesystems you must match the exact directory names (`csv/`, `erb/`, etc.) or startup will fail to find them.
 
 ### Case sensitivity of file discovery (important)
 
-Script/data file discovery uses filesystem globbing such as `Directory.GetFiles(dir, "*.ERB")`.
+Script/data file discovery uses ordinary filesystem globbing such as `*.ERB`.
 
 This means extension matching is **environment-dependent**:
 
@@ -53,14 +53,14 @@ ERH (`*.ERH`) and ERB (`*.ERB`) discovery is controlled by config:
 - `SearchSubdirectory` controls whether `erb/` is searched recursively.
 - `SortWithFilename` controls whether directory and file names are sorted before loading (using the runtime’s string sort).
 
-This codebase also applies a special ERB ordering rule: directories matching `*#*` are loaded first (see `pipeline.md` for the precise algorithm).
+This engine also applies a special ERB ordering rule: directories matching `*#*` are loaded first (see `pipeline.md` for the precise algorithm).
 
 CSV discovery is *not* recursive except for the cases listed in the bullets that follow:
 
 - Most CSV tables are loaded by exact filename from `csv/` (e.g. `GAMEBASE.CSV`, `VariableSize.CSV`, `ABL.CSV`, ...), so `SearchSubdirectory` does not affect those.
 - Two notable exceptions:
-  - `CHARA*.CSV` discovery uses `Config.GetFiles(csvDir, "CHARA*.CSV")`, so it is affected by `SearchSubdirectory` and `SortWithFilename` (and filesystem case-sensitivity of `"*.CSV"`).
-  - `VarExt*.csv` discovery uses `Directory.GetFiles(csvDir, "VarExt*.csv", SearchOption.AllDirectories)` unconditionally (recursive regardless of `SearchSubdirectory`, and ordering is not explicitly sorted).
+  - `CHARA*.CSV` discovery is affected by `SearchSubdirectory` and `SortWithFilename` (and by filesystem case-sensitivity of `"*.CSV"`).
+  - `VarExt*.csv` discovery is always recursive regardless of `SearchSubdirectory`, and its ordering is not explicitly sorted.
 
 ## File types
 

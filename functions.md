@@ -31,8 +31,8 @@ Key rule:
 
 - If a call/jump/goto target name is a **compile-time constant** (including some `...FORM` cases where the FORM reduces to a constant), the loader resolves it during load.
   - If resolution fails and the instruction is not a `TRY*` form, the line is marked as an **error line** during load (execution will throw if reached).
-  - The config `FunctionNotFoundWarning` can suppress *printing* of the warning, but it does not prevent the line from becoming an error line when `isError=true` is used.
-- If the target name is **not** compile-time constant, the loader sets a global “computed call target exists” flag and defers resolution to runtime.
+  - The config `FunctionNotFoundWarning` can suppress *printing* of the warning, but it does not prevent the line from becoming an error line.
+- If the target name is **not** compile-time constant, the loader records that runtime target resolution is needed and defers resolution to runtime.
   - In that case, missing targets raise runtime errors for non-`TRY*` instructions, and are soft-fail for `TRY*`/`TRYC*` instructions.
 
 These behaviors also interact with whole-program “function never called” checks; see `pipeline.md`.
@@ -63,7 +63,7 @@ This engine also supports statement-style invocation in two different ways:
 2) **`CALLF` / `CALLFORMF` (explicit method-name call)**
 
 - `CALLF` / `CALLFORMF` resolve and evaluate an expression function by name.
-- In this codebase, these instructions **do not** assign the return value into `RESULT/RESULTS` (the value is computed and discarded).
+- In this engine, these instructions **do not** assign the return value into `RESULT/RESULTS` (the value is computed and discarded).
   - Use expression-call form (assignment) if you need the value.
 
 ## “Try” call/jump/goto variants (`TRY*` and `TRYC*`)
@@ -86,7 +86,7 @@ Semantics (engine-accurate):
 Important limitations (engine behavior, not just “spec advice”):
 
 - `TRY*` does **not** catch runtime errors thrown while executing the called function body.
-- It does **not** catch “hard” resolution errors that are thrown as `CodeEE` rather than returning “not found”:
+- It does **not** catch “hard” resolution errors that throw immediately rather than returning “not found”:
   - calling an event function via normal `CALL` when `CompatiCallEvent=NO`
   - calling a user-defined expression function (`#FUNCTION/#FUNCTIONS`) via `CALL` (must use `CALLF`/`CALLFORMF`)
   - jumping to an *invalid* `$` label (a `$` label line that was itself invalid)
@@ -198,7 +198,7 @@ Important detail: in `RETURNFORM`, `%` is treated as “start of a string expres
     RETURN A % 100      ; OK (modulo)
     RETURNFORM A % 100  ; parses as string/FORM, not modulo
 
-These rules describe the behavior of this codebase; do not generalize them to other Emuera variants without re-checking.
+These rules describe the behavior of this engine; do not generalize them to other Emuera variants without re-checking.
 
 ## Arguments: `ARG` / `ARGS`
 
@@ -305,7 +305,7 @@ They are primarily called from expressions:
 Returning:
 
 - `RETURNF` is the dedicated “return from expression function” instruction.
-- In this codebase, `RETURN` / `RETURNFORM` are not “method-safe” instructions, so using them inside `#FUNCTION/#FUNCTIONS` bodies is rejected during load (the line is marked as an error line). Use `RETURNF`.
+- In this engine, `RETURN` / `RETURNFORM` are not “method-safe” instructions, so using them inside `#FUNCTION/#FUNCTIONS` bodies is rejected during load (the line is marked as an error line). Use `RETURNF`.
 - If a method reaches end-of-function without `RETURNF`, it returns the default value (`0` for `#FUNCTION`, `""` for `#FUNCTIONS`).
 
 ### Calling form

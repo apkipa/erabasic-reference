@@ -45,7 +45,7 @@ This is why built-in reference entries should distinguish:
 The engine does **not** strip inline comments before argument parsing. Instead, `;` is handled by whichever parser is used for that instruction:
 
 - **Ordinary expression lexing** treats `;` as “end-of-line comment” and stops tokenization.
-  - Exceptions: `;!;` is a special “force executable line” prefix, `;#;` is a debug-only prefix, and this codebase also recognizes `;^;` as an executable prefix (historically an EMEE extension). These are handled in the lexer’s whitespace/comment skipper.
+  - Exceptions: `;!;` is a special “force executable line” prefix, `;#;` is a debug-only prefix, and this engine also recognizes `;^;` as an executable prefix (historically an EMEE extension). These are handled by the line-start comment/whitespace rules.
 - **FORM scanning** does **not** treat `;` as a comment delimiter. In FORM contexts, `;` is literal text unless it is inside a `%...%`/`{...}` placeholder where other rules apply.
 - **Raw-string arguments** (the `STR` argument builder) do **not** treat `;` as a comment delimiter. The argument is the raw remaining substring to end-of-line.
 
@@ -66,7 +66,7 @@ Behavior:
 
 - The parser reads one identifier token (letters/digits/underscore; same identifier rules as normal keywords).
 - Any remaining characters after that identifier are not tokenized or reduced as expressions.
-  - The engine may emit a warning about extra trailing characters, but the tail is not evaluated and has no side effects.
+  - The engine can emit a warning about extra trailing characters, but the tail is not evaluated and has no side effects.
 - This mode is distinct from “compatibility tails” such as `GOTO label, ...` where the tail is still lexed as expressions (syntactically) even if not evaluated.
 
 ### 3.1 Expression-argument builders (tokenized, `;` comments out remainder)
@@ -120,12 +120,12 @@ This is why the engine has two assignment operators for string variables.
 
 You do not need full per-instruction semantics to classify its argument parsing mode.
 
-Engine-accurate procedure:
+Practical classification procedure:
 
-1) Determine the instruction’s `ArgumentBuilder` (or the `ArgBuilder` set by its `AInstruction` constructor).
+1) Determine whether the instruction reads its argument tail as an identifier, an expression list, a FORM string, or a raw string.
 2) Map it to one of the families in §3.
 
-Common high-impact examples (as implemented by this codebase):
+Common high-impact examples (as implemented by this engine):
 
 - `PRINT` uses a raw-string builder (`STR_NULLABLE`) → `;` is literal.
 - `PRINTFORM` uses a FORM builder (`FORM_STR_NULLABLE`) → `;` is literal.

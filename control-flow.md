@@ -153,7 +153,7 @@ Runs the body `loopCount` times.
 
 Engine-accurate details:
 
-- `REPEAT loopCount` is internally treated like a `FOR` loop with:
+- `REPEAT loopCount` has the same observable loop model as a `FOR` loop with:
   - counter variable: `COUNT:0`
   - start: `0`
   - end: `loopCount`

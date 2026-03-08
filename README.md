@@ -80,7 +80,7 @@ This reference has two “layers”:
 - [`errors-and-warnings.md`](errors-and-warnings.md) — warning levels, filtering, and error vs warning mechanics
 - [`coverage.md`](coverage.md) — coverage plan for a reimplementable typical-game spec
 - [`sources.md`](sources.md) — where this reference was derived from (optional)
-- [`agents.md`](agents.md) — default authoring rules for this reference
+- [`AGENTS.md`](AGENTS.md) — default authoring rules for this reference
 
 ## Terminology
 

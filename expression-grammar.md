@@ -25,26 +25,26 @@ Implementation note (runtime arithmetic):
 
 ## 2) Tokenization model (what the expression parser sees)
 
-Expressions are not parsed from raw characters directly: Emuera first lexes a character stream into a `WordCollection`:
+Expressions are not parsed from raw characters directly: Emuera first lexes a character stream into a token sequence containing:
 
-- Integer literals → `LiteralIntegerWord` (type `0`)
-- String literals `"..."` → `LiteralStringWord` (type `"`), with C-like escape sequences handled by the string reader
-- Identifiers → `IdentifierWord` (type `A`)
-- Operators → `OperatorWord` (type `=`), including multi-character operators like `>=`, `&&`, `!|`
-- Symbols → `SymbolWord` (type is the symbol character), e.g. `(` `)` `,` `:` `@` `]`
-- Formatted-string constructs → `StrFormWord` (type `F`), produced by:
+- integer literals
+- string literals `"..."`, with C-like escape sequences handled by the string reader
+- identifiers
+- operators, including multi-character operators like `>=`, `&&`, `!|`
+- symbols such as `(` `)` `,` `:` `@` `]`
+- formatted-string tokens, produced by:
   - `@"...FORM..."` (formatted-string literal), and
   - `\@ ... ? ... # ... \@` (string-ternary literal form; see §6.4)
 
 ### 2.1 Macro expansion happens at the token level
 
-After lexing, the lexer may expand `#DEFINE` macros inside the `WordCollection`:
+After lexing, the lexer may expand `#DEFINE` macros inside that token sequence:
 
 - Macro expansion is **token-based** (not raw-text).
-- Function-like macros are supported by the lexer (they use `(...)`), but note that **ERH `#DEFINE` in this codebase rejects function-like macros** (encountering them is an error).
+- Function-like macros are supported by the lexer (they use `(...)`), but **ERH `#DEFINE` in this engine rejects function-like macros** (encountering them is an error).
 - Macro expansion is bounded (there is a maximum expansion count; exceeding it is an error).
 
-Expression parsing in this document assumes it receives the post-expansion `WordCollection`.
+Expression parsing in this document assumes it receives the post-expansion token sequence.
 
 ## 3) Operator set and precedence (source of truth)
 
@@ -108,7 +108,7 @@ Many engine paths call `Restructure(exm)` on expression trees during load/parse 
 
 Consequences:
 
-- Constant subexpressions are folded into `SingleTerm` nodes.
+- Constant subexpressions are folded into constant expression nodes.
 - Errors inside constant-only subexpressions (e.g. division by zero; invalid string repetition count) can occur at load time rather than runtime.
 
 ## 4) Expression grammar (EBNF)
@@ -187,7 +187,7 @@ Type rules (as implemented):
 - Most binary operators require both operands to be integers.
 - For strings:
   - `str + str` is concatenation.
-  - `str * int` and `int * str` repeat the string. The repeat count must satisfy `0 <= n < 10000` (this codebase errors on `n < 0` and on `n >= 10000`).
+  - `str * int` and `int * str` repeat the string. The repeat count must satisfy `0 <= n < 10000`; values outside that range are errors in this engine.
   - Comparisons `== != < <= > >=` are allowed for `str` vs `str` using ordinal comparisons.
 - Any other int/string mixes are errors.
 
@@ -226,7 +226,7 @@ arglist   ::= expr { "," expr } ;
 
 Notes:
 
-- `IDENT "[" ... "]"` function calls are explicitly rejected in this codebase.
+- `IDENT "[" ... "]"` function calls are explicitly rejected in this engine.
 - Argument lists can contain **empty slots** (e.g. `F(a,,c)` or `F(a,)`):
   - the expression parser represents an empty slot as `null` in the argument list
   - whether `null` is accepted, treated as “omitted”, or rejected is method-specific (validated by the called built-in method or user-defined signature rules)
@@ -243,7 +243,7 @@ var_arg ::= expr ;
 Notes and constraints:
 
 - Up to **3** `:` arguments are allowed syntactically; semantic rules then depend on the variable’s dimension and category (see `variables.md` and `runtime-model.md`).
-- `@IDENT` is not a general “namespace” feature in this codebase:
+- `@IDENT` is not a general “namespace” feature in this engine:
   - it is accepted only for the local-variable families `LOCAL`, `LOCALS`, `ARG`, and `ARGS`
   - using it with a global variable or a private `#DIM/#DIMS` variable is an error
   - `@` is **not** an expression operator: it is recognized only in this specific spot while parsing a variable identifier.
@@ -292,11 +292,11 @@ Notable rule:
 
 ## 8) Non-normative: Emuera’s expression parsing and evaluation model
 
-This section is **not** part of EraBasic’s expression *syntax*. It is an Emuera implementation note that helps explain how Emuera realizes the grammar and where certain “expression work” happens (parse time vs runtime).
+This section is **not** part of EraBasic’s expression *syntax*. It is an implementation note that helps explain where certain expression work happens (parse time vs runtime).
 
 ### 8.1 Parse time: operator-precedence reduction → expression tree
 
-Emuera does **not** parse expressions by directly constructing EBNF productions. Instead, the parser reads a token stream and incrementally reduces it using an internal precedence stack:
+Emuera does **not** parse expressions by directly constructing EBNF productions. Instead, it reads a token stream and incrementally reduces it using a precedence-aware working stack:
 
 - The parser maintains a working stack for operators and partially built subexpressions.
 - That working stack holds a mix of:
@@ -308,7 +308,7 @@ Emuera does **not** parse expressions by directly constructing EBNF productions.
   - binary operator + left/right → new expression node
   - ternary `? ... # ...` reduces into a ternary expression node
 
-Conceptually, this is similar to a shunting-yard / operator-precedence reduction approach. The key point is that the “stack” here is a **parsing** data structure used to build an expression tree.
+Conceptually, this is similar to a shunting-yard / operator-precedence reduction approach. The key point is that this stack is only a **parsing** data structure used to build an expression tree.
 
 ### 8.2 Runtime: AST evaluation (host call stack), not a stack-bytecode VM
 

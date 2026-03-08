@@ -90,7 +90,7 @@ HTML parsing is strict:
 
 - Unsupported tags are runtime errors.
 - Unsupported attributes or invalid attribute values are runtime errors.
-  - Some tags additionally define “semantic fallback” behaviors (for example, `<img>` / `<shape>` may render as literal text when a resource/shape is not drawable).
+  - Some tags additionally define fallback behaviors (for example, `<img>` / `<shape>` can render as literal text when the referenced resource/shape is not drawable).
 - Unclosed tags at end of string are runtime errors, except that `</p>`, `</nobr>`, and `</clearbutton>` may be omitted.
 - Malformed character references are runtime errors.
 
@@ -278,7 +278,7 @@ Key properties:
   - `<div>` is only rendered by the engine’s graphics drawing path. In WinAPI text drawing mode, `<div>` content is not drawn.
   - `<div>` is not rendered in the HTML island layer (even though it is still parsed/validated).
 - Visibility note:
-  - A `<div>` is rendered as an overlay element and is only drawn when it extends outside the normal line box (i.e. its vertical bounds exceed the standard line height). A `<div>` fully contained within the line box may not be drawn.
+  - A `<div>` is rendered as an overlay element and is only drawn when it extends outside the normal line box (i.e. its vertical bounds exceed the standard line height). A `<div>` fully contained within the line box should be treated as non-drawn for compatibility.
 - The `<div>` start tag must appear when there are no active style/font/button tags:
   - You must not have an unclosed `<font>`, `<button>/<nonbutton>`, or `<b>/<i>/<u>/<s>` at the point where `<div>` starts.
   - `<p>`, `<nobr>`, and `<clearbutton>` may still be active.

@@ -279,7 +279,7 @@ Compatibility-relevant notes:
 
 - `ExecuteLine(string line)` executes one parsed instruction line through the interpreter. It should be treated as a low-level escape hatch, not as a full script runner.
 - `GetIntVar` / `GetStrVar` and `SetIntVar` / `SetStrVar` are convenience helpers for one-index global-variable access. They do not by themselves cover arbitrary multidimensional variables, character-data variables, or local stack variables.
-- `SetCharVar(name, charId, string key, value)` and `GetCharVar(name, charId, string key)` are not generic string-key helpers for arbitrary character variables. Their string-key resolution follows the host's `CFLAG`-style keyword dictionary behavior.
+- `SetCharVar(name, charId, string key, value)` and `GetCharVar(name, charId, string key)` are not generic string-key accessors for arbitrary character variables. The `key` string is resolved through the host's `CFLAG`-style keyword dictionary, not through arbitrary field-name lookup.
 - `CreateCharContext(long charId)` returns a helper object permanently bound to that `charId`; the resulting wrapper methods implicitly prepend that character index on each access.
 - Plugin DLL loading depends on normal managed assembly resolution. If a plugin DLL or one of its managed dependencies cannot be loaded or its types cannot be enumerated, startup fails.
 
@@ -293,14 +293,15 @@ The output-facing helpers are thin host calls; they do not reparse ERB source un
 - `PrintBar()` with no text argument emits the host's standard separator/bar output. `PrintBar(text, isConst)` with a non-empty `text` emits a custom bar string instead.
 - `PrintC(text, alignmentRight)` formats `text` into the host's fixed-width PRINTC-style cell layout before appending it to the print buffer. `PrintButtonC` applies the same cell formatting before appending a button.
 - `PrintButton` appends a clickable/button entry with the supplied label and numeric id. `PrintButtonC` differs only by applying PRINTC-style cell formatting to the label first. Their button behavior follows the same host button model used by normal script-side button output.
-- `Print(text)` appends to the print buffer rather than forcing immediate display. If `text` contains newline characters, the host splits at `\n`, flushes a line break, and continues printing the remainder recursively.
+- `Print(text)` appends to the print buffer rather than forcing immediate display. If `text` contains `\n`, the host emits a line break at each split point and continues printing the remaining segments.
 - `PrintPlain(text)` appends plain text to the print buffer without the raw-PRINT parser step that ERB `PRINT` uses.
 - `PrintPlainWithSingleLine(text)` is an observable API quirk in this build: it routes through a low-level helper that creates a single-line display object, but the plugin-facing wrapper does not insert that returned line into the display list itself. Do not assume it behaves like `PrintSingleLine`.
 - `PrintImage(...)` treats `width`, `height`, and `y` as pixel-valued integers when forwarding them to the host image renderer.
-- `PrintHtml(htmlText, toBuffer: false)` renders HTML-like content directly into display output; `PrintHtml(htmlText, toBuffer: true)` appends the generated button content to the current print buffer instead of immediately emitting standalone display lines. The HTML fragment semantics themselves follow the same HTML-output rules used elsewhere in this reference.
-- `PrintSingleLine` flushes the current buffer and emits one standard display line. `PrintTemporaryLine` uses the host's temporary-single-line path rather than a persistent standard line.
-- `PrintSystemLine(text)` flushes first, disables user-style output, and emits a single system-style line. In this build that style-mode switch is stateful until later host/script output re-enables user-style mode.
-- `PrintError(text)` flushes first, disables user-style output, emits an error display line, and in debug mode also mirrors the text to the debug log. Like `PrintSystemLine`, it leaves the host in non-user-style mode until something later re-enables it.
+- `PrintHtml(htmlText, toBuffer: false)` renders HTML-like content directly into display output. `PrintHtml(htmlText, toBuffer: true)` appends the generated content to the current print buffer instead of immediately emitting standalone display lines. The HTML fragment semantics themselves follow the same HTML-output rules used elsewhere in this reference.
+- `PrintSingleLine(text)` flushes the current buffer and emits one standard display line.
+- `PrintTemporaryLine(text)` uses the host's temporary-single-line path rather than a persistent standard line.
+- `PrintSystemLine(text)` flushes first, disables user-style output, and emits one system-style line. In this build that style-mode switch is stateful until later host/script output re-enables user-style mode.
+- `PrintError(text)` flushes first, disables user-style output, and emits one error display line. In debug mode it also mirrors the text to the debug log. Like `PrintSystemLine`, it leaves the host in non-user-style mode until something later re-enables it.
 - `FlushConsole(force: false)` flushes the current print buffer if it is non-empty. With `force: true`, it forces a flush even when the print buffer is empty.
 - `PrintNewLine()` forces a flush/newline boundary in the host console.
 - `SetFont(fontName)` changes the current user-style font name. Passing `null` or an empty string resets the font name to the host default font setting.
@@ -315,7 +316,7 @@ The output-facing helpers are thin host calls; they do not reparse ERB source un
 - `WaitInput(...)` does **not** configure a typed ERB input mode such as integer/string/button input.
   - In this build it behaves as a host-side pause/wait request rather than a typed `INPUT*` equivalent.
   - When the wait later completes, the accepted input is echoed to output, but no typed value is dispatched into the script input handlers through this helper alone.
-- `ReadAnyKey()` is a misleading name in this build: the plugin-exposed zero-argument form enters the host's **Enter/click wait** path, not the internal `AnyKey` path.
+- `ReadAnyKey()` is a misleading name in this build: the plugin-exposed zero-argument form waits for Enter or a click, not for an arbitrary keyboard key.
 - `Await(time)` enters the host sleep/wait state, processes pending UI events, and sleeps for `time` milliseconds when `time > 0`.
 - `Quit(force: false)` requests normal host shutdown. `Quit(force: true)` uses the host's force-quit path instead.
 - `ForceStopTimer()` stops the host-side input timer mechanism if one is active.
@@ -329,7 +330,7 @@ The output-facing helpers are thin host calls; they do not reparse ERB source un
   - The first element is the current executing line.
   - Later elements follow the return-address chain outward.
   - Frames without a source position are skipped.
-- `LoadPlugins()` clears the current plugin-method registry and performs this topic's plugin discovery/admission sequence. It is the host's plugin-loader entry point; in the normal engine startup path, that initialization has already happened before ordinary plugin code runs.
+- `LoadPlugins()` clears the current plugin-method registry and reruns this topic's plugin discovery/admission sequence. It is the host's plugin-loader entry point. In the normal engine startup path, that initialization has already happened before ordinary plugin code runs.
 - `GetMethod(name)` and `HasMethod(name)` consult the plugin registry using the same case-sensitivity rules as plugin registration.
   - `HasMethod(name)` is the existence probe.
   - `GetMethod(name)` assumes the method exists; if it does not, the lookup fails rather than returning a sentinel/null object.
@@ -492,12 +493,12 @@ public class PluginAPICharContext
 Public-surface note:
 
 - Plugins obtain `PluginAPICharContext` instances through `CreateCharContext(long charId)`; construction is not a public plugin-side contract in this build.
-- The public skeleton above intentionally omits internal cache/bootstrap machinery such as `CacheVariables(...)`.
-- Those internal setup steps are not themselves part of the plugin-facing API contract; only their observable effects matter for compatibility.
+- The public skeleton above intentionally omits non-contract setup machinery such as `CacheVariables(...)`.
+- Those setup steps are not themselves part of the plugin-facing API contract; only their observable effects matter for compatibility.
 
 Compatibility-relevant quirk:
 
-- `PluginAPICharContext.UserDefined` is built from the host's cached user-defined character-variable set at plugin-manager setup time. Because plugins are set up before ERH declarations are processed, a compatible implementation should account for the fact that ERH-defined character variables may be absent from this cached helper view.
+- `PluginAPICharContext.UserDefined` is populated from the user-defined character-variable set known at plugin setup time. Because plugin setup happens before ERH declarations are loaded, character variables introduced later by ERH may be absent from this helper view.
 
 ## Minimal compatible plugin
 

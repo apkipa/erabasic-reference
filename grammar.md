@@ -92,7 +92,7 @@ Notes:
 - `pp_directive` token matching is **case-sensitive** in current code.
 - `ignored_trailing` means any trailing characters after `]` exist but are ignored with a warning.
 - `goto_label_line` warns if anything follows the label name.
-- In this codebase, `func_signature` subnames (`@NAME[...]`) are validated at load time but do not affect runtime dispatch (they are discarded). See `labels.md`.
+- In this engine, `func_signature` subnames (`@NAME[...]`) are validated at load time but do not affect runtime dispatch; the validated list is then discarded. See `labels.md`.
 
 ## 4) `#...` lines inside ERB functions (sharp lines)
 
@@ -157,17 +157,17 @@ init_list       ::= CONST_TERM { "," CONST_TERM } ;
 
 Notes:
 
-- The engine reads a sequence of identifier tokens and treats them as keywords only if they match one of `dim_kw` under `Config.StringComparison`.
+- The engine reads a sequence of identifier tokens and treats them as keywords only if they match one of `dim_kw` under the current `IgnoreCase` mode.
   The first identifier that is not a recognized keyword becomes the variable name.
-- `dim_size` and each `CONST_TERM` must reduce to a compile-time constant (`SingleLongTerm` for `#DIM`, `SingleStrTerm` for `#DIMS`).
+- `dim_size` and each `CONST_TERM` must reduce to a compile-time constant (integer for `#DIM`, string for `#DIMS`).
 - Maximum dimension is 3 (and `CHARADATA` reduces that further; see `variables.md`).
 - Initializers are allowed only for non-`REF`, non-`CHARADATA`, 1D variables.
 - `REF` has special size syntax: commas indicate dimension and explicit sizes must be `0`; empty fields between commas are permitted for `REF` (see `variables.md`).
-- Compatibility quirk: while the directive matcher uses `Config.StringComparison` (ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`), this codebase determines “is string?” using a case-sensitive equality check against `"DIMS"`.
+- Compatibility quirk: while sharp-directive keyword matching follows `IgnoreCase`, this engine determines “is string?” using a later case-sensitive equality check against `"DIMS"`.
 
 Additional compatibility quirk (case-sensitivity inside some sharp directives):
 
-- The directive name token is matched using `Config.StringComparison`, **but** this codebase uses case-sensitive checks in some subsequent branches:
+- The directive name token is matched using `IgnoreCase`, **but** this engine uses case-sensitive checks in some subsequent branches:
   - `#LOCALSIZE` vs `#LOCALSSIZE`: the code chooses which length to set using a case-sensitive equality check against the literal `"LOCALSIZE"`. So `#localsize ...` can be accepted but affect `LOCALS` sizing.
   - `#FUNCTION` vs `#FUNCTIONS`: some “duplicate/already declared” diagnostics use case-sensitive checks and can behave oddly if the marker is written with unexpected casing.
 
@@ -179,7 +179,7 @@ After `@NAME`, the engine may parse an optional signature.
 
 The signature must start with one of:
 
-- `[` — subname list (parsed and validated, but currently ignored by runtime behavior in this codebase)
+- `[` — subname list (parsed and validated, but currently ignored by runtime behavior in this engine)
 - `(` — argument list in parentheses
 - `,` — argument list without parentheses (comma-list to end-of-line)
 
@@ -199,7 +199,7 @@ Constraints enforced by the engine:
 
 - `param_lvalue` must restructure to a non-const `VAR_TERM`.
 - For non-`REF` parameters, the variable term must have explicit subscripts (no “bare” variable) and all subscripts must be compile-time constants.
-- `param_default` (if present) must be a compile-time constant (`SingleTerm`) and type-must-match the parameter.
+- `param_default` (if present) must be a compile-time constant and type-must-match the parameter.
 - Defaults are only allowed for parameters that are `ARG`, `ARGS`, or private variables; other parameter lvalues cannot have defaults.
 - If `=` is absent, the engine inserts an implicit default `0` / `""` **only** for `ARG`, `ARGS`, and private-variable parameters; otherwise the parameter has no default.
 - Event function labels reject all signature content: any tokens after `@EVENT...` emit a level-2 warning and are ignored for argument-binding purposes.
@@ -238,17 +238,17 @@ Note: if `instr_sep` is `;`, the separator begins a comment and `instr_args` is 
 
 Special-case instructions (when enabled):
 
-- If `JSONConfig.Data.UseScopedVariableInstruction` is enabled, the `VARI` / `VARS` instructions are parsed by a dedicated fast-path that does **not** enforce the “separator must be whitespace/`;`/EOL” rule, and uses custom parsing for declarations and initializers.
+- If `UseScopedVariableInstruction` is enabled, the `VARI` / `VARS` instructions use a dedicated parsing path that does **not** enforce the “separator must be whitespace/`;`/EOL” rule, and uses custom parsing for declarations and initializers.
 
 ### 6.3 Assignment statement
 
 If a line is not recognized as an instruction, the engine treats it as an assignment candidate: it locates an assignment operator and then delegates to the `SET` instruction’s argument builder.
 
-Important implementation detail (engine-accurate):
+Important compatibility detail:
 
-- This `SET` is a **parser-internal pseudo instruction** (`FunctionIdentifier.SETFunction`).
-- It is **not** registered in the normal instruction dictionary (`GetFunctionIdentifier(...)`), so writing a line that literally starts with `SET ...` does **not** invoke assignment behavior.
-- Assignment statements and standalone prefix `++X` / `--X` lines are internally represented as `InstructionLine`s whose `Function` is this internal `SETFunction`, and are executed by the normal interpreter loop just like other instruction lines.
+- Assignment syntax is routed through a dedicated assignment-instruction path rather than through a normal user-callable `SET` keyword.
+- As a result, writing a line that literally starts with `SET ...` does **not** invoke assignment behavior.
+- Assignment statements and standalone prefix `++X` / `--X` lines are still represented as ordinary `InstructionLine`s and are executed by the normal interpreter loop like other instruction lines.
 
 Assignment operators accepted by the lexer in assignment context:
 
@@ -292,7 +292,7 @@ arglist          ::= [ arg ] { "," [ arg ] } ;
 arg              ::= EXPR ;
 ```
 
-An empty field between commas denotes an **omitted argument** (represented internally as `null` in the argument list).
+An empty field between commas denotes an **omitted argument**.
 
 ## 7) Core control-flow blocks (structural rules + argument syntax)
 
@@ -435,7 +435,7 @@ Notes (engine-accurate):
 - `trylist_open` takes no arguments.
 - Inside the block, only `FUNC` and `ENDFUNC` are allowed (other instructions are errors).
 - These blocks are not nestable.
-- `FUNC` uses the same call-target parsing shape as call-like instructions, and in this codebase it uses the FORM-capable target reader (like `CALLFORM`).
+- `FUNC` uses the same call-target parsing shape as call-like instructions, and in this engine it accepts the same FORM-capable target style as `CALLFORM`.
 - For `TRYGOTOLIST`, `FUNC` must not specify subnames or arguments.
 
 ## 8) Calls and jumps (statement-level syntax)
@@ -463,7 +463,7 @@ Notes:
 
 - `call_target_str` is read as raw text up to one of: `(`, `[`, `,`, `;` and then trimmed of half-width spaces/tabs.
 - If `;` appears, it starts a comment; the remaining text is ignored.
-- The engine also supports “subnames” syntax (`[...]`) at call sites and in label definitions, but in this codebase it is effectively **validated then ignored** (it does not affect runtime dispatch). See `functions.md` and `labels.md` for details.
+- The engine also supports “subnames” syntax (`[...]`) at call sites and in label definitions, but in this engine it is effectively **validated then ignored** (it does not affect runtime dispatch). See `functions.md` and `labels.md` for details.
 
 ## 9) ERH file grammar (header files)
 
@@ -475,12 +475,12 @@ erh_line        ::= WS? "#" erh_directive ;
 
 erh_directive   ::= "DEFINE" WS IDENT WS macro_replacement
                  | ("DIM" | "DIMS") WS dim_decl
-                 | ("FUNCTION" | "FUNCTIONS") WS ...   (* not implemented in this codebase *)
+                 | ("FUNCTION" | "FUNCTIONS") WS ...   (* not implemented in this engine *)
                  ;
 ```
 
 Key implementation notes:
 
-- `#DEFINE` in this codebase supports **empty macros** (no replacement tokens), but **does not allow function-like macros** (`NAME(arg1,...)`): those are explicitly rejected.
-- `#FUNCTION/#FUNCTIONS` in ERH are present in the loader switch, but currently throw `NotImplCodeEE` (i.e. they error if encountered).
+- `#DEFINE` in this engine supports **empty macros** (no replacement tokens), but **does not allow function-like macros** (`NAME(arg1,...)`): those are explicitly rejected.
+- `#FUNCTION/#FUNCTIONS` in ERH are recognized by the loader, but are currently not implemented and therefore error if encountered.
 - `#DIM/#DIMS` are queued and processed later as a batch; they share the same declaration syntax family as ERB `#DIM/#DIMS`.

@@ -14,7 +14,7 @@ The engine chooses a decoding as follows:
 
 1) If the file starts with a UTF-8 BOM (`EF BB BF`), decode as UTF-8 (BOM-aware).
 2) Otherwise, attempt to read the file as UTF-8 **strictly** (invalid byte sequences cause failure).
-   - If .NET detects some other BOM encoding during this attempt (e.g. UTF-16 with BOM), that detected encoding is used instead of UTF-8.
+   - If the byte stream itself starts with another recognized BOM during that read (for example UTF-16), that BOM wins and the file is decoded in that encoding instead of UTF-8.
 3) If strict UTF-8 reading fails, fall back to Shift-JIS (code page 932), also with strict decoder fallbacks.
 
 This means:
@@ -35,9 +35,9 @@ Most loaders ultimately use `.NET File.ReadAllLines(...)` (directly or via the p
 
 Emuera’s loaders are a mix of “open an exact filename in `csv/`” and “enumerate a pattern”.
 
-- **Exact-path CSVs (top directory only):** most tables are opened by exact name in `csv/` (examples: `GAMEBASE.CSV`, `VariableSize.CSV`, `ABL.CSV`, ...). Placing these in subfolders does not work in this codebase.
+- **Exact-path CSVs (top directory only):** most tables are opened by exact name in `csv/` (examples: `GAMEBASE.CSV`, `VariableSize.CSV`, `ABL.CSV`, ...). Placing these in subfolders does not work in this engine.
 - **Pattern-enumerated CSVs:**
-  - `CHARA*.CSV` uses `Config.GetFiles(csvDir, "CHARA*.CSV")`, so `SearchSubdirectory` / `SortWithFilename` affect whether it searches subfolders and how it orders results.
+  - `CHARA*.CSV` discovery is affected by `SearchSubdirectory` / `SortWithFilename`, which change whether subfolders are searched and how results are ordered.
   - `VarExt*.csv` (save-extension settings) is enumerated with `SearchOption.AllDirectories` unconditionally and is not explicitly sorted.
 
 For the full runtime load order and ordering quirks, see `pipeline.md`.
@@ -178,7 +178,7 @@ and the script uses:
 - Replacement is not recursive: if the replacement text contains another `[[...]]`, it is not processed again in the same pass.
 - If an enabled line still contains `[[...]]` after rename processing, later tokenization treats it as an error (“cannot rename key”).
 
-Important compatibility quirk in this codebase:
+Important compatibility quirk in this engine:
 
 - ERH line reading enables rename processing unconditionally (even if rename is “off” for ERB in config).
 - Main CSV tables (name/constant CSVs) are read with rename disabled.
@@ -209,7 +209,7 @@ Rules:
 
 If `L1` is negative:
 
-- if the variable is allowed to be forbidden, it becomes prohibited (internally treated as length `0`)
+- if the variable is allowed to be forbidden, it becomes prohibited (effectively unavailable to scripts)
 - if the variable is not allowed to be forbidden, the engine warns and ignores the prohibition
 
 Note: `L1 == 0` is invalid and warned.
@@ -337,7 +337,7 @@ At constant-data load time, the engine enumerates:
 
 Ordering notes:
 
-- The enumeration is not explicitly sorted in this codebase.
+- The enumeration is not explicitly sorted in this engine.
 - The settings from all discovered files are merged (union of key sets).
 
 ### 8.2 File format and parsing
@@ -350,7 +350,7 @@ Rules:
 
 - Lines with fewer than 2 tokens warn and are ignored.
 - A line whose first token is empty warns and is ignored.
-- `CATEGORY` is compared using `Config.StringComparison`: ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`.
+- `CATEGORY` comparison follows `IgnoreCase`: ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`.
 - Each `keyN` is `Trim()`ed and added to a set.
 
 Recognized categories:
@@ -377,5 +377,5 @@ Save/load boundaries (binary save mode, engine-accurate):
 
 - Normal save slots write only keys in `SAVE_*` sets.
 - Global save writes only keys in `GLOBAL_*` sets.
-- Static keys are never written to save files in this codebase.
+- Static keys are never written to save files in this engine.
 - When reading, the engine accepts `Map`/`Xml`/`DT` records only if the key belongs to either a `SAVE_*` or a `GLOBAL_*` set (static keys are ignored at load time).

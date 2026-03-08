@@ -351,7 +351,7 @@ Shared properties:
 - It indexes logical lines from the newest retained logical line backward.
 - `0` means the newest retained logical line.
 - It returns grouped structured HTML for that logical line.
-- It preserves button markup and uses `<br>` for internal display-line breaks.
+- It preserves button markup and uses `<br>` for display-row breaks within that logical line.
 - It excludes pending buffered output and the HTML-island layer.
 - Temporary lines and host-generated normal lines are included while they remain retained.
 - Once older logical lines fall out of the retained normal log, they are no longer accessible here.

@@ -1,6 +1,6 @@
 # Labels and Name Resolution (engine-accurate)
 
-This document specifies how this Emuera codebase parses and resolves:
+This document specifies how this engine parses and resolves:
 
 - function labels (`@NAME`)
 - local jump labels (`$NAME`)
@@ -9,7 +9,7 @@ It also specifies how multi-defined labels are ordered and grouped.
 
 ## 1) Case-sensitivity (config-dependent)
 
-Most label dictionaries use `Config.StrComper` / `Config.StringComparison`:
+Most label dictionaries follow the engine's current identifier-comparison mode:
 
 - If `IgnoreCase=YES`, label lookup is **case-insensitive** (ordinal ignore-case).
 - If `IgnoreCase=NO`, label lookup is **case-sensitive** (ordinal).
@@ -66,7 +66,7 @@ After `@NAME`, the loader can also accept a bracket list `[...]` before the norm
 Engine-accurate behavior:
 
 - This bracket list is sometimes called “subNames” in the engine.
-- It is **validated** at load time, but **not stored** on the label object in this codebase (the assignment is left as a TODO/commented-out), so it has **no runtime effect** on which label is called.
+- It is **validated** at load time, but then discarded, so it has **no runtime effect** on which label is called.
 - The bracket list must be **non-empty**, and each element must be a **constant term** (non-constant expressions are rejected).
 - Event functions (`@EVENT...`) do not parse any signature content at all: any trailing tokens (including `[...]`) cause a warning and are ignored for argument-binding purposes.
 
@@ -74,7 +74,7 @@ Engine-accurate behavior:
 
 Some label names are treated as “event functions” by name.
 
-Event label names (hard-coded):
+Event label names (engine built-in set):
 
 - `EVENTFIRST`
 - `EVENTTRAIN`
@@ -88,7 +88,7 @@ Event label names (hard-coded):
 
 These labels are treated as event functions even if you write them like normal `@NAME` labels.
 
-Other label names are “system labels” (hard-coded plus regex-based). They are not necessarily event labels; they are just recognized as special names by the engine:
+Other label names are “system labels” (engine built-in names plus regex-matched names). They are not necessarily event labels; they are just recognized as special names by the engine:
 
 - `SHOW_STATUS`
 - `SHOW_USERCOM`

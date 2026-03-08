@@ -1,6 +1,6 @@
 # Formatted Strings (FORM): `%...%`, `{...}`, `@"..."`, triple symbols, and `\@...\@`
 
-This document specifies Emuera’s **formatted-string (FORM)** system as implemented by this codebase.
+This document specifies Emuera’s **formatted-string (FORM)** system as implemented by this engine.
 
 FORM is used in two closely related ways:
 

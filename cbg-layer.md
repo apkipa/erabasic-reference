@@ -165,11 +165,11 @@ Observable rules:
 Tooltip handling is narrower than selection handling:
 
 - the host can surface tooltip text from a matching selected CBG button sprite,
-- but the standard tooltip path only does this for selected values greater than `0`.
+- but the default tooltip behavior only does this for selected values greater than `0`.
 
-So `buttonValue = 0` still participates in CBG selection and hover-sprite switching, but does **not** surface tooltip text through that standard host path.
+So `buttonValue = 0` still participates in CBG selection and hover-sprite switching, but does **not** surface tooltip text through that default tooltip behavior.
 
-If multiple matching selected entries carry tooltip text, the standard host tooltip path takes the **first** matching entry encountered in current CBG list order.
+If multiple matching selected entries carry tooltip text, the default tooltip behavior takes the **first** matching entry encountered in current CBG list order.
 This effectively prefers higher `zDepth` entries first; same-depth tie order should still be treated as non-portable.
 The host also replaces literal `<br>` substrings in that tooltip text with actual line breaks before showing it.
 
@@ -200,8 +200,8 @@ Therefore:
 
 Host-mode quirk:
 
-- on this host, ordinary CBG painting is performed only on the non-`WINAPI` text-drawing path,
-- so methods that do not themselves reject `WINAPI` still mutate stored CBG state there without producing normal visible CBG painting.
+- when `WINAPI` text drawing is active, ordinary CBG painting is not performed,
+- so methods that do not themselves reject `WINAPI` can still mutate stored CBG state there without producing normal visible CBG painting.
 
 ### 7.2 `CBG` buttons are not ordinary output buttons
 

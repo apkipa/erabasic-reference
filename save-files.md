@@ -13,7 +13,7 @@ Cross-refs to engine code are optional and only for fact-check.
 
 ### 1.1 Base directories
 
-In this codebase, the engine’s base directory (sometimes called `ExeDir`) contains these important subfolders:
+In this engine, the base directory (sometimes called `ExeDir`) contains these important subfolders:
 
 - `csv/` — CSV data
 - `erb/` — ERB scripts
@@ -50,7 +50,7 @@ These instructions store files under the `dat/` folder (not `SavDir`):
 
 The `name` part must be non-empty and must not contain any OS-invalid filename characters (engine uses `Path.GetInvalidFileNameChars()`).
 
-In this codebase, some call sites format the `{name}` portion from an integer slot/index using the numeric formatting pattern `{index:00}` (two digits minimum), producing filenames like `var_00.dat` and `chara_07.dat`.
+In this engine, some call sites derive the `{name}` portion from an integer slot/index using the numeric formatting pattern `{index:00}` (two digits minimum), producing filenames like `var_00.dat` and `chara_07.dat`.
 
 The engine also provides an enumeration helper that lists `dat/var_*.dat` or `dat/chara_*.dat` with a wildcard pattern and extracts the `{name}` portion by stripping the prefix and the `.dat` extension.
 
@@ -76,14 +76,14 @@ At a high level:
 
 Both the binary and legacy text formats contain a single string field that acts as the save slot’s **summary text** (shown in save/load UIs and also exposed to scripts via various built-ins).
 
-In this codebase, the engine produces that text through two main paths:
+In this engine, the summary text is produced through two main paths:
 
 - `SAVEDATA <slot>, <text>` writes `<text>` as the summary text for that slot (the engine rejects embedded newlines).
-- The save UI flow calls `@SAVEINFO` and uses `PUTFORM` to append printable text into the internal variable `SAVEDATA_TEXT`, then writes `SAVEDATA_TEXT` as the summary text for the selected slot.
+- The save UI flow calls `@SAVEINFO` and uses `PUTFORM` to append printable text into `SAVEDATA_TEXT`, then writes `SAVEDATA_TEXT` as the summary text for the selected slot.
 
 ### 2.2 Load-time clearing and merge behavior (engine behavior)
 
-Load operations are not all “replace everything”. In this codebase:
+Load operations are not all “replace everything”. In this engine:
 
 - Normal slot load (`LOADDATA` / save UI load) is a full game-state load:
   - the engine resets variables to defaults, clears characters, then loads characters and savedata variables from the file.
@@ -117,16 +117,16 @@ On load/reset, the engine clears only the extension keys belonging to the corres
 
 Important limitation (engine behavior):
 
-- These EM extension values are persisted only via the **binary** save format in this codebase.
+- These EM extension values are persisted only via the **binary** save format in this engine.
 - The legacy text save format (`SystemSaveInBinary=NO`) does not serialize Map/XML/DT extension data.
 
 ## 3) Binary save format: EraBinaryData v1808
 
 When `SystemSaveInBinary=YES`, normal-slot and global saves are written in the engine’s binary format (“EraBinaryData v1808”).
 
-Regardless of `SystemSaveInBinary`, `SAVECHARA/LOADCHARA` use this binary format in this codebase.
+Regardless of `SystemSaveInBinary`, `SAVECHARA/LOADCHARA` use this binary format in this engine.
 
-`SAVEVAR/LOADVAR` are declared built-ins but are **not implemented** in this engine build (they throw `NotImplCodeEE` at runtime). The engine still defines a binary file type `Var` and contains internal save/load helpers for variable packs; this document specifies that format for completeness.
+`SAVEVAR/LOADVAR` are declared built-ins but are **not implemented** in this engine build; calling them raises a runtime not-implemented error. The engine still defines a binary file type `Var` and contains save/load support for variable packs; this document specifies that format for completeness.
 
 ### 3.1 File header (magic, version, optional compression)
 
@@ -138,7 +138,7 @@ Header fields:
    - uncompressed: `0x0A1A0A0D41524589`
    - compressed:   `0x0A50495A41524589` (ZipHeader)
 2) `u32 formatVersion` = `1808`
-3) `u32 dataCount` (currently `0` in this codebase)
+3) `u32 dataCount` (currently always `0` in this engine)
 4) `u32[dataCount] dataTable` (currently empty)
 
 Payload:
@@ -148,7 +148,7 @@ Payload:
 
 When ZipHeader is used:
 
-- It is controlled by `ZipSaveData`, but in this codebase compression is only enabled when **both** `SystemSaveInBinary=YES` and `ZipSaveData=YES`.
+- It is controlled by `ZipSaveData`, but in this engine compression is only enabled when **both** `SystemSaveInBinary=YES` and `ZipSaveData=YES`.
   (As a result, `SAVEVAR/SAVECHARA` binary `.dat` files are not compressed unless `SystemSaveInBinary` is also enabled.)
 
 ### 3.2 Primitive encodings used in the payload
@@ -354,7 +354,7 @@ EOF
 
 `NonCharaVariablesBinary` is a variable-record stream terminated by `EOF`.
 
-In this codebase, an additional “EM extension” variable-record stream may follow (Map/XML/DT partition keys) and is also terminated by `EOF`.
+In this engine, an additional “EM extension” variable-record stream may follow (Map/XML/DT partition keys) and is also terminated by `EOF`.
 
 Which variables are included (engine behavior):
 
@@ -393,7 +393,7 @@ This is a curated variable-record stream containing only the variables explicitl
 
 Engine note:
 
-- In this engine build, the `SAVEVAR/LOADVAR` instructions always throw `NotImplCodeEE`, so this file type is not produced/consumed by EraBasic built-ins.
+- In this engine build, the `SAVEVAR/LOADVAR` instructions always raise a runtime not-implemented error, so this file type is not produced/consumed by EraBasic built-ins.
 
 #### 3.5.4 `CharVar` (`dat/chara_{name}.dat`)
 
@@ -420,13 +420,13 @@ Engine quirk:
 
 ### 4.1 Text encoding
 
-- Write: `StreamWriter(..., Config.SaveEncode)` (default UTF-8 with BOM in this codebase).
+- Write: `StreamWriter(..., configured save-text encoding)` (default UTF-8 with BOM in this engine).
 - Read: `StreamReader(..., DetectEncoding(file))` (BOM-aware / heuristic).
 
 ### 4.2 Primitive encodings
 
 - `ReadInt64()` reads one line and parses it as a decimal `Int64`.
-- `ReadString()` reads one line as-is; a `null` internal string is written as an empty line.
+- `ReadString()` reads one line as-is; a `null` in-memory string is written as an empty line.
 
 #### 4.2.1 EraMaker-style arrays
 
@@ -538,7 +538,7 @@ row1Csv
 __FINISHED
 ```
 
-String 2D/3D extended arrays are **not supported** by the engine’s legacy text reader in this codebase.
+String 2D/3D extended arrays are **not supported** by the engine’s legacy text reader in this engine.
 
 ### 4.6 Backward-compatibility notes (text format)
 

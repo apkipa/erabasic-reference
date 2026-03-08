@@ -1,6 +1,6 @@
 # Emuera Configuration Catalog (language-adjacent)
 
-This document catalogs the config items implemented by this codebase (EvilMask/Emuera).
+This document catalogs the config items implemented by this engine (EvilMask/Emuera).
 It is part of the self-contained EraBasic reference in `erabasic-reference/`.
 
 If you only need the *file formats and load order*, read `data-files.md` first; this document focuses on the *actual keys* and their defaults.
@@ -25,7 +25,7 @@ Values are parsed by the item’s declared type:
 
 - `bool`: accepts numeric `0/1`, `YES/NO`, `TRUE/FALSE` (case-insensitive); also accepts Japanese `前/後` for one specific replace key.
 - `int` / `long`
-- `string`: trimmed; **exception:** `EditorArgument` is assigned from the raw substring after the first `:` without trimming. Examples: `SomeKey:   abc  ` parses as `"abc"`, while `EditorArgument:   /A /B  ` parses as `"   /A /B  "`.
+- `string`: trimmed. **Exception:** `EditorArgument` is assigned from the raw substring after the first `:` without trimming. Example: `SomeKey:   abc  ` parses as `"abc"`, while `EditorArgument:   /A /B  ` parses as `"   /A /B  "`.
 - `char`: must be a single character
 - `Color`: `R,G,B` integers (each component satisfies `0 <= component <= 255`)
 - enums: parsed by enum name (case-insensitive)
@@ -44,14 +44,16 @@ Values are parsed by the item’s declared type:
 This section calls out config that directly changes script parsing or core runtime semantics.
 The full table in this section still lists *all* config items (including UI-only ones).
 
-- `IgnoreCase`: controls identifier comparison (`Config.StringComparison` / `Config.StrComper`) used throughout parsing and runtime lookup.
-- `SearchSubdirectory`: controls whether certain file enumerations use recursive search (notably `*.ERH`, `*.ERB`, and `CHARA*.CSV` via `Config.GetFiles`). Other enumerations may ignore this setting (e.g. `*.erd` and `VarExt*.csv` are always searched recursively in this codebase).
+- `IgnoreCase`: controls the engine's identifier-comparison mode used throughout parsing and runtime lookup.
+- `SearchSubdirectory`: controls whether certain file enumerations use recursive search (notably `*.ERH`, `*.ERB`, and `CHARA*.CSV`). Other enumerations may ignore this setting (e.g. `*.erd` and `VarExt*.csv` are always searched recursively in this engine).
 - `SortWithFilename`: controls whether file and directory enumeration is lexicographically sorted; this also affects label “first-defined” ordering and event iteration order.
 - `SystemAllowFullSpace`: when enabled, the lexer treats full-width space (U+3000) as whitespace in multiple places (notably when skipping whitespace/comments).
 - `UseRenameFile`: enables `_Rename.csv` processing (affects `[[...]]` replacement during ERH/ERB line reading).
-- `UseReplaceFile`: enables `_Replace.csv` processing for the dedicated replace-item set listed in section 7 (currency/unit presentation, loading/title strings, `DRAWLINE`/`BAR` rendering strings, shop capacity, timeout text, and several runtime default-value tables such as `COM_ABLE`, `STAIN`, `EXPLV`, `PALAMLV`, `PBAND`, `RELATION`).
+- `UseReplaceFile`: enables `_Replace.csv` processing for the dedicated replace-item set listed in section 7. That set covers currency/unit presentation, loading/title strings, `DRAWLINE`/`BAR` rendering strings, shop capacity, timeout text, and several runtime default-value tables (`COM_ABLE`, `STAIN`, `EXPLV`, `PALAMLV`, `PBAND`, `RELATION`).
 - `ReplaceContinuationBR`: controls the string inserted when joining `{ ... }` continuation lines; the joiner is used after removing all `"` characters from this value.
 - `UseERD`: enables ERD-based string-indexing for user-defined variables (`#DIM/#DIMS`).
+- `SaveDataNos`: controls the count of normal save slots shown by `SAVEGAME` / `LOADGAME`. Runtime clamps it to `20 <= SaveDataNos <= 80`; the UI still paginates in fixed pages of 20.
+- `MaxShopItem`: controls the default SHOP buy-range upper bound (`0 <= x < MaxShopItem`).
 - `VarsizeDimConfig`: changes the `VARSIZE(var, dim)` dimension numbering (the engine decrements `dim` by 1 when enabled and `dim > 0`).
 - `SystemNoTarget`: disables the engine’s auto-completion of omitted character-variable arguments (e.g. defaulting to `TARGET`).
 - `SystemIgnoreStringSet`: changes whether string variables may be assigned via `=`; when enabled the engine warns and rejects certain string assignments.

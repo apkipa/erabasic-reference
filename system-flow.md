@@ -23,7 +23,7 @@ When a system hook finishes (e.g. `@SYSTEM_TITLE`), if the engine has no further
 
 Key compatibility rule:
 
-- A `BEGIN` request is not entered immediately as a normal call; instead, it ends the current function and is applied after unwinding to the top-level boundary, then system flow continues in the requested phase.
+- A `BEGIN` request is not entered immediately as a normal call. Instead, it ends the current function and is applied after unwinding to the top-level boundary; system flow then continues in the requested phase.
 
 This is why certain system hooks are required to execute `BEGIN`: otherwise, the hook returns, the script stack ends, and there is no next phase to enter.
 
@@ -35,6 +35,17 @@ This is observable in SHOP/TRAIN/ABLUP flows: after a user handler returns, the 
 
 - trailing line is temporary → re-open the immediate input prompt on the same screen
 - otherwise → restart the phase’s top-level loop (re-render via `@SHOW_*`)
+
+### 1.4 System integer prompts
+
+The host prompts described in this document use the engine's **system integer-input** surface.
+
+Observable rules:
+
+- they accept only submissions that parse as integers,
+- they do not have the ordinary empty-input default path used by some script-side waits,
+- empty or non-numeric textbox submissions are rejected before the phase-specific range checks described in sections 4–12 of this document,
+- after such a rejection, the same system prompt remains active.
 
 ## 2) Required `BEGIN` contracts (runtime errors)
 
@@ -104,7 +115,8 @@ If the selected value is:
   - if `@TITLE_LOADGAME` exists: call it, then return to TITLE afterwards,
   - otherwise: enter the opening load UI (a `LOADGAME`-like flow tied to the title menu; see §8).
 - otherwise:
-  - show an “invalid value” message and re-prompt.
+  - replace the trailing prompt/status line with the host's standard invalid-value temporary line (`無効な値です` by default),
+  - then re-open the same title prompt without redrawing the whole title screen.
 
 ### 4.3 `@SYSTEM_TITLE` requirements
 
@@ -162,8 +174,8 @@ After `@SHOW_SHOP`, the engine requests an integer input (system prompt). Let th
 If `0 <= x < MaxShopItem`:
 
 - Treat `x` as an item index.
-- If the item is not for sale (`ITEMSALES[x] == 0`): show an “out of stock” message and re-prompt.
-- Else if the purchase fails (e.g. not enough money): show a “not enough money” message and re-prompt.
+- If the item is not for sale (`ITEMSALES[x] == 0`): show the host's standard out-of-stock temporary line (`売っていません。` by default) and re-open the same prompt without re-running `@SHOW_SHOP`.
+- Else if the purchase fails (e.g. not enough money): show the host's standard not-enough-money temporary line (`お金が足りません。` by default) and re-open the same prompt without re-running `@SHOW_SHOP`.
 - Else (purchase succeeds):
   - update purchase state (sets `BOUGHT`, increments `ITEM:BOUGHT`, decrements money accordingly),
   - call `@EVENTBUY` if it exists,
@@ -205,9 +217,11 @@ The UI shows save slots:
 - Autosave slot: `99` (shown in load UI; not shown in save UI)
 - Back/cancel: `100`
 
-Slots are shown in pages of 20.
+Shared UI rules:
 
-If the user enters a valid slot number that belongs to a different page, the UI switches to that page and redraws the list.
+- `SaveDataNos` controls the total count of normal slots, but the UI always paginates in fixed pages of 20.
+- If the user enters a valid slot number that belongs to a different page, the UI switches to that page and redraws the list.
+- Empty or non-numeric textbox input is rejected before any slot-selection logic runs, so the same prompt simply remains active.
 
 ### 8.2 SAVEGAME flow
 
@@ -219,13 +233,20 @@ If the user selects:
 
 - `100`: cancel; restore the previous system state and return.
 - a normal slot `s`:
-  - if the slot already contains data: prompt for overwrite confirmation (0 = yes, 1 = no).
+  - if the slot belongs to a different page, the UI switches to that page and redraws instead of entering save/overwrite handling.
+  - otherwise, if the slot already contains data: prompt for overwrite confirmation (`0` = yes, `1` = no).
   - if confirmed (or if the slot was empty):
     - initialize `SAVEDATA_TEXT` with the current timestamp in `yyyy/MM/dd HH:mm:ss ` format,
     - call `@SAVEINFO` if it exists (it can append to `SAVEDATA_TEXT`, commonly via `PUTFORM`),
     - write the save file for slot `s`,
     - restore the previous system state and return.
-- any other value: show an “invalid value” message and re-prompt.
+- any other integer value: show the host's standard invalid-value temporary line (`無効な値です` by default) and re-open the same slot prompt.
+
+Overwrite-confirmation prompt details:
+
+- `0` means “overwrite”, `1` means “do not overwrite”.
+- `1` returns to the slot-list UI.
+- Any other integer value shows the host's standard invalid-value temporary line (`無効な値です` by default) and re-opens just the overwrite-confirmation prompt.
 
 ### 8.3 LOADGAME flow
 
@@ -237,12 +258,13 @@ If the user selects:
 
 - `100`: cancel; if this is the title-opening load UI, return to TITLE; otherwise restore the previous system state and return.
 - a normal slot `s` (or autosave slot `99`):
-  - if there is no data in the slot: show a “no data” message and re-open the load prompt.
+  - if the selected normal slot belongs to a different page, the UI switches to that page and redraws instead of attempting the load.
+  - if there is no data in the slot: print the selected slot number as a normal line, then print the host's standard no-data error line (`データがありません` by default), then rebuild the load UI.
   - otherwise:
     - load the slot’s save state,
     - clear the previous execution context,
     - enter the LOADDATAEND hook sequence (§7).
-- any other value: show an “invalid value” message and re-prompt.
+- any other integer value: show the host's standard invalid-value temporary line (`無効な値です` by default) and re-open the same load prompt.
 
 ## 9) TRAIN phase
 
@@ -316,7 +338,7 @@ When an executable command `n` is selected:
 
 Command result:
 
-- If `RESULT == 0` after `@COM{n}` returns: the command is treated as “failed”; the engine skips both `@SOURCE_CHECK` and `@EVENTCOMEND`, and returns directly to the main TRAIN loop.
+- If `RESULT == 0` after `@COM{n}` returns, the command is treated as “failed”. The engine skips both `@SOURCE_CHECK` and `@EVENTCOMEND`, and returns directly to the main TRAIN loop.
 - Otherwise:
   - call `@SOURCE_CHECK`,
   - then clear `SOURCE[*] = 0` for all characters,
@@ -351,7 +373,7 @@ Entry and loop:
 If `0 <= x < 100`:
 
 - Attempt to call `@ABLUP{x}`.
-- If `@ABLUP{x}` does not exist: show an “invalid value” message and re-prompt (it does **not** fall back to `@USERABLUP` for this case).
+- If `@ABLUP{x}` does not exist: show the host's standard invalid-value temporary line (`無効な値です` by default) and re-open the same prompt (it does **not** fall back to `@USERABLUP` for this case).
 
 Otherwise (`x < 0` or `x >= 100`):
 

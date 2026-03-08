@@ -1,6 +1,6 @@
 # Load/Preprocess/Parse Pipeline (Emuera EvilMask)
 
-This document is a **source-of-truth** description of how this codebase loads EraBasic and related data files, and the exact high-level ordering of preprocessing steps.
+This document is a **source-of-truth** description of how this engine loads EraBasic and related data files, and the exact high-level ordering of preprocessing steps.
 
 It is written so that an implementer can reproduce compatible behavior without needing to read the engine source code, while still offering optional fact-check references.
 
@@ -23,14 +23,14 @@ The interpreter-relevant directories are mainly `csv/` and `erb/`.
 
 This is the actual order in which files/config are loaded before scripts are executed:
 
-Host-boundary note: steps (1)–(4) straddle two host layers in this codebase. `Preload.Load(...)` runs in `EmueraConsole.Initialize()`, while most later config/data/script initialization runs inside `Process.Initialize()`. The observable order below is still the compatibility-relevant order.
+Host-boundary note: steps (1)–(4) span an early preload stage and a later runtime-initialization stage. The observable order below is the compatibility-relevant order.
 
-1) **Load config files** (`ConfigData.LoadConfig()`), then apply them (`Config.SetConfig()`).
-2) **Load JSON settings** from `ExeDir/setting.json` (`JSONConfig.Load()`).
+1) **Load config files**, then apply them.
+2) **Load JSON settings** from `ExeDir/setting.json`.
 3) **Load language/UI resources** (out of scope for a headless interpreter).
-4) **Preload file contents** into an in-memory cache (`Preload.Load(erbDir)` and `Preload.Load(csvDir)`).
+4) **Preload file contents** into an in-memory cache.
    - This eagerly reads `*.erb/*.erh/*.erd/*.csv/*.als` under those directories recursively.
-   - This does **not** decide “what gets executed” (enumeration rules still decide that), but later readers use `OpenOnCache(...)` and therefore depend on this cache.
+   - This does **not** decide “what gets executed” (enumeration rules still decide that), but later file readers do read from this cache.
 5) **Load sprites/resources** from `resources/**/*.csv` (and referenced image files) into the sprite dictionary.
 6) **Load `_Replace.csv`** (optional; controlled by config; skipped in analysis mode).
 7) **Load `_Rename.csv`** (optional; controlled by config).
@@ -53,7 +53,7 @@ Config is layered in this order (later wins):
 2) `ExeDir/emuera.config`
 3) `csv/_fixed.config` (fallback: `csv/fixed.config`) — values successfully parsed from this file become “fixed” (immutable at runtime).
 
-Important: after loading, the engine writes `emuera.config` when that file does not exist, and also rewrites it when the internal update key check changes `LastKey`.
+Important: after loading, the engine writes `emuera.config` when that file does not exist, and can also rewrite it when its config-update check decides the stored file metadata is stale.
 
 JSON settings are loaded afterwards from `ExeDir/setting.json`. If it doesn’t exist, a default JSON is written.
 
@@ -69,9 +69,9 @@ Separately, the line-continuation joiner string is taken from the normal config 
 
 If enabled by config, the engine reads `csv/_Rename.csv` and builds a mapping of the form:
 
-If `UseRenameFile=YES` but `csv/_Rename.csv` does not exist, this codebase prints an error message and continues with an empty rename dictionary. Missing `_Rename.csv` is therefore a soft host-side error, not a startup abort.
-
 `[[pattern]]` → `replacement`
+
+If `UseRenameFile=YES` but `csv/_Rename.csv` does not exist, this engine prints an error message and continues with an empty rename dictionary. Missing `_Rename.csv` is therefore a soft host-side error, not a startup abort.
 
 That mapping is used by the line reader for ERB, and also for ERH (ERH forces rename enabled). If `[[...]]` remains in an enabled line after rename processing, later tokenization will treat it as an error.
 
@@ -104,28 +104,28 @@ So `SearchSubdirectory` does **not** change the set of loaded files for those ta
 
 Two loaders *do* enumerate patterns:
 
-- `CHARA*.CSV` is enumerated via `Config.GetFiles(csvDir, "CHARA*.CSV")`, so:
+- `CHARA*.CSV` discovery:
   - `SearchSubdirectory=YES` enables recursive discovery under `csv/`
-  - `SortWithFilename=YES` sorts directory/file names (via `.NET Array.Sort(string[])` inside `Config.GetFiles`)
-  - enumeration still relies on `Directory.GetFiles(dir, "CHARA*.CSV")`, so extension matching is filesystem-dependent (typical Windows is effectively case-insensitive; case-sensitive filesystems may require uppercase `.CSV`)
-- `VarExt*.csv` (save-extension settings) is enumerated via `Directory.GetFiles(csvDir, "VarExt*.csv", SearchOption.AllDirectories)`:
+  - `SortWithFilename=YES` sorts directory and file names
+  - extension matching is filesystem-dependent (typical Windows is effectively case-insensitive; case-sensitive filesystems may require uppercase `.CSV`)
+- `VarExt*.csv` (save-extension settings) discovery:
   - it is always recursive regardless of `SearchSubdirectory`
   - the engine does not explicitly sort the returned list (ordering is filesystem/runtime-dependent)
-  - on case-sensitive filesystems, the pattern uses lowercase `.csv`, so uppercase `.CSV` may not match
+  - on case-sensitive filesystems, the lowercase `*.csv` pattern may fail to match uppercase `.CSV`
 
 ## ERH loading (headers) vs ERB loading (scripts)
 
 ### Header files (`*.ERH`)
 
-ERH files are enumerated by `Config.GetFiles(erbDir, "*.ERH")`:
+ERH file discovery rules:
 
 - if `SearchSubdirectory=YES`, it searches all subdirectories recursively
-- if `SortWithFilename=YES`, it sorts both directory names and file names using `.NET Array.Sort(string[])` on full paths (string-ordering can be runtime/culture dependent)
-- it filters out “weird glob matches” by requiring `Path.GetExtension(path).Length <= 4` (so patterns like `*.ERB*` are not accidentally picked up)
+- if `SortWithFilename=YES`, it sorts both directory names and file names using the runtime's normal string sort
+- it filters out accidental long-extension glob matches (so patterns like `*.ERB*` are not picked up)
 
 Case-sensitivity note:
 
-- Enumeration ultimately relies on `Directory.GetFiles(dir, "*.ERH")`, so whether `.erh` is found by `"*.ERH"` depends on the filesystem. Typical Windows deployments behave case-insensitively; case-sensitive filesystems may require uppercase extensions for discovery.
+- Whether `.erh` is found by `"*.ERH"` depends on the filesystem. Typical Windows deployments behave case-insensitively; case-sensitive filesystems may require uppercase extensions for discovery.
 
 ERH is parsed **before ERB**. In this engine, ERH is allowed to contain:
 
@@ -138,28 +138,28 @@ Rename processing is always enabled for ERH line reading (even if rename is “o
 
 ### Script files (`*.ERB`) and load ordering
 
-ERB files are enumerated by `Config.GetFiles(erbDir, "*.ERB")`, but with a special ordering rule:
+ERB file discovery uses the normal ERB glob, but with a special ordering rule:
 
 1) Any directory whose path matches `*#*` is loaded first (recursively if subdirectory search is enabled).
 2) Then the remaining ERB files are loaded.
 
-Within a directory, the file list is sorted only when `SortWithFilename=YES`; otherwise the engine keeps the filesystem enumeration order returned by `Directory.GetFiles(...)`.
+Within a directory, the file list is sorted only when `SortWithFilename=YES`; otherwise the engine keeps the raw filesystem enumeration order.
 
-More precisely, enumeration uses the same `Config.GetFiles(...)` routine:
+More precisely:
 
 - `SearchSubdirectory` controls recursion
-- `SortWithFilename` controls sorting of both directory and file names (via `.NET Array.Sort(string[])` on full paths; ordering can be runtime/culture dependent)
+- `SortWithFilename` controls sorting of both directory and file names using the runtime's normal string sort
 - file matches are filtered to extensions of length ≤ 4 (to avoid accidental `*.ERB*` matches)
 
 Case-sensitivity note:
 
-- Enumeration ultimately relies on `Directory.GetFiles(dir, "*.ERB")`, so whether `.erb` is found by `"*.ERB"` depends on the filesystem. Typical Windows deployments behave case-insensitively; case-sensitive filesystems may require uppercase extensions for discovery.
+- Whether `.erb` is found by `"*.ERB"` depends on the filesystem. Typical Windows deployments behave case-insensitively; case-sensitive filesystems may require uppercase extensions for discovery.
 
 Important ordering detail (engine quirk):
 
-- The `*#*` directory list is obtained via `Directory.GetDirectories(erbDir, "*#*", ...)` and is **not** sorted by `SortWithFilename` before being iterated. If multiple `*#*` directories exist, their relative order can therefore depend on filesystem enumeration order.
-- Within each chosen directory, the engine uses `Config.GetFiles(dir, erbDir, "*.ERB")` to enumerate ERBs. If `SortWithFilename=YES`, that list is filename-sorted; otherwise it follows the unsorted filesystem enumeration order used by `Directory.GetFiles`.
-- The engine then enumerates `Config.GetFiles(erbDir, "*.ERB")` for the “remaining” files and skips any absolute paths already loaded from the `*#*` phase.
+- The `*#*` directory list itself is **not** sorted by `SortWithFilename` before iteration. If multiple `*#*` directories exist, their relative order can therefore depend on filesystem enumeration order.
+- Within each chosen directory, ERB files follow the same sorted/unsorted rule stated in this section for ordinary ERB discovery.
+- The engine then scans the remaining ERB files under `erb/` and skips files already loaded from the `*#*` phase.
 
 This ordering affects:
 
@@ -200,7 +200,7 @@ For each enabled ERB line, the loader classifies it by its first non-whitespace 
 
 This step does **not** fully parse instruction arguments in the general case. Most instruction lines store a raw “argument slice” and are parsed later (either during load-time validation, or lazily at runtime).
 
-Certain parse failures set an internal “load error” flag (`noError=false` in the engine) even though the loader continues to read the rest of the files:
+Certain parse failures clear the loader's coarse “load succeeded?” flag even though the loader continues to read the rest of the files:
 
 - invalid function labels (`InvalidLabelLine`)
 - invalid statement lines (`InvalidLine`)
@@ -220,13 +220,13 @@ For each function label, the loader performs:
 
 The loader iterates `InstructionLine`s in the function and:
 
-- If the function is a user-defined expression function (`#FUNCTION/#FUNCTIONS`), rejects any instruction whose metadata lacks `METHOD_SAFE` by marking that line as an error line.
+- If the function is a user-defined expression function (`#FUNCTION/#FUNCTIONS`), rejects any instruction not marked as method-safe by marking that line as an error line.
 - Parses instruction arguments on load when any of these holds:
   - `NeedReduceArgumentOnLoad=YES`, or
   - analysis mode, or
-  - the instruction forces load-time argument parsing (engine metadata flag `FORCE_SETARG`).
+  - the instruction family always forces load-time argument parsing.
 
-This pass is where many “this line will crash if executed” issues become explicit `line.IsError` traps.
+This pass is where many “this line will crash if executed” issues become explicit error-line traps.
 
 #### Pass 2/3: structural block matching (“nest check”)
 
@@ -237,7 +237,7 @@ The loader validates block structure and “syntax blocks” using a nesting sta
 - validates that `$` labels do not appear inside `PRINTDATA*`, `STRDATA`, `DATALIST`, or `TRYCALLLIST` / `TRYJUMPLIST` / `TRYGOTOLIST` bodies (they become error lines)
 - wires some per-line jump anchors (e.g. `BREAK`/`CONTINUE` target the nearest enclosing loop marker)
 
-Missing/extra closers and invalid nesting are reported through the warning system; many of those warnings also set `isError=true`, which marks the offending marker line(s) as error lines. The exact split is loader-path-specific.
+Missing/extra closers and invalid nesting are reported through the warning system; many of those warnings also mark the offending marker line(s) as error lines. The exact warning-vs-error-line split depends on the loader path.
 
 #### Pass 3/3: `JumpTo` wiring and load-time name resolution
 
@@ -247,20 +247,20 @@ The loader calls each instruction’s `SetJumpTo(...)` hook to:
 - resolve and link constant call/jump targets where applicable:
   - If a call/jump/goto target is a compile-time constant, the engine may resolve it at load time and cache the result on the line.
   - If such a target cannot be resolved and the instruction is not a `TRY*` form, the loader marks the line as an error line.
-  - If the target is not constant (e.g. `CALLFORM`, or any “computed name” call), the loader sets an internal `useCallForm` flag; resolution is deferred to runtime.
+  - If the target is not constant (e.g. `CALLFORM`, or any other computed-name call), the loader records that dynamic call resolution is needed; resolution is deferred to runtime.
 
 Config interaction (important):
 
-- `FunctionNotFoundWarning` affects whether “function not found” warnings are printed, but when this pass marks a line as an error line (`isError=true`), that happens regardless of whether the warning is later suppressed by config (see `errors-and-warnings.md`).
+- `FunctionNotFoundWarning` affects whether “function not found” warnings are printed, but when this pass marks a line as an error line, that happens regardless of whether the warning is later suppressed by config (see `errors-and-warnings.md`).
 
 ### 4) Whole-program function reachability checks
 
-After per-function parsing, the loader runs a “function never called” check unless `useCallForm` is set:
+After per-function parsing, the loader runs a “function never called” check unless some call/jump target remained dynamic during load:
 
-- If `useCallForm=true`, the loader treats all functions as “potentially called” (because targets may be computed at runtime) and parses them all.
+- If any target must be resolved dynamically at runtime, the loader treats all functions as “potentially called” and parses them all.
 - Otherwise, it warns for functions never reached via static call graph discovery, controlled by `FunctionNotCalledWarning`.
 
-Optional hardening (default in this codebase):
+Optional hardening (default in this engine):
 
 - If `IgnoreUncalledFunction=YES`, the loader does **not** parse uncalled functions, and instead plants a runtime trap at the function entry:
   - the first executable line after the label is marked as an error line (“this function should not be called”).
@@ -310,7 +310,7 @@ When concatenation is enabled and the first non-whitespace character of the line
 - subsequent raw lines are appended into a single logical line until a closing `}` line is found
 - the closing line must contain only `}` (plus whitespace) (otherwise it is an error)
 - a joiner string is inserted between appended lines:
-  - the engine takes `Config.ReplaceContinuationBR`, removes all `"` characters, and appends the result
+  - the engine takes the configured `ReplaceContinuationBR` string, removes all `"` characters, and appends the result
   - the default joiner behaves like a single ASCII space
 
 Concatenation blocks are **not nestable**. Encountering another `{` inside a concatenation block is an error.

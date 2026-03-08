@@ -7,9 +7,9 @@ It is not a full list of messages; it defines the *mechanics* you need for compa
 Terminology used in this reference:
 
 - **Warning**: a diagnostic message recorded during config/script loading or analysis. Warnings do not necessarily stop loading.
-- **Error line**: a parsed line object that is marked as invalid for execution (`line.IsError == true`) and will throw if reached at runtime.
+- **Error line**: a parsed line object that is marked as invalid for execution and will throw if reached at runtime.
 - **Invalid line**: a line that could not be parsed into a meaningful statement object; it is represented by a distinct `InvalidLine`/`InvalidLabelLine` object and is always an error line.
-- **Exception error**: a thrown exception (`CodeEE`, `ExeEE`, etc.). At the boundary where it escapes, it aborts that current load phase or runtime execution step.
+- **Exception error**: a thrown hard failure. At the boundary where it escapes, it aborts that current load phase or runtime execution step.
 
 ## 1) Warning levels and filtering
 
@@ -18,7 +18,7 @@ Warnings carry an integer **level**. The engine treats the numeric level as a se
 - Config key: `DisplayWarningLevel`
 - If a warning’s `level < DisplayWarningLevel` and the engine is not in analysis mode, the warning is suppressed.
 
-The engine’s internal comment describes the intended meaning as:
+The engine’s own severity note describes the intended meaning as:
 
 - `0`: minor mistake
 - `1`: ignorable line / non-fatal issue
@@ -29,7 +29,7 @@ Back-compat warnings are additionally gated by `WarnBackCompatibility` (they can
 
 ## 2) How warnings are collected and printed
 
-During config load and script load/parse, warnings are accumulated in an internal list (each warning has):
+During config load and script load/parse, warnings are accumulated in a warning list (each warning has):
 
 - message text
 - optional source position (`filename`, `line`)
@@ -69,25 +69,24 @@ The engine uses multiple representations for “bad” lines:
   - cause the loader to report “cannot interpret” issues; whether startup still proceeds is determined later by the loader flag / `CompatiErrorLine` behavior described in §7
 - **Normal line objects marked as error lines**:
   - represent lines that were parsed into a statement object, but were later determined to be invalid (for example, disallowed instructions in a `#FUNCTION` body, or unresolved constructs under specific config rules)
-  - behave like runtime traps: if execution reaches the line, the interpreter throws `CodeEE(line.ErrMes)`
+  - behave like runtime traps: if execution reaches the line, the interpreter throws using that line's stored error message
 
-### 3.2 Instruction-line argument errors (`func.IsError`)
+### 3.2 Deferred argument-parse errors
 
-Instruction lines have two different “error bits”:
+Instruction lines have two separate failure states:
 
-- `line.IsError` on the `LogicalLine` itself (set by parsers/validators; throws immediately when reached)
-- `func.IsError` on an `InstructionLine`’s parsed argument object (set when argument parsing fails)
+- the `LogicalLine` itself may already be marked as an error line by parsers/validators, in which case execution throws immediately when it reaches that line
+- the line may still be structurally valid, but its instruction arguments may fail when they are first parsed
 
-At runtime, if an `InstructionLine` has not had its arguments parsed yet, the engine parses them lazily.
-If that lazy argument parse sets `func.IsError`, the engine throws a `CodeEE(func.ErrMes)` when the line is reached.
+At runtime, if an `InstructionLine` has not had its arguments parsed yet, the engine parses them lazily. If that lazy argument parse fails, the engine throws at that point using the argument-parser error message.
 
 ## 4) Exceptions: when the engine throws instead of warning
 
 The engine uses exceptions for hard failures. Common families include:
 
-- `CodeEE`: used for script/config/parse-time errors (often includes a source position)
-- `ExeEE`: used for runtime execution errors
-- specialized subclasses such as `IdentifierNotFoundCodeEE`; for example, the ERH `#DIM/#DIMS` loader may catch it, retry after more declarations are known, and only later downgrade it to a warning if still unresolved
+- one family for script/config/parse-time errors (often carrying a source position)
+- one family for runtime execution errors
+- specialized variants; for example, the ERH `#DIM/#DIMS` loader can catch an unresolved-identifier failure, retry after more declarations are known, and only later downgrade it to a warning if still unresolved
 
 Whether an exception aborts loading depends on where it is caught:
 
@@ -118,14 +117,14 @@ For the engine-accurate behavior (including `{...}` blocks reporting the closing
 
 This engine has two different “load succeeded?” signals:
 
-1) A loader return flag (`noError` in the main `Process`) that is set to `false` when the ERB loader encounters an invalid label line, an invalid non-label line, or a `#...` line whose parser reports failure.
-2) The presence of error lines (`line.IsError == true`) created during later validation passes.
+1) A coarse loader-success flag that is cleared when the ERB loader encounters an invalid label line, an invalid non-label line, or a `#...` line whose parser reports failure.
+2) The presence of error lines created during later validation passes.
 
-At the “begin title” boundary, this codebase checks only the loader flag:
+At the “begin title” boundary, this engine checks only the coarse loader flag:
 
-- If `noError == false` and `CompatiErrorLine == NO`, the engine stops at title with an error prompt (“cannot interpret”).
-- If `CompatiErrorLine == YES`, the engine proceeds into normal execution even when `noError == false`.
+- If that flag indicates failure and `CompatiErrorLine == NO`, the engine stops at title with an error prompt (“cannot interpret”).
+- If `CompatiErrorLine == YES`, the engine proceeds into normal execution even when that flag indicates failure.
 
 Important limitation:
 
-- `CompatiErrorLine` does not guarantee that scripts with error lines are safe to run. If execution reaches an error line, the interpreter still throws `CodeEE`.
+- `CompatiErrorLine` does not guarantee that scripts with error lines are safe to run. If execution reaches an error line, the interpreter still throws.

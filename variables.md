@@ -100,7 +100,7 @@ This is primarily a compatibility/safety feature for specific games/engines.
 At variable-token resolution time:
 
 - If a variable is marked prohibited (`IsForbid == true`), resolving it as a variable token throws an error (“used prohibited var”).
-- Some built-in variables are not allowed to be prohibited at all (`CanForbid == false`); if such a variable nevertheless reaches the prohibited state, resolving it throws a fatal `ExeEE` rather than the normal script-level `CodeEE`.
+- Some built-in variables are not allowed to be prohibited at all; if such a variable nevertheless reaches the prohibited state, resolution fails as a fatal host/runtime error rather than an ordinary script-level variable error.
 
 ### Out-of-range indices
 
@@ -114,7 +114,7 @@ For character variables, the first index is the character selector:
 
 - `0 <= chara < CHARANUM` (current character list count)
 
-When an index is out of range at runtime, the engine throws an error (it converts internal index/overflow exceptions into a bounds-checked `CodeEE`).
+When an index is out of range at runtime, the engine throws the normal script-side bounds error.
 
 ### Null string cells read as empty
 
@@ -125,14 +125,14 @@ This applies both to normal string variables and to `RESULTS`/`RESULTS:n`.
 ## “Calculated” variables (`__CALC__`) and special cases
 
 Some built-in variables are marked as “calculated” in the engine (`__CALC__` flag).
-This is a metadata flag on the variable token; it does **not** change the surface syntax of variable terms.
+This is a classification property of the resolved variable reference; it does **not** change the surface syntax of variable terms.
 
 Typical examples include:
 
 - `RAND:n` (random value; see the dedicated argument restrictions below)
 - `CHARANUM` (derived from the current character list length)
 - `__FILE__`, `__FUNCTION__`, `__LINE__` (debug/introspection variables)
-- `WINDOW_TITLE` (engine/UI state; writable in this codebase)
+- `WINDOW_TITLE` (engine/UI state; writable in this engine)
 
 Compatibility-relevant implications:
 
@@ -304,7 +304,7 @@ Built-in locals include `LOCAL/LOCALS` and argument locals `ARG/ARGS`.
 
 ### `LOCAL / LOCALS`
 
-`LOCAL` (numeric) and `LOCALS` (string) are “local” in the sense that they are scoped per-function-name internally, but they are **not** automatically reset on each call.
+`LOCAL` (numeric) and `LOCALS` (string) are “local” in the sense that they are scoped by function label name, but they are **not** automatically reset on each call.
 
 In practice:
 
@@ -325,7 +325,7 @@ Prefer `#DIM/#DIMS` variables for clarity and predictable scoping.
 ### Optional local subkey: `LOCAL@subKey` / `ARG@subKey` (engine behavior)
 
 In variable syntax, `NAME@subKey` is **not** a general “variable namespace” feature.
-In this codebase, `@subKey` is accepted only for the local-variable families:
+In this engine, `@subKey` is accepted only for the local-variable families:
 
 - `LOCAL`, `LOCALS`, `ARG`, `ARGS`
 
@@ -368,7 +368,7 @@ Keywords recognized by this engine:
 - `SAVEDATA`
 - `CHARADATA`
 
-Compatibility quirk (important): the directive keyword match is done under `Config.StringComparison` (ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`), but the “is this string variable?” flag is derived using a **case-sensitive** check against the literal `"DIMS"`. So `#dims ...` can be accepted by the loader but still create a **numeric** variable in this codebase.
+Compatibility quirk (important): sharp-directive keyword matching follows `IgnoreCase`, but the later “numeric vs string declaration” branch still checks specifically for uppercase `DIMS`. So `#dims ...` can be accepted by the loader but still create a **numeric** variable in this engine.
 
 ### 2) Name validity and conflicts
 
@@ -377,7 +377,7 @@ Name validity checks differ slightly between private and global variables.
 For both scopes:
 
 - Names must not contain whitespace or punctuation; practically, use only ASCII letters/digits and `_`.
-- Names must not collide (under `IgnoreCase` / `Config.StringComparison`) with:
+- Names must not collide under the engine's current identifier-comparison mode (`IgnoreCase`) with:
   - reserved words like `IS`, `TO`, `INT`, `STR`, `STATIC`, `DYNAMIC`, `GLOBAL`, `SAVEDATA`, `CHARADATA`, `REF`, etc.
   - built-in instruction names
   - built-in expression function names
@@ -443,7 +443,7 @@ Constraints:
 Private variables can be either:
 
 - `STATIC` (default): storage persists across calls to the same function label.
-- `DYNAMIC`: storage is (re)allocated on function entry and discarded on return; recursion uses an internal stack to preserve each call frame’s storage.
+- `DYNAMIC`: storage is (re)allocated on function entry and discarded on return; recursive calls therefore get distinct per-call storage.
 
 Constraints:
 
@@ -460,7 +460,7 @@ Initializer application:
 
 `REF` declares a reference-typed variable. It has **no storage** of its own; instead, it can be bound to some other variable’s underlying array.
 
-In this codebase:
+In this engine:
 
 - Global `#DIM/#DIMS` declarations with `REF` are treated as “not implemented” and fail during ERH processing.
 - Private `REF` variables are supported and are primarily used for **pass-by-reference parameters** in user-defined functions.
@@ -502,12 +502,12 @@ Binary-save constraint (config-dependent):
 
 - If `SAVEDATA` is used and `SystemSaveInBinary` is disabled:
   - string variables with dimension > 1 are rejected
-  - any `CHARADATA` variable is rejected (in this codebase, regardless of element type)
+  - any `CHARADATA` variable is rejected (in this engine, regardless of element type)
 
 ERH notes:
 
 - ERH files are processed before ERB files.
-- In this codebase, an enabled ERH line must start with `#` (any other leading character is a header load error).
+- In this engine, an enabled ERH line must start with `#` (any other leading character is a header load error).
 - Only `#DEFINE` and `#DIM/#DIMS` are intended for ERH in this engine.
   - Unknown `#...` directives in ERH are treated as errors (they are not silently ignored).
   - `#FUNCTION/#FUNCTIONS` is recognized by the header loader but is currently **not implemented** here (it throws and fails header loading if used).
@@ -532,14 +532,14 @@ These are not surface-level syntax, but they affect compatible runtime behavior 
 User-defined variables (`#DIM/#DIMS`) are categorized using the declaration keywords:
 
 - **Private variables** (declared under `@LABEL` in ERB):
-  - `STATIC` (default): stored in a global static list and persist across calls, but are reset by “reset data”.
+  - `STATIC` (default): stored in the engine's static non-global user-variable bucket, persist across calls, and are reset by “reset data”.
   - `DYNAMIC`: allocated on function entry and discarded on function return (recursion-safe).
   - `REF`: has no storage of its own; it is bound/unbound during user-function argument binding.
 - **Global variables** (declared in ERH):
   - no `GLOBAL` keyword: treated as “static (non-global)” user variables; reset by “reset data”.
   - `GLOBAL`: treated as “global user variables”; reset only by “reset global”.
 
-In this codebase, the engine internally maintains separate lists for:
+In this engine, user-defined storage is partitioned into separate buckets for:
 
 - “static non-global” user-defined variables (includes ERH non-`GLOBAL` vars and ERB `STATIC` private vars)
 - user-defined global variables (ERH `GLOBAL`)
@@ -577,33 +577,33 @@ The engine’s normal reset operation does **not** reset `GLOBAL/GLOBALS`.
 
 It performs these steps (in this order):
 
-1) Remove “save-partition” EM extension data (`RemoveEMSaveData()`):
+1) Remove EM extension data belonging to the normal-save partition:
    - clears selected `DataStringMaps` entries
    - removes selected `DataXmlDocument` entries
    - clears selected `DataDataTables` entries
    The key sets are configured by `VarExt*.csv` (see `data-files.md`).
-2) Reset local-variable stores and static user variables (`SetDefaultLocalValue()`):
+2) Reset local-variable stores and static user variables:
    - resets all existing `LOCAL/LOCALS` and `ARG/ARGS` stores (keyed by function name)
    - resets all “static non-global” user-defined variables (ERH non-`GLOBAL` vars + ERB `STATIC` private vars)
-3) Reset “non-global built-in variables” (`SetDefaultValue(constant)`):
+3) Reset non-global built-in variables:
    - clears most built-in variable arrays (numeric to `0`, string to `null`)
    - leaves `GLOBAL/GLOBALS` untouched
-   - re-applies engine defaults including `ASSI:0 = -1`, `TARGET:0 = 1`, `PBAND:0 = Config.PbandDef`, `EJAC:0 = 10000`, and config-driven tables for `PALAMLV` / `EXPLV`
+   - re-applies engine defaults including `ASSI:0 = -1`, `TARGET:0 = 1`, `PBAND:0 = PbandDef`, `EJAC:0 = 10000`, and config-driven tables for `PALAMLV` / `EXPLV`
 4) Dispose and clear the entire `CharacterList` (all characters are removed).
 
 #### 6.2 `ResetGlobalData()` (global reset) — what it clears
 
 The engine’s global reset operation affects **only** “global” buckets:
 
-1) Remove “global-save” EM extension data (`RemoveEMGlobalData()`).
-2) Remove “static” EM extension data (`RemoveEMStaticData()`).
-3) Reset `GLOBAL/GLOBALS` and ERH `GLOBAL` user variables (`SetDefaultGlobalValue()`).
+1) Remove EM extension data belonging to the global-save partition.
+2) Remove EM extension data belonging to the static partition.
+3) Reset `GLOBAL/GLOBALS` and ERH `GLOBAL` user variables.
 
 It does **not** reset other built-in variables or character data.
 
 #### 6.3 Load-time clearing for EM extension data
 
-When loading from disk, this codebase clears only the corresponding EM extension partition before reading:
+When loading from disk, this engine clears only the corresponding EM extension partition before reading:
 
-- Normal slot load (`LoadFrom(...)`) clears only the “save” partition (`RemoveEMSaveData()`).
-- Global load (`LoadGlobal()`) clears only the “global-save” partition (`RemoveEMGlobalData()`), and does not clear the “static” partition.
+- Normal slot load clears only the normal-save partition.
+- Global load clears only the global-save partition, and does not clear the static partition.

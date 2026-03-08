@@ -137,7 +137,7 @@ This matters for array-manipulating built-ins:
 
 ### `@subKey` is only for local-variable families
 
-Although the syntax permits `NAME@subKey`, `@subKey` is **not** supported for general variables in this codebase.
+Although the syntax permits `NAME@subKey`, `@subKey` is **not** supported for general variables in this engine.
 It is accepted only for:
 
 - `LOCAL`, `LOCALS`, `ARG`, `ARGS`
@@ -297,7 +297,7 @@ In string expressions, using FORM syntax directly (e.g. `%VAR%`) can be an error
 
     PRINTS @"%STR:0%!"
 
-If the entire content is only a string-ternary `\@...\@`, this codebase also accepts omitting `@"..."`.
+If the entire content is only a string-ternary `\@...\@`, this engine also accepts omitting `@"..."`.
 
 This `@"..."` form is an engine extension specifically meant for “FORM inside string expressions”.
 

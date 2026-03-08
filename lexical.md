@@ -41,7 +41,7 @@ The engine can treat certain `;`-prefixed lines as executable by stripping the p
 See:
 
 - `;!;` and `;#;` are Emuera-specific extensions.
-- `;^;` originated as an EMEE extension, but it is recognized unconditionally in this codebase.
+- `;^;` originated as an EMEE extension, but it is recognized unconditionally in this engine.
 
 ## Line concatenation (“row concatenation”)
 
