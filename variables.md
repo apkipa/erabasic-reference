@@ -139,6 +139,68 @@ Compatibility-relevant implications:
 - Many calculated variables are also `CONST`/unchangeable, but not all of them.
 - Some “by-ref-like” contexts explicitly reject calculated variables even if they look like normal variable terms (for example, method arguments whose rule includes a `Ref*` requirement).
 
+## Built-in variable families with runtime-sensitive meaning
+
+The most compatibility-sensitive built-in variables are not just “named storage”; they track the engine's current character list, command-selection state, and reset phases.
+
+### Character list size and selector variables
+
+These variables all speak in terms of the **current character list** (`0 <= i < CHARANUM`), not stable CSV template numbers:
+
+- `CHARANUM` is a read-only calculated variable equal to the current character-list length.
+- `MASTER`, `TARGET`, `ASSI`, and `PLAYER` are plain integer selectors into that current list.
+  - They can be negative or out of range; the engine does not guarantee that they always point at a valid character.
+  - Character-data variables and character-oriented built-ins treat those values as ordinary indices and then do their normal bounds checks.
+- `TARGET` is also the default chara selector used by omitted-index inference when `SystemNoTarget=NO`; that inference rule does not make the underlying variable itself special.
+
+### Character-list mutation boundaries
+
+Character-list operations change the meaning of selector variables because selectors store **current indices**, not stable character identities.
+
+Shared observable rules:
+
+- Appending operations such as `ADDCHARA` / `ADDVOIDCHARA` grow `CHARANUM` but do not automatically retarget `MASTER` / `TARGET` / `ASSI`.
+- Deleting or swapping characters (`DELCHARA`, `DELALLCHARA`, `SWAPCHARA`) changes the list layout but does not automatically rewrite those selectors.
+- Reordering/filtering operations that are explicitly identity-aware may rebind selectors:
+  - `PICKUPCHARA` rebinds `MASTER` / `TARGET` / `ASSI` to the new indices of their old character objects if those characters survive; otherwise they become `-1`.
+  - `SORTCHARA` keeps `MASTER` fixed at its numeric slot and updates `TARGET` / `ASSI` to keep pointing at the same character objects.
+
+So, for reimplementation, treat selector variables as stored integers whose interpretation depends on the current dense list `0 <= i < CHARANUM`.
+
+### Phase-sensitive command variables
+
+Several built-ins are really part of the host/runtime state machine rather than generic storage:
+
+- `SELECTCOM` holds the currently selected training command id during command execution.
+- `NEXTCOM` is a one-shot preselection slot consumed by TRAIN entry logic; when it triggers, the engine uses it as the selected command and then resets it back to `0`.
+- `PREVCOM` is **not** automatically maintained by the engine's generic reset/update helpers; scripts commonly update it explicitly if they depend on it.
+- `ITEMSALES` is the current shop-availability array; `BOUGHT` is the last purchased item id in the shop flow.
+
+The exact host call order that reads/writes these variables is specified in `system-flow.md`.
+
+### Reset-sensitive temporary families
+
+Some variable families are designed as short-lived accumulators tied to TRAIN/command processing:
+
+- `TFLAG` and `TSTR` are cleared on TRAIN entry.
+- `UP`, `DOWN`, and `LOSEBASE` are cleared after `@SHOW_USERCOM` and before the command-selection prompt.
+- Per-character `DOWNBASE`, `CUP`, and `CDOWN` are cleared at that same pre-input point.
+- Per-character `NOWEX` is cleared only when a command is about to run (after command selection, before `@EVENTCOM` / `@COMnn`).
+- Per-character `SOURCE` is cleared later, after `@SOURCE_CHECK`.
+
+These timings are observable because scripts can read/write these arrays between host callbacks. See `system-flow.md` for the surrounding phase transitions.
+
+### Reset survivors and config-seeded defaults
+
+A few built-in families matter because they survive one reset class but not another, or because reset seeds them from config:
+
+- `GLOBAL` / `GLOBALS` survive the engine's normal data reset and are cleared only by the dedicated global reset path.
+- Normal reset re-seeds several built-in defaults from config/data tables, including:
+  - `PALAMLV` from the configured PALAM thresholds,
+  - `EXPLV` from the configured EXP thresholds,
+  - `PBAND` from the configured default item id.
+- The same normal reset also seeds the usual selector defaults used by the host flow (`ASSI = -1`, `TARGET = 1` before the new-game character list is rebuilt).
+
 ## Batch assignment to arrays
 
 Emuera supports assigning comma-separated values to consecutive array elements:

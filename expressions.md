@@ -206,14 +206,42 @@ The engine supports several string operators:
 - `+` — string concatenation (string + string)
 - `*` — string repetition (string * integer), with a multiplier constraint `0 <= n < 10000`
 
-Comparisons such as `==`, `!=`, `<`, `<=`, `>` and `>=` can compare strings to strings (lexicographic).
+String comparisons split into two observable families:
 
-Implementation note: string comparisons are ordinal (byte/Unicode code-point order) and are not affected by `IgnoreCase`.
+- `==` and `!=` compare the actual string contents directly.
+- `<`, `<=`, `>`, and `>=` use ordinal ordering (`StringComparison.Ordinal`).
+
+So, for expression compatibility, treat all string comparisons as **case-sensitive** and **not affected by `IgnoreCase`**.
+
+Examples:
+
+- `"ABC" == "abc"` → `0`
+- `"ABC" < "abc"` → `1`
+- `"a" > "B"` → `1`
 
 Invalid mixes (engine rejects these):
 
 - comparing a number and a string
 - using `+` to add/concatenate a number and a string
+
+### Numeric corner cases
+
+For arithmetic/bitwise compatibility, the engine follows the host's plain `Int64` operator behavior:
+
+- `+`, binary `-`, `*`, bitwise operators, and shifts do not add an explicit overflow check; wraparound is observable.
+- `/` and `%` reject divisor `0` with the engine's divide-by-zero runtime error.
+- Otherwise, integer division truncates toward zero, and `%` keeps the sign of the left operand.
+- The host-overflow cases `long.MinValue / -1` and `long.MinValue % -1` still fail as overflow.
+- Shift counts are evaluated as `long`, cast to `int`, then applied with C# `long` shift semantics, so the effective count is modulo `64`.
+- Right shift `>>` is arithmetic (sign-extending).
+
+Examples:
+
+- `-7 / 3` → `-2`
+- `-7 % 3` → `-1`
+- `7 % -3` → `1`
+- `1 << 64` → `1`
+- `1 << -1` behaves the same as `1 << 63`
 
 ### Precedence (practical summary)
 

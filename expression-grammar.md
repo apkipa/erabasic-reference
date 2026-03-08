@@ -98,9 +98,25 @@ Short-circuiting behavior is implemented in the operator methods:
 
 ### Overflow / corner cases
 
-- Integer arithmetic uses `long` and follows .NET’s default unchecked overflow behavior (wraparound) for `+ - *` and shifts.
-- Unary minus on `long.MinValue` prints a system-line warning message and returns `long.MinValue` (because `-long.MinValue` overflows back to itself).
-- Shifts cast the shift count to `int` before shifting; behavior matches C# shift semantics (masking of the shift count).
+- Integer arithmetic uses `long` and follows the host's plain `Int64` operator behavior. There is no explicit overflow check for `+`, binary `-`, `*`, bitwise operators, or shifts, so overflow wraps in two's-complement style.
+- Unary minus has one special case: when the operand is `long.MinValue`, the engine prints a system warning line and returns `long.MinValue` (because `-long.MinValue` overflows back to itself).
+- Division and modulo use the host `long / long` and `long % long` operators:
+  - divisor `0` throws the engine's divide-by-zero runtime error,
+  - otherwise division truncates toward zero,
+  - the remainder keeps the sign of the left operand,
+  - exceptional host-overflow cases such as `long.MinValue / -1` and `long.MinValue % -1` propagate as overflow failures rather than being rewritten into divide-by-zero.
+- Shift operators first evaluate the right operand as `long`, then cast it to `int`, then apply the host `long << int` / `long >> int` semantics:
+  - the effective shift count is the low 6 bits of that `int` value (so counts behave modulo `64`),
+  - negative counts therefore wrap through the same rule (`-1` behaves like `63`, `-64` behaves like `0`),
+  - `>>` is an arithmetic right shift (sign-extending) because the operand type is signed `long`.
+
+Examples:
+
+- `-7 / 3 == -2`
+- `-7 % 3 == -1`
+- `7 % -3 == 1`
+- `1 << 64 == 1`
+- `1 << -1 == 1 << 63`
 
 ### Restructure (constant folding) affects when errors happen
 

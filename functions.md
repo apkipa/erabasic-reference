@@ -45,7 +45,7 @@ These behaviors also interact with whole-program “function never called” che
 - When the called function ends, execution returns to the line after the `CALL`.
 - If the function reaches its end without an explicit `RETURN`, `RESULT` becomes `0`.
 
-## Calling expression functions as statements (`METHOD`-dispatch and `CALLF`)
+## Calling expression functions as statements (`METHOD`-dispatch, `CALLF`, `TRYCALLF`)
 
 Expression functions (built-in methods and user-defined `#FUNCTION/#FUNCTIONS`) are normally called inside expressions:
 
@@ -65,6 +65,18 @@ This engine also supports statement-style invocation in two different ways:
 - `CALLF` / `CALLFORMF` resolve and evaluate an expression function by name.
 - In this engine, these instructions **do not** assign the return value into `RESULT/RESULTS` (the value is computed and discarded).
   - Use expression-call form (assignment) if you need the value.
+
+3) **`TRYCALLF` / `TRYCALLFORMF` (soft user-method call)**
+
+- These resolve only **user-defined** expression functions (`#FUNCTION/#FUNCTIONS`). Built-in expression methods are not part of this lookup.
+- If no callable user-defined expression function is resolved, the instruction is a no-op.
+- Like `CALLF`, the return value is computed and discarded.
+
+Important boundary rule:
+
+- The “try” behavior covers failure to resolve a callable user-defined method. It does **not** promise to swallow every later failure.
+- In dynamic-name paths, wrong-kind targets and argument-binding failures can still throw.
+- In constant-name fast paths, the loader may collapse some of those same resolution failures into the no-op outcome instead of deferring them to runtime.
 
 ## “Try” call/jump/goto variants (`TRY*` and `TRYC*`)
 
@@ -154,6 +166,40 @@ Engine-accurate parsing constraints:
 - Inside the block, only `FUNC` lines and `ENDFUNC` are allowed.
 - Each `FUNC` line uses the same call-target parsing shape as `CALLFORM`-family targets (it reads a target up to `(`, `[`, `,`, or `;` and can use FORM syntax in the target name).
 - For `TRYGOTOLIST`, each `FUNC` line must specify only a bare target (no subnames `[...]` and no argument list).
+
+## Resolution failures, wrong-kind calls, and compatibility switches
+
+### Constant-target linking vs runtime lookup
+
+This engine tries to resolve many call/jump targets during load when the target name is constant.
+
+Observable consequences:
+
+- Non-`TRY` `CALL` / `JUMP` / `GOTO` / `CALLF` lines with constant missing targets become **error lines** during load.
+- The config `FunctionNotFoundWarning` changes whether the warning text is printed, but it does **not** stop the line from becoming an error line.
+- If the target name is not constant, resolution is deferred to runtime instead.
+
+### Missing target vs wrong kind
+
+This engine distinguishes “target not found” from “name exists but is the wrong callable kind”.
+
+- Ordinary `CALL` / `JUMP` expect a normal `@function` label.
+  - Missing normal function → non-TRY runtime error (or TRY soft-fail).
+  - Name resolves only to an event function → hard wrong-kind error unless `CompatiCallEvent=YES` exposes a compatibility non-event entry point.
+  - Name resolves to a user-defined expression function → hard wrong-kind error; use `CALLF` / `CALLFORMF` instead.
+- Ordinary `GOTO` expects a valid local `$label` in the current function.
+  - Missing label → non-TRY runtime error (or TRY soft-fail).
+  - Invalid `$label` lines remain hard errors rather than TRY-soft-fail targets.
+- `CALLF` / `CALLFORMF` expect an expression function.
+  - Missing method → error.
+  - Name resolves to a normal non-method `@function` → wrong-kind error.
+
+### `CompatiCallEvent`
+
+`CompatiCallEvent` is the main compatibility switch that changes ordinary call resolution.
+
+- When disabled, ordinary `CALL` / `JUMP` to an event-function name is a hard error.
+- When enabled, the engine also exposes the first-defined event label through the ordinary non-event label lookup, so a normal call can reach it without event-group dispatch.
 
 ## `RETURN` and results
 
@@ -323,8 +369,43 @@ The definition form is engine-/style-dependent, but the *call* in an expression 
 
 ### Restrictions inside expression functions
 
-Expression functions have restrictions to keep expressions safe/deterministic:
+Expression functions are checked line-by-line against the engine's **method-safe** instruction classification.
 
-- They cannot be called via normal `CALL` (but can be invoked via `CALLF`/`CALLFORMF`).
-- Some commands (input/wait, normal function calls) are disallowed and raise errors.
-- Avoid side effects; while most expression evaluation is effectively left-to-right, the engine performs restructuring/constant-folding during load, and short-circuiting operators (`&&`, `||`, `!&`, `!|`, ternary) can skip evaluations.
+Shared contract:
+
+- If an instruction inside a `#FUNCTION/#FUNCTIONS` body is not method-safe, the loader emits a warning and marks that line as an error line.
+- So this is not just a style recommendation: an incompatible reimplementation would accept scripts that this engine rejects.
+
+Main consequences:
+
+- `RETURNF` is the method return instruction. `RETURN` and `RETURNFORM` are rejected here.
+- Ordinary `CALL`, `JUMP`, `CALLEVENT`, and `BEGIN`-style host phase transitions are rejected here.
+- Input/wait and other host-suspending instructions are rejected here.
+- In practice, local control flow, ordinary assignments, array/variable helpers, many plain output instructions, and method-oriented calls such as expression-call form / `CALLF` / `TRYCALLF` remain usable.
+
+### Side effects and evaluation caveats
+
+Expression functions can still mutate state, but compatibility-sensitive code should assume only these ordering guarantees:
+
+- expression operands are evaluated left-to-right,
+- short-circuiting operators can skip later operands,
+- load-time restructuring/constant folding can precompute constant subexpressions before runtime.
+
+So a side effect placed inside an expression function call is **not** equivalent to “always runs exactly where the source text appears”.
+
+### Execution-mode interactions
+
+Two engine execution modes matter for calls that eventually reach output/input instructions:
+
+- **print-skip mode** (`SKIPDISP` and internal host skip-print paths):
+  - skips only instructions in the engine's print-like classification,
+  - does **not** skip ordinary control flow, variable mutation, or function-call mechanics themselves,
+  - in practice covers ordinary print/output instructions and wait/input instructions, while debug-only print instructions are excluded from this classification.
+- **message skip** (`MesSkip`):
+  - does not bypass ordinary function calls or control-flow on its own,
+  - only changes the behavior of waits that explicitly consult it (see `input-flow.md`).
+
+Compatibility consequence:
+
+- a called function still runs under these modes, but its print-like instructions may be suppressed by print-skip, and its wait instructions may auto-advance only when that instruction family defines a `MesSkip` path.
+- If user-controlled `SKIPDISP` reaches an input instruction, this engine errors rather than silently auto-accepting input.

@@ -135,12 +135,12 @@ Where described today:
 - ✅ Short-circuit semantics (`&&`, `||`, `!&`, `!|`, ternary; `^^` does not short-circuit).
 - ✅ Ternary operators (numeric `? #` and string `\@ ? # \@`), including parse rules and nesting.
 - ✅ Increment/decrement (`++/--`) as statement and expression operators (variable-only, const rejection, prefix vs postfix result value).
-- 🟡 String comparison semantics in expressions (especially the full config-dependent comparison matrix and any remaining corner cases beyond the documented core rules).
-- 🟡 Numeric edge cases and exception behavior:
+- ✅ String comparison semantics in expressions: equality/inequality are case-sensitive content comparisons, ordering is ordinal, and `IgnoreCase` does not apply.
+- ✅ Numeric edge cases and exception behavior:
   - division/modulo by zero
   - negative division/modulo semantics
   - shift-count handling (large/negative shift counts)
-  - integer overflow behavior in arithmetic (wrap vs error) in runtime evaluation (distinct from numeric-literal parsing)
+  - integer overflow behavior in runtime arithmetic (including the exceptional `long.MinValue / -1` family)
 
 ### 6.3 String expressions and FORM syntax
 
@@ -165,7 +165,7 @@ Where described today:
 - ✅ Batch assignment (`A:i = v1,v2,...` / `A:i:j = ...`) including which elements are written and out-of-range behavior.
 - ✅ Bounds checking and prohibited-variable errors (no config knobs observed for relaxing bounds checks).
 - ✅ CSV-name indexing resolution rules and ambiguity rules.
-- 🟡 Built-in variable catalog + lifecycle beyond `RESULT/RESULTS/COUNT` (e.g. `MASTER/TARGET/ASSI`, character list variables, and phase-dependent resets); needed for “run typical games” compatibility.
+- ✅ Built-in variable catalog + lifecycle beyond `RESULT/RESULTS/COUNT`: selector variables (`MASTER/TARGET/ASSI/PLAYER`), `CHARANUM`, character-list mutation boundaries, reset-sensitive command arrays, and global-reset survivors are specified.
 
 ### 7.2 User-defined variables
 
@@ -191,13 +191,15 @@ Where described today:
 - ✅ Call stack model and `RESULT/RESULTS` assignment boundaries.
 - ✅ Argument binding (`ARG/ARGS`) including defaults and omitted args (including implicit defaults for some formals).
 - ✅ Pass-by-reference via `REF` formal parameters.
-- 🟡 Expression functions (`#FUNCTION/#FUNCTIONS`): call sites, restrictions, side-effect caveats, and disallowed instructions.
-- 🟡 Error behavior on missing functions and labels (including `TRY*`, `TRYC*`, and `TRY*LIST`), calling event functions, and config-dependent relaxations.
-- 🟡 Execution modes that affect call/IO behavior (e.g. output skipping `SKIPDISP` / script-runner skip-print mode, and message-skip `MesSkip`) and which built-ins are treated as “print-like” for skipping.
+- ✅ Expression functions (`#FUNCTION/#FUNCTIONS`): call sites, method-safe restriction model, side-effect caveats, and the main disallowed instruction families are specified.
+- ✅ Error behavior on missing functions and labels (including `TRY*`, `TRYC*`, `TRY*LIST`, `CALLF`, and `TRYCALLF`), calling event functions, and `CompatiCallEvent` / `FunctionNotFoundWarning` effects is specified.
+- 🟡 Execution modes that affect call/IO behavior (e.g. output skipping `SKIPDISP` / script-runner skip-print mode, and message-skip `MesSkip`) are documented at the shared-rule level; a tighter exhaustive inventory of print-like built-ins is still desirable.
 
 Where described today:
 
-- `functions.md` (high level)
+- `functions.md` (call resolution, TRY families, method restrictions, and execution-mode boundaries)
+- `input-flow.md` (`MesSkip` wait behavior)
+- `output-flow.md` (shared output-skip model)
 
 ## 9) Error/warning model (core)
 
