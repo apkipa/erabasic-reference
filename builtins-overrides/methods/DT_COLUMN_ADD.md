@@ -16,7 +16,9 @@
 **Arguments**
 - `tableName` (string): table identifier.
 - `columnName` (string): column name.
-- `type` (optional, int|string): column type; integer codes are `1=int8`, `2=int16`, `3=int32`, `4=int64`, `5=string`; string names must be the exact lowercase spellings `int8`, `int16`, `int32`, `int64`, or `string`.
+- `type` (optional, int|string): column type.
+  - Integer codes: `1=int8`, `2=int16`, `3=int32`, `4=int64`, `5=string`.
+  - String names: exact lowercase `int8`, `int16`, `int32`, `int64`, or `string`.
 - `nullable` (optional, int; default `1`): non-zero allows `NULL`; `0` disallows it.
 
 **Semantics**

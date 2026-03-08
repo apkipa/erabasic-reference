@@ -24,7 +24,7 @@
 - If the target graphics does not exist or has already been disposed, returns `0`.
 - Two-argument form clears the entire surface.
 - Six-argument form sets a clip rectangle and clears only that clipped region.
-- Unlike the rectangle-reading helpers used by other graphics built-ins, the six-argument form performs no wrapper-side range validation on `x`, `y`, `width`, or `height`; each is simply cast to 32-bit integer and passed on.
+- The six-argument form performs no wrapper-side range validation on `x`, `y`, `width`, or `height`. Each of those values is simply cast to 32-bit integer and passed on.
 - On success returns `1`.
 
 **Errors & validation**

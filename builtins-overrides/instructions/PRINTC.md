@@ -25,7 +25,8 @@
   - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
     - If font creation fails, returns `str` unchanged.
   - If `len < n`, left-pads spaces to reach exactly `n` bytes.
-  - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
+  - It then measures the padded string’s pixel width using the created font.
+  - While the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
   - If `len >= n`, it does not add padding and does not truncate (overlong strings are kept as-is).
 
 **Errors & validation**

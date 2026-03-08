@@ -1834,7 +1834,8 @@ In statement form, the engine evaluates the function and writes the return value
   - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
     - If font creation fails, returns `str` unchanged.
   - If `len < n`, left-pads spaces to reach exactly `n` bytes.
-  - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
+  - It then measures the padded string’s pixel width using the created font.
+  - While the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
   - If `len >= n`, it does not add padding and does not truncate (overlong strings are kept as-is).
 
 **Errors & validation**
@@ -1872,7 +1873,8 @@ In statement form, the engine evaluates the function and writes the return value
   - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
     - If font creation fails, returns `str` unchanged.
   - If `len < n + 1`, right-pads spaces to reach exactly `n + 1` bytes.
-  - It then measures the padded string’s pixel width using the created font; while the width is greater than the target width and the last character is a space, it removes one trailing space and re-measures.
+  - It then measures the padded string’s pixel width using the created font.
+  - While the width is greater than the target width and the last character is a space, it removes one trailing space and re-measures.
   - If `len >= n + 1`, it does not add padding and does not truncate (overlong strings are kept as-is).
 
 **Errors & validation**
@@ -3220,7 +3222,7 @@ PRINTFORML {X}  ; 125
 - Enters an integer-input UI wait.
 - Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one input value on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
-- Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
+- `INPUT` itself does not start a timed wait; use `TINPUT` / `TINPUTS` for timed waits. While a timed wait is active, the shared console input layer can suppress the usual “empty input uses default” path.
 - On successful completion:
   - Writes the accepted integer to `RESULT`.
   - Echoes the accepted input text to output.
@@ -8542,7 +8544,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 ## INPUTMOUSEKEY (instruction)
 
 **Summary**
-- Waits for a primitive mouse/key event (mouse down, wheel, key press, or timeout) and reports it via `RESULT` / `RESULT:*`; on the mouse-down path it may also write `RESULTS` when a selected string ordinary-output button is involved.
+- Waits for a primitive mouse/key event (mouse down, wheel, key press, or timeout) and reports it via `RESULT` / `RESULT:*`. On the mouse-down path, selecting a string ordinary-output button may also write `RESULTS`.
 
 **Tags**
 - io
@@ -12722,10 +12724,12 @@ ARRAYMSORT(A, B, C)
   - If `start <= 0` and `length == total`: returns `str` unchanged.
 - Start position selection (character-boundary rounding):
   - If `start <= 0`, the substring starts at the first character.
-  - If `start > 0`, the engine advances from the beginning, accumulating the per-character byte count under the current language encoding until the accumulated count becomes `>= start`; the substring then starts at the *next* character position reached by that scan.
+  - If `start > 0`, the engine scans from the beginning and accumulates the per-character byte count under the current language encoding.
+  - Once that accumulated count becomes `>= start`, the scanned character is skipped and the substring starts at the following character boundary.
   - This means `start` values that fall “inside” a multi-byte character effectively round up to the next character boundary (the multi-byte character is skipped).
 - Length selection (character-boundary rounding):
-  - Starting from the chosen start character, the engine appends characters while accumulating the per-character byte count under the current language encoding until the accumulated count becomes `>= length`, or until end-of-string.
+  - Starting from the chosen start character, the engine appends characters and accumulates their byte count under the current language encoding.
+  - It stops once that accumulated count becomes `>= length`, or when it reaches end-of-string.
   - This means the returned substring may exceed `length` in bytes if the last included character is multi-byte.
 
 **Errors & validation**
@@ -14606,7 +14610,7 @@ R = GDISPOSE(GID)
 - If the target graphics does not exist or has already been disposed, returns `0`.
 - Two-argument form clears the entire surface.
 - Six-argument form sets a clip rectangle and clears only that clipped region.
-- Unlike the rectangle-reading helpers used by other graphics built-ins, the six-argument form performs no wrapper-side range validation on `x`, `y`, `width`, or `height`; each is simply cast to 32-bit integer and passed on.
+- The six-argument form performs no wrapper-side range validation on `x`, `y`, `width`, or `height`. Each of those values is simply cast to 32-bit integer and passed on.
 - On success returns `1`.
 
 **Errors & validation**
@@ -16700,8 +16704,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Third-argument dispatch is type-based: omitted or integer `0` writes nothing; non-zero integer copies projected values to `RESULTS` starting at index `0`; `outputArray` copies there instead.
 - In the array-output form, `outputType` occupies the fourth slot rather than the third.
 - Projection styles are: `0` or other value = `Value`, `1` = `InnerText`, `2` = `InnerXml`, `3` = `OuterXml`, `4` = `Name`.
-- Style `0` reads `XmlNode.Value`. On element nodes, that value is `null`.
-- If you want the element's text content instead, use `outputType = 1` (`InnerText`).
+- Style `0` reads `XmlNode.Value`. On element nodes, that value is `null`. Use `outputType = 1` (`InnerText`) if you want the element's text content.
 - Copies start at destination index `0` and stop when the destination fills. Excess matches are ignored; untouched slots are not cleared. The return value remains the full match count.
 
 **Errors & validation**
@@ -16745,8 +16748,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - Third-argument dispatch is type-based: omitted or integer `0` writes nothing; non-zero integer copies projected values to `RESULTS` starting at index `0`; `outputArray` copies there instead.
 - In the array-output form, `outputType` occupies the fourth slot rather than the third.
 - Projection styles are: `0` or other value = `Value`, `1` = `InnerText`, `2` = `InnerXml`, `3` = `OuterXml`, `4` = `Name`.
-- Style `0` reads `XmlNode.Value`. On element nodes, that value is `null`.
-- If you want the element's text content instead, use `outputType = 1` (`InnerText`).
+- Style `0` reads `XmlNode.Value`. On element nodes, that value is `null`. Use `outputType = 1` (`InnerText`) if you want the element's text content.
 - Copies start at destination index `0` and stop when the destination fills. Excess matches are ignored; untouched slots are not cleared. The return value remains the full match count.
 
 **Errors & validation**
@@ -16792,9 +16794,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - If exactly one node matches, that node is always updated.
 - If more than one node matches and `setAllNodes == 0`, no node is updated even though the match count is still returned.
 - If more than one node matches and `setAllNodes != 0`, every matched node is updated.
-- Style `0` writes `XmlNode.Value`.
-- On element nodes, that operation raises a runtime error instead of replacing the element's text content.
-- If you want to replace the element's text content instead, use `outputType = 1` (`InnerText`).
+- Style `0` writes `XmlNode.Value`. On element nodes, that operation raises a runtime error instead of replacing the element's text content. Use `outputType = 1` (`InnerText`) if you want to replace the element's text content instead.
 
 **Errors & validation**
 - Returns `-1` if stored-document lookup is requested and the key does not exist.
@@ -17818,7 +17818,9 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 **Arguments**
 - `tableName` (string): table identifier.
 - `columnName` (string): column name.
-- `type` (optional, int|string): column type; integer codes are `1=int8`, `2=int16`, `3=int32`, `4=int64`, `5=string`; string names must be the exact lowercase spellings `int8`, `int16`, `int32`, `int64`, or `string`.
+- `type` (optional, int|string): column type.
+  - Integer codes: `1=int8`, `2=int16`, `3=int32`, `4=int64`, `5=string`.
+  - String names: exact lowercase `int8`, `int16`, `int32`, `int64`, or `string`.
 - `nullable` (optional, int; default `1`): non-zero allows `NULL`; `0` disallows it.
 
 **Semantics**

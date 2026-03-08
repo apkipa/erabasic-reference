@@ -26,10 +26,12 @@
   - If `start <= 0` and `length == total`: returns `str` unchanged.
 - Start position selection (character-boundary rounding):
   - If `start <= 0`, the substring starts at the first character.
-  - If `start > 0`, the engine advances from the beginning, accumulating the per-character byte count under the current language encoding until the accumulated count becomes `>= start`; the substring then starts at the *next* character position reached by that scan.
+  - If `start > 0`, the engine scans from the beginning and accumulates the per-character byte count under the current language encoding.
+  - Once that accumulated count becomes `>= start`, the scanned character is skipped and the substring starts at the following character boundary.
   - This means `start` values that fall “inside” a multi-byte character effectively round up to the next character boundary (the multi-byte character is skipped).
 - Length selection (character-boundary rounding):
-  - Starting from the chosen start character, the engine appends characters while accumulating the per-character byte count under the current language encoding until the accumulated count becomes `>= length`, or until end-of-string.
+  - Starting from the chosen start character, the engine appends characters and accumulates their byte count under the current language encoding.
+  - It stops once that accumulated count becomes `>= length`, or when it reaches end-of-string.
   - This means the returned substring may exceed `length` in bytes if the last included character is multi-byte.
 
 **Errors & validation**

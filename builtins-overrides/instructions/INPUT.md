@@ -20,7 +20,7 @@
 - Enters an integer-input UI wait.
 - Like other non-primitive value waits, clicking a selectable **normal-output button** can submit one input value on the mouse-click completion path.
 - See also: `input-flow.md` (shared submission paths, segment draining/discard rules, and `MesSkip` interaction).
-- Timed-wait note: `INPUT` itself does not start a timed wait; timed waits are provided by `TINPUT` / `TINPUTS` (and the shared console input layer may suppress “empty input uses default” while a timed wait is running).
+- `INPUT` itself does not start a timed wait; use `TINPUT` / `TINPUTS` for timed waits. While a timed wait is active, the shared console input layer can suppress the usual “empty input uses default” path.
 - On successful completion:
   - Writes the accepted integer to `RESULT`.
   - Echoes the accepted input text to output.
