@@ -14,7 +14,7 @@
 - (none)
 
 **Semantics**
-- Returns the configuration item `PrintCPerLine`.
+- Returns the value of config item `PrintCPerLine`.
 
 **Errors & validation**
 - (none)

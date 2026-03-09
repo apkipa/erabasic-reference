@@ -26,7 +26,7 @@
 - String materialization rules include:
   - ordinary string values → that string,
   - `char` values → a one-character string,
-  - `TextDrawingMode` values → the enum-name string,
+  - config item `TextDrawingMode` values → the enum-name string,
   - other items whose textual form is neither `YES`/`NO` nor a decimal integer → that textual form.
 - If the resolved item materializes as an integer-like value, use `GETCONFIG` instead.
 

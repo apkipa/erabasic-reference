@@ -11,6 +11,7 @@ Rule layering:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 import sys
 import re
@@ -87,11 +88,16 @@ FAIL_ON_CODES = (
     "structured-syntax-missing-code-block",
     "structured-examples-missing-erabasic-block",
     "raw-config-surface-implementation-name",
+    "unclassified-config-surface-use",
+    "ambiguous-config-surface-short-classifier",
+    "redundant-config-surface-classifier",
 )
 
 _read_text = ref_common.read_text
-_lines = ref_common.lines
 _md_anchor = ref_common.md_anchor
+_TEXT_CACHE = ref_common.TextCache()
+_read_text = _TEXT_CACHE.read_text
+_lines = _TEXT_CACHE.lines
 
 def parse_override_sections(md_text: str) -> dict[str, list[str]]:
     """
@@ -134,6 +140,28 @@ def parse_override_sections(md_text: str) -> dict[str, list[str]]:
     return out
 
 
+@lru_cache(maxsize=2)
+def _override_path_map(kind: str) -> dict[str, Path]:
+    if kind == "instruction":
+        base = INSTRUCTION_OVERRIDES_DIR
+    elif kind == "method":
+        base = METHOD_OVERRIDES_DIR
+    else:
+        return {}
+    return {p.stem: p for p in sorted(base.glob("*.md"))}
+
+
+def _override_path(kind: str, name: str) -> Path | None:
+    return _override_path_map(kind).get(name)
+
+
+def clear_override_doc_cache() -> None:
+    _override_path_map.cache_clear()
+    load_override_sections.cache_clear()
+    has_user_facing_content.cache_clear()
+
+
+@lru_cache(maxsize=None)
 def load_override_sections(kind: str, name: str) -> dict[str, list[str]]:
     """
     Load override sections for an entry.
@@ -145,19 +173,13 @@ def load_override_sections(kind: str, name: str) -> dict[str, list[str]]:
     Source of truth:
       - Markdown override files in `erabasic-reference/builtins-overrides/`
     """
-    if kind == "instruction":
-        p = INSTRUCTION_OVERRIDES_DIR / f"{name}.md"
-        if p.exists():
-            return parse_override_sections(_read_text(p))
+    p = _override_path(kind, name)
+    if p is None or not p.exists():
         return {}
-    if kind == "method":
-        p = METHOD_OVERRIDES_DIR / f"{name}.md"
-        if p.exists():
-            return parse_override_sections(_read_text(p))
-        return {}
-    return {}
+    return parse_override_sections(_read_text(p))
 
 
+@lru_cache(maxsize=None)
 def has_user_facing_content(kind: str, name: str) -> bool:
     """
     Return True if an override contributes any user-facing content lines.
@@ -166,6 +188,10 @@ def has_user_facing_content(kind: str, name: str) -> bool:
     without documenting the built-in for readers.
     """
     secs = load_override_sections(kind, name)
+    return _secs_have_user_facing_content(kind=kind, secs=secs)
+
+
+def _secs_have_user_facing_content(*, kind: str, secs: dict[str, list[str]]) -> bool:
     if not secs:
         return False
     titles = USER_INSTRUCTION_SECTIONS if kind == "instruction" else USER_METHOD_SECTIONS
@@ -579,6 +605,7 @@ def _parse_argument_bullets(secs: dict[str, list[str]]) -> tuple[list[str], dict
     return order, meta
 
 
+@lru_cache(maxsize=None)
 def _literal_name_pattern(name: str) -> re.Pattern[str]:
     if "." in name:
         prefix = r"(?<![A-Za-z0-9_])"
@@ -587,22 +614,258 @@ def _literal_name_pattern(name: str) -> re.Pattern[str]:
     return re.compile(prefix + re.escape(name) + r"(?![A-Za-z0-9_])")
 
 
+@lru_cache(maxsize=None)
+def _canonical_term_pattern(term: str) -> re.Pattern[str]:
+    return re.compile(r"(?<![A-Za-z0-9_.`])`?" + re.escape(term) + r"`?(?![A-Za-z0-9_])")
+
+
+@lru_cache(maxsize=None)
+def _code_span_term_pattern(term: str) -> re.Pattern[str]:
+    return re.compile(r"(?<![A-Za-z0-9_.])`" + re.escape(term) + r"`(?![A-Za-z0-9_])")
+
+
+def _term_allows_bare_reference_detection(term: str) -> bool:
+    return any(ch.islower() for ch in term)
+
+
+def _classified_config_surface_regex_text(*, reg: ref_cfg.ConfigSurfaceReg) -> str:
+    prefix_alt = "|".join(re.escape(prefix) for prefix in reg.accepted_classifiers)
+    return r"(?:" + prefix_alt + r")\s+`" + re.escape(reg.canonical_term) + r"`"
+
+
+@lru_cache(maxsize=None)
+def _classified_config_surface_pattern(*, reg: ref_cfg.ConfigSurfaceReg) -> re.Pattern[str]:
+    return re.compile(
+        r"(?<![A-Za-z0-9_])" + _classified_config_surface_regex_text(reg=reg) + r"(?![A-Za-z0-9_])",
+        re.IGNORECASE,
+    )
+
+
+@lru_cache(maxsize=1)
+def _compiled_raw_config_surface_rules() -> tuple[tuple[str, str, str, str, re.Pattern[str]], ...]:
+    return tuple(
+        (reg.kind, reg.canonical_term, impl_name, impl_name.lower(), _literal_name_pattern(impl_name))
+        for reg in ref_cfg.load_config_surface_regs()
+        for impl_name in reg.implementation_names
+        if impl_name != reg.canonical_term
+    )
+
+
+@lru_cache(maxsize=1)
+def _compiled_unclassified_config_surface_rules() -> tuple[tuple[ref_cfg.ConfigSurfaceReg, str, re.Pattern[str], re.Pattern[str], bool], ...]:
+    return tuple(
+        (
+            reg,
+            reg.canonical_term.lower(),
+            (
+                _canonical_term_pattern(reg.canonical_term)
+                if _term_allows_bare_reference_detection(reg.canonical_term)
+                else _code_span_term_pattern(reg.canonical_term)
+            ),
+            _classified_config_surface_pattern(reg=reg),
+            reg.kind == "derived runtime value",
+        )
+        for reg in ref_cfg.load_config_surface_regs()
+    )
+
+
+def _span_is_covered(span: tuple[int, int], covered_spans: list[tuple[int, int]]) -> bool:
+    start, end = span
+    return any(start >= covered_start and end <= covered_end for covered_start, covered_end in covered_spans)
+
+
+def _term_occurrences_with_classification(*, raw: str, term_pat: re.Pattern[str], classified_pat: re.Pattern[str]) -> list[tuple[int, int, bool]]:
+    classified_spans = [m.span() for m in classified_pat.finditer(raw)]
+    return [
+        (match.start(), match.end(), _span_is_covered(match.span(), classified_spans))
+        for match in term_pat.finditer(raw)
+    ]
+
+
+def _redundant_config_surface_prefix_heads(*, reg: ref_cfg.ConfigSurfaceReg) -> tuple[str, ...]:
+    heads = ["config", "configuration", *reg.accepted_classifiers]
+    if reg.kind == "config item":
+        heads.extend(
+            (
+                "config key",
+                "configuration item",
+                "configuration value",
+                "config value",
+                "config option",
+                "config toggle",
+                "config flag",
+                "config switch",
+                "config setting",
+                "compat toggle",
+                "compat flag",
+                "compat switch",
+                "compat setting",
+                "compatibility toggle",
+                "compatibility flag",
+                "compatibility switch",
+                "compatibility setting",
+            )
+        )
+    elif reg.kind == "replace item":
+        heads.extend(("replace key", "replacement item"))
+    elif reg.kind == "debug item":
+        heads.extend(("debug key",))
+    else:
+        heads.extend(("derived value", "runtime value"))
+    return tuple(_ordered_unique(heads))
+
+
+def _short_config_surface_prefix_heads(*, reg: ref_cfg.ConfigSurfaceReg) -> tuple[str, ...]:
+    if reg.kind == "config item":
+        return ("config", "configuration")
+    if reg.kind == "replace item":
+        return ("replace", "replacement")
+    if reg.kind == "debug item":
+        return ("debug",)
+    return ("derived", "runtime")
+
+
+_SHORT_CONFIG_SURFACE_GENERIC_NOUNS = ("toggle", "flag", "switch", "setting")
+
+
+def _redundant_config_surface_suffix_heads(*, reg: ref_cfg.ConfigSurfaceReg) -> tuple[str, ...]:
+    heads = list(reg.accepted_classifiers)
+    if reg.kind == "config item":
+        heads.extend(("configuration", "config key", "configuration item", "configuration value", "config value", "config option"))
+    elif reg.kind == "replace item":
+        heads.extend(("replacement", "replace key"))
+    elif reg.kind == "debug item":
+        heads.extend(("debug key",))
+    else:
+        heads.extend(("derived value", "runtime value"))
+    return tuple(_ordered_unique(heads))
+
+
+_REDUNDANT_CONFIG_SURFACE_HINTS = (
+    "config item",
+    "replace item",
+    "debug item",
+    "derived runtime value",
+    "config key",
+    "configuration item",
+    "configuration value",
+    "config value",
+    "config option",
+    "replace key",
+    "replacement item",
+    "debug key",
+    "derived value",
+    "runtime value",
+)
+
+
+@lru_cache(maxsize=1)
+def _compiled_redundant_config_surface_rules() -> tuple[tuple[str, str, re.Pattern[str], re.Pattern[str]], ...]:
+    rules: list[tuple[str, str, re.Pattern[str], re.Pattern[str]]] = []
+    for reg in ref_cfg.load_config_surface_regs():
+        classified_text = _classified_config_surface_regex_text(reg=reg)
+        prefix_head_alt = "|".join(re.escape(head) for head in _redundant_config_surface_prefix_heads(reg=reg))
+        suffix_head_alt = "|".join(re.escape(head) for head in _redundant_config_surface_suffix_heads(reg=reg))
+        prefix_pat = re.compile(
+            r"(?<![A-Za-z0-9_])(?P<redundant>" + prefix_head_alt + r")\s*:?\s+(?P<classified>" + classified_text + r")(?![A-Za-z0-9_])",
+            re.IGNORECASE,
+        )
+        suffix_pat = re.compile(
+            r"(?<![A-Za-z0-9_])(?P<classified>" + classified_text + r")\s+(?P<redundant>" + suffix_head_alt + r")(?![A-Za-z0-9_])",
+            re.IGNORECASE,
+        )
+        rules.append((reg.kind, reg.canonical_term, prefix_pat, suffix_pat))
+    return tuple(rules)
+
+
+@lru_cache(maxsize=1)
+def _compiled_short_config_surface_rules() -> tuple[tuple[str, str, str, re.Pattern[str]], ...]:
+    rules: list[tuple[str, str, str, re.Pattern[str]]] = []
+    for reg in ref_cfg.load_config_surface_regs():
+        heads = _short_config_surface_prefix_heads(reg=reg)
+        if not heads:
+            continue
+        head_alt = "|".join(re.escape(head) for head in heads)
+        generic_alt = "|".join(re.escape(noun) for noun in _SHORT_CONFIG_SURFACE_GENERIC_NOUNS)
+        pattern = re.compile(
+            r"(?<![A-Za-z0-9_])(?P<short>" + head_alt + r")\s+(?:(?P<generic>" + generic_alt + r")\s+)?`" + re.escape(reg.canonical_term) + r"`(?![A-Za-z0-9_])",
+            re.IGNORECASE,
+        )
+        rules.append((reg.kind, reg.canonical_term, heads[0], pattern))
+    return tuple(rules)
+
+
+def _lint_short_config_surface_classifier(*, path: Path, kind: str, name: str, lines: list[str]) -> list[ValidationIssue]:
+    if path.name == "config-items.md":
+        return []
+    issues: list[ValidationIssue] = []
+    rel = path.relative_to(REPO_ROOT)
+    compiled_rules = _compiled_short_config_surface_rules()
+    for line_no, raw in enumerate(lines, start=1):
+        raw_l = raw.lower()
+        if "implementation property" in raw_l or "implementation accessor" in raw_l or "implementation-facing" in raw_l:
+            continue
+        for surface_kind, canonical_term, preferred_short_head, pattern in compiled_rules:
+            if canonical_term.lower() not in raw_l or preferred_short_head not in raw_l:
+                continue
+            m = pattern.search(raw)
+            if not m:
+                continue
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="ambiguous-config-surface-short-classifier",
+                    kind=kind,
+                    name=name,
+                    message=f"{rel}:{line_no}: uses ambiguous short classifier wording around {surface_kind} `{canonical_term}` (`{m.group(0)}`); prefer {surface_kind} `{canonical_term}`.",
+                )
+            )
+    return issues
+
+
+def _lint_redundant_config_surface_classifier(*, path: Path, kind: str, name: str, lines: list[str]) -> list[ValidationIssue]:
+    if path.name == "config-items.md":
+        return []
+    issues: list[ValidationIssue] = []
+    rel = path.relative_to(REPO_ROOT)
+    compiled_rules = _compiled_redundant_config_surface_rules()
+    for line_no, raw in enumerate(lines, start=1):
+        raw_l = raw.lower()
+        if "implementation property" in raw_l or "implementation accessor" in raw_l or "implementation-facing" in raw_l:
+            continue
+        if not any(hint in raw_l for hint in _REDUNDANT_CONFIG_SURFACE_HINTS):
+            continue
+        for surface_kind, canonical_term, prefix_pat, suffix_pat in compiled_rules:
+            if canonical_term.lower() not in raw_l:
+                continue
+            m = prefix_pat.search(raw) or suffix_pat.search(raw)
+            if not m:
+                continue
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="redundant-config-surface-classifier",
+                    kind=kind,
+                    name=name,
+                    message=f"{rel}:{line_no}: uses redundant classifier wording around {surface_kind} `{canonical_term}` (`{m.group(0)}`); prefer just {surface_kind} `{canonical_term}`.",
+                )
+            )
+    return issues
+
+
 def _lint_registered_config_surface_names(*, path: Path, kind: str, name: str, lines: list[str]) -> list[ValidationIssue]:
     if path.name == "config-items.md":
         return []
     issues: list[ValidationIssue] = []
     rel = path.relative_to(REPO_ROOT)
-    regs = ref_cfg.load_config_surface_regs()
-    patterns = [
-        (reg.kind, reg.canonical_term, impl_name, _literal_name_pattern(impl_name))
-        for reg in regs
-        for impl_name in reg.implementation_names
-    ]
-    for line_no, raw in enumerate(lines, start=1):
-        raw_l = raw.lower()
+    patterns = _compiled_raw_config_surface_rules()
+    lower_lines = [raw.lower() for raw in lines]
+    for line_no, (raw, raw_l) in enumerate(zip(lines, lower_lines), start=1):
         if "implementation property" in raw_l or "implementation accessor" in raw_l or "implementation-facing" in raw_l:
             continue
-        for surface_kind, canonical_term, impl_name, pat in patterns:
+        for surface_kind, canonical_term, impl_name, impl_name_l, pat in patterns:
+            if impl_name_l not in raw_l:
+                continue
             if not pat.search(raw):
                 continue
             issues.append(
@@ -614,6 +877,67 @@ def _lint_registered_config_surface_names(*, path: Path, kind: str, name: str, l
                     message=f"{rel}:{line_no}: references {surface_kind} `{canonical_term}` via implementation name `{impl_name}`; use the canonical spec term or mark this as an implementation mapping note.",
                 )
             )
+    return issues
+
+
+def _lint_unclassified_config_surface_use(*, path: Path, kind: str, name: str, lines: list[str]) -> list[ValidationIssue]:
+    if path.name == "config-items.md":
+        return []
+    issues: list[ValidationIssue] = []
+    rel = path.relative_to(REPO_ROOT)
+    compiled_rules = _compiled_unclassified_config_surface_rules()
+    lower_lines = [raw.lower() for raw in lines]
+    for reg, canonical_term_l, term_pat, classified_pat, require_every_use in compiled_rules:
+        if require_every_use:
+            for line_no, (raw, raw_l) in enumerate(zip(lines, lower_lines), start=1):
+                if "implementation property" in raw_l or "implementation accessor" in raw_l or "implementation-facing" in raw_l:
+                    continue
+                if canonical_term_l not in raw_l:
+                    continue
+                occurrences = _term_occurrences_with_classification(raw=raw, term_pat=term_pat, classified_pat=classified_pat)
+                if not occurrences or all(is_classified for _, _, is_classified in occurrences):
+                    continue
+                issues.append(
+                    ValidationIssue(
+                        severity="WARN",
+                        code="unclassified-config-surface-use",
+                        kind=kind,
+                        name=name,
+                        message=(
+                            f"{rel}:{line_no}: uses bare {reg.kind} `{reg.canonical_term}`; "
+                            f"prefer {reg.kind} `{reg.canonical_term}` or an anaphoric phrase such as `that width`."
+                        ),
+                    )
+                )
+            continue
+
+        first_occurrence_found = False
+        for line_no, (raw, raw_l) in enumerate(zip(lines, lower_lines), start=1):
+            if "implementation property" in raw_l or "implementation accessor" in raw_l or "implementation-facing" in raw_l:
+                continue
+            if canonical_term_l not in raw_l:
+                continue
+            occurrences = _term_occurrences_with_classification(raw=raw, term_pat=term_pat, classified_pat=classified_pat)
+            if not occurrences:
+                continue
+            first_occurrence_found = True
+            if occurrences[0][2]:
+                break
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="unclassified-config-surface-use",
+                    kind=kind,
+                    name=name,
+                    message=(
+                        f"{rel}:{line_no}: first use of {reg.kind} `{reg.canonical_term}` is not explicitly classified; "
+                        f"prefer wording such as {reg.kind} `{reg.canonical_term}`."
+                    ),
+                )
+            )
+            break
+        if first_occurrence_found:
+            continue
     return issues
 
 
@@ -948,11 +1272,16 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
 
     allowed_instruction = set(USER_INSTRUCTION_SECTIONS) | {"Progress state", "Progress"}
     allowed_method = set(USER_METHOD_SECTIONS) | {"Progress state", "Progress"}
+    documented_instr: set[str] = set()
+    documented_meth: set[str] = set()
 
     def check_override_file(kind: str, name: str, path: Path, secs: dict[str, list[str]]) -> None:
         rel = path.relative_to(REPO_ROOT)
         issues.extend(_line_pattern_issues(path=path, kind=kind, name=name, lines=_lines(path), source_path_code="user-doc-source-path-leak", internal_symbol_code="user-doc-internal-symbol-leak", vague_code="banned-vague-phrase", check_required_marker=False))
         issues.extend(_lint_registered_config_surface_names(path=path, kind=kind, name=name, lines=_lines(path)))
+        issues.extend(_lint_unclassified_config_surface_use(path=path, kind=kind, name=name, lines=_lines(path)))
+        issues.extend(_lint_short_config_surface_classifier(path=path, kind=kind, name=name, lines=_lines(path)))
+        issues.extend(_lint_redundant_config_surface_classifier(path=path, kind=kind, name=name, lines=_lines(path)))
         issues.extend(_lint_override_structure(path=path, kind=kind, name=name, secs=secs))
         issues.extend(_lint_override_required_markers(path=path, kind=kind, name=name))
         issues.extend(_lint_override_argument_wording(path=path, kind=kind, name=name))
@@ -991,6 +1320,8 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
             issues.append(ValidationIssue(severity="WARN", code="stale-override", kind="instruction", name=name, message=f"Override file exists but instruction is not engine-registered: `{p.relative_to(REPO_ROOT)}`"))
             continue
         secs = parse_override_sections(_read_text(p))
+        if _secs_have_user_facing_content(kind="instruction", secs=secs):
+            documented_instr.add(name)
         check_override_file("instruction", name, p, secs)
 
     for p in sorted(METHOD_OVERRIDES_DIR.glob("*.md")):
@@ -999,24 +1330,26 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
             issues.append(ValidationIssue(severity="WARN", code="stale-override", kind="method", name=name, message=f"Override file exists but method is not engine-registered: `{p.relative_to(REPO_ROOT)}`"))
             continue
         secs = parse_override_sections(_read_text(p))
+        if _secs_have_user_facing_content(kind="method", secs=secs):
+            documented_meth.add(name)
         check_override_file("method", name, p, secs)
 
     for r in instr_regs:
-        if not has_user_facing_content("instruction", r.name):
+        if r.name not in documented_instr:
             issues.append(ValidationIssue(severity="WARN", code="missing-user-doc", kind="instruction", name=r.name, message="No user-facing override content (will render as TODO)."))
     for r in method_regs:
-        if not has_user_facing_content("method", r.name):
+        if r.name not in documented_meth:
             issues.append(ValidationIssue(severity="WARN", code="missing-user-doc", kind="method", name=r.name, message="No user-facing override content (will render as TODO)."))
     return issues
 
 
+@lru_cache(maxsize=1)
 def _iter_authored_doc_paths() -> list[Path]:
     root = REPO_ROOT / "erabasic-reference"
-    generated = {OUTPUT_MD.resolve(), OUTPUT_ENGINE_MD.resolve(), OUTPUT_INDEX_MD.resolve(), OUTPUT_PROGRESS_MD.resolve()}
+    generated = {OUTPUT_MD, OUTPUT_ENGINE_MD, OUTPUT_INDEX_MD, OUTPUT_PROGRESS_MD}
     out: list[Path] = []
     for path in sorted(root.glob("*.md")):
-        rp = path.resolve()
-        if rp in generated:
+        if path in generated:
             continue
         if path.name.lower() in {"agents.md", "builtins-reference.md", "builtins-index.md"}:
             continue
@@ -1031,6 +1364,14 @@ def _broken_local_md_ref_message(*, rel: Path, line_no: int, ref: str) -> str:
     return f"{rel}:{line_no}: local markdown reference not found: `{ref}`."
 
 
+@lru_cache(maxsize=None)
+def _resolve_existing_path(path: Path) -> Path | None:
+    if not path.exists():
+        return None
+    return path.resolve()
+
+
+@lru_cache(maxsize=None)
 def _resolve_local_md_ref(from_path: Path, ref: str) -> tuple[Path | None, str | None]:
     ref = ref.strip()
     if "://" in ref:
@@ -1046,11 +1387,13 @@ def _resolve_local_md_ref(from_path: Path, ref: str) -> tuple[Path | None, str |
         candidates.append(from_path.parent / target)
         candidates.append(REPO_ROOT / "erabasic-reference" / target)
     for cand in candidates:
-        if cand.exists():
-            return cand.resolve(), anchor
+        resolved = _resolve_existing_path(cand)
+        if resolved is not None:
+            return resolved, anchor
     return None, anchor
 
 
+@lru_cache(maxsize=None)
 def _heading_anchor_set(path: Path) -> set[str]:
     anchors: set[str] = set()
     for raw in _lines(path):
@@ -1075,6 +1418,9 @@ def validate_authored_docs() -> list[ValidationIssue]:
 
         issues.extend(_line_pattern_issues(path=path, kind="doc", name=doc_name, lines=lines, source_path_code="topic-doc-source-path-leak", internal_symbol_code="topic-doc-internal-symbol-leak", vague_code="topic-doc-vague-phrase", check_required_marker=False, source_path_exempt_lines=reference_exempt_lines, internal_symbol_exempt_lines=reference_exempt_lines))
         issues.extend(_lint_registered_config_surface_names(path=path, kind="doc", name=doc_name, lines=lines))
+        issues.extend(_lint_unclassified_config_surface_use(path=path, kind="doc", name=doc_name, lines=lines))
+        issues.extend(_lint_short_config_surface_classifier(path=path, kind="doc", name=doc_name, lines=lines))
+        issues.extend(_lint_redundant_config_surface_classifier(path=path, kind="doc", name=doc_name, lines=lines))
 
         seen_anchor_lines: dict[str, int] = {}
         for line_no, raw in enumerate(lines, start=1):

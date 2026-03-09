@@ -10,7 +10,7 @@
 - `ALIGNMENT RIGHT`
 
 **Arguments**
-- Alignment keyword: raw token compared using the engine’s `IgnoreCase` setting.
+- Alignment keyword: raw token compared using the engine’s config item `IgnoreCase` setting.
   - This is not a string expression/literal.
 
 **Semantics**

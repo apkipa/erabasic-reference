@@ -111,7 +111,7 @@ Engine-accurate details:
 
 - `TO` ranges are **inclusive** (`left <= value <= right`) for both integer and string cases.
 - `IS <op> expr` compares the **SELECTCASE value** to `expr` (e.g. `CASE IS <= 30` means `selectValue <= 30`).
-- For strings, comparisons (including range bounds) use **ordinal** string comparison (case-sensitive, not affected by `IgnoreCase`).
+- For strings, comparisons (including range bounds) use **ordinal** string comparison (case-sensitive, not affected by config item `IgnoreCase`).
 - Like `IF`, only the `SELECTCASE` line performs the selection work:
   - it evaluates the `SELECTCASE` value once
   - it then evaluates `CASE` condition expressions as needed

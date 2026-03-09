@@ -14,7 +14,7 @@
 - (none)
 
 **Semantics**
-- Returns the configuration item `PrintCLength`.
+- Returns the value of config item `PrintCLength`.
 
 **Errors & validation**
 - (none)

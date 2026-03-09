@@ -15,7 +15,7 @@
 - (none)
 
 **Semantics**
-- Returns the configured default text color (`ForeColor`) as `0xRRGGBB`:
+- Returns the configured default text color (config item `ForeColor`) as `0xRRGGBB`:
   - `ForeColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**

@@ -15,7 +15,7 @@ Terminology used in this reference:
 
 Warnings carry an integer **level**. The engine treats the numeric level as a severity category and filters output by config:
 
-- Config key: `DisplayWarningLevel`
+- Filtering uses config item `DisplayWarningLevel`.
 - If a warning’s `level < DisplayWarningLevel` and the engine is not in analysis mode, the warning is suppressed.
 
 The engine’s own severity note describes the intended meaning as:
@@ -25,7 +25,7 @@ The engine’s own severity note describes the intended meaning as:
 - `2`: may be harmful if the line is executed; many parse-time “invalid line” reports use this level
 - `3`: fatal
 
-Back-compat warnings are additionally gated by `WarnBackCompatibility` (they can be suppressed even if the level passes).
+Back-compat warnings are additionally gated by config item `WarnBackCompatibility` (they can be suppressed even if the level passes).
 
 ## 2) How warnings are collected and printed
 
@@ -66,7 +66,7 @@ The engine uses multiple representations for “bad” lines:
 - **Invalid line objects** (`InvalidLine`, `InvalidLabelLine`):
   - represent lines that could not be parsed at all (or function labels that are structurally invalid)
   - are always error lines (`IsError == true`)
-  - cause the loader to report “cannot interpret” issues; whether startup still proceeds is determined later by the loader flag / `CompatiErrorLine` behavior described in §7
+  - cause the loader to report “cannot interpret” issues; whether startup still proceeds is determined later by the loader flag / config item `CompatiErrorLine` behavior described in §7
 - **Normal line objects marked as error lines**:
   - represent lines that were parsed into a statement object, but were later determined to be invalid (for example, disallowed instructions in a `#FUNCTION` body, or unresolved constructs under specific config rules)
   - behave like runtime traps: if execution reaches the line, the interpreter throws using that line's stored error message

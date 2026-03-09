@@ -28,8 +28,46 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def lines(path: Path) -> list[str]:
-    return read_text(path).splitlines()
+def lines(path: Path) -> tuple[str, ...]:
+    return tuple(read_text(path).splitlines())
+
+
+class TextCache:
+    """Per-tool text/line cache.
+
+    Tools that need aggressive reread avoidance should create their own cache
+    instance instead of relying on hidden global caching in shared helpers.
+    """
+
+    def __init__(self) -> None:
+        self._texts: dict[Path, str] = {}
+        self._lines: dict[Path, tuple[str, ...]] = {}
+
+    def clear(self) -> None:
+        self._texts.clear()
+        self._lines.clear()
+
+    def invalidate(self, path: Path) -> None:
+        self._texts.pop(path, None)
+        self._lines.pop(path, None)
+
+    def read_text(self, path: Path) -> str:
+        text = self._texts.get(path)
+        if text is None:
+            text = read_text(path)
+            self._texts[path] = text
+        return text
+
+    def lines(self, path: Path) -> tuple[str, ...]:
+        cached = self._lines.get(path)
+        if cached is None:
+            cached = tuple(self.read_text(path).splitlines())
+            self._lines[path] = cached
+        return cached
+
+    def write_text(self, path: Path, text: str) -> None:
+        write_text(path, text)
+        self.invalidate(path)
 
 
 def strip_csharp_comment(text: str) -> str:
@@ -98,5 +136,3 @@ def best_effort_translate_argtype_hint(jp: str) -> str:
     text = text.replace("（", "(").replace("）", ")").replace("，", ",").replace("・", " / ")
     text = text.replace("、", ", ")
     return text
-
-

@@ -14,7 +14,7 @@
 - Requires that the current system state allows saving/loading (same gate as `SAVEGAME`), otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system load flow.
 - The system load flow (high-level behavior):
-  - Displays save slots with indices `0 <= slot < SaveDataNos` in pages of 20.
+  - Displays save slots with indices `0 <= slot < n` in pages of 20, where `n` is config item `SaveDataNos`.
   - Includes a special autosave entry `99` when applicable.
   - Uses `100` as the “back/cancel” input.
   - After selecting a valid slot:

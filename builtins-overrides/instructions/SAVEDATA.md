@@ -17,7 +17,7 @@
 - Writes a save file under `SavDir`:
   - Path is `save{slot:00}.sav` (e.g. slot `0` -> `save00.sav`).
 - Save format:
-  - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.
+  - If config item `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.
   - Otherwise, writes the legacy text save format.
   - The save always includes:
     - game unique code and script version checks

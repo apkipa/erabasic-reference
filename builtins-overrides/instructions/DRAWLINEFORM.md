@@ -1,5 +1,5 @@
 **Summary**
-- Draws a horizontal rule by repeating a runtime string expression across the drawable width, then prints a newline.
+- Draws a horizontal rule by repeating a runtime string expression across the derived runtime value `DrawableWidth`, then prints a newline.
 
 **Tags**
 - ui
@@ -13,7 +13,7 @@
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Evaluates `<pattern>` to a string `s`.
-  - If `s` is non-empty, expands it to a full-width bar using the same algorithm as `CUSTOMDRAWLINE`, which fits the pattern to the derived runtime value `drawable width` (see `config-items.md`).
+  - If `s` is non-empty, expands it to a full-width bar using the same algorithm as `CUSTOMDRAWLINE`, which fits the pattern to the derived runtime value `DrawableWidth` (see `config-items.md`).
 - Prints the expanded bar with font style forced to `Regular`, then prints a newline.
 
 **Errors & validation**

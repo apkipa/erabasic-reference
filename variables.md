@@ -151,7 +151,7 @@ These variables all speak in terms of the **current character list** (`0 <= i < 
 - `MASTER`, `TARGET`, `ASSI`, and `PLAYER` are plain integer selectors into that current list.
   - They can be negative or out of range; the engine does not guarantee that they always point at a valid character.
   - Character-data variables and character-oriented built-ins treat those values as ordinary indices and then do their normal bounds checks.
-- `TARGET` is also the default chara selector used by omitted-index inference when `SystemNoTarget=NO`; that inference rule does not make the underlying variable itself special.
+- `TARGET` is also the default chara selector used by omitted-index inference when config item `SystemNoTarget` = `NO`; that inference rule does not make the underlying variable itself special.
 
 ### Character-list mutation boundaries
 
@@ -326,7 +326,7 @@ For non-character arrays:
 
 ## `RAND` argument restrictions (config-dependent)
 
-`RAND` is a special 1D numeric variable with extra constraints controlled by `CompatiRAND`:
+`RAND` is a special 1D numeric variable with extra constraints controlled by config item `CompatiRAND`:
 
 - If `CompatiRAND` is `false`:
   - omitting the argument (`RAND`) is an error
@@ -430,7 +430,7 @@ Keywords recognized by this engine:
 - `SAVEDATA`
 - `CHARADATA`
 
-Compatibility quirk (important): sharp-directive keyword matching follows `IgnoreCase`, but the later “numeric vs string declaration” branch still checks specifically for uppercase `DIMS`. So `#dims ...` can be accepted by the loader but still create a **numeric** variable in this engine.
+Compatibility quirk (important): sharp-directive keyword matching follows config item `IgnoreCase`, but the later “numeric vs string declaration” branch still checks specifically for uppercase `DIMS`. So `#dims ...` can be accepted by the loader but still create a **numeric** variable in this engine.
 
 ### 2) Name validity and conflicts
 
@@ -453,7 +453,7 @@ Private-only rule:
 
 Additional warnings:
 
-- If `UseERD=YES` and `CheckDuplicateIdentifier=YES`, declaring a user variable whose name equals any ERD key name emits a warning.
+- If config item `UseERD` = `YES` and config item `CheckDuplicateIdentifier` = `YES`, declaring a user variable whose name equals any ERD key name emits a warning.
 - If the variable name matches any CSV “name key” (from the built-in name tables), the engine emits a warning.
 
 ### 3) Dimensions and size expressions
@@ -580,7 +580,7 @@ Header constraints:
 
 Binary-save constraint (config-dependent):
 
-- If `SAVEDATA` is used and `SystemSaveInBinary` is disabled:
+- If `SAVEDATA` is used and config item `SystemSaveInBinary` is disabled:
   - string variables with dimension > 1 are rejected
   - any `CHARADATA` variable is rejected (in this engine, regardless of element type)
 

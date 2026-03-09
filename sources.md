@@ -37,7 +37,7 @@ Compatibility baseline used for this reference:
 - Line reading, `[[...]]` rename replacement, and `{...}` continuation: `emuera.em/Emuera/Runtime/Utils/EraStreamReader.cs`
 - Encoding detection and preload cache: `emuera.em/Emuera/Runtime/Utils/EncodingHandler.cs`, `emuera.em/Emuera/Runtime/Utils/Preload.cs`
 - Config keys/defaults and parsing rules: `emuera.em/Emuera/Runtime/Config/ConfigData.cs`, `emuera.em/Emuera/Runtime/Config/ConfigItem.cs`, `emuera.em/Emuera/Runtime/Config/Config.cs`
-- File enumeration rules (`SearchSubdirectory`, `SortWithFilename`, extension-length filter): `emuera.em/Emuera/Runtime/Config/Config.cs` (`GetFiles`)
+- File enumeration rules (config item `SearchSubdirectory`, config item `SortWithFilename`, extension-length filter): `emuera.em/Emuera/Runtime/Config/Config.cs` (`GetFiles`)
 - CSV + variable sizing + name tables + `CHARA*.CSV` discovery + `VarExt*.csv` discovery: `emuera.em/Emuera/Runtime/Script/Data/ConstantData.cs`
 - `#DIM/#DIMS` parsing and keyword constraints: `emuera.em/Emuera/Runtime/Script/Data/UserDefinedVariable.cs`
 - Variable `:` argument inference and string-key wrapping: `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableParser.cs`, `emuera.em/Emuera/Runtime/Script/Statements/Variable/VariableStrArgTerm.cs`

@@ -14,7 +14,7 @@
 **Semantics**
 - Reads `intVarTerm`’s current value, multiplies it by `realLiteral`, then stores `(long)product` back into `intVarTerm`.
   - The cast truncates toward zero (`125.9` → `125`, `-1.9` → `-1`).
-- Calculation mode depends on config `TimesNotRigorousCalculation`:
+- Calculation mode depends on config item `TimesNotRigorousCalculation`:
   - If enabled: uses `double` math.
   - Otherwise: uses `decimal` math (with a fallback conversion path for overflow) to reduce rounding differences.
 - The assignment is performed in an `unchecked` context (overflow does not raise an error).

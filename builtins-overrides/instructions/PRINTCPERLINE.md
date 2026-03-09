@@ -1,5 +1,5 @@
 **Summary**
-- Writes the configured `PrintCPerLine` value into an integer variable.
+- Writes the value of config item `PrintCPerLine` into an integer variable.
 
 **Tags**
 - config
@@ -11,7 +11,7 @@
 - `<dest>` (optional, changeable integer variable term; default `RESULT`): receives the value.
 
 **Semantics**
-- Assigns the configuration value `PrintCPerLine` to `<dest>`.
+- Assigns the value of config item `PrintCPerLine` to `<dest>`.
 - Does not print output.
 
 **Errors & validation**
@@ -23,4 +23,3 @@
 
 **Progress state**
 - complete
-

@@ -18,7 +18,7 @@
 - `<width>` / `<height>` / `<ypos>` (optional, int): mixed numeric attributes.
   - Numeric arguments are positional: `width`, then `height`, then `ypos`.
   - Each numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `80px`).
-  - Without `px`, the value is interpreted as a percentage of the current font size (in pixels): `valuePx = value * FontSize / 100`.
+  - Without `px`, let `fontSizePx` be config item `FontSize`; then `valuePx = value * fontSizePx / 100`.
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).

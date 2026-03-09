@@ -38,7 +38,7 @@
 - Each produced cell string is printed via `PRINTC`-style output with right alignment.
 - Keeps a per-line cell counter:
   - After each printed cell, `count += 1`.
-  - If `PrintCPerLine > 0` and `count % PrintCPerLine == 0`, it flushes pending output.
+  - If config item `PrintCPerLine` is greater than `0` and `count % PrintCPerLine == 0`, it flushes pending output.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.
 

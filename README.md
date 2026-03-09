@@ -72,7 +72,7 @@ This reference has two “layers”:
 ### Data and config (tightly coupled to language use)
 
 - [`data-files.md`](data-files.md) — config/CSV/rename/ERD formats tied to the language
-- [`config-items.md`](config-items.md) — config key catalog plus shared config-adjacent derived runtime values
+- [`config-items.md`](config-items.md) — main/debug/replace item catalog plus shared config-adjacent derived runtime values
 - [`filesystem-paths.md`](filesystem-paths.md) — shared path-handling families used by filesystem/resource built-ins
 - [`save-files.md`](save-files.md) — save directories, persistence partitions, and on-disk save formats (binary + legacy text)
 - [`resources-and-sprites.md`](resources-and-sprites.md) — `resources/**/*.csv` sprite loading and sprite-name resolution used by UI/HTML output

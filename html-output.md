@@ -110,7 +110,7 @@ After the HTML frontend has parsed tags/text into display nodes and button regio
 Within that logical line, the engine may produce multiple **display lines** due to:
 
 - explicit line breaks (`<br>` or literal `'\n'` in the HTML string), and/or
-- automatic wrapping when content exceeds the drawable width.
+- automatic wrapping when content exceeds the normal row width (the derived runtime value `DrawableWidth`).
 
 Commands such as `CLEARLINE` and the `LINECOUNT` variable count/delete **logical lines**, not individual display lines.
 
@@ -124,7 +124,7 @@ Commands such as `CLEARLINE` and the `LINECOUNT` variable count/delete **logical
 `<nobr> ... </nobr>` disables automatic wrapping in that shared backend:
 
 - the content is still allowed to contain explicit breaks (`<br>` / `'\n'`),
-- but it is not wrapped just because it exceeds the drawable width.
+- but it is not wrapped just because it exceeds that width.
 
 Because the console does not scroll horizontally, any content that would extend past the right edge is not visible.
 
@@ -207,7 +207,7 @@ Supported attributes:
   - Tooltip text shown when hovering the region.
 - `pos`:
   - A horizontal position lock (integer), interpreted as a percentage of font size.
-    - `posPx = pos * FontSize / 100`
+    - Let `fontSizePx` be config item `FontSize`; then `posPx = pos * fontSizePx / 100`.
   - It is permitted only when the overall layout uses `<nobr>` and alignment is `left`.
 
 Button value interpretation:
@@ -359,12 +359,12 @@ If `border` is specified but `bcolor` is omitted, the border color defaults to t
 
 #### 6.9.7 Layout of `<div>` contents
 
-The enclosed HTML is laid out using the same HTML-string rules as `HTML_PRINT`, plus the same shared row-formation backend documented in [`console-layout.md`](console-layout.md), with a custom drawable width derived from the `<div>`’s `width`:
+The enclosed HTML is laid out using the same HTML-string rules as `HTML_PRINT`, plus the same shared row-formation backend documented in [`console-layout.md`](console-layout.md), with a custom content width budget derived from the `<div>`’s `width`:
 
 - The base width is `width` (converted to pixels).
-- If any of `margin`, `border`, or `padding` is present, the left+right values are subtracted from the base width to get the content drawable width.
+- If any of `margin`, `border`, or `padding` is present, the left+right values are subtracted from the base width to get the content width budget.
 
-This content drawable width affects wrapping and alignment inside the `<div>`.
+This content width budget affects wrapping and alignment inside the `<div>`.
 
 #### 6.9.8 Examples
 

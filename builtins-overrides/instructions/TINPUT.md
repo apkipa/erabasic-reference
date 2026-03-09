@@ -11,7 +11,7 @@
 - `<timeMs>` (int): time limit in milliseconds.
 - `<default>` (int): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
-- `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
+- `<timeoutMessage>` (optional, string; default replace item `TimeupLabel`): message used on timeout.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
   - Clicking a selectable **normal-output button** also submits its value as `TINPUT` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).

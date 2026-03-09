@@ -14,11 +14,11 @@
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - The engine appends the precomputed default draw-line string to the current pending print buffer and then ends the line.
 - Pattern source:
-  - the base pattern comes from config `DrawLineString` (default `"-"`),
+  - the base pattern comes from replace item `DrawLineString` (default `"-"`),
   - the runtime precomputes a width-fitted expanded string from that pattern during initialization.
 - Width-fitting rule:
-  - repeat the pattern until the measured display width reaches or exceeds the current drawable width,
-  - then trim one character at a time from the end until the measured width is less than or equal to the drawable width.
+  - repeat the pattern until the measured display width reaches or exceeds the derived runtime value `DrawableWidth`,
+  - then trim one character at a time from the end until the measured width is less than or equal to that width.
 - Rendering:
   - the line text is printed using regular font style regardless of the current font style,
   - the instruction then ends the line and refreshes the display.

@@ -29,7 +29,7 @@ Legend:
 - ✅ Folder layout assumptions (csv/ERH/ERB, subfolder loading rules, and filesystem case-sensitivity caveat).
 - ✅ Load order and phase boundaries (CSV → rename/replace → ERH macros/vars → ERB).
 - ✅ File encodings and newline normalization.
-- ✅ `_Rename.csv` missing-file behavior when `UseRenameFile=YES` (host prints an error and continues with an empty rename map).
+- ✅ `_Rename.csv` missing-file behavior when config item `UseRenameFile` = `YES` (host prints an error and continues with an empty rename map).
 - ✅ `_Replace.csv` replaceable-item set and its main script-visible effects (it targets a fixed replace-item table, including some runtime defaults, not arbitrary config keys).
 - 🟡 Error/warning behavior on duplicate definitions and missing references.
 
@@ -91,7 +91,7 @@ Where described today:
 
 - ✅ Label grammar (allowed chars, begin-with-digit rules, case-sensitivity).
 - ✅ Duplicate labels, multi-definition ordering, and event grouping rules.
-- ✅ Interaction with “event function” categories and attributes: event-name set, grouped dispatch order, return-driven control flow, and `CompatiCallEvent` compatibility behavior are specified across `labels.md` and `runtime-model.md`.
+- ✅ Interaction with “event function” categories and attributes: event-name set, grouped dispatch order, return-driven control flow, and config item `CompatiCallEvent` compatibility behavior are specified across `labels.md` and `runtime-model.md`.
 
 Where described today:
 
@@ -135,7 +135,7 @@ Where described today:
 - ✅ Short-circuit semantics (`&&`, `||`, `!&`, `!|`, ternary; `^^` does not short-circuit).
 - ✅ Ternary operators (numeric `? #` and string `\@ ? # \@`), including parse rules and nesting.
 - ✅ Increment/decrement (`++/--`) as statement and expression operators (variable-only, const rejection, prefix vs postfix result value).
-- ✅ String comparison semantics in expressions: equality/inequality are case-sensitive content comparisons, ordering is ordinal, and `IgnoreCase` does not apply.
+- ✅ String comparison semantics in expressions: equality/inequality are case-sensitive content comparisons, ordering is ordinal, and config item `IgnoreCase` does not apply.
 - ✅ Numeric edge cases and exception behavior:
   - division/modulo by zero
   - negative division/modulo semantics
@@ -192,7 +192,7 @@ Where described today:
 - ✅ Argument binding (`ARG/ARGS`) including defaults and omitted args (including implicit defaults for some formals).
 - ✅ Pass-by-reference via `REF` formal parameters.
 - ✅ Expression functions (`#FUNCTION/#FUNCTIONS`): call sites, method-safe restriction model, side-effect caveats, and the main disallowed instruction families are specified.
-- ✅ Error behavior on missing functions and labels (including `TRY*`, `TRYC*`, `TRY*LIST`, `CALLF`, and `TRYCALLF`), calling event functions, and `CompatiCallEvent` / `FunctionNotFoundWarning` effects is specified.
+- ✅ Error behavior on missing functions and labels (including `TRY*`, `TRYC*`, `TRY*LIST`, `CALLF`, and `TRYCALLF`), calling event functions, and `CompatiCallEvent` / config item `FunctionNotFoundWarning` effects is specified.
 - 🟡 Execution modes that affect call/IO behavior (e.g. output skipping `SKIPDISP` / script-runner skip-print mode, and message-skip `MesSkip`) are documented at the shared-rule level; a tighter exhaustive inventory of print-like built-ins is still desirable.
 
 Where described today:
@@ -357,13 +357,13 @@ These items are **observable engine features** but are deferred because they are
 - 🔁 Command-line invocation contract (flags and positional args), including `--ExeDir`, `-Debug`, and `-GenLang`.
 - 🔁 Localization/language pack system under `ExeDir/lang/` (including `-GenLang` template generation and selection/fallback rules).
   - Files/patterns: `lang/emuera.*.xml` (load), `lang/emuera-default-lang.xml` (generated template).
-- 🔁 Keyboard macro system: `ExeDir/macro.txt` + `UseKeyMacro` (parsing, enabled/disabled behavior, and effect on the input loop).
-- 🔁 In-game debug command mode: `UseDebugCommand` and the console rule “input beginning with `@` is treated as a debug command” (supported syntax subset + restrictions).
+- 🔁 Keyboard macro system: `ExeDir/macro.txt` + config item `UseKeyMacro` (parsing, enabled/disabled behavior, and effect on the input loop).
+- 🔁 In-game debug command mode: config item `UseDebugCommand` and the console rule “input beginning with `@` is treated as a debug command” (supported syntax subset + restrictions).
 - 🔁 Hotkey scripting extension: `ExeDir/HOTKEY.ERB` + Ctrl+D toggle + its limited grammar, and how it interacts with `HOTKEY_STATE*`.
   - Optional developer dump file: `ExeDir/HOTKEY.ERB.bytecode.txt`.
 - ✅ Plugin system: discovery/load timing, `Plugins/*.dll` admission, `pluginsAware.txt` gating, public plugin contract types, `CALLSHARP` interop, and the public `PluginManager` / `PluginAPICharContext` helper surface are specified in `plugins.md`.
 - 🔁 Debug UI aux files under `ExeDir/debug/`: `debug/debug.config`, `debug/watchlist.csv`, `debug/console.log`.
-- 🔁 Rikaichan integration files: `RikaiFilename` (dictionary path) and its sidecar index file `RikaiFilename.ind`.
+- 🔁 Rikaichan integration files: config item `RikaiFilename` (dictionary path) and its sidecar index file `RikaiFilename.ind`.
 - 🔁 Misc host diagnostics/aux files: `ExeDir/patch_versions/*.txt`, `ExeDir/emuera.log`, `ExeDir/Analysis.log`, `ExeDir/time.log`, and `img_err.log`.
 - 🔁 Native OS interop dependencies (host implementation detail): `user32.dll`, `winmm.dll`, `kernel32.dll`.
 

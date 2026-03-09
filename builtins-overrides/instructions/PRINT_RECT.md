@@ -15,11 +15,11 @@
 - `<height>` (int): 4-argument form only; rectangle height in mixed units and must satisfy `height > 0`.
 - Mixed-unit rule:
   - A numeric argument may be followed by a `px` suffix token to indicate pixels (for example `30px`).
-  - Without `px`, the value is interpreted as a percentage of the current font size in pixels: `valuePx = value * FontSize / 100`.
+  - Without `px`, let `fontSizePx` be config item `FontSize`; then `valuePx = value * fontSizePx / 100`.
 - 1-argument form defaults:
   - `x = 0`
   - `y = 0`
-  - `height = FontSize` (pixels)
+  - `height =` the current font size in pixels (config item `FontSize`)
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).

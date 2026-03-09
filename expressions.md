@@ -57,7 +57,7 @@ Invalid mixes (engine rejects these):
 
 One notable conversion path exists for user-defined function argument binding:
 
-- Passing `long` to a `string` formal parameter is rejected unless `CompatiFuncArgAutoConvert=YES`, in which case the engine wraps it as `TOSTR(long, ...)`.
+- Passing `long` to a `string` formal parameter is rejected unless config item `CompatiFuncArgAutoConvert` = `YES`, in which case the engine wraps it as `TOSTR(long, ...)`.
 - Passing `string` to a `long` formal parameter is always rejected.
 
 ### More required-type contexts (beyond plain expressions)
@@ -71,7 +71,7 @@ These rules are enforced around expression evaluation by the loader and/or runti
   - integer `SELECTCASE` → each `CASE` condition expression must be integer
   - string `SELECTCASE` → each `CASE` condition expression (including `IS ...` and `... TO ...` bounds) must be string
   - mixed int/string cases are errors
-  - string comparisons are ordinal and case-sensitive (not affected by `IgnoreCase`)
+  - string comparisons are ordinal and case-sensitive (not affected by config item `IgnoreCase`)
   See `control-flow.md` for the full `CASE` forms (`IS` / `TO`) and selection semantics.
 - **Assignments**:
   - numeric variables: RHS must be numeric expressions
@@ -104,9 +104,9 @@ Variable terms have the shape:
 
 Because variable parsing performs argument inference, “omitting indices” does **not** produce an “array reference” (and EraBasic expressions do not have an “array value” type):
 
-- **Non-character 1D arrays**: `NAME` is treated as `NAME:0`; for `RAND`, this is accepted only when `CompatiRAND=YES`, and otherwise omission errors.
+- **Non-character 1D arrays**: `NAME` is treated as `NAME:0`; for `RAND`, this is accepted only when config item `CompatiRAND` = `YES`, and otherwise omission errors.
 - **Character-data 1D arrays** (final indices are `[chara, index]`):
-  - if `SystemNoTarget=NO`: `NAME` defaults to `NAME:TARGET:0`, and `NAME:i` is treated as `NAME:TARGET:i` (the single written arg is the element index)
+  - if config item `SystemNoTarget` = `NO`: `NAME` defaults to `NAME:TARGET:0`, and `NAME:i` is treated as `NAME:TARGET:i` (the single written arg is the element index)
   - if `SystemNoTarget=YES`: `NAME` becomes a special *no-arg variable term*; `NAME:i` is an error (you must write both `chara` and `index`)
 - **2D/3D arrays (character or not)**: there is no “partially indexed” value form.
   - if you write no `:` args (`NAME`), it parses as a *no-arg variable term*
@@ -297,7 +297,7 @@ For string variables, these compound assignments are supported:
 
 They parse the RHS as a normal expression (like `'=`, not like `=`), and require exactly one RHS expression (no comma list).
 
-### Config option: `SystemIgnoreStringSet`
+### Config item `SystemIgnoreStringSet`
 
 If `SystemIgnoreStringSet=YES`, the engine rejects `STR = ...` (string `=` assignment) with a warning/error.
 
@@ -318,7 +318,7 @@ Emuera also supports width/alignment extensions in some FORM placeholders, for e
 - `{X,10,LEFT}` — left-aligned
 - `%STR:0,10%` — similar, for string output
 
-Width calculations for `%...%` placeholders use `LangManager.GetStrlenLang` and therefore depend on the configured `useLanguage` code page: ASCII-only strings count as `Length`, and non-ASCII strings use that code page's byte count before the engine adjusts the requested width. See `formatted-strings.md` for the exact algorithm.
+Width calculations for `%...%` placeholders use `LangManager.GetStrlenLang` and therefore depend on the code page selected by config item `useLanguage`: ASCII-only strings count as `Length`, and non-ASCII strings use that code page's byte count before the engine adjusts the requested width. See `formatted-strings.md` for the exact algorithm.
 
 ### FORM in string-expression contexts: `@"..."`
 

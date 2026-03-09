@@ -11,7 +11,7 @@
 - None.
 
 **Semantics**
-- Sets the current text color to the configured default (`ForeColor`).
+- Sets the current text color to the configured default (config item `ForeColor`).
 - Does not print output.
 
 **Errors & validation**

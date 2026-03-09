@@ -36,7 +36,7 @@ Comment-only and empty lines are filtered out by the line reader and whitespace 
 This file uses the following placeholders:
 
 - `IDENT` — identifier token (see `lexical.md`).
-- `WS` — whitespace that is recognized as whitespace by the engine (`SystemAllowFullSpace` affects whether U+3000 counts).
+- `WS` — whitespace that is recognized as whitespace by the engine (config item `SystemAllowFullSpace` affects whether U+3000 counts).
 - `INT_EXPR` — integer expression (see `expressions.md`).
 - `STR_EXPR` — string expression (see `expressions.md`).
 - `EXPR` — expression that may be integer or string (engine tracks types).
@@ -44,7 +44,7 @@ This file uses the following placeholders:
 - `CONST_INT` — integer expression that must reduce to a compile-time constant in the places noted.
 - `FORM_STR` — a formatted string token/term as parsed by the engine’s formatted-string analyzer (see `expressions.md`).
 
-Important: instruction keywords and many identifiers are compared using config-controlled comparers. In particular, `IgnoreCase` affects much of identifier matching.
+Important: instruction keywords and many identifiers are compared using config-controlled comparers. In particular, config item `IgnoreCase` affects much of identifier matching.
 
 ## 3) EBNF: file structure (ERB)
 
@@ -203,7 +203,7 @@ Constraints enforced by the engine:
 - Defaults are only allowed for parameters that are `ARG`, `ARGS`, or private variables; other parameter lvalues cannot have defaults.
 - If `=` is absent, the engine inserts an implicit default `0` / `""` **only** for `ARG`, `ARGS`, and private-variable parameters; otherwise the parameter has no default.
 - Event function labels reject all signature content: any tokens after `@EVENT...` emit a level-2 warning and are ignored for argument-binding purposes.
-- If `CompatiFuncArgOptional=YES` allows an argument to be omitted even when there is no default, then the engine leaves that formal lvalue **unassigned** on entry (it retains its previous value in the underlying storage).
+- If config item `CompatiFuncArgOptional` = `YES` allows an argument to be omitted even when there is no default, then the engine leaves that formal lvalue **unassigned** on entry (it retains its previous value in the underlying storage).
 
 ## 6) EBNF: statement forms
 
@@ -282,7 +282,7 @@ Notes:
   - `+=` parses one normal-expression RHS, which must be string-typed.
   - `*=` parses one normal-expression RHS, which must be int-typed.
   - only `'=`, as the operator, supports “batch assignment” (multiple comma-separated RHS values) for string variables.
-  - `SystemIgnoreStringSet` can prohibit `=` on string variables (while still allowing `'=`, `+=`, `*=`).
+  - config item `SystemIgnoreStringSet` can prohibit `=` on string variables (while still allowing `'=`, `+=`, `*=`).
 
 Batch assignment semantics (which elements are written, and out-of-range behavior) are specified in `variables.md`.
 

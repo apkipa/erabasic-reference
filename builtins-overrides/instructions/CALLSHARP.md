@@ -42,7 +42,7 @@
 - If an argument position is left empty (e.g. `CALLSHARP M, , 1`): runtime error.
 - If the plugin throws an exception: runtime error.
 
-Method-name case sensitivity follows the engine’s `IgnoreCase` configuration:
+Method-name case sensitivity follows config item `IgnoreCase`:
 - If `IgnoreCase = true`, plugin methods are looked up case-insensitively.
 - Otherwise, method names are case-sensitive.
 

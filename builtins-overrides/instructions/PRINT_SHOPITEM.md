@@ -25,11 +25,12 @@
 - For each `i` that is for sale:
   - Let `name = names[i]` (engine also guards against null by treating it as `""`, but the sale predicate rejects null names).
   - Let `price = prices[i]`.
+  - Let `currencyLabel` be replace item `MoneyLabel`.
   - Format the cell text as:
-    - If `MoneyFirst` is true: `[{i}] {name}({MoneyLabel}{price})`
-    - Otherwise: `[{i}] {name}({price}{MoneyLabel})`
+    - If replace item `MoneyFirst` is true: `[{i}] {name}({currencyLabel}{price})`
+    - Otherwise: `[{i}] {name}({price}{currencyLabel})`
   - Prints the cell using `PRINTC`-style formatting with left alignment.
-  - Increments a per-line cell counter and flushes every `PrintCPerLine` cells when `PrintCPerLine > 0`.
+  - Let `cellsPerLine` be config item `PrintCPerLine`; if `cellsPerLine > 0`, the instruction flushes every `cellsPerLine` printed cells.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.
 

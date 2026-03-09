@@ -61,7 +61,7 @@ JSON settings are loaded afterwards from `ExeDir/setting.json`. If it doesn’t 
 
 If enabled by config (and not in analysis mode), the engine reads `csv/_Replace.csv` and applies it to the dedicated replace-item set documented in `config-items.md` section 7, not to arbitrary config keys.
 
-Those items are a mix of UI strings/chars and script-visible runtime knobs (for example `DrawLineString`, `MoneyLabel`/`MoneyFirst`, `TimeupLabel`, `MaxShopItem`, and several built-in default-value tables).
+Those items are a mix of UI strings/chars and script-visible runtime knobs (for example replace item `DrawLineString`, replace item `MoneyLabel`/replace item `MoneyFirst`, replace item `TimeupLabel`, replace item `MaxShopItem`, and several built-in default-value tables).
 
 Separately, the line-continuation joiner string is taken from the normal config item `ReplaceContinuationBR` and used when concatenating `{ ... }` blocks (see “Line reading”).
 
@@ -71,7 +71,7 @@ If enabled by config, the engine reads `csv/_Rename.csv` and builds a mapping of
 
 `[[pattern]]` → `replacement`
 
-If `UseRenameFile=YES` but `csv/_Rename.csv` does not exist, this engine prints an error message and continues with an empty rename dictionary. Missing `_Rename.csv` is therefore a soft host-side error, not a startup abort.
+If config item `UseRenameFile` = `YES` but `csv/_Rename.csv` does not exist, this engine prints an error message and continues with an empty rename dictionary. Missing `_Rename.csv` is therefore a soft host-side error, not a startup abort.
 
 That mapping is used by the line reader for ERB, and also for ERH (ERH forces rename enabled). If `[[...]]` remains in an enabled line after rename processing, later tokenization will treat it as an error.
 
@@ -100,13 +100,13 @@ Most CSV tables are loaded by exact filename from `csv/` (top directory only), f
 - `csv/VariableSize.CSV`
 - `csv/ABL.CSV`, `csv/TALENT.CSV`, `csv/PALAM.CSV`, ... (many fixed names)
 
-So `SearchSubdirectory` does **not** change the set of loaded files for those tables.
+So config item `SearchSubdirectory` does **not** change the set of loaded files for those tables.
 
 Two loaders *do* enumerate patterns:
 
 - `CHARA*.CSV` discovery:
   - `SearchSubdirectory=YES` enables recursive discovery under `csv/`
-  - `SortWithFilename=YES` sorts directory and file names
+  - config item `SortWithFilename` = `YES` sorts directory and file names
   - extension matching is filesystem-dependent (typical Windows is effectively case-insensitive; case-sensitive filesystems may require uppercase `.CSV`)
 - `VarExt*.csv` (save-extension settings) discovery:
   - it is always recursive regardless of `SearchSubdirectory`
@@ -206,7 +206,7 @@ Certain parse failures clear the loader's coarse “load succeeded?” flag even
 - invalid statement lines (`InvalidLine`)
 - invalid `#...` attribute lines (sharp-line parse failure)
 
-This flag is later used by the startup gate controlled by `CompatiErrorLine` (see `errors-and-warnings.md`).
+This flag is later used by the startup gate controlled by config item `CompatiErrorLine` (see `errors-and-warnings.md`).
 
 ### 2) Function label signature parsing
 
@@ -251,18 +251,18 @@ The loader calls each instruction’s `SetJumpTo(...)` hook to:
 
 Config interaction (important):
 
-- `FunctionNotFoundWarning` affects whether “function not found” warnings are printed, but when this pass marks a line as an error line, that happens regardless of whether the warning is later suppressed by config (see `errors-and-warnings.md`).
+- config item `FunctionNotFoundWarning` affects whether “function not found” warnings are printed, but when this pass marks a line as an error line, that happens regardless of whether the warning is later suppressed by config (see `errors-and-warnings.md`).
 
 ### 4) Whole-program function reachability checks
 
 After per-function parsing, the loader runs a “function never called” check unless some call/jump target remained dynamic during load:
 
 - If any target must be resolved dynamically at runtime, the loader treats all functions as “potentially called” and parses them all.
-- Otherwise, it warns for functions never reached via static call graph discovery, controlled by `FunctionNotCalledWarning`.
+- Otherwise, it warns for functions never reached via static call graph discovery, controlled by config item `FunctionNotCalledWarning`.
 
 Optional hardening (default in this engine):
 
-- If `IgnoreUncalledFunction=YES`, the loader does **not** parse uncalled functions, and instead plants a runtime trap at the function entry:
+- If config item `IgnoreUncalledFunction` = `YES`, the loader does **not** parse uncalled functions, and instead plants a runtime trap at the function entry:
   - the first executable line after the label is marked as an error line (“this function should not be called”).
   - calling such a function at runtime therefore throws immediately on entry.
 

@@ -266,8 +266,8 @@ Notes and constraints:
   - `@` is **not** an expression operator: it is recognized only in this specific spot while parsing a variable identifier.
     - Example: `(A+B)@X` is a parse error (“unexpected symbol `@`”) in expression-parsed contexts.
 - Omitted/implicit indices are part of variable-term construction (argument inference):
-  - For non-character **1D** arrays, omitting the index makes it `:0`; for `RAND`, this is accepted only when `CompatiRAND=YES`, and otherwise omission errors.
-  - For character-data **1D** arrays, a single written index is treated as the element index and the character selector defaults to `TARGET` (when `SystemNoTarget=NO`); selecting a specific character requires writing both indices.
+  - For non-character **1D** arrays, omitting the index makes it `:0`; for `RAND`, this is accepted only when config item `CompatiRAND` = `YES`, and otherwise omission errors.
+  - For character-data **1D** arrays, a single written index is treated as the element index and the character selector defaults to `TARGET` (when config item `SystemNoTarget` = `NO`); selecting a specific character requires writing both indices.
   - For **2D/3D** arrays, omitting required indices can produce a “no-arg variable term” that throws a “missing variable argument” error if evaluated as a value.
 - In a `var_arg` position, the parser may accept a **bare identifier** as a string key (e.g. `ABL:Skill`) *only if* that identifier does not resolve to a variable/function name and is a known key for that table/variable.
 - Some variables (notably character variables) have **argument auto-completion** behavior that is config-dependent (`SystemNoTarget`).

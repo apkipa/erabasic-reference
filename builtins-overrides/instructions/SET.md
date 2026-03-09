@@ -7,7 +7,7 @@
 
 **Syntax**
 - Scalar assignment (int): `<intVarTerm> = <int expr>`
-- Scalar assignment (string, formatted): `<strVarTerm> = <FORM string>` (subject to `SystemIgnoreStringSet`)
+- Scalar assignment (string, formatted): `<strVarTerm> = <FORM string>` (subject to config item `SystemIgnoreStringSet`)
 - Scalar assignment (string, expression): `<strVarTerm> '= <string expr>`
 - Compound assignment (examples): `<intVarTerm> += <int expr>`, `<intVarTerm> <<= <int expr>`, `<strVarTerm> += <string expr>`, `<strVarTerm> *= <int expr>`
 - Post-inc/dec: `<intVarTerm>++` / `<intVarTerm>--` (no RHS allowed)

@@ -47,7 +47,8 @@ OUTPUT_ENGINE_MD = ref_common.OUTPUT_ENGINE_MD
 OUTPUT_INDEX_MD = ref_common.OUTPUT_INDEX_MD
 OUTPUT_PROGRESS_MD = ref_common.OUTPUT_PROGRESS_MD
 
-_lines = ref_common.lines
+_TEXT_CACHE = ref_common.TextCache()
+_lines = _TEXT_CACHE.lines
 _split_flags = ref_common.split_flags
 _format_flags = ref_common.format_flags
 _md_anchor = ref_common.md_anchor

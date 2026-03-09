@@ -11,7 +11,7 @@ It also specifies how multi-defined labels are ordered and grouped.
 
 Most label dictionaries follow the engine's current identifier-comparison mode:
 
-- If `IgnoreCase=YES`, label lookup is **case-insensitive** (ordinal ignore-case).
+- If config item `IgnoreCase` = `YES`, label lookup is **case-insensitive** (ordinal ignore-case).
 - If `IgnoreCase=NO`, label lookup is **case-sensitive** (ordinal).
 
 This affects:
@@ -42,7 +42,7 @@ After parsing `NAME`, the engine validates it:
 - If the name begins with a **half-width digit**, the engine emits a warning (level 0) but still accepts the label.
   - “Half-width” is detected via the engine’s legacy byte-length routine (`LangManager.GetStrlenLang`): full-width digits do not trigger this warning.
 
-If `WarnFunctionOverloading` is enabled, the engine also checks for collisions with built-ins and reserved words:
+If config item `WarnFunctionOverloading` is enabled, the engine also checks for collisions with built-ins and reserved words:
 
 - Reserved words (e.g. `IS`, `TO`, `INT`, `STR`, `STATIC`, `DYNAMIC`, `GLOBAL`, `SAVEDATA`, `CHARADATA`, `REF`, etc.)
 - Built-in expression functions (methods)
@@ -52,7 +52,7 @@ If `WarnFunctionOverloading` is enabled, the engine also checks for collisions w
 
 Collision outcomes when `WarnFunctionOverloading=YES`:
 
-- **Reserved word**: warning if `AllowFunctionOverloading=YES`, error if `AllowFunctionOverloading=NO`.
+- **Reserved word**: warning if config item `AllowFunctionOverloading` = `YES`, error if `AllowFunctionOverloading=NO`.
 - **Built-in expression function** (system method): warning if `AllowFunctionOverloading=YES`, error if `AllowFunctionOverloading=NO`.
 - **Built-in variable**: warning (never fatal here).
 - **Built-in instruction**: warning (never fatal here).
@@ -131,7 +131,7 @@ So “first-defined” means the earliest according to that ordering.
 ### 4.2 Normal (non-event) functions
 
 - The engine chooses the **first-defined** definition as the callable target for `CALL @NAME` / `JUMP @NAME`.
-- Later definitions with the same name are ignored for normal calls. If `WarnNormalFunctionOverloading=YES` (or analysis mode is active), the loader still emits a warning when a non-event function name is defined more than once.
+- Later definitions with the same name are ignored for normal calls. If config item `WarnNormalFunctionOverloading` = `YES` (or analysis mode is active), the loader still emits a warning when a non-event function name is defined more than once.
 
 ### 4.3 Event functions: grouping by `#` attributes
 
@@ -155,7 +155,7 @@ Important quirks:
 
 The runtime meaning of these attributes (and how `RETURN` values affect event iteration) is specified in `runtime-model.md`.
 
-### 4.4 Compatibility toggle: `CompatiCallEvent`
+### 4.4 Compatibility behavior of config item `CompatiCallEvent`
 
 If `CompatiCallEvent=YES`, the engine also exposes the first-defined event label as a “non-event callable label”, and `CALL @EVENTTRAIN` behaves like calling a normal function (ignoring event groups and flags).
 

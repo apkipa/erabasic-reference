@@ -15,7 +15,7 @@
 - (none)
 
 **Semantics**
-- Returns the configured default background color (`BackColor`) as `0xRRGGBB`:
+- Returns the configured default background color (config item `BackColor`) as `0xRRGGBB`:
   - `BackColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**

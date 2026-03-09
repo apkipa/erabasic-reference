@@ -15,7 +15,7 @@
 - (none)
 
 **Semantics**
-- Returns the configured focus color (`FocusColor`) as `0xRRGGBB`:
+- Returns the configured focus color (config item `FocusColor`) as `0xRRGGBB`:
   - `FocusColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**

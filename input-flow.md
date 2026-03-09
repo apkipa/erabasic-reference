@@ -5,7 +5,7 @@ This document specifies the shared **input-flow contract** used by this engine: 
 It is written as a shared contract for the `INPUT*`, `BINPUT*`, `ONEINPUT*`, `WAIT*`, `TWAIT`, `INPUTANY`, and `INPUTMOUSEKEY` families.
 Per-instruction syntax, exact `RESULT*` assignments, timeout/default argument shapes, and button-side metadata remain documented in `builtins-reference.md`.
 
-Config keys are referenced by their `config-items.md` names.
+Config-surface names in this reference follow the canonical terms from `config-items.md`.
 
 ## 1) Scope and request classes
 
@@ -372,7 +372,7 @@ A compatible reimplementation should preserve all of these observable rules:
 ## 10) Related documents
 
 - `builtins-reference.md` — per-instruction syntax, defaults, `RESULT*`, timeout messages, and side channels.
-- `config-items.md` — config keys referenced here, especially `AllowLongInputByMouse`.
+- `config-items.md` — config items referenced here, especially config item `AllowLongInputByMouse`.
 - `system-flow.md` — host phase/state transitions outside the local input loop.
 - `plugins.md` — plugin helper `WaitInput(...)` surface (host extension API), which is related but not a substitute for the typed ERB input instructions.
 - `cbg-layer.md` — separate `CBG` hit-map/value model and its boundary against ordinary output buttons.

@@ -13,7 +13,7 @@ FORM parsing is **not** the same as double-quoted string literal parsing:
 
 - FORM has its own escape rules (see §4).
 - FORM recognizes interpolation placeholders `%...%` and `{...}` (see §2).
-- Triple-symbol recognition in FORM (for sequences like `***`) is controlled by `SystemIgnoreTripleSymbol` (see §3).
+- Triple-symbol recognition in FORM (for sequences like `***`) is controlled by config item `SystemIgnoreTripleSymbol` (see §3).
 
 ## 0) Data model (what FORM produces)
 
@@ -97,7 +97,7 @@ Compilation rules:
 Semantics:
 
 - The operand is converted to decimal text using `.ToString()`.
-- If `width` is present, padding uses normal string character count (not `useLanguage` byte-count logic).
+- If `width` is present, padding uses normal string character count (not config item `useLanguage` byte-count logic).
 
 ### 2.3 Errors for `%...%` and `{...}`
 

@@ -11,7 +11,7 @@ Many loaders first skip leading whitespace and executable-comment prefixes befor
 That routine:
 
 - skips ASCII space and tab
-- skips full-width space (`U+3000`) only when `SystemAllowFullSpace=YES`
+- skips full-width space (`U+3000`) only when config item `SystemAllowFullSpace` = `YES`
 - treats `;` as “skip-to-end-of-line comment”, **except** for the three executable prefixes defined in section 1
 
 So in many contexts, the “first character” is really: “the first character after whitespace and, if applicable, executable-comment-prefix stripping (`;!;`, `;#;`, `;^;`)”.

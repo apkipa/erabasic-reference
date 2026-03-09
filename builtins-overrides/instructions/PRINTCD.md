@@ -12,7 +12,7 @@
 
 **Arguments**
 - `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

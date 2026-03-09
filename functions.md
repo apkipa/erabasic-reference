@@ -31,7 +31,7 @@ Key rule:
 
 - If a call/jump/goto target name is a **compile-time constant** (including some `...FORM` cases where the FORM reduces to a constant), the loader resolves it during load.
   - If resolution fails and the instruction is not a `TRY*` form, the line is marked as an **error line** during load (execution will throw if reached).
-  - The config `FunctionNotFoundWarning` can suppress *printing* of the warning, but it does not prevent the line from becoming an error line.
+  - Config item `FunctionNotFoundWarning` can suppress *printing* of the warning, but it does not prevent the line from becoming an error line.
 - If the target name is **not** compile-time constant, the loader records that runtime target resolution is needed and defers resolution to runtime.
   - In that case, missing targets raise runtime errors for non-`TRY*` instructions, and are soft-fail for `TRY*`/`TRYC*` instructions.
 
@@ -124,7 +124,7 @@ Important limitations (engine behavior, not just “spec advice”):
 
 - `TRY*` does **not** catch runtime errors thrown while executing the called function body.
 - It does **not** catch “hard” resolution errors that throw immediately rather than returning “not found”:
-  - calling an event function via normal `CALL` when `CompatiCallEvent=NO`
+  - calling an event function via normal `CALL` when config item `CompatiCallEvent` = `NO`
   - calling a user-defined expression function (`#FUNCTION/#FUNCTIONS`) via `CALL` (must use `CALLF`/`CALLFORMF`)
   - jumping to an *invalid* `$` label (a `$` label line that was itself invalid)
 
@@ -201,7 +201,7 @@ This engine tries to resolve many call/jump targets during load when the target 
 Observable consequences:
 
 - Non-`TRY` `CALL` / `JUMP` / `GOTO` / `CALLF` lines with constant missing targets become **error lines** during load.
-- The config `FunctionNotFoundWarning` changes whether the warning text is printed, but it does **not** stop the line from becoming an error line.
+- Config item `FunctionNotFoundWarning` changes whether the warning text is printed, but it does **not** stop the line from becoming an error line.
 - If the target name is not constant, resolution is deferred to runtime instead.
 
 ### Missing target vs wrong kind
@@ -305,12 +305,12 @@ For user-defined functions, an omitted actual is **not** treated as though the c
 The engine first keeps that slot as **absent**, then applies the callee's binding rules:
 
 - if the formal has a default, that default is used,
-- otherwise omission is an error unless `CompatiFuncArgOptional` is enabled,
+- otherwise omission is an error unless config item `CompatiFuncArgOptional` is enabled,
 - if omission is allowed without a default, the formal is left unchanged on entry rather than being auto-filled with a fresh `0` / `""`.
 
 Only after this binding step does the callee observe a concrete value or reference binding.
 
-A separate compatibility rule can auto-convert **explicit** integer actuals to strings for string formals (`CompatiFuncArgAutoConvert`).
+A separate compatibility rule can auto-convert **explicit** integer actuals to strings for string formals (config item `CompatiFuncArgAutoConvert`).
 That is **not** the same thing as omitted-argument handling.
 
 Compatibility implication:

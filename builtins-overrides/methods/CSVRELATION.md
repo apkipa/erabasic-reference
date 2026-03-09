@@ -17,7 +17,7 @@
 - `index` (int): `RELATION` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `RELATION[index]` entry.

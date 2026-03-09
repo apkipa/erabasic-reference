@@ -66,7 +66,7 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Syntax**
 - Scalar assignment (int): `<intVarTerm> = <int expr>`
-- Scalar assignment (string, formatted): `<strVarTerm> = <FORM string>` (subject to `SystemIgnoreStringSet`)
+- Scalar assignment (string, formatted): `<strVarTerm> = <FORM string>` (subject to config item `SystemIgnoreStringSet`)
 - Scalar assignment (string, expression): `<strVarTerm> '= <string expr>`
 - Compound assignment (examples): `<intVarTerm> += <int expr>`, `<intVarTerm> <<= <int expr>`, `<strVarTerm> += <string expr>`, `<strVarTerm> *= <int expr>`
 - Post-inc/dec: `<intVarTerm>++` / `<intVarTerm>--` (no RHS allowed)
@@ -142,7 +142,7 @@ In statement form, the engine evaluates the function and writes the return value
 - `<raw text>` is taken as the raw character sequence after the instruction delimiter.
 - The parser consumes exactly one delimiter character after the keyword:
   - a single space / tab
-  - or a full-width space if `SystemAllowFullSpace` is enabled
+  - or a full-width space if config item `SystemAllowFullSpace` is enabled
   - or a semicolon `;`
 - Because only *one* delimiter character is consumed:
   - `PRINT X` prints `X` (the one space was consumed as delimiter).
@@ -1830,7 +1830,7 @@ In statement form, the engine evaluates the function and writes the return value
 - Writes one fixed-width cell; does not append a newline and does not flush immediately.
 - Cell formatting (right-aligned cell; observable behavior):
   - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
-  - Let `n = PrintCLength`.
+  - Let `n` be the value of config item `PrintCLength`.
   - Computes a target pixel width by measuring `n` spaces using the default font.
   - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
     - If font creation fails, returns `str` unchanged.
@@ -1869,7 +1869,7 @@ In statement form, the engine evaluates the function and writes the return value
 - Writes one fixed-width cell; does not append a newline and does not flush immediately.
 - Cell formatting (left-aligned cell; observable behavior):
   - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
-  - Let `n = PrintCLength`.
+  - Let `n` be the value of config item `PrintCLength`.
   - Computes a target pixel width by measuring `n` spaces using the default font.
   - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
     - If font creation fails, returns `str` unchanged.
@@ -1954,7 +1954,7 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1984,7 +1984,7 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2070,7 +2070,7 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2100,7 +2100,7 @@ In statement form, the engine evaluates the function and writes the return value
 
 **Arguments**
 - `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (`PrintCLength`) using Shift-JIS byte count.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2937,7 +2937,7 @@ PRINT_EXP TARGET
 - Each produced cell string is printed via `PRINTC`-style output with right alignment.
 - Keeps a per-line cell counter:
   - After each printed cell, `count += 1`.
-  - If `PrintCPerLine > 0` and `count % PrintCPerLine == 0`, it flushes pending output.
+  - If config item `PrintCPerLine` is greater than `0` and `count % PrintCPerLine == 0`, it flushes pending output.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.
 
@@ -3012,11 +3012,12 @@ PRINT_PALAM TARGET
 - For each `i` that is for sale:
   - Let `name = names[i]` (engine also guards against null by treating it as `""`, but the sale predicate rejects null names).
   - Let `price = prices[i]`.
+  - Let `currencyLabel` be replace item `MoneyLabel`.
   - Format the cell text as:
-    - If `MoneyFirst` is true: `[{i}] {name}({MoneyLabel}{price})`
-    - Otherwise: `[{i}] {name}({price}{MoneyLabel})`
+    - If replace item `MoneyFirst` is true: `[{i}] {name}({currencyLabel}{price})`
+    - Otherwise: `[{i}] {name}({price}{currencyLabel})`
   - Prints the cell using `PRINTC`-style formatting with left alignment.
-  - Increments a per-line cell counter and flushes every `PrintCPerLine` cells when `PrintCPerLine > 0`.
+  - Let `cellsPerLine` be config item `PrintCPerLine`; if `cellsPerLine > 0`, the instruction flushes every `cellsPerLine` printed cells.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.
 
@@ -3044,11 +3045,11 @@ PRINT_PALAM TARGET
 - If output skipping is active (via `SKIPDISP`), this instruction is skipped (no output).
 - The engine appends the precomputed default draw-line string to the current pending print buffer and then ends the line.
 - Pattern source:
-  - the base pattern comes from config `DrawLineString` (default `"-"`),
+  - the base pattern comes from replace item `DrawLineString` (default `"-"`),
   - the runtime precomputes a width-fitted expanded string from that pattern during initialization.
 - Width-fitting rule:
-  - repeat the pattern until the measured display width reaches or exceeds the current drawable width,
-  - then trim one character at a time from the end until the measured width is less than or equal to the drawable width.
+  - repeat the pattern until the measured display width reaches or exceeds the derived runtime value `DrawableWidth`,
+  - then trim one character at a time from the end until the measured width is less than or equal to that width.
 - Rendering:
   - the line text is printed using regular font style regardless of the current font style,
   - the instruction then ends the line and refreshes the display.
@@ -3088,7 +3089,7 @@ DRAWLINE
 **Semantics**
 - Computes `filled = clamp(value * length / maxValue, 0, length)` using 64-bit integer arithmetic (integer overflow wraps).
 - Produces and prints:
-  - `[` + (`BarChar1` repeated `filled`) + (`BarChar2` repeated `length - filled`) + `]`
+  - `[` + (replace item `BarChar1` repeated `filled`) + (replace item `BarChar2` repeated `length - filled`) + `]`
 - `BarChar1` / `BarChar2` are configurable:
   - `BarChar1` default `*`
   - `BarChar2` default `.`
@@ -3152,7 +3153,7 @@ BARL 114, 514, 81
 **Semantics**
 - Reads `intVarTerm`’s current value, multiplies it by `realLiteral`, then stores `(long)product` back into `intVarTerm`.
   - The cast truncates toward zero (`125.9` → `125`, `-1.9` → `-1`).
-- Calculation mode depends on config `TimesNotRigorousCalculation`:
+- Calculation mode depends on config item `TimesNotRigorousCalculation`:
   - If enabled: uses `double` math.
   - Otherwise: uses `decimal` math (with a fallback conversion path for overflow) to reduce rounding differences.
 - The assignment is performed in an `unchecked` context (overflow does not raise an error).
@@ -3353,7 +3354,7 @@ Compatibility notes:
 - `<timeMs>` (int): time limit in milliseconds.
 - `<default>` (int): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time (UI behavior).
-- `<timeoutMessage>` (optional, string; default `TimeupLabel`): message used on timeout.
+- `<timeoutMessage>` (optional, string; default replace item `TimeupLabel`): message used on timeout.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
   - Clicking a selectable **normal-output button** also submits its value as `TINPUT` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
@@ -3397,7 +3398,7 @@ Compatibility notes:
 - `<timeMs>` (int): time limit in milliseconds.
 - `<default>` (string): default value used on timeout (and also on empty input when the request is not running a timer).
 - `<displayTime>` (optional, int; default `1`): if non-zero, displays remaining time.
-- `<timeoutMessage>` (optional, string; default `TimeupLabel`): timeout message.
+- `<timeoutMessage>` (optional, string; default replace item `TimeupLabel`): timeout message.
 - `<mouse>` (optional, int; default `0`): controls the extra mouse side-channel mode.
   - Clicking a selectable **normal-output button** also submits its string as `TINPUTS` even when this argument is `0` or omitted.
 - `<canSkip>` (optional, int): if present, allows `MesSkip` to auto-accept the default without waiting (the value is not evaluated).
@@ -3850,7 +3851,7 @@ PRINTFORML {CHARANUM}
 - Each `charaNo` (int): selects a character template.
 
 **Semantics**
-- Requires the `CompatiSPChara` config option to be enabled; otherwise this instruction errors before evaluating any arguments.
+- Requires compatibility config item `CompatiSPChara` to be enabled; otherwise this instruction errors before evaluating any arguments.
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
 - For each `charaNo` (evaluated left-to-right), immediately appends one character using the SP template lookup path.
 - `CHARANUM` increases by 1 for each successfully added character.
@@ -4070,7 +4071,7 @@ DELCHARA 1, 3
 - Requires that the current system state allows saving; otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system save flow.
 - The system save flow (high-level behavior):
-  - Displays save slots with indices `0 <= slot < SaveDataNos` in pages of 20.
+  - Displays save slots with indices `0 <= slot < n` in pages of 20, where `n` is config item `SaveDataNos`.
   - Uses `100` as the “back/cancel” input.
   - After selecting a slot:
     - If it already contains data, prompts for overwrite confirmation.
@@ -4105,7 +4106,7 @@ DELCHARA 1, 3
 - Requires that the current system state allows saving/loading (same gate as `SAVEGAME`), otherwise raises an error.
 - Saves the current process state for later restoration, then transitions into the system load flow.
 - The system load flow (high-level behavior):
-  - Displays save slots with indices `0 <= slot < SaveDataNos` in pages of 20.
+  - Displays save slots with indices `0 <= slot < n` in pages of 20, where `n` is config item `SaveDataNos`.
   - Includes a special autosave entry `99` when applicable.
   - Uses `100` as the “back/cancel” input.
   - After selecting a valid slot:
@@ -4146,7 +4147,7 @@ DELCHARA 1, 3
 - Writes a save file under `SavDir`:
   - Path is `save{slot:00}.sav` (e.g. slot `0` -> `save00.sav`).
 - Save format:
-  - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.
+  - If config item `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Normal`.
   - Otherwise, writes the legacy text save format.
   - The save always includes:
     - game unique code and script version checks
@@ -4252,7 +4253,7 @@ DELCHARA 1, 3
 - Writes the global save file under `SavDir`:
   - Path is `global.sav`.
 - Save format:
-  - If `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Global`.
+  - If config item `SystemSaveInBinary` is enabled, writes Emuera’s binary save format with file type `Global`.
   - Otherwise, writes the legacy text save format.
   - Emuera-private global extension blocks may also be written.
 - If a system-level I/O exception occurs during saving, the engine raises a runtime error.
@@ -5377,7 +5378,7 @@ SPLIT "a,b,c", ",", PARTS
 - None.
 
 **Semantics**
-- Sets the current text color to the configured default (`ForeColor`).
+- Sets the current text color to the configured default (config item `ForeColor`).
 - Does not print output.
 
 **Errors & validation**
@@ -5494,7 +5495,7 @@ SPLIT "a,b,c", ",", PARTS
 - None.
 
 **Semantics**
-- Sets the current background color to the configured default (`BackColor`).
+- Sets the current background color to the configured default (config item `BackColor`).
 - Does not print output.
 
 **Errors & validation**
@@ -5710,7 +5711,7 @@ SPLIT "a,b,c", ",", PARTS
 - `ALIGNMENT RIGHT`
 
 **Arguments**
-- Alignment keyword: raw token compared using the engine’s `IgnoreCase` setting.
+- Alignment keyword: raw token compared using the engine’s config item `IgnoreCase` setting.
   - This is not a string expression/literal.
 
 **Semantics**
@@ -5725,7 +5726,7 @@ SPLIT "a,b,c", ",", PARTS
 ## CUSTOMDRAWLINE (instruction)
 
 **Summary**
-- Draws a horizontal rule by repeating a raw pattern string across the drawable width, then prints a newline.
+- Draws a horizontal rule by repeating a raw pattern string across the derived runtime value `DrawableWidth`, then prints a newline.
 
 **Tags**
 - ui
@@ -5740,7 +5741,7 @@ SPLIT "a,b,c", ",", PARTS
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Expands `<pattern>` to a full-width bar using the engine’s “custom bar” algorithm:
-  - Measure is based on rendered display width using the configured default font and the derived runtime value `drawable width` (see `config-items.md`).
+  - Measure is based on rendered display width using the configured default font and the derived runtime value `DrawableWidth` (see `config-items.md`).
   - Repeats `<pattern>` until the measured width reaches/exceeds that width, then removes characters from the end until it fits.
 - Prints the expanded bar with font style forced to `Regular`, then prints a newline.
 
@@ -5754,7 +5755,7 @@ SPLIT "a,b,c", ",", PARTS
 ## DRAWLINEFORM (instruction)
 
 **Summary**
-- Draws a horizontal rule by repeating a runtime string expression across the drawable width, then prints a newline.
+- Draws a horizontal rule by repeating a runtime string expression across the derived runtime value `DrawableWidth`, then prints a newline.
 
 **Tags**
 - ui
@@ -5768,7 +5769,7 @@ SPLIT "a,b,c", ",", PARTS
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Evaluates `<pattern>` to a string `s`.
-  - If `s` is non-empty, expands it to a full-width bar using the same algorithm as `CUSTOMDRAWLINE`, which fits the pattern to the derived runtime value `drawable width` (see `config-items.md`).
+  - If `s` is non-empty, expands it to a full-width bar using the same algorithm as `CUSTOMDRAWLINE`, which fits the pattern to the derived runtime value `DrawableWidth` (see `config-items.md`).
 - Prints the expanded bar with font style forced to `Regular`, then prints a newline.
 
 **Errors & validation**
@@ -6888,7 +6889,7 @@ ENDNOSKIP
 
 **Semantics**
 - Resolves the target label to a non-event function.
-  - If `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
+  - If config item `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
 - Evaluates arguments, binds them to the callee’s declared formals (including `REF` behavior), then enters the callee.
 - When the callee executes `RETURN` (or reaches end-of-function), control returns to the statement after the `CALL`.
 - Load-time behavior: if `<functionName>` is a compile-time constant, the loader resolves the callee during load and may emit early diagnostics (e.g. unknown function, argument binding issues).
@@ -7410,7 +7411,7 @@ ENDCATCH
 - If an argument position is left empty (e.g. `CALLSHARP M, , 1`): runtime error.
 - If the plugin throws an exception: runtime error.
 
-Method-name case sensitivity follows the engine’s `IgnoreCase` configuration:
+Method-name case sensitivity follows config item `IgnoreCase`:
 - If `IgnoreCase = true`, plugin methods are looked up case-insensitively.
 - Otherwise, method names are case-sensitive.
 
@@ -7731,7 +7732,7 @@ ENDFUNC
   - Only `FUNC` and `ENDFUNC` are allowed between `TRYCALLLIST` and `ENDFUNC`; any other instruction (and any label definition) is an error.
   - `FUNC`/`ENDFUNC` outside a matching `TRY*LIST ... ENDFUNC` block is an error.
 - Runtime errors:
-  - If a candidate name resolves to an event function (and `CompatiCallEvent` is not applicable here), it errors rather than trying the next item.
+  - If a candidate name resolves to an event function (and config item `CompatiCallEvent` is not applicable here), it errors rather than trying the next item.
   - If a candidate function exists but is a user-defined expression function (`#FUNCTION/#FUNCTIONS`), it errors.
   - If argument binding fails (too many args, omitted required args, type conversion not permitted, invalid `REF` binding, etc.), it errors (it does **not** “try the next one”).
 
@@ -8382,7 +8383,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `<width>` / `<height>` / `<ypos>` (optional, int): mixed numeric attributes.
   - Numeric arguments are positional: `width`, then `height`, then `ypos`.
   - Each numeric argument may be followed by a `px` suffix token to indicate pixels (e.g. `80px`).
-  - Without `px`, the value is interpreted as a percentage of the current font size (in pixels): `valuePx = value * FontSize / 100`.
+  - Without `px`, let `fontSizePx` be config item `FontSize`; then `valuePx = value * fontSizePx / 100`.
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -8433,11 +8434,11 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - `<height>` (int): 4-argument form only; rectangle height in mixed units and must satisfy `height > 0`.
 - Mixed-unit rule:
   - A numeric argument may be followed by a `px` suffix token to indicate pixels (for example `30px`).
-  - Without `px`, the value is interpreted as a percentage of the current font size in pixels: `valuePx = value * FontSize / 100`.
+  - Without `px`, let `fontSizePx` be config item `FontSize`; then `valuePx = value * fontSizePx / 100`.
 - 1-argument form defaults:
   - `x = 0`
   - `y = 0`
-  - `height = FontSize` (pixels)
+  - `height =` the current font size in pixels (config item `FontSize`)
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -8467,7 +8468,7 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 **Arguments**
 - `<width>` (int): space width in mixed units.
   - May be followed by a `px` suffix token to indicate pixels (e.g. `40px`).
-  - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `widthPx = width * FontSize / 100`.
+  - Without `px`, let `fontSizePx` be config item `FontSize`; then `widthPx = width * fontSizePx / 100`.
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
@@ -8752,7 +8753,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 ## PRINTCPERLINE (instruction)
 
 **Summary**
-- Writes the configured `PrintCPerLine` value into an integer variable.
+- Writes the value of config item `PrintCPerLine` into an integer variable.
 
 **Tags**
 - config
@@ -8764,7 +8765,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - `<dest>` (optional, changeable integer variable term; default `RESULT`): receives the value.
 
 **Semantics**
-- Assigns the configuration value `PrintCPerLine` to `<dest>`.
+- Assigns the value of config item `PrintCPerLine` to `<dest>`.
 - Does not print output.
 
 **Errors & validation**
@@ -8777,7 +8778,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 ## SAVENOS (instruction)
 
 **Summary**
-- Writes the configured `SaveDataNos` value into an integer variable.
+- Writes the value of config item `SaveDataNos` into an integer variable.
 
 **Tags**
 - config
@@ -8789,7 +8790,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 - `<dest>` (optional, changeable integer variable term; default `RESULT`): receives the value.
 
 **Semantics**
-- Assigns the configuration value `SaveDataNos` to `<dest>`.
+- Assigns the value of config item `SaveDataNos` to `<dest>`.
 - Does not print output.
 
 **Errors & validation**
@@ -9098,7 +9099,7 @@ ENCODETOUNI "ABC"
   - `1`: remote version differs; user chose “No” in the confirmation dialog.
   - `2`: remote version differs; user chose “Yes” and the engine attempted to open the provided link in the OS.
   - `3`: update check failed (URL missing/invalid response/network/IO error).
-  - `4`: update check is forbidden by config (`ForbidUpdateCheck`).
+  - `4`: update check is forbidden by config (config item `ForbidUpdateCheck`).
   - `5`: no network is available.
 - The update check source is `UpdateCheckURL` from the game base metadata.
   - If it is missing/empty, sets `RESULT = 3`.
@@ -9950,7 +9951,7 @@ HTML_PRINT_ISLAND_CLEAR
 
 **Semantics**
 - Scans the current registered character list in ascending character-index order and returns the first matching character index.
-- If `CompatiSPChara=NO`:
+- If config item `CompatiSPChara` = `NO`:
   - `spFlag` is accepted but ignored,
   - the search matches any registered character whose `NO` equals `charaNo`.
 - If `CompatiSPChara=YES`:
@@ -9990,7 +9991,7 @@ HTML_PRINT_ISLAND_CLEAR
 - Returns the first matching registered character index, or `-1` if none exists.
 
 **Errors & validation**
-- Runtime error if `CompatiSPChara=NO`.
+- Runtime error if config item `CompatiSPChara` = `NO`.
 
 **Examples**
 - `idx = GETSPCHARA(100)`
@@ -10015,7 +10016,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its CSV-defined `NAME` string.
@@ -10051,7 +10052,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its CSV-defined `CALLNAME` string.
@@ -10087,7 +10088,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its CSV-defined `NICKNAME` string.
@@ -10123,7 +10124,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its CSV-defined `MASTERNAME` string.
@@ -10160,7 +10161,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `CSTR` element index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `CSTR[index]` entry.
@@ -10199,7 +10200,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `BASE` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `BASE[index]` entry.
@@ -10238,7 +10239,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `ABL` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `ABL[index]` entry.
@@ -10276,7 +10277,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `MARK` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `MARK[index]` entry.
@@ -10314,7 +10315,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `EXP` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `EXP[index]` entry.
@@ -10352,7 +10353,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `RELATION` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `RELATION[index]` entry.
@@ -10391,7 +10392,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `TALENT` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `TALENT[index]` entry.
@@ -10429,7 +10430,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `CFLAG` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `CFLAG[index]` entry.
@@ -10467,7 +10468,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `EQUIP` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `EQUIP[index]` entry.
@@ -10505,7 +10506,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `index` (int): `JUEL` table index to read.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its `JUEL[index]` entry.
@@ -10634,7 +10635,7 @@ HTML_PRINT_ISLAND_CLEAR
 - `charaNo` (int): character template `NO` to look up.
 - `isSp` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Returns `1` if a character template exists for `charaNo`, otherwise returns `0`.
@@ -10668,7 +10669,7 @@ HTML_PRINT_ISLAND_CLEAR
   - This is a variable **name**, not a variable term. Do not include `:` indices (for example, `"CFLAG:TARGET:0"` does not resolve as a variable name).
 - `dim` (optional, int; default `0`): dimension selector.
   - Default behavior: `0` selects the first dimension (0-based).
-  - If `VarsizeDimConfig` is enabled and `dim > 0`, the engine subtracts `1` before selecting the dimension (i.e. `1` selects the first dimension).
+  - If config item `VarsizeDimConfig` is enabled and `dim > 0`, the engine subtracts `1` before selecting the dimension (i.e. `1` selects the first dimension).
 
 **Semantics**
 - Resolves `varName` to a variable token using the normal variable-name lookup rules.
@@ -10877,7 +10878,7 @@ HTML_PRINT_ISLAND_CLEAR
 - (none)
 
 **Semantics**
-- Returns the configured default text color (`ForeColor`) as `0xRRGGBB`:
+- Returns the configured default text color (config item `ForeColor`) as `0xRRGGBB`:
   - `ForeColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**
@@ -10905,7 +10906,7 @@ HTML_PRINT_ISLAND_CLEAR
 - (none)
 
 **Semantics**
-- Returns the configured focus color (`FocusColor`) as `0xRRGGBB`:
+- Returns the configured focus color (config item `FocusColor`) as `0xRRGGBB`:
   - `FocusColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**
@@ -10960,7 +10961,7 @@ HTML_PRINT_ISLAND_CLEAR
 - (none)
 
 **Semantics**
-- Returns the configured default background color (`BackColor`) as `0xRRGGBB`:
+- Returns the configured default background color (config item `BackColor`) as `0xRRGGBB`:
   - `BackColor.ToArgb() & 0xFFFFFF`.
 
 **Errors & validation**
@@ -11047,7 +11048,7 @@ HTML_PRINT_ISLAND_CLEAR
 
 **Semantics**
 - Produces:
-  - `[` + (`BarChar1` repeated `filled`) + (`BarChar2` repeated `length - filled`) + `]`
+  - `[` + (replace item `BarChar1` repeated `filled`) + (replace item `BarChar2` repeated `length - filled`) + `]`
   - where `filled = clamp(value * length / maxValue, 0, length)`.
 - `BarChar1` / `BarChar2` are configurable (defaults: `*` and `.`).
 - As a standalone statement (method-as-statement form), the returned string is written to `RESULTS`.
@@ -11274,9 +11275,9 @@ PRINTFORML %S%
 - Formats `money`:
   - if `format` is omitted or `""`: uses default numeric formatting (`money.ToString()`)
   - otherwise: uses `money.ToString(format)`
-- Then attaches the currency label (`MoneyLabel`):
-  - `MoneyFirst = true`: `MoneyLabel + formatted`
-  - `MoneyFirst = false`: `formatted + MoneyLabel`
+- Then attaches the currency label from replace item `MoneyLabel`:
+  - if replace item `MoneyFirst` is `true`: prefix the label (`MoneyLabel + formatted`)
+  - otherwise: suffix the label (`formatted + MoneyLabel`)
 
 **Errors & validation**
 - Runtime error if `format` is not a valid `Int64.ToString` format string.
@@ -11303,7 +11304,7 @@ PRINTFORML %S%
 - (none)
 
 **Semantics**
-- Returns the configuration item `PrintCPerLine`.
+- Returns the value of config item `PrintCPerLine`.
 
 **Errors & validation**
 - (none)
@@ -11329,7 +11330,7 @@ PRINTFORML %S%
 - (none)
 
 **Semantics**
-- Returns the configuration item `PrintCLength`.
+- Returns the value of config item `PrintCLength`.
 
 **Errors & validation**
 - (none)
@@ -11355,7 +11356,7 @@ PRINTFORML %S%
 - (none)
 
 **Semantics**
-- Returns the configuration item `SaveDataNos`.
+- Returns the value of config item `SaveDataNos`.
 
 **Errors & validation**
 - (none)
@@ -13048,7 +13049,7 @@ ARRAYMSORT(A, B, C)
 ## TOHALF (expression function)
 
 **Summary**
-- Converts full-width characters to half-width (narrow) form using the engine’s configured language encoding (`useLanguage`).
+- Converts full-width characters to half-width (narrow) form using the engine’s configured language encoding (config item `useLanguage`).
 
 **Tags**
 - text
@@ -13076,7 +13077,7 @@ ARRAYMSORT(A, B, C)
 ## TOFULL (expression function)
 
 **Summary**
-- Converts half-width characters to full-width (wide) form using the engine’s configured language encoding (`useLanguage`).
+- Converts half-width characters to full-width (wide) form using the engine’s configured language encoding (config item `useLanguage`).
 
 **Tags**
 - text
@@ -13407,7 +13408,7 @@ ARRAYMSORT(A, B, C)
 ## GETLINESTR (expression function)
 
 **Summary**
-- Expands a pattern string to the current drawable width using the same width-fitting rule used by `DRAWLINE`-style output.
+- Expands a pattern string to the derived runtime value `DrawableWidth` using the same width-fitting rule used by `DRAWLINE`-style output.
 
 **Tags**
 - io
@@ -13426,9 +13427,9 @@ ARRAYMSORT(A, B, C)
 **Semantics**
 - Evaluates `<pattern>` to a string.
 - Returns the width-fitted line string that the runtime would use for a dynamic `DRAWLINE`-style expansion of that pattern:
-  - repeat the pattern until the measured display width reaches or exceeds the current drawable width,
-  - then trim one character at a time from the end until the measured width is less than or equal to the drawable width.
-- The result depends on the current host layout metrics (drawable width and font measurement), so its character count is **not** a stable “one visible line = N characters” value.
+  - repeat the pattern until the measured display width reaches or exceeds the current derived runtime value `DrawableWidth`,
+  - then trim one character at a time from the end until the measured width is less than or equal to that width.
+- The result depends on the current host layout metrics, especially the derived runtime value `DrawableWidth` and font measurement, so its character count is **not** a stable “one visible line = N characters” value.
 - This helper does not print anything and does not modify output state.
 - Contract relation:
   - it matches the runtime width-expansion rule used by non-constant `DRAWLINEFORM`,
@@ -13594,7 +13595,7 @@ PRINTL S
 - String materialization rules include:
   - ordinary string values → that string,
   - `char` values → a one-character string,
-  - `TextDrawingMode` values → the enum-name string,
+  - config item `TextDrawingMode` values → the enum-name string,
   - other items whose textual form is neither `YES`/`NO` nor a decimal integer → that textual form.
 - If the resolved item materializes as an integer-like value, use `GETCONFIG` instead.
 
@@ -15661,10 +15662,10 @@ R = OUTPUTLOG("logs\\scene.txt", 1)
 - Measures the width of the **first display line** only (if `html` contains `<br>` or wraps, later lines do not affect the return value).
 - If `returnPixel != 0`, returns the width in pixels.
 - If `returnPixel = 0` (or omitted), converts pixel width to half-width character units using the configured font size:
-  - Let `fontSizePx = FontSize` (see `config-items.md`).
+  - Let `fontSizePx` be config item `FontSize` (see `config-items.md`).
   - Let `widthPx` be the measured pixel width (non-negative).
   - Returns the smallest integer `n` such that `n * fontSizePx / 2 >= widthPx`.
-- Unless the HTML string is wrapped in `<nobr>...</nobr>`, the measured width does not exceed the drawable width (content is wrapped).
+- Unless the HTML string is wrapped in `<nobr>...</nobr>`, the measured width does not exceed the derived runtime value `DrawableWidth` (content is wrapped).
 
 **Errors & validation**
 - Invalid HTML strings raise runtime errors (same HTML mini-language as `HTML_PRINT`).
@@ -15701,7 +15702,7 @@ PRINTFORML {HTML_STRINGLEN("<b>B</b>", 1)}
   - `RESULTS:1` = remaining suffix (may be `""`)
   - Other `RESULTS:*` entries are not cleared.
 - Interprets `width` in “half-width character units”. One unit corresponds to half the configured font size in pixels:
-  - `pixelBudget = width * FontSize / 2`
+  - Let `fontSizePx` be config item `FontSize`; then `pixelBudget = width * fontSizePx / 2`.
 - Expands character references in `html` first, then performs the split.
   - This means that sequences like `&lt;b&gt;` may become `<b>` tags after expansion and affect the split.
 - If the expanded HTML contains a `<br>` tag, it forces the split at that point:

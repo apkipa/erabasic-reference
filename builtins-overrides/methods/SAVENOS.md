@@ -14,7 +14,7 @@
 - (none)
 
 **Semantics**
-- Returns the configuration item `SaveDataNos`.
+- Returns the value of config item `SaveDataNos`.
 
 **Errors & validation**
 - (none)

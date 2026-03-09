@@ -18,7 +18,8 @@ PATH_SCRIPT_PROC = REPO_ROOT / "emuera.em/Emuera/Runtime/Script/Process.ScriptPr
 PATH_METHOD_CREATOR = REPO_ROOT / "emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs"
 PATH_METHOD_IMPL = REPO_ROOT / "emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.Method.cs"
 
-_lines = ref_common.lines
+_TEXT_CACHE = ref_common.TextCache()
+_lines = _TEXT_CACHE.lines
 _strip_csharp_comment = ref_common.strip_csharp_comment
 _best_effort_translate_argtype_hint = ref_common.best_effort_translate_argtype_hint
 

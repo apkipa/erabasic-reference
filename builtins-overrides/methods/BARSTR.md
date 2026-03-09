@@ -17,7 +17,7 @@
 
 **Semantics**
 - Produces:
-  - `[` + (`BarChar1` repeated `filled`) + (`BarChar2` repeated `length - filled`) + `]`
+  - `[` + (replace item `BarChar1` repeated `filled`) + (replace item `BarChar2` repeated `length - filled`) + `]`
   - where `filled = clamp(value * length / maxValue, 0, length)`.
 - `BarChar1` / `BarChar2` are configurable (defaults: `*` and `.`).
 - As a standalone statement (method-as-statement form), the returned string is written to `RESULTS`.

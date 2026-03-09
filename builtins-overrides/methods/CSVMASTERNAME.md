@@ -16,7 +16,7 @@
 - `charaNo` (int): character template `NO` to read from the CSV-backed character-template database.
 - `spFlag` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Looks up a character template by `NO` and returns its CSV-defined `MASTERNAME` string.

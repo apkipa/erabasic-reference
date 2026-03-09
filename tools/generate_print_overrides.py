@@ -26,6 +26,7 @@ import reference_lint as ref_lint
 
 PATH_FUNCTION_IDENTIFIER = ref_engine.PATH_FUNCTION_IDENTIFIER
 INSTRUCTION_OVERRIDES_DIR = ref_common.INSTRUCTION_OVERRIDES_DIR
+_TEXT_CACHE = ref_common.TextCache()
 
 SECTION_ORDER = [*ref_lint.USER_INSTRUCTION_SECTIONS, "Progress state"]
 
@@ -33,8 +34,8 @@ _ADD_PRINT_RE = re.compile(r"\baddPrintFunction\s*\(\s*FunctionCode\.(?P<name>[A
 _ADD_PRINTDATA_RE = re.compile(r"\baddPrintDataFunction\s*\(\s*FunctionCode\.(?P<name>[A-Z0-9_]+)\s*\)")
 
 
-_read_text = ref_common.read_text
-_write_text = ref_common.write_text
+_read_text = _TEXT_CACHE.read_text
+_write_text = _TEXT_CACHE.write_text
 
 
 def _extract_print_keywords() -> tuple[list[str], list[str]]:
@@ -282,7 +283,7 @@ def _sections_for_print_variant(name: str) -> dict[str, list[str]]:
 
     if shape.align in {"C", "LC"}:
         arguments.append(
-            "- Output is padded/truncated to a fixed-width cell (`Config.PrintCLength`) using Shift-JIS byte count (implementation detail)."
+            "- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count."
         )
         semantics.append("- Writes a fixed-width cell; does not append a newline and does not flush immediately.")
         semantics.append("- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).")

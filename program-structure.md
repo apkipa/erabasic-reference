@@ -27,7 +27,7 @@ Under `ExeDir`, the engine uses these directories:
 
 Compatibility note (saves):
 
-- The save directory is controlled by config (not just folder layout). When `UseSaveFolder=YES`, saves go under `ExeDir/sav/`; otherwise they are written directly under `ExeDir/`.
+- The save directory is controlled by config (not just folder layout). When config item `UseSaveFolder` = `YES`, saves go under `ExeDir/sav/`; otherwise they are written directly under `ExeDir/`.
 
 ### Case sensitivity of directory names (important)
 
@@ -50,8 +50,8 @@ If you need cross-platform behavior that matches typical Emuera deployments, tre
 
 ERH (`*.ERH`) and ERB (`*.ERB`) discovery is controlled by config:
 
-- `SearchSubdirectory` controls whether `erb/` is searched recursively.
-- `SortWithFilename` controls whether directory and file names are sorted before loading (using the runtime’s string sort).
+- config item `SearchSubdirectory` controls whether `erb/` is searched recursively.
+- config item `SortWithFilename` controls whether directory and file names are sorted before loading (using the runtime’s string sort).
 
 This engine also applies a special ERB ordering rule: directories matching `*#*` are loaded first (see `pipeline.md` for the precise algorithm).
 

@@ -22,10 +22,10 @@
 - Measures the width of the **first display line** only (if `html` contains `<br>` or wraps, later lines do not affect the return value).
 - If `returnPixel != 0`, returns the width in pixels.
 - If `returnPixel = 0` (or omitted), converts pixel width to half-width character units using the configured font size:
-  - Let `fontSizePx = FontSize` (see `config-items.md`).
+  - Let `fontSizePx` be config item `FontSize` (see `config-items.md`).
   - Let `widthPx` be the measured pixel width (non-negative).
   - Returns the smallest integer `n` such that `n * fontSizePx / 2 >= widthPx`.
-- Unless the HTML string is wrapped in `<nobr>...</nobr>`, the measured width does not exceed the drawable width (content is wrapped).
+- Unless the HTML string is wrapped in `<nobr>...</nobr>`, the measured width does not exceed the derived runtime value `DrawableWidth` (content is wrapped).
 
 **Errors & validation**
 - Invalid HTML strings raise runtime errors (same HTML mini-language as `HTML_PRINT`).

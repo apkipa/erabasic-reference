@@ -23,7 +23,7 @@
 
 **Semantics**
 - Resolves the target label to a non-event function.
-  - If `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
+  - If config item `CompatiCallEvent` is enabled, an event function name is also callable via `CALL` (compatibility behavior: it calls only the first-defined function, ignoring event priority/single flags).
 - Evaluates arguments, binds them to the callee’s declared formals (including `REF` behavior), then enters the callee.
 - When the callee executes `RETURN` (or reaches end-of-function), control returns to the statement after the `CALL`.
 - Load-time behavior: if `<functionName>` is a compile-time constant, the loader resolves the callee during load and may emit early diagnostics (e.g. unknown function, argument binding issues).

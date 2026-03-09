@@ -10,7 +10,7 @@
 **Arguments**
 - `<width>` (int): space width in mixed units.
   - May be followed by a `px` suffix token to indicate pixels (e.g. `40px`).
-  - Without `px`, the value is interpreted as a percentage of the current font size (pixels): `widthPx = width * FontSize / 100`.
+  - Without `px`, let `fontSizePx` be config item `FontSize`; then `widthPx = width * fontSizePx / 100`.
 
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).

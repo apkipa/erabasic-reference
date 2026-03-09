@@ -15,7 +15,7 @@
 - `<raw text>` is taken as the raw character sequence after the instruction delimiter.
 - The parser consumes exactly one delimiter character after the keyword:
   - a single space / tab
-  - or a full-width space if `SystemAllowFullSpace` is enabled
+  - or a full-width space if config item `SystemAllowFullSpace` is enabled
   - or a semicolon `;`
 - Because only *one* delimiter character is consumed:
   - `PRINT X` prints `X` (the one space was consumed as delimiter).

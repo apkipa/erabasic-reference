@@ -142,7 +142,7 @@ The following table is engine-accurate.
 
 ## 6) ERD extension: string keys for user-defined variables
 
-When `UseERD` is enabled, additional key dictionaries may be available for certain user-defined variable families (e.g. `VAR`, `CVAR`, and their 2D/3D variants).
+When config item `UseERD` is enabled, additional key dictionaries may be available for certain user-defined variable families (e.g. `VAR`, `CVAR`, and their 2D/3D variants).
 
 The lookup uses the variable’s declared name (`varname`) to select an ERD-provided key dictionary.
 

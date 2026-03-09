@@ -24,7 +24,7 @@ In this engine, the base directory (sometimes called `ExeDir`) contains these im
 
 The engine computes `SavDir` from config:
 
-- If `UseSaveFolder=YES`: `SavDir = <ExeDir>/sav/`
+- If config item `UseSaveFolder` = `YES`: `SavDir = <ExeDir>/sav/`
 - If `UseSaveFolder=NO`:  `SavDir = <ExeDir>/`
 
 If `UseSaveFolder=YES` and `<ExeDir>/sav/` does not exist, the engine may create it and (optionally) move existing `save*.sav` and `global.sav` from `<ExeDir>/` into it (user-prompted in the UI).
@@ -138,7 +138,7 @@ On load/reset, the engine clears only the extension keys belonging to the corres
 Important limitation (engine behavior):
 
 - These EM extension values are persisted only via the **binary** save format in this engine.
-- The legacy text save format (`SystemSaveInBinary=NO`) does not serialize Map/XML/DT extension data.
+- The legacy text save format (config item `SystemSaveInBinary` = `NO`) does not serialize Map/XML/DT extension data.
 
 ## 3) Binary save format: EraBinaryData v1808
 
@@ -168,7 +168,7 @@ Payload:
 
 When ZipHeader is used:
 
-- It is controlled by `ZipSaveData`, but in this engine compression is only enabled when **both** `SystemSaveInBinary=YES` and `ZipSaveData=YES`.
+- It is controlled by config item `ZipSaveData`, but in this engine compression is only enabled when **both** `SystemSaveInBinary=YES` and `ZipSaveData=YES`.
   (As a result, `SAVEVAR/SAVECHARA` binary `.dat` files are not compressed unless `SystemSaveInBinary` is also enabled.)
 
 ### 3.2 Primitive encodings used in the payload

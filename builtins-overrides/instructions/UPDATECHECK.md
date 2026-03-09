@@ -16,7 +16,7 @@
   - `1`: remote version differs; user chose “No” in the confirmation dialog.
   - `2`: remote version differs; user chose “Yes” and the engine attempted to open the provided link in the OS.
   - `3`: update check failed (URL missing/invalid response/network/IO error).
-  - `4`: update check is forbidden by config (`ForbidUpdateCheck`).
+  - `4`: update check is forbidden by config (config item `ForbidUpdateCheck`).
   - `5`: no network is available.
 - The update check source is `UpdateCheckURL` from the game base metadata.
   - If it is missing/empty, sets `RESULT = 3`.

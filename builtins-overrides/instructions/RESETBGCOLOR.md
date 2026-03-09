@@ -11,7 +11,7 @@
 - None.
 
 **Semantics**
-- Sets the current background color to the configured default (`BackColor`).
+- Sets the current background color to the configured default (config item `BackColor`).
 - Does not print output.
 
 **Errors & validation**

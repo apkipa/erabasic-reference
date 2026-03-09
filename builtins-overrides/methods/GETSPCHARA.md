@@ -21,7 +21,7 @@
 - Returns the first matching registered character index, or `-1` if none exists.
 
 **Errors & validation**
-- Runtime error if `CompatiSPChara=NO`.
+- Runtime error if config item `CompatiSPChara` = `NO`.
 
 **Examples**
 - `idx = GETSPCHARA(100)`

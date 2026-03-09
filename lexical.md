@@ -4,7 +4,7 @@
 
 EraBasic is line-oriented. Most statements end at end-of-line.
 
-Whitespace handling is partly fixed and partly config-controlled: half-width space/tab are always whitespace, while full-width space depends on `SystemAllowFullSpace`.
+Whitespace handling is partly fixed and partly config-controlled: half-width space/tab are always whitespace, while full-width space depends on config item `SystemAllowFullSpace`.
 
 ### Whitespace characters
 
@@ -65,7 +65,7 @@ Rules:
 
 Joiner string:
 
-- The joiner is the config value `ReplaceContinuationBR` with all `"` characters removed.
+- The joiner is the value of config item `ReplaceContinuationBR` with all `"` characters removed.
 - It is appended after **every** inner line, including the last inner line before `}`.
 
 Important phase note:

@@ -27,7 +27,7 @@ This topic does **not** redefine:
 
 This topic deliberately covers only the **normal output** and **HTML-island** models. The separate `CBG` graphics/hit-map layer is specified in [`cbg-layer.md`](cbg-layer.md). Even when `CBG` visually appears above or below ordinary text, it is not part of the retained output history described here.
 
-`GETLINESTR` is **not** part of this model. It is a `DRAWLINE` helper that expands a pattern string to the current drawable width; see its own built-in entry.
+`GETLINESTR` is **not** part of this model. It is a `DRAWLINE` helper that expands a pattern string to the derived runtime value `DrawableWidth`; see its own built-in entry.
 
 ## 2) Output state layers
 

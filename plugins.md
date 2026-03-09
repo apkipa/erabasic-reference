@@ -154,7 +154,7 @@ Important edge cases:
 
 Methods are registered globally by their `Name`.
 
-Lookup case-sensitivity follows the engine's `IgnoreCase` configuration:
+Lookup case-sensitivity follows config item `IgnoreCase`:
 
 - If `IgnoreCase = true`, the registry is case-insensitive.
 - Otherwise, method names are matched case-sensitively.

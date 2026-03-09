@@ -1,12 +1,12 @@
 # Emuera Configuration Catalog (language-adjacent)
 
-This document catalogs the config items implemented by this engine (EvilMask/Emuera).
+This document catalogs the engine's main config items, debug items, and replace items (EvilMask/Emuera).
 It also defines a small set of shared config-adjacent derived runtime values; those are not config keys and are not accepted by the config loader.
 It is part of the self-contained EraBasic reference in `erabasic-reference/`.
 
 Elsewhere in this reference, cite a config item by its canonical config-item name (for example `BackColor`), not by implementation-facing accessor spellings such as `Config.BackColor`.
 
-If you only need the *file formats and load order*, read `data-files.md` first; this document focuses on the *actual keys* and their defaults.
+If you only need the *file formats and load order*, read `data-files.md` first; this document focuses on the actual item sets, accepted names, and defaults.
 
 ## 1) Key matching rules (what names are accepted)
 
@@ -213,27 +213,27 @@ These entries are **not** config items:
 
 | Canonical spec term | Inputs | Implementation names |
 |---|---|---|
-| `shape position shift` | `TextDrawingMode`, `FontSize` | `DrawingParam_ShapePositionShift` |
-| `drawable width` | `WindowX`, `shape position shift` | `DrawableWidth`, `Config.DrawableWidth` |
+| `ShapePositionShift` | `TextDrawingMode`, `FontSize` | `DrawingParam_ShapePositionShift` |
+| `DrawableWidth` | `WindowX`, `ShapePositionShift` | `DrawableWidth`, `Config.DrawableWidth` |
 
-### 8.1 Shape position shift
+### 8.1 ShapePositionShift
 
 - Kind: derived runtime value (not a config item; not accepted by the config loader).
 - Definition:
   - The engine first rewrites unsupported config item `TextDrawingMode = WINAPI` to `TEXTRENDERER`.
-  - Then `shape position shift = max(2, FontSize / 6)`, using integer division for `FontSize / 6`.
+  - Then `ShapePositionShift = max(2, FontSize / 6)`, using integer division for `FontSize / 6`.
 - Observable role:
-  - This offset is subtracted from config item `WindowX` to compute the derived runtime value `drawable width`.
+  - This offset is subtracted from config item `WindowX` to compute the derived runtime value `DrawableWidth`.
 - Implementation mapping:
   - implementation property `DrawingParam_ShapePositionShift`.
 
-### 8.2 Drawable width
+### 8.2 DrawableWidth
 
 - Kind: derived runtime value (not a config item; not accepted by the config loader).
 - Definition:
-  - `drawable width = WindowX - shape position shift`.
+  - `DrawableWidth = WindowX - ShapePositionShift`.
 - Observable role:
   - This is the default row-width budget used by ordinary console wrapping/alignment and by width-fitted line helpers such as `DRAWLINE`, `CUSTOMDRAWLINE`, `DRAWLINEFORM`, and `GETLINESTR`.
 - Implementation mapping:
-  - implementation property `DrawableWidth`.
+  - implementation property uses the same spelling: `DrawableWidth`.
   - Some code paths expose the same value through implementation-facing accessor spelling `Config.DrawableWidth`; that accessor name is not a config item.

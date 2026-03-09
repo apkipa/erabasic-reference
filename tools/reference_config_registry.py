@@ -12,17 +12,21 @@ import reference_common as ref_common
 
 CONFIG_ITEMS_MD = ref_common.REFERENCE_ROOT / "config-items.md"
 
-_lines = ref_common.lines
+_TEXT_CACHE = ref_common.TextCache()
+_lines = _TEXT_CACHE.lines
 
 
 @dataclass(frozen=True)
 class ConfigSurfaceReg:
     kind: str
     canonical_term: str
+    accepted_classifiers: tuple[str, ...]
     implementation_names: tuple[str, ...]
 
 
-_CONFIG_ITEM_SECTION_RE = re.compile(r"^##\s+[567]\)\s+")
+_MAIN_CONFIG_ITEM_SECTION_RE = re.compile(r"^##\s+5\)\s+Main config items\b")
+_DEBUG_CONFIG_ITEM_SECTION_RE = re.compile(r"^##\s+6\)\s+Debug config items\b")
+_REPLACE_ITEM_SECTION_RE = re.compile(r"^##\s+7\)\s+Replace items\b")
 _DERIVED_SECTION_RE = re.compile(r"^##\s+8\)\s+Shared derived runtime values\b")
 _LEVEL2_SECTION_RE = re.compile(r"^##\s+")
 _CODE_SPAN_RE = re.compile(r"`([^`]+)`")
@@ -36,18 +40,38 @@ def _split_md_table_row(raw: str) -> list[str] | None:
     return [cell.strip() for cell in stripped.strip("|").split("|")]
 
 
+def _config_item_section_meta(raw: str) -> tuple[str, tuple[str, ...]] | None:
+    if _MAIN_CONFIG_ITEM_SECTION_RE.match(raw):
+        return ("config item", ())
+    if _DEBUG_CONFIG_ITEM_SECTION_RE.match(raw):
+        return ("debug item", ("debug item",))
+    if _REPLACE_ITEM_SECTION_RE.match(raw):
+        return ("replace item", ("replace item",))
+    return None
+
+
+def _accepted_classifiers_for_main_config_item(canonical_term: str) -> tuple[str, ...]:
+    heads = ["config item", "config option", "config key"]
+    if canonical_term.startswith("Compati"):
+        heads.append("compatibility config item")
+    return tuple(heads)
+
+
 def _parse_config_item_regs(lines: list[str]) -> list[ConfigSurfaceReg]:
     in_section = False
+    section_meta: tuple[str, tuple[str, ...]] | None = None
     regs: list[ConfigSurfaceReg] = []
     for raw in lines:
         if not in_section:
-            if _CONFIG_ITEM_SECTION_RE.match(raw):
+            section_meta = _config_item_section_meta(raw)
+            if section_meta is not None:
                 in_section = True
             continue
         if _LEVEL2_SECTION_RE.match(raw):
             if _DERIVED_SECTION_RE.match(raw):
                 break
-            in_section = bool(_CONFIG_ITEM_SECTION_RE.match(raw))
+            section_meta = _config_item_section_meta(raw)
+            in_section = section_meta is not None
             continue
         if not in_section:
             continue
@@ -62,10 +86,14 @@ def _parse_config_item_regs(lines: list[str]) -> list[ConfigSurfaceReg]:
         if not code_spans:
             continue
         canonical_term = code_spans[0]
+        kind, accepted_classifiers = section_meta or ("config item", ("config item",))
+        if kind == "config item":
+            accepted_classifiers = _accepted_classifiers_for_main_config_item(canonical_term)
         regs.append(
             ConfigSurfaceReg(
-                kind="config item",
+                kind=kind,
                 canonical_term=canonical_term,
+                accepted_classifiers=accepted_classifiers,
                 implementation_names=(f"Config.{canonical_term}",),
             )
         )
@@ -97,6 +125,7 @@ def _parse_derived_runtime_value_regs(lines: list[str]) -> list[ConfigSurfaceReg
             ConfigSurfaceReg(
                 kind="derived runtime value",
                 canonical_term=canonical_terms[0],
+                accepted_classifiers=("derived runtime value",),
                 implementation_names=implementation_names,
             )
         )

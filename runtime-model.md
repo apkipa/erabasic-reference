@@ -164,7 +164,7 @@ Conceptually:
 
 If the target name resolves to an event function:
 
-- the engine rejects it by default (“call to event function”), unless the compat toggle `CompatiCallEvent` is enabled (see §5.5).
+- the engine rejects it by default (“call to event function”), unless config item `CompatiCallEvent` is enabled (see §5.5).
 
 ### 4.2 `JUMP @NAME(...)`
 
@@ -295,7 +295,7 @@ When all groups are exhausted, the event call finishes and returns to the origin
 
 ### 5.5 Compatibility option: calling event functions as normal functions
 
-If the config toggle `CompatiCallEvent` is enabled:
+If config item `CompatiCallEvent` is enabled:
 
 - the label dictionary also exposes the *first-defined* event label as a “non-event callable label”, ignoring event grouping and flags.
 
@@ -331,10 +331,10 @@ At call time, Emuera builds a `UserDefinedFunctionArgument`:
 - If too many arguments are provided: error.
 - If an argument is omitted:
   - it is replaced by the formal’s default if present;
-  - otherwise it is an error unless `CompatiFuncArgOptional` is enabled.
+  - otherwise it is an error unless config item `CompatiFuncArgOptional` is enabled.
 - If types mismatch:
   - string → int is always an error
-  - int → string is an error unless `CompatiFuncArgAutoConvert` is enabled, in which case the engine applies the same observable conversion as `TOSTR(...)`.
+  - int → string is an error unless config item `CompatiFuncArgAutoConvert` is enabled, in which case the engine applies the same observable conversion as `TOSTR(...)`.
 
 Interpretation rule:
 
@@ -490,6 +490,6 @@ This engine distinguishes:
 - **warnings**: recorded and often printed during load; execution may proceed
 - **errors**: abort the current instruction/function/method evaluation
 
-Compatibility-critical toggle:
+Compatibility-critical config item:
 
-- `CompatiErrorLine`: when disabled, the engine exits to title after load if there were uninterpretable lines; when enabled, it continues into execution.
+- config item `CompatiErrorLine`: when disabled, the engine exits to title after load if there were uninterpretable lines; when enabled, it continues into execution.

@@ -1,5 +1,5 @@
 **Summary**
-- Converts full-width characters to half-width (narrow) form using the engine’s configured language encoding (`useLanguage`).
+- Converts full-width characters to half-width (narrow) form using the engine’s configured language encoding (config item `useLanguage`).
 
 **Tags**
 - text

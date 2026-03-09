@@ -19,9 +19,9 @@
 - Formats `money`:
   - if `format` is omitted or `""`: uses default numeric formatting (`money.ToString()`)
   - otherwise: uses `money.ToString(format)`
-- Then attaches the currency label (`MoneyLabel`):
-  - `MoneyFirst = true`: `MoneyLabel + formatted`
-  - `MoneyFirst = false`: `formatted + MoneyLabel`
+- Then attaches the currency label from replace item `MoneyLabel`:
+  - if replace item `MoneyFirst` is `true`: prefix the label (`MoneyLabel + formatted`)
+  - otherwise: suffix the label (`formatted + MoneyLabel`)
 
 **Errors & validation**
 - Runtime error if `format` is not a valid `Int64.ToString` format string.
@@ -32,4 +32,3 @@
 
 **Progress state**
 - complete
-

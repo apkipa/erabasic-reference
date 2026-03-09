@@ -12,7 +12,7 @@
 - Each `charaNo` (int): selects a character template.
 
 **Semantics**
-- Requires the `CompatiSPChara` config option to be enabled; otherwise this instruction errors before evaluating any arguments.
+- Requires compatibility config item `CompatiSPChara` to be enabled; otherwise this instruction errors before evaluating any arguments.
 - Requires at least one argument; multiple arguments are accepted but the engine emits a parse-time warning for multi-argument uses.
 - For each `charaNo` (evaluated left-to-right), immediately appends one character using the SP template lookup path.
 - `CHARANUM` increases by 1 for each successfully added character.

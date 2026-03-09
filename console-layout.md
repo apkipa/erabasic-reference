@@ -133,7 +133,7 @@ The ordinary row builder consumes an ordered list of button/nonbutton regions an
 
 Shared width budget:
 
-- default row width is the derived runtime value `drawable width` (see [`config-items.md`](config-items.md)),
+- default row width is the derived runtime value `DrawableWidth` (see [`config-items.md`](config-items.md)),
 - HTML subdivision can override that with a custom row width for `<div>` content.
 
 ### 3.2 Single-line mode
@@ -184,10 +184,10 @@ The shared split policy depends on the current row state and compatibility flags
 
 Important shared rules:
 
-- if `ButtonWrap` is disabled, the backend is willing to split a region when a valid split point exists,
+- if config item `ButtonWrap` is disabled, the backend is willing to split a region when a valid split point exists,
 - if the current row is empty, an oversized region is also split when possible,
 - if `ButtonWrap` is enabled and the current row already has content, clickable buttons normally move whole to the next row instead of splitting,
-- non-button regions still split under that same situation unless compatibility option `CompatiLinefeedAs1739` suppresses that behavior.
+- non-button regions still split under that same situation unless compatibility config item `CompatiLinefeedAs1739` suppresses that behavior.
 
 If no valid split point exists:
 
@@ -250,7 +250,7 @@ The alignment pass first computes the row width as:
 
 The target width used for alignment is:
 
-- the derived runtime value `drawable width` in the normal case,
+- the derived runtime value `DrawableWidth` in the normal case,
 - or the custom subdivision width for HTML `<div>` content.
 
 ### 5.3 Left / center / right behavior

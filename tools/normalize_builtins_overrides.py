@@ -23,6 +23,7 @@ import reference_common as ref_common
 
 
 OVERRIDES_DIR = ref_common.OVERRIDES_DIR
+_TEXT_CACHE = ref_common.TextCache()
 
 
 SECTION_RE = re.compile(r"^\*\*(?P<title>[^*]+)\*\*\s*$")
@@ -40,11 +41,11 @@ class OmittedBlock:
     sub_bullets: list[str]
 
 
-_read_text = ref_common.read_text
+_read_text = _TEXT_CACHE.read_text
 
 
 def _write_text(p: Path, s: str) -> None:
-    ref_common.write_text(p, s)
+    _TEXT_CACHE.write_text(p, s)
 
 
 def _split_sections(lines: list[str]) -> list[tuple[str, int, int]]:
@@ -329,4 +330,3 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
-

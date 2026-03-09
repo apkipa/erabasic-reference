@@ -37,7 +37,7 @@ Emuera’s loaders are a mix of “open an exact filename in `csv/`” and “en
 
 - **Exact-path CSVs (top directory only):** most tables are opened by exact name in `csv/` (examples: `GAMEBASE.CSV`, `VariableSize.CSV`, `ABL.CSV`, ...). Placing these in subfolders does not work in this engine.
 - **Pattern-enumerated CSVs:**
-  - `CHARA*.CSV` discovery is affected by `SearchSubdirectory` / `SortWithFilename`, which change whether subfolders are searched and how results are ordered.
+  - `CHARA*.CSV` discovery is affected by config item `SearchSubdirectory` / config item `SortWithFilename`, which change whether subfolders are searched and how results are ordered.
   - `VarExt*.csv` (save-extension settings) is enumerated with `SearchOption.AllDirectories` unconditionally and is not explicitly sorted.
 
 For the full runtime load order and ordering quirks, see `pipeline.md`.
@@ -62,7 +62,7 @@ Rules:
 
 - Lines starting with `;` are comments and ignored.
 - The key is the substring before the first `:`.
-- The value is the substring after the first `:`. `TextEditor` has extra loader logic so later `:` characters are preserved in the path; `EditorArgument` has its own raw-substring handling (see `config-items.md`).
+- The value is the substring after the first `:`. config item `TextEditor` has extra loader logic so later `:` characters are preserved in the path; config item `EditorArgument` has its own raw-substring handling (see `config-items.md`).
 - Unknown keys are ignored.
 
 Important: the engine uppercases the parsed `KEY` and matches it against known items. For main config items, it accepts multiple key spellings (config code name, JP label, EN label). For the exact accepted key set and defaults, see `config-items.md`.
@@ -124,11 +124,11 @@ Rules:
 
 `_Replace.csv` does **not** target arbitrary config keys. It only targets the dedicated replace-item set listed in `config-items.md`:
 
-- currency/unit presentation: `MoneyLabel`, `MoneyFirst`
-- loading/title/menu strings: `LoadLabel`, `TitleMenuString0`, `TitleMenuString1`
-- rendering strings/chars: `DrawLineString`, `BarChar1`, `BarChar2`
-- other host/script-visible text: `TimeupLabel`
-- runtime limits/defaults: `MaxShopItem`, `ComAbleDefault`, `StainDefault`, `ExpLvDef`, `PalamLvDef`, `pbandDef`, `RelationDef`
+- currency/unit presentation: replace item `MoneyLabel`, replace item `MoneyFirst`
+- loading/title/menu strings: replace item `LoadLabel`, replace item `TitleMenuString0`, replace item `TitleMenuString1`
+- rendering strings/chars: replace item `DrawLineString`, replace item `BarChar1`, replace item `BarChar2`
+- other host/script-visible text: replace item `TimeupLabel`
+- runtime limits/defaults: replace item `MaxShopItem`, replace item `ComAbleDefault`, replace item `StainDefault`, replace item `ExpLvDef`, replace item `PalamLvDef`, replace item `pbandDef`, replace item `RelationDef`
 
 This means `_Replace.csv` is not merely cosmetic. Some entries are observable from scripts or script-visible runtime state, for example:
 
@@ -138,14 +138,14 @@ This means `_Replace.csv` is not merely cosmetic. Some entries are observable fr
 - `MaxShopItem` changes the accepted shop selection range.
 - `ComAbleDefault`, `StainDefault`, `ExpLvDef`, `PalamLvDef`, `pbandDef`, `RelationDef` change engine-provided initial values for built-in runtime data.
 
-Separately, the **line concatenation joiner** is controlled by a normal config value (`ReplaceContinuationBR`), not by `_Replace.csv`, and is used by the line reader:
+Separately, the **line concatenation joiner** is controlled by a normal config value (config item `ReplaceContinuationBR`), not by `_Replace.csv`, and is used by the line reader:
 
 - the engine removes all `"` characters from this config string and appends the result between concatenated lines
 - default behavior approximates inserting a single ASCII space between lines
 
 ## 4) `_Rename.csv` (rename mapping for `[[...]]`)
 
-If enabled by config, the engine reads `csv/_Rename.csv` and builds a dictionary used for rename replacement in ERB and ERH line reading. If `UseRenameFile=YES` but the file is missing, the host prints an error message and continues with an empty rename dictionary.
+If enabled by config, the engine reads `csv/_Rename.csv` and builds a dictionary used for rename replacement in ERB and ERH line reading. If config item `UseRenameFile` = `YES` but the file is missing, the host prints an error message and continues with an empty rename dictionary.
 
 ### 4.1 Syntax
 
@@ -279,7 +279,7 @@ Important:
 
 ## 7) ERD identifier files (`*.ERD`) for user-defined variables
 
-When the `UseERD` config is enabled, the engine supports “CSV-like string keys” for **user-defined variables** declared via `#DIM/#DIMS` in ERH.
+When config item `UseERD` is enabled, the engine supports “CSV-like string keys” for **user-defined variables** declared via `#DIM/#DIMS` in ERH.
 
 ### 7.1 Discovery rules
 
@@ -350,7 +350,7 @@ Rules:
 
 - Lines with fewer than 2 tokens warn and are ignored.
 - A line whose first token is empty warns and is ignored.
-- `CATEGORY` comparison follows `IgnoreCase`: ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`.
+- `CATEGORY` comparison follows config item `IgnoreCase`: ordinal case-insensitive when `IgnoreCase=YES`, ordinal case-sensitive when `IgnoreCase=NO`.
 - Each `keyN` is `Trim()`ed and added to a set.
 
 Recognized categories:

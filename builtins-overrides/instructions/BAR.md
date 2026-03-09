@@ -15,7 +15,7 @@
 **Semantics**
 - Computes `filled = clamp(value * length / maxValue, 0, length)` using 64-bit integer arithmetic (integer overflow wraps).
 - Produces and prints:
-  - `[` + (`BarChar1` repeated `filled`) + (`BarChar2` repeated `length - filled`) + `]`
+  - `[` + (replace item `BarChar1` repeated `filled`) + (replace item `BarChar2` repeated `length - filled`) + `]`
 - `BarChar1` / `BarChar2` are configurable:
   - `BarChar1` default `*`
   - `BarChar2` default `.`

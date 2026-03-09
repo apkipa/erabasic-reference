@@ -16,7 +16,7 @@ Valid separators are:
 
 - end-of-line (no arguments)
 - `;` (comment start; arguments become empty)
-- whitespace (` `, `\t`, and optionally full-width space U+3000 when `SystemAllowFullSpace=YES`)
+- whitespace (` `, `\t`, and optionally full-width space U+3000 when config item `SystemAllowFullSpace` = `YES`)
 
 Important implication:
 

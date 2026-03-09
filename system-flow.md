@@ -4,7 +4,7 @@ This engine defines a host-driven **system phase** state machine (TITLE/SHOP/TRA
 
 This document specifies the **observable compatibility contract** for that state machine: which script entry points are called, how phase transitions happen, and what initialization/reset side effects occur.
 
-Config keys are referenced by their `config-items.md` names (e.g. `SaveDataNos`, `MaxShopItem`, `ComAbleDefault`).
+Config-surface names in this reference follow the canonical terms from `config-items.md` (e.g. config item `SaveDataNos`, replace item `MaxShopItem`, replace item `ComAbleDefault`).
 
 ## 1) Concepts
 
@@ -103,8 +103,8 @@ The default title menu:
 
 - prints a title header (script title/version/author metadata), then
 - prints two menu items:
-  - `[0] <TitleMenuString0>` (“start new game”)
-  - `[1] <TitleMenuString1>` (“load and start”)
+  - `[0]` followed by the text from replace item `TitleMenuString0` (“start new game”)
+  - `[1]` followed by the text from replace item `TitleMenuString1` (“load and start”)
 - requests an integer input.
 
 If the selected value is:

@@ -49,7 +49,7 @@ Consequence:
 
 ### 3.4 `_Rename.csv` replacement affects text, not locations
 
-If rename processing is enabled (`UseRenameFile`), the enabled-line reader applies `[[...]]` replacement **before tokenization**, on each physical line it reads.
+If rename processing is enabled (config item `UseRenameFile`), the enabled-line reader applies `[[...]]` replacement **before tokenization**, on each physical line it reads.
 
 Locations still refer to the original script file and physical line number; there is no mapping back to which rename key produced which characters.
 

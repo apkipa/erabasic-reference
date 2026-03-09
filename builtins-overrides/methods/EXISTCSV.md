@@ -15,7 +15,7 @@
 - `charaNo` (int): character template `NO` to look up.
 - `isSp` (optional, int; default `0`): legacy SP-character compatibility argument.
   - `0`: ordinary call shape.
-  - non-zero: accepted only when `CompatiSPChara=YES`.
+  - non-zero: accepted only when config item `CompatiSPChara` = `YES`.
 
 **Semantics**
 - Returns `1` if a character template exists for `charaNo`, otherwise returns `0`.

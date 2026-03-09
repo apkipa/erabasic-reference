@@ -22,7 +22,7 @@
   - `RESULTS:1` = remaining suffix (may be `""`)
   - Other `RESULTS:*` entries are not cleared.
 - Interprets `width` in “half-width character units”. One unit corresponds to half the configured font size in pixels:
-  - `pixelBudget = width * FontSize / 2`
+  - Let `fontSizePx` be config item `FontSize`; then `pixelBudget = width * fontSizePx / 2`.
 - Expands character references in `html` first, then performs the split.
   - This means that sequences like `&lt;b&gt;` may become `<b>` tags after expansion and affect the split.
 - If the expanded HTML contains a `<br>` tag, it forces the split at that point:

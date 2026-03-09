@@ -17,7 +17,7 @@
 
 **Semantics**
 - Scans the current registered character list in ascending character-index order and returns the first matching character index.
-- If `CompatiSPChara=NO`:
+- If config item `CompatiSPChara` = `NO`:
   - `spFlag` is accepted but ignored,
   - the search matches any registered character whose `NO` equals `charaNo`.
 - If `CompatiSPChara=YES`:
