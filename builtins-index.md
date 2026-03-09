@@ -1,6 +1,6 @@
 # EraBasic Built-ins Index (by tag)
 
-Generated on `2026-03-08`.
+Generated on `2026-03-09`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `builtins-index.md` by hand.
@@ -593,9 +593,15 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 
 ## reflection
 
+- [`ENUMFUNCBEGINSWITH`](builtins-reference.md#enumfuncbeginswith-expression-function) (method)
+- [`ENUMFUNCENDSWITH`](builtins-reference.md#enumfuncendswith-expression-function) (method)
+- [`ENUMFUNCWITH`](builtins-reference.md#enumfuncwith-expression-function) (method)
 - [`ENUMMACROBEGINSWITH`](builtins-reference.md#enummacrobeginswith-expression-function) (method)
 - [`ENUMMACROENDSWITH`](builtins-reference.md#enummacroendswith-expression-function) (method)
 - [`ENUMMACROWITH`](builtins-reference.md#enummacrowith-expression-function) (method)
+- [`ENUMVARBEGINSWITH`](builtins-reference.md#enumvarbeginswith-expression-function) (method)
+- [`ENUMVARENDSWITH`](builtins-reference.md#enumvarendswith-expression-function) (method)
+- [`ENUMVARWITH`](builtins-reference.md#enumvarwith-expression-function) (method)
 - [`EXISTFUNCTION`](builtins-reference.md#existfunction-expression-function) (method)
 - [`EXISTMETH`](builtins-reference.md#existmeth-expression-function) (method)
 - [`EXISTVAR`](builtins-reference.md#existvar-expression-function) (method)
@@ -867,12 +873,3 @@ This index is built from `builtins-overrides/**` tags and links into `builtins-r
 - [`XML_SET`](builtins-reference.md#xml_set-expression-function) (method)
 - [`XML_SET_BYNAME`](builtins-reference.md#xml_set_byname-expression-function) (method)
 - [`XML_TOSTR`](builtins-reference.md#xml_tostr-expression-function) (method)
-
-## (uncategorized)
-
-- [`ENUMFUNCBEGINSWITH`](builtins-reference.md#enumfuncbeginswith-expression-function) (method)
-- [`ENUMFUNCENDSWITH`](builtins-reference.md#enumfuncendswith-expression-function) (method)
-- [`ENUMFUNCWITH`](builtins-reference.md#enumfuncwith-expression-function) (method)
-- [`ENUMVARBEGINSWITH`](builtins-reference.md#enumvarbeginswith-expression-function) (method)
-- [`ENUMVARENDSWITH`](builtins-reference.md#enumvarendswith-expression-function) (method)
-- [`ENUMVARWITH`](builtins-reference.md#enumvarwith-expression-function) (method)

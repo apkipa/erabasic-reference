@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference (Emuera / EvilMask)
 
-Generated on `2026-03-08`.
+Generated on `2026-03-09`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `builtins-reference.md` by hand.
@@ -15832,368 +15832,242 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 ## ENUMFUNCBEGINSWITH (expression function)
 
 **Summary**
-        - Enumerates user-defined non-event label/method names from loaded scripts whose names begins with the given keyword.
+- Enumerates user-defined non-event label/method names from loaded scripts whose names begins with the given keyword.
 
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMFUNCBEGINSWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMFUNCBEGINSWITH(keyword)` → `long`
-        - `ENUMFUNCBEGINSWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Function enumeration uses the current non-event script label table.
-- Built-in expression functions are not included.
-        - Match rule:
-          - `ENUMFUNCBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMFUNCBEGINSWITH("TEST")`
-
-        **Progress state**
-        - complete
+**Tags**
+- reflection
 
 **Syntax**
-- (TODO)
+- `ENUMFUNCBEGINSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- (TODO)
+- `ENUMFUNCBEGINSWITH(keyword)` → `long`
+- `ENUMFUNCBEGINSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
-- (TODO)
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+- Match rule:
+  - `ENUMFUNCBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMFUNCBEGINSWITH("TEST")`
 
 ## ENUMFUNCENDSWITH (expression function)
 
 **Summary**
-        - Enumerates user-defined non-event label/method names from loaded scripts whose names ends with the given keyword.
+- Enumerates user-defined non-event label/method names from loaded scripts whose names ends with the given keyword.
 
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMFUNCENDSWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMFUNCENDSWITH(keyword)` → `long`
-        - `ENUMFUNCENDSWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Function enumeration uses the current non-event script label table.
-- Built-in expression functions are not included.
-        - Match rule:
-          - `ENUMFUNCENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMFUNCENDSWITH("TEST")`
-
-        **Progress state**
-        - complete
+**Tags**
+- reflection
 
 **Syntax**
-- (TODO)
+- `ENUMFUNCENDSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- (TODO)
+- `ENUMFUNCENDSWITH(keyword)` → `long`
+- `ENUMFUNCENDSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
-- (TODO)
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+- Match rule:
+  - `ENUMFUNCENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMFUNCENDSWITH("TEST")`
 
 ## ENUMFUNCWITH (expression function)
 
 **Summary**
-        - Enumerates user-defined non-event label/method names from loaded scripts whose names contains the given keyword.
+- Enumerates user-defined non-event label/method names from loaded scripts whose names contains the given keyword.
 
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMFUNCWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMFUNCWITH(keyword)` → `long`
-        - `ENUMFUNCWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Function enumeration uses the current non-event script label table.
-- Built-in expression functions are not included.
-        - Match rule:
-          - `ENUMFUNCWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMFUNCWITH("TEST")`
-
-        **Progress state**
-        - complete
+**Tags**
+- reflection
 
 **Syntax**
-- (TODO)
+- `ENUMFUNCWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- (TODO)
+- `ENUMFUNCWITH(keyword)` → `long`
+- `ENUMFUNCWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
-- (TODO)
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+- Match rule:
+  - `ENUMFUNCWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMFUNCWITH("TEST")`
 
 ## ENUMVARBEGINSWITH (expression function)
 
 **Summary**
-        - Enumerates global/system variable names whose names begins with the given keyword.
+- Enumerates global/system variable names whose names begins with the given keyword.
 
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMVARBEGINSWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMVARBEGINSWITH(keyword)` → `long`
-        - `ENUMVARBEGINSWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Variable enumeration uses the global/system variable table.
-- Local variables and private variables are not included.
-        - Match rule:
-          - `ENUMVARBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMVARBEGINSWITH("TEST")`
-
-        **Progress state**
-        - complete
+**Tags**
+- reflection
 
 **Syntax**
-- (TODO)
+- `ENUMVARBEGINSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- (TODO)
+- `ENUMVARBEGINSWITH(keyword)` → `long`
+- `ENUMVARBEGINSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
-- (TODO)
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+- Match rule:
+  - `ENUMVARBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMVARBEGINSWITH("TEST")`
 
 ## ENUMVARENDSWITH (expression function)
 
 **Summary**
-        - Enumerates global/system variable names whose names ends with the given keyword.
+- Enumerates global/system variable names whose names ends with the given keyword.
 
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMVARENDSWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMVARENDSWITH(keyword)` → `long`
-        - `ENUMVARENDSWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Variable enumeration uses the global/system variable table.
-- Local variables and private variables are not included.
-        - Match rule:
-          - `ENUMVARENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMVARENDSWITH("TEST")`
-
-        **Progress state**
-        - complete
+**Tags**
+- reflection
 
 **Syntax**
-- (TODO)
+- `ENUMVARENDSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- (TODO)
+- `ENUMVARENDSWITH(keyword)` → `long`
+- `ENUMVARENDSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
-- (TODO)
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+- Match rule:
+  - `ENUMVARENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMVARENDSWITH("TEST")`
 
 ## ENUMVARWITH (expression function)
 
 **Summary**
-        - Enumerates global/system variable names whose names contains the given keyword.
+- Enumerates global/system variable names whose names contains the given keyword.
 
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMVARWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMVARWITH(keyword)` → `long`
-        - `ENUMVARWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Variable enumeration uses the global/system variable table.
-- Local variables and private variables are not included.
-        - Match rule:
-          - `ENUMVARWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMVARWITH("TEST")`
-
-        **Progress state**
-        - complete
+**Tags**
+- reflection
 
 **Syntax**
-- (TODO)
+- `ENUMVARWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- (TODO)
+- `ENUMVARWITH(keyword)` → `long`
+- `ENUMVARWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
-- (TODO)
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+- Match rule:
+  - `ENUMVARWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMVARWITH("TEST")`
 
 ## ENUMMACROBEGINSWITH (expression function)
 

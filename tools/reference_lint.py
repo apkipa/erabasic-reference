@@ -56,6 +56,7 @@ FAIL_ON_CODES = (
     "stale-override",
     "unknown-section",
     "invalid-progress-state",
+    "override-not-complete",
     "complete-missing-sections",
     "complete-entry-has-todo-marker",
     "duplicate-section",
@@ -909,6 +910,7 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
     allowed_method = set(USER_METHOD_SECTIONS) | {"Progress state", "Progress"}
 
     def check_override_file(kind: str, name: str, path: Path, secs: dict[str, list[str]]) -> None:
+        rel = path.relative_to(REPO_ROOT)
         issues.extend(_line_pattern_issues(path=path, kind=kind, name=name, lines=_lines(path), source_path_code="user-doc-source-path-leak", internal_symbol_code="user-doc-internal-symbol-leak", vague_code="banned-vague-phrase", check_required_marker=False))
         issues.extend(_lint_override_structure(path=path, kind=kind, name=name, secs=secs))
         issues.extend(_lint_override_required_markers(path=path, kind=kind, name=name))
@@ -922,6 +924,9 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
         unknown = sorted([k for k in secs.keys() if k not in allowed])
         for section_title in unknown:
             issues.append(ValidationIssue(severity="WARN", code="unknown-section", kind=kind, name=name, message=f"Unknown override section title: `{section_title}` (typo?)"))
+        progress_bucket = override_progress_state(secs)
+        if progress_bucket == "partial":
+            issues.append(ValidationIssue(severity="WARN", code="override-not-complete", kind=kind, name=name, message=f"{rel}: override has user-facing content but is not marked `complete`."))
         ps = _progress_state_value(secs)
         if ps == "invalid":
             issues.append(ValidationIssue(severity="WARN", code="invalid-progress-state", kind=kind, name=name, message="Progress state is present but not recognized (use `partial`/`complete`)."))

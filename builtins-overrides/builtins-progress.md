@@ -1,6 +1,6 @@
 # EraBasic Built-ins Writing Progress (Emuera / EvilMask)
 
-Generated on `2026-03-08`.
+Generated on `2026-03-09`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `builtins-progress.md` by hand.
@@ -15,7 +15,7 @@ Notes:
 - To mark an entry complete, add a section `**Progress state**` with `- complete` to the override file.
 
 Instructions: `⛔ 0` / `🟡 0` / `✅ 303` (total `303`).
-Expression functions: `⛔ 0` / `🟡 6` / `✅ 260` (total `266`).
+Expression functions: `⛔ 0` / `🟡 0` / `✅ 266` (total `266`).
 
 ## Instructions
 
@@ -493,12 +493,12 @@ Expression functions: `⛔ 0` / `🟡 6` / `✅ 260` (total `266`).
 - ✅ [`EXISTFILE`](../builtins-reference.md#existfile-expression-function)
 - ✅ [`EXISTVAR`](../builtins-reference.md#existvar-expression-function)
 - ✅ [`ISDEFINED`](../builtins-reference.md#isdefined-expression-function)
-- 🟡 [`ENUMFUNCBEGINSWITH`](../builtins-reference.md#enumfuncbeginswith-expression-function)
-- 🟡 [`ENUMFUNCENDSWITH`](../builtins-reference.md#enumfuncendswith-expression-function)
-- 🟡 [`ENUMFUNCWITH`](../builtins-reference.md#enumfuncwith-expression-function)
-- 🟡 [`ENUMVARBEGINSWITH`](../builtins-reference.md#enumvarbeginswith-expression-function)
-- 🟡 [`ENUMVARENDSWITH`](../builtins-reference.md#enumvarendswith-expression-function)
-- 🟡 [`ENUMVARWITH`](../builtins-reference.md#enumvarwith-expression-function)
+- ✅ [`ENUMFUNCBEGINSWITH`](../builtins-reference.md#enumfuncbeginswith-expression-function)
+- ✅ [`ENUMFUNCENDSWITH`](../builtins-reference.md#enumfuncendswith-expression-function)
+- ✅ [`ENUMFUNCWITH`](../builtins-reference.md#enumfuncwith-expression-function)
+- ✅ [`ENUMVARBEGINSWITH`](../builtins-reference.md#enumvarbeginswith-expression-function)
+- ✅ [`ENUMVARENDSWITH`](../builtins-reference.md#enumvarendswith-expression-function)
+- ✅ [`ENUMVARWITH`](../builtins-reference.md#enumvarwith-expression-function)
 - ✅ [`ENUMMACROBEGINSWITH`](../builtins-reference.md#enummacrobeginswith-expression-function)
 - ✅ [`ENUMMACROENDSWITH`](../builtins-reference.md#enummacroendswith-expression-function)
 - ✅ [`ENUMMACROWITH`](../builtins-reference.md#enummacrowith-expression-function)

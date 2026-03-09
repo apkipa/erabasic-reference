@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)
 
-Generated from engine source on `2026-03-08`.
+Generated from engine source on `2026-03-09`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `appendix/tooling/builtins-reference-engine.md` by hand.
@@ -20370,45 +20370,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMFUNCBEGINSWITH (expression function)
 **Summary**
-        - Enumerates user-defined non-event label/method names from loaded scripts whose names begins with the given keyword.
-
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMFUNCBEGINSWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMFUNCBEGINSWITH(keyword)` → `long`
-        - `ENUMFUNCBEGINSWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Function enumeration uses the current non-event script label table.
-- Built-in expression functions are not included.
-        - Match rule:
-          - `ENUMFUNCBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMFUNCBEGINSWITH("TEST")`
-
-        **Progress state**
-        - complete
+- Enumerates user-defined non-event label/method names from loaded scripts whose names begins with the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Function, EnumNameMethod.EAction.BeginsWith)`
@@ -20416,24 +20378,38 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMFUNCBEGINSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMFUNCBEGINSWITH(keyword)` → `long`
+- `ENUMFUNCBEGINSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+- Match rule:
+  - `ENUMFUNCBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMFUNCBEGINSWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20441,45 +20417,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMFUNCENDSWITH (expression function)
 **Summary**
-        - Enumerates user-defined non-event label/method names from loaded scripts whose names ends with the given keyword.
-
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMFUNCENDSWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMFUNCENDSWITH(keyword)` → `long`
-        - `ENUMFUNCENDSWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Function enumeration uses the current non-event script label table.
-- Built-in expression functions are not included.
-        - Match rule:
-          - `ENUMFUNCENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMFUNCENDSWITH("TEST")`
-
-        **Progress state**
-        - complete
+- Enumerates user-defined non-event label/method names from loaded scripts whose names ends with the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Function, EnumNameMethod.EAction.EndsWith)`
@@ -20487,24 +20425,38 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMFUNCENDSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMFUNCENDSWITH(keyword)` → `long`
+- `ENUMFUNCENDSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+- Match rule:
+  - `ENUMFUNCENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMFUNCENDSWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20512,45 +20464,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMFUNCWITH (expression function)
 **Summary**
-        - Enumerates user-defined non-event label/method names from loaded scripts whose names contains the given keyword.
-
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMFUNCWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMFUNCWITH(keyword)` → `long`
-        - `ENUMFUNCWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Function enumeration uses the current non-event script label table.
-- Built-in expression functions are not included.
-        - Match rule:
-          - `ENUMFUNCWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMFUNCWITH("TEST")`
-
-        **Progress state**
-        - complete
+- Enumerates user-defined non-event label/method names from loaded scripts whose names contains the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Function, EnumNameMethod.EAction.With)`
@@ -20558,24 +20472,38 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMFUNCWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMFUNCWITH(keyword)` → `long`
+- `ENUMFUNCWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Function enumeration uses the current non-event script label table.
+- Built-in expression functions are not included.
+- Match rule:
+  - `ENUMFUNCWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMFUNCWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20583,45 +20511,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMVARBEGINSWITH (expression function)
 **Summary**
-        - Enumerates global/system variable names whose names begins with the given keyword.
-
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMVARBEGINSWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMVARBEGINSWITH(keyword)` → `long`
-        - `ENUMVARBEGINSWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Variable enumeration uses the global/system variable table.
-- Local variables and private variables are not included.
-        - Match rule:
-          - `ENUMVARBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMVARBEGINSWITH("TEST")`
-
-        **Progress state**
-        - complete
+- Enumerates global/system variable names whose names begins with the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Variable, EnumNameMethod.EAction.BeginsWith)`
@@ -20629,24 +20519,38 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMVARBEGINSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMVARBEGINSWITH(keyword)` → `long`
+- `ENUMVARBEGINSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+- Match rule:
+  - `ENUMVARBEGINSWITH` selects names whose uppercase form begins with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMVARBEGINSWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20654,45 +20558,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMVARENDSWITH (expression function)
 **Summary**
-        - Enumerates global/system variable names whose names ends with the given keyword.
-
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMVARENDSWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMVARENDSWITH(keyword)` → `long`
-        - `ENUMVARENDSWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Variable enumeration uses the global/system variable table.
-- Local variables and private variables are not included.
-        - Match rule:
-          - `ENUMVARENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMVARENDSWITH("TEST")`
-
-        **Progress state**
-        - complete
+- Enumerates global/system variable names whose names ends with the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Variable, EnumNameMethod.EAction.EndsWith)`
@@ -20700,24 +20566,38 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMVARENDSWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMVARENDSWITH(keyword)` → `long`
+- `ENUMVARENDSWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+- Match rule:
+  - `ENUMVARENDSWITH` selects names whose uppercase form ends with `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMVARENDSWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -20725,45 +20605,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 ## ENUMVARWITH (expression function)
 **Summary**
-        - Enumerates global/system variable names whose names contains the given keyword.
-
-        **Tags**
-        - reflection
-
-        **Syntax**
-        - `ENUMVARWITH(keyword [, output])`
-
-        **Signatures / argument rules**
-        - `ENUMVARWITH(keyword)` → `long`
-        - `ENUMVARWITH(keyword, output)` → `long`
-
-        **Arguments**
-        - `keyword` (string): case-insensitive match key.
-        - `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
-
-        **Semantics**
-        - Matching is case-insensitive.
-        - If `keyword == ""`, returns `0` and writes nothing.
-        - Variable enumeration uses the global/system variable table.
-- Local variables and private variables are not included.
-        - Match rule:
-          - `ENUMVARWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
-        - Output destination:
-          - if `output` is omitted, matched names are copied into `RESULTS:*`,
-          - otherwise they are copied into the provided 1D string array.
-        - Return value is the number of names actually copied.
-          - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
-        - The destination is **not** cleared beyond the copied prefix.
-        - Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
-
-        **Errors & validation**
-        - Argument type/count errors are rejected by the engine's function-method argument checker.
-
-        **Examples**
-        - `ENUMVARWITH("TEST")`
-
-        **Progress state**
-        - complete
+- Enumerates global/system variable names whose names contains the given keyword.
 
 **Metadata**
 - Implementor: `new EnumNameMethod(EnumNameMethod.EType.Variable, EnumNameMethod.EAction.With)`
@@ -20771,24 +20613,38 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 - Constant folding (`CanRestructure`): `false`
 
 **Syntax**
-- (TODO)
+- `ENUMVARWITH(keyword [, output])`
 
 **Signatures / argument rules**
-- Argument rules: `argumentTypeArrayEx` (ArgTypeList-based; supports refs/arrays/variadics/omission).
-- ArgTypeList: ArgTypes = { ArgType.String, ArgType.RefString1D }; OmitStart = 1.
+- `ENUMVARWITH(keyword)` → `long`
+- `ENUMVARWITH(keyword, output)` → `long`
 
 **Arguments**
-- (TODO)
+- `keyword` (string): case-insensitive match key.
+- `output` (optional, 1D string-array variable reference; default `RESULTS:*`): destination for copied names.
 
 **Semantics**
+- Matching is case-insensitive.
+- If `keyword == ""`, returns `0` and writes nothing.
+- Variable enumeration uses the global/system variable table.
+- Local variables and private variables are not included.
+- Match rule:
+  - `ENUMVARWITH` selects names whose uppercase form contains `keyword`'s uppercase form.
+- Output destination:
+  - if `output` is omitted, matched names are copied into `RESULTS:*`,
+  - otherwise they are copied into the provided 1D string array.
+- Return value is the number of names actually copied.
+  - This is `min(matchCount, destinationLength)`, not the total number of matches when truncation occurs.
+- The destination is **not** cleared beyond the copied prefix.
+- Matched names are emitted in the engine's current enumeration order; this implementation does not sort them.
 - Engine-extracted notes (key operations):
   - `output = exm.VEvaluator.RESULTS_ARRAY`
 
 **Errors & validation**
-- (TODO)
+- Argument type/count errors are rejected by the engine's function-method argument checker.
 
 **Examples**
-- (TODO)
+- `ENUMVARWITH("TEST")`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
