@@ -72,6 +72,7 @@ This reference has two “layers”:
 
 - [`data-files.md`](data-files.md) — config/CSV/rename/ERD formats tied to the language
 - [`config-items.md`](config-items.md) — config key catalog (types, defaults, key spellings)
+- [`filesystem-paths.md`](filesystem-paths.md) — shared path-handling families used by filesystem/resource built-ins
 - [`save-files.md`](save-files.md) — save directories, persistence partitions, and on-disk save formats (binary + legacy text)
 - [`resources-and-sprites.md`](resources-and-sprites.md) — `resources/**/*.csv` sprite loading and sprite-name resolution used by UI/HTML output
 
