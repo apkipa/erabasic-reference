@@ -21,6 +21,7 @@ This topic defines the **observable output-state model**:
 This topic does **not** redefine:
 
 - HTML tag grammar or attribute validity rules; those live in [`html-output.md`](html-output.md),
+- shared width measurement / wrapping / splitting / alignment algorithms; those live in [`console-layout.md`](console-layout.md),
 - wait-state lifecycle or input acceptance rules; those live in [`input-flow.md`](input-flow.md),
 - per-built-in argument syntax beyond the shared model documented here; detailed signatures still live in [`builtins-reference.md`](builtins-reference.md).
 
@@ -407,6 +408,7 @@ A compatible implementation should preserve all of the following observable dist
 
 ## 12) Related documents
 
+- [`console-layout.md`](console-layout.md) — shared width measurement, wrapping, splitting, and alignment backend used after frontends produce output nodes
 - [`html-output.md`](html-output.md) — HTML mini-language, tags, attributes, wrapping-oriented rendering rules
 - [`input-flow.md`](input-flow.md) — wait lifecycle, button acceptance, mouse completion paths, segmentation
 - [`system-flow.md`](system-flow.md) — phase loops that inspect trailing temporary-line state

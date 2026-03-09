@@ -9,6 +9,8 @@ This engine supports an **HTML-like mini language** for UI output and measuremen
 
 This is **not** a web browser HTML implementation. Only the tags and behaviors described here are supported.
 
+After HTML parsing has produced display nodes/button regions, row formation uses the same shared console layout backend used by ordinary output; see [`console-layout.md`](console-layout.md).
+
 ## 1) What is an “HTML string” in this engine?
 
 An HTML string is a normal EraBasic string whose content is interpreted as:
@@ -94,11 +96,16 @@ HTML parsing is strict:
 - Unclosed tags at end of string are runtime errors, except that `</p>`, `</nobr>`, and `</clearbutton>` may be omitted.
 - Malformed character references are runtime errors.
 
-## 5) Rendering model: logical lines, display lines, wrapping
+## 5) Rendering model: HTML-specific semantics on top of the shared console layout backend
+
+This section describes the **HTML-specific** switches that affect row formation.
+The shared width measurement / wrapping / splitting / alignment backend itself is documented in [`console-layout.md`](console-layout.md).
 
 ### 5.1 Logical line vs display lines
 
 One call to `HTML_PRINT` (without buffering) produces **one logical output line**.
+
+After the HTML frontend has parsed tags/text into display nodes and button regions, the resulting rows are formed by the shared console layout backend rather than by a completely separate HTML-only row builder.
 
 Within that logical line, the engine may produce multiple **display lines** due to:
 
@@ -114,7 +121,7 @@ Commands such as `CLEARLINE` and the `LINECOUNT` variable count/delete **logical
 
 ### 5.3 `<nobr>` (no automatic wrapping)
 
-`<nobr> ... </nobr>` disables automatic wrapping:
+`<nobr> ... </nobr>` disables automatic wrapping in that shared backend:
 
 - the content is still allowed to contain explicit breaks (`<br>` / `'\n'`),
 - but it is not wrapped just because it exceeds the drawable width.
@@ -352,7 +359,7 @@ If `border` is specified but `bcolor` is omitted, the border color defaults to t
 
 #### 6.9.7 Layout of `<div>` contents
 
-The enclosed HTML is laid out using the same HTML-string rules as `HTML_PRINT`, with a custom drawable width derived from the `<div>`’s `width`:
+The enclosed HTML is laid out using the same HTML-string rules as `HTML_PRINT`, plus the same shared row-formation backend documented in [`console-layout.md`](console-layout.md), with a custom drawable width derived from the `<div>`’s `width`:
 
 - The base width is `width` (converted to pixels).
 - If any of `margin`, `border`, or `padding` is present, the left+right values are subtracted from the base width to get the content drawable width.

@@ -19,7 +19,7 @@
 
 **Semantics**
 - If the target graphics does not exist or has already been disposed, returns `0`.
-- If no brush has been set with `GSETBRUSH`, fills with `Config.BackColor`.
+- If no brush has been set with `GSETBRUSH`, fills with the current default background color from config item `BackColor`.
 - Rectangle parsing rejects `width == 0` and `height == 0`, but negative sizes are still forwarded as-is.
 - On success returns `1`.
 

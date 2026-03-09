@@ -7917,8 +7917,8 @@ SPLIT "a,b,c", ",", PARTS
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Expands `<pattern>` to a full-width bar using the engine’s “custom bar” algorithm:
-  - Measure is based on rendered display width (using the configured default font and `DrawableWidth`).
-  - Repeats `<pattern>` until the measured width reaches/exceeds `DrawableWidth`, then removes characters from the end until it fits.
+  - Measure is based on rendered display width using the configured default font and the derived runtime value `drawable width` (see `config-items.md`).
+  - Repeats `<pattern>` until the measured width reaches/exceeds that width, then removes characters from the end until it fits.
 - Prints the expanded bar with font style forced to `Regular`, then prints a newline.
 - Engine-extracted notes (key operations):
   - `exm.Console.NewLine()`
@@ -7951,7 +7951,7 @@ SPLIT "a,b,c", ",", PARTS
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Evaluates `<pattern>` to a string `s`.
-  - If `s` is non-empty, expands it to a full-width bar using the same algorithm as `CUSTOMDRAWLINE` (repeat until it reaches `DrawableWidth`, then trim to fit).
+  - If `s` is non-empty, expands it to a full-width bar using the same algorithm as `CUSTOMDRAWLINE`, which fits the pattern to the derived runtime value `drawable width` (see `config-items.md`).
 - Prints the expanded bar with font style forced to `Regular`, then prints a newline.
 - Engine-extracted notes (key operations):
   - `exm.Console.printCustomBar(str, false)`
@@ -19020,7 +19020,7 @@ R = GDISPOSE(GID)
 
 **Semantics**
 - If the target graphics does not exist or has already been disposed, returns `0`.
-- If no brush has been set with `GSETBRUSH`, fills with `Config.BackColor`.
+- If no brush has been set with `GSETBRUSH`, fills with the current default background color from config item `BackColor`.
 - Rectangle parsing rejects `width == 0` and `height == 0`, but negative sizes are still forwarded as-is.
 - On success returns `1`.
 
@@ -23586,8 +23586,8 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - If the target graphics does not exist or has already been disposed, returns `0`.
 - Two-argument form draws at `(0, 0)`.
 - Four-argument form draws at `(x, y)`.
-- Fill / outline behavior follows the current graphics state: the fill uses the current brush or `Config.ForeColor` when no brush is set, and the outline uses the current pen or `Config.ForeColor` when no pen is set.
-- Font behavior follows the current graphics state: if no font has been set with `GSETFONT`, drawing uses `Config.FontName` at size `100` with the current console font style.
+- Fill / outline behavior follows the current graphics state: the fill uses the current brush or the default text color from config item `ForeColor` when no brush is set, and the outline uses the current pen or that same default color when no pen is set.
+- Font behavior follows the current graphics state: if no font has been set with `GSETFONT`, drawing uses the default font family from config item `FontName` at size `100` with the current console font style.
 - On success returns `1`, stores measured width in `RESULT:1`, and stores measured height in `RESULT:2`. `RESULT:0` is not used by this function.
 - Engine-extracted notes (key operations):
   - `long[] resultArray = exm.VEvaluator.RESULT_ARRAY`
@@ -24236,7 +24236,7 @@ S = GETDISPLAYLINE(0)
 
 **Semantics**
 - If the target graphics does not exist or has already been disposed, returns `0`.
-- If no pen has been set yet, this function first creates one in `Config.ForeColor` with width `1`.
+- If no pen has been set yet, this function first creates one in the current default text color from config item `ForeColor` with width `1`.
 - Then writes the requested dash style / dash cap and returns `1`.
 
 **Errors & validation**

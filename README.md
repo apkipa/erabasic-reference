@@ -35,6 +35,7 @@ This reference has two “layers”:
 - [`system-flow.md`](system-flow.md) — system phase state machine (TITLE/SHOP/TRAIN/ABLUP/…) and required `BEGIN` contracts
 - [`input-flow.md`](input-flow.md) — host-side input request lifecycle, segmentation, submission paths, and wait-state consumption rules
 - [`output-flow.md`](output-flow.md) — shared output-state model (logical lines, temporary lines, button regions, history/buffer APIs)
+- [`console-layout.md`](console-layout.md) — shared width measurement, wrapping, splitting, and alignment backend used by plain-text and HTML output
 - [`cbg-layer.md`](cbg-layer.md) — client-background (`CBG`) layer, depth ordering, hit-testing, and its boundary against normal output/buttons
 - [`functions.md`](functions.md) — `CALL/RETURN`, arguments (`ARG/ARGS`), expression functions (`#FUNCTION/#FUNCTIONS`)
 - [`argument-parsing-modes.md`](argument-parsing-modes.md) — how built-ins parse arguments (raw vs expression vs FORM) and how `;` behaves
@@ -71,7 +72,7 @@ This reference has two “layers”:
 ### Data and config (tightly coupled to language use)
 
 - [`data-files.md`](data-files.md) — config/CSV/rename/ERD formats tied to the language
-- [`config-items.md`](config-items.md) — config key catalog (types, defaults, key spellings)
+- [`config-items.md`](config-items.md) — config key catalog plus shared config-adjacent derived runtime values
 - [`filesystem-paths.md`](filesystem-paths.md) — shared path-handling families used by filesystem/resource built-ins
 - [`save-files.md`](save-files.md) — save directories, persistence partitions, and on-disk save formats (binary + legacy text)
 - [`resources-and-sprites.md`](resources-and-sprites.md) — `resources/**/*.csv` sprite loading and sprite-name resolution used by UI/HTML output

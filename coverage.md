@@ -250,9 +250,12 @@ Typical-game compatibility requires a subset of “UI-ish” built-ins to be spe
   - pending print buffer vs visible display-line array vs logical-line grouping
   - separate HTML-island layer outside the normal output/log model
   - temporary trailing line as a distinct visible state rather than just buffered text
+- ✅ Shared console layout primitives:
+  - the common width-measurement / row-formation / splitting / alignment backend used by plain-text and HTML output is documented
+  - HTML `<div>` subdivision width feeds that same backend rather than using a separate row builder
 - 🟡 Remaining output-edge details:
   - the shared pending-buffer/materialization model is documented
-  - remaining gaps are mainly the non-HTML newline/layout/wrapping/clipping/width-measurement rules, plus a few producer-specific “buffer vs temporary line vs system line” notes
+  - remaining gaps are now mostly a smaller set of producer-specific “buffer vs temporary line vs system line” notes and other isolated producer/readback quirks
 - ✅ Output skipping baseline:
   - `SKIPDISP` suppresses output producers at the producer side rather than merely hiding already-produced output
   - reaching input while `SKIPDISP`-driven skipping is active is an error boundary, not a hidden auto-input path
@@ -279,6 +282,7 @@ Typical-game compatibility requires a subset of “UI-ish” built-ins to be spe
 Where described today:
 
 - ✅ `output-flow.md` (shared output-state model, temporary lines, button generations, island model, redraw/readback boundaries)
+- ✅ `console-layout.md` (shared width measurement, wrapping/splitting, alignment, and plain-text/HTML convergence point)
 - ✅ `html-output.md` (logical line vs display lines for HTML rendering)
 - ✅ `builtins-reference.md` (individual producer/readback entries for the shared output/readback surface)
 - ✅ `system-flow.md` (temporary-line-dependent reprompt paths)
@@ -367,7 +371,7 @@ These items are **observable engine features** but are deferred because they are
 
 1) ✅ Write a **phase-ordered pipeline spec**: `pipeline.md`.
 2) ✅ Document **config + CSV formats** that affect parsing/runtime: `data-files.md`.
-   - ✅ Catalog config keys, types, defaults: `config-items.md`.
+   - ✅ Catalog config keys, types, defaults, and shared config-adjacent derived runtime values: `config-items.md`.
 3) 🟡 Write a **formal-ish grammar** for statements and expressions (EBNF + edge-case rules).
  - ✅ Statement-level grammar + block matching: `grammar.md`.
  - ✅ Expression grammar (EBNF + precedence): `expression-grammar.md`.

@@ -1,182 +1,191 @@
 # Authoring rules (`erabasic-reference/`)
 
-This file contains the default rules used when writing or editing this reference (including built-ins overrides).
+This file defines the default rules for editing this reference, including built-ins overrides and shared spec-facing documents.
 
-## Interaction protocol (analysis-only requests)
+## 1) Interaction protocol
 
-If the user explicitly requests “analysis only” / “plan first” / “do not modify” (e.g. `仅分析`, `先plan`, `不要动手`, `不要进行修改`):
+If the user explicitly requests analysis only (`仅分析`, `先plan`, `不要动手`, `不要进行修改`):
 
-- Treat the workspace as **read-only**:
-  - Do not edit files (`apply_patch`), regenerate outputs, or otherwise make persistent changes.
-  - Avoid commands whose primary effect is to modify tracked outputs (generators, formatters, etc.).
-- You may still inspect existing files (read-only), search, and propose a plan or draft text in-chat.
-- Before switching from analysis to execution (any persistent change), obtain **explicit user permission** (“进行修改/开始改/动手”等).
+- treat the workspace as read-only,
+- do not edit files, regenerate outputs, or run commands whose main purpose is to modify tracked files,
+- before switching from analysis to execution, obtain explicit permission.
 
-## Rule persistence (when user says “remember”)
+If the user asks the assistant to “remember” a rule, persist it into `erabasic-reference/AGENTS.md` (or another explicitly specified location) without requiring an extra prompt.
 
-If the user asks the assistant to “remember” a rule (e.g. `记住`, `把这个规则记一下`, `持久化此规则`), automatically persist it into `erabasic-reference/agents.md` (or another explicitly specified location) without requiring an extra prompt.
+## 2) Root-cause policy
 
-## Refactor policy (default: breaking changes are OK)
+When a doc/tooling/lint problem is discovered, fix the **canonical rule/model** rather than only the newly observed symptom.
 
-When updating schemas/section structures/tooling used by this reference, prefer an **aggressive break + one-shot migration** over compatibility layers.
-Do not keep legacy parsing/rendering branches just to accept old section titles; instead, migrate the docs and make the generator strict.
+Default policy:
 
-When a doc/tooling/lint problem is discovered, prefer fixing the **underlying rule/model** rather than only the newly observed symptom.
+- prefer one-shot migration over compatibility layers,
+- do not add one-off branches, sibling lints, or narrowly scoped exceptions if a shared rule can be tightened instead,
+- if a counterexample shows the current rule is incomplete, generalize the rule first,
+- when reporting the change, state whether it is a root-cause generalization or a deliberately narrow exception.
 
-Guidelines:
-- Prefer strengthening a shared parser/validator/schema/rule when multiple bad shapes are really the same class of problem.
-- Do not add a new one-off branch, exception, sibling lint, or narrowly scoped rule if the issue can be solved by tightening an existing canonical rule.
-- If a newly found counterexample shows that the current rule is incomplete, generalize the rule first; only add a special case when the external contract truly has one.
-- When reporting the change, state whether the fix is a root-cause generalization or a deliberately narrow exception.
+## 3) Source of truth
 
-## No generator hacks
+Keep documentation sources reviewable and diffable.
 
-Do not add ad-hoc “in-script override” dictionaries or similar fallback sources inside generators.
-Overrides must live in `erabasic-reference/builtins-overrides/**/<NAME>.md` so the documentation source of truth stays reviewable and diffable.
+- Do not add ad-hoc fallback dictionaries or hidden override sources inside generators.
+- Built-ins overrides must live in `erabasic-reference/builtins-overrides/**/<NAME>.md`.
+- Preserve sections explicitly labeled as intentional explanatory notes unless the user asks to remove or rewrite them.
 
-## Intentional explanatory notes
+## 4) Reimplementation-grade standard
 
-If a subsection is explicitly labeled as an intentional explanatory note (for example `Counterfactual design note (intentional)`), preserve it by default even when it is not part of the current accepted-language contract. Treat such sections as boundary-clarification material, not dead text, unless the user explicitly asks to remove or rewrite them.
+Spec-facing text must be good enough that an independent implementation can reproduce compatible behavior **without reading this engine’s source code**.
 
-## Reimplementation-grade writing
+These are not “final polish” goals. They apply while drafting any spec-facing text, not only when deciding whether to call a topic complete.
 
-When a built-ins override entry is marked `**Progress state**: complete`, it must be detailed enough that an independent implementation can reproduce compatible behavior **without reading this engine’s source code**.
+This implies the hard requirements below.
 
-Rule of thumb:
-- Specify **observable contracts** (inputs → outputs/state/errors) in engine-agnostic language.
-- Prefer external, user-visible terminology over internal helper names, temporary variable names, or call-chain descriptions.
-- If a behavior matches a stable external spec (e.g. a .NET formatting API), it is OK to reference that external spec directly (example: “equivalent to `Int64.ToString(format)`”).
-- Do **not** justify behavior by pointing at internal call chains or internal helper names (e.g. “because `SomeInternalClass.SomeMethod()` does X”).
+### 4.1 Observable-contract first
 
-## Topic completion discipline
+Define behavior in terms of inputs, outputs, state changes, visibility, persistence, rejection, and errors.
+
+- Prefer user-visible / script-visible terminology.
+- If a stable external spec is the clearest contract, it is acceptable to reference it directly.
+- Do not justify behavior by pointing at internal call chains or helper names.
+
+### 4.2 Dependency closure
+
+Normative prose must be self-resolving within the reference.
+
+If the text uses a nontrivial term, quantity, threshold, budget, offset, width, state, or phase, the reader must be able to resolve it **from the reference itself**:
+
+- define it in place, or
+- link to its defining spec-facing document.
+
+If a reader would need to inspect source just to understand what a named quantity means, the text is incomplete.
+
+### 4.3 Derived values must be reproducible
+
+If a rule depends on a derived runtime value, define that value from documented inputs.
+
+- Do not treat an implementation property name as a sufficient definition.
+- “`SomeInternalName`” is only a mapping note, not the contract.
+- First define the value reproducibly; only then, if useful, add `(implementation property: ...)`.
+
+### 4.4 Preserve public names without letting them replace definitions
+
+If a name/signature/type/helper surface is externally observable, preserve it.
+
+But preserving the name is not enough:
+
+- a public or compatibility-relevant name must still be defined observably or reproducibly,
+- implementation/property names are not spec-facing definitions by themselves.
+
+### 4.5 First-use classification for nontrivial identifiers
+
+On first use in spec-facing prose, any nontrivial identifier-like term must be classified explicitly unless the immediately surrounding spec-facing text already classifies it unambiguously.
+
+Use one of these roles (or equally explicit wording):
+
+- `config item ...`
+- `derived runtime value ...`
+- `public script/plugin surface ...`
+- `implementation property ...` / `implementation helper ...` (mapping note only)
+
+Do not present names from different layers in the same bare style when that would make them look equivalent.
+If a reader could reasonably mistake a config item name for a derived value, or a derived value for an implementation property, the prose is incomplete.
+
+## 5) Completion discipline
 
 Do not describe a topic as `complete`, `done`, or `reimplementation-grade` unless **all major submodels within that topic** have been checked and brought to the same standard.
 
 Guardrails:
-- Do **not** treat “the main path is documented” as equivalent to “the whole topic is complete”.
-- If a topic includes multiple layers/subsystems (for example: normal output, temporary lines, island layers, readback APIs, or button objects), explicitly verify each layer before claiming completion.
-- If one important submodel is still only partially specified, describe the **whole topic** as partial, even if the main path is already strong.
-- When a shared topic mentions a built-in family as part of the contract surface, re-check the corresponding built-in entries before calling the topic complete.
-- If `coverage.md` still marks the relevant surface as `🟡`, do not claim the topic is complete unless you also update `coverage.md` and can justify the status change.
 
-## Mandatory self-review before claiming reimplementation grade
+- “main path documented” is not the same as “topic complete”,
+- if one important submodel is still partial, the whole topic remains partial,
+- if a shared topic depends on built-in families, re-check those built-in entries before claiming completion,
+- if `coverage.md` still marks the relevant surface as unresolved, do not claim completion unless `coverage.md` is also updated and the status change is justified.
 
-Before claiming that a topic or built-in group is reimplementation-grade, run an explicit self-check against the questions below.
+## 6) Mandatory self-review for spec-facing work
 
-Checklist:
-- **Surface inventory**: Have all major layers / submodels / related built-in surfaces been enumerated?
-- **Positive definition**: For each important submodel, did the docs explain how it works, not merely what it is excluded from?
-- **Boundary triggers**: Are entry / exit / visibility / overwrite / deletion / persistence triggers stated as concrete rules?
-- **Getter / helper classification**: Are helper APIs and getters grouped under the correct state model, rather than inferred from name similarity?
-- **Cross-doc sync**: If a shared topic relies on certain built-ins, were those built-in entries updated to the same precision level?
-- **Coverage sync**: Does `coverage.md` still expose any major unresolved hole for this exact surface?
-- **Reader burden**: Would an independent implementer still need to guess any important branch or lifecycle step? If yes, the topic is not done.
+Run this checklist whenever you add or materially rewrite spec-facing text.
+Do not wait until the end of the task.
 
-When reporting status after such a review, explicitly distinguish:
+Before claiming that a topic or built-in group is reimplementation-grade, run it again explicitly as a final gate.
+
+- **Surface inventory**: have all major layers / submodels / related built-in surfaces been enumerated?
+- **Positive definition**: for each important submodel, does the text explain how it works, not merely what it excludes?
+- **Boundary triggers**: are entry / exit / overwrite / deletion / persistence / visibility triggers stated as concrete rules?
+- **Hidden derived values**: does the text rely on any named runtime quantity that is not defined from documented inputs?
+- **Name-layer check**: on first use, are config item names, derived runtime values, public script/plugin names, and implementation names explicitly classified when needed, rather than left as bare ambiguous identifiers?
+- **Getter / helper classification**: are getters/helpers grouped under the correct state model rather than inferred from name similarity?
+- **Cross-doc sync**: if the topic relies on other documents or built-ins, were those updated to the same precision level?
+- **Coverage sync**: does `coverage.md` still expose a major unresolved hole for this exact surface?
+- **Reader burden**: would an independent implementer still need to guess an important branch, lifecycle step, or formula? If yes, the topic is not done.
+
+When reporting status, explicitly distinguish:
+
 - what is complete,
 - what remains partial,
 - and whether the overall topic is therefore still partial or can genuinely be called complete.
 
-## Public contract fidelity
+## 7) Writing style for spec-facing docs
 
-When a type, method, helper surface, or signature is part of the externally observable contract, prefer preserving it rather than paraphrasing it away.
+Write for a reader who wants to reproduce behavior, not for one who already knows the engine internals.
 
-Guidelines:
-- Preserve public/API-facing names when they are part of compatibility.
-- If a literal interface/type definition is the clearest contract artifact, it is acceptable to keep or quote that definition rather than replacing it with a looser summary.
-- Treat helper APIs exposed to scripts/plugins/extensions as part of the public contract unless there is clear evidence they are purely internal.
+Default style:
 
-## Reader-first precision
+- prefer precise wording that stays readable,
+- replace vague phrases such as `some cases`, `typically`, `in many cases`, `depending on ...` with exact conditions whenever behavior is known,
+- if exact behavior is still unknown, mark the uncertainty explicitly and fence what is known vs unknown,
+- use explicit inequalities instead of `1..99`-style notation,
+- stay concise, but do not omit compatibility-relevant branches just because they look “obvious”.
 
-Write for a reader who wants to reproduce behavior, not for a reader who already knows the engine internals.
-
-Guidelines:
-- Prefer the most precise wording that stays readable to a newcomer.
-- Avoid unexplained internal identifiers when a user-facing description is sufficient.
-- When internal terminology must be mentioned for compatibility, immediately anchor it to an observable meaning.
-- If a mechanism is easy to misread from prose alone, add a small example instead of relying on dense wording.
-
-## Structured syntax presentation
-
-When an instruction's syntax is inherently **multi-line / block-structured**, make that overall structure visible in `Syntax` with a fenced `text` block.
-
-Guidelines:
-- Use a fenced `text` block in `Syntax` to show the whole construct shape (header / body / terminator or catch block) at a glance.
-- Keep `Syntax` as `text`, not `erabasic`: syntax blocks are meta-syntax and may contain placeholders / optional markers / `...`, so they are not literal runnable script.
-- Do not rely on the fenced block alone: keep machine-readable bullet/backtick syntax lines below it for placeholders, variants, and lint-friendly argument contracts.
-- For structured instructions, prefer fenced `erabasic` blocks in `Examples`, so readers see the full construct in runnable-looking form rather than line-by-line bullets. Use 4-space indentation per nesting level inside those example blocks.
-- Use this pattern for genuinely structured instructions; ordinary single-line instructions/functions should keep the normal bullet/backtick `Syntax` style.
-
-## Ambiguity tightening
-
-When a statement would materially affect compatibility, do not leave it at vague wording if the behavior can be determined.
-
-Prefer replacing vague phrases such as:
-- `some cases`
-- `typically`
-- `in many cases`
-- `depending on ...`
-
-with exact conditions, explicit branch rules, or narrowly scoped exceptions.
-
-If exact behavior is still unknown, explicitly mark the uncertainty and fence it so readers can see what is known vs unknown.
-
-## Default evaluation rules (document exceptions only)
+## 8) Shared defaults and document-exceptions-only rule
 
 Unless an entry explicitly says otherwise:
-- Arguments are evaluated left-to-right.
-- Each argument (and any subscripts inside it) is evaluated once.
-- If output skipping (`SKIPDISP` / script-runner skip-print mode) causes a built-in to be skipped, it performs **no evaluation** and has **no side effects**.
 
-Only document evaluation order/count when it deviates from the defaults above.
+- arguments are evaluated left-to-right,
+- each argument (and any subscripts inside it) is evaluated once,
+- if output skipping (`SKIPDISP` / skip-print mode) skips a built-in, it performs no evaluation and has no side effects.
 
-## Avoid ambiguous range notation
+Document these only when a topic/entry deviates from them.
 
-Avoid `1..99`-style range notation in user-facing contracts.
-Prefer explicit inequalities (e.g. `1 <= x <= 99`, `0 <= i < length`) so readers don’t need to guess whether a bound is inclusive or exclusive.
+## 9) Parameter and branch discipline
 
-## Concision rule
+When documenting parameters, defaults, and acceptance/rejection behavior, distinguish cases that can fork compatibility.
 
-If a parameter’s evaluation/typing/parsing follows common EraBasic expectations and has no compatibility traps, omit it.
-Prefer documenting only the parts that can surprise an implementer or a script author (parsing quirks, clamping, side-channel writes, skip behavior, etc.).
+Always separate these when they are observably different:
 
-## Keep `coverage.md` in sync
+- omitted argument / omitted slot,
+- explicit empty value,
+- explicit sentinel value such as `0` or `-1`,
+- supplied-but-invalid value.
 
-If you discover any new observable contract (new built-in behavior, new host/UI contract, new file convention, or any compatibility-relevant edge case) that is not already reflected in the reference:
+Rules:
 
-- Update `coverage.md` first (add a new tracking bullet/section and mark it ✅/🟡/⛔/🔁 as appropriate).
-- Then implement the actual spec text in the relevant document(s) or built-ins override entry.
+- mark a parameter `optional` only if that argument position is genuinely omittable,
+- write `default X` only when omission is observably equivalent to supplying `X`,
+- state whether omission/invalid handling happens at parse time, binding time, or runtime semantic handling when that affects behavior,
+- state the observable outcome precisely: reject and retry, clamp, coerce, error, warning + substitution, ignored tail, preserved prior value, or no effect.
 
-## Omitted vs empty vs sentinel discipline
+For `Progress state: complete`, sanity-check at least:
 
-When documenting parameters, argument lists, defaults, or optional tails, explicitly distinguish these cases unless the external contract truly makes them equivalent:
+- omitted / empty / sentinel handling,
+- invalid input / rejection path,
+- default substitution rules,
+- skip interactions,
+- normalization rules such as trimming, case-folding, encoding, or locale-dependent behavior when observable.
 
-- omitted argument / omitted slot
-- explicit empty value (for example `""`)
-- explicit sentinel value (for example `0`, `-1`)
-- supplied-but-invalid value
+## 10) Structured syntax presentation
 
-Authoring rules:
-- In this reference, parameters are required unless explicitly marked `optional`. `optional` means the argument position is genuinely omittable. Do not describe a parameter as `optional` if the call shape still requires that argument position and only allows an empty value.
-- Only write `default X` when omission is observably equivalent to supplying `X`.
-- State whether omission is handled at parse time, binding time, or runtime semantic handling when that distinction affects observable behavior.
-- State the observable result of omission precisely: error, warning + substitution, silent substitution, preserved prior value, ignored tail, or no effect.
-- Treat coercion / auto-conversion as a separate rule from omission unless the public contract explicitly unifies them.
-- If later optional parameters depend on earlier ones, document the tail behavior explicitly (for example: ignored tail, disabled tail, or per-slot defaults).
+When an instruction’s syntax is inherently multi-line or block-structured:
 
-For reimplementation-grade entries, the reader should never have to guess whether `omitted`, `""`, `0`, and supplied-but-invalid values are distinct cases or collapsed into one behavior.
+- show the overall structure in `Syntax` with a fenced `text` block,
+- keep `Syntax` as `text`, not `erabasic`,
+- keep machine-readable bullet/backtick syntax lines below it,
+- prefer fenced `erabasic` blocks in `Examples` for runnable-looking structured examples.
 
-## Completeness checklist for `Progress state: complete`
+Ordinary single-line instructions/functions should keep the normal bullet/backtick `Syntax` style.
 
-Before marking an override entry `complete`, sanity-check the most common “spec holes”:
+## 11) Keep `coverage.md` in sync
 
-- **Omitted / empty / sentinel handling**: distinguish omitted argument vs empty string vs `0` / other sentinel values where relevant.
-- **Invalid input / rejection path** (especially for input and parsing built-ins):
-  - Does the operation reject and retry (stay in a wait state), clamp, coerce, or error?
-  - Are any `RESULT*` / side-channel variables written on rejection, or only on acceptance?
-  - Is rejected text echoed to output, or suppressed?
-- **Default substitution rules**: when a default is used (e.g. “empty input uses default only when not running a timer”).
-- **Skip interactions**: `SKIPDISP` / `MesSkip` / skip-print modes, including whether evaluation/side effects happen.
-- **Normalization rules**: case-folding, trimming, encoding, or locale-dependent behaviors (document only if observable/compat-relevant).
+If you discover a new observable contract or a materially new compatibility-relevant edge case that is not already reflected in the reference:
 
-When a behavior is “obvious” to script authors but can still fork compatibility (e.g. empty/invalid handling in `INPUT`), prefer one extra explicit bullet over relying on reader assumptions.
+- update `coverage.md` first,
+- then update the relevant spec text / built-ins override entry,
+- do not mark a surface complete until the coverage state and the actual docs agree.

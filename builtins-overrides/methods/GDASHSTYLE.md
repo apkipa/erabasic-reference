@@ -17,7 +17,7 @@
 
 **Semantics**
 - If the target graphics does not exist or has already been disposed, returns `0`.
-- If no pen has been set yet, this function first creates one in `Config.ForeColor` with width `1`.
+- If no pen has been set yet, this function first creates one in the current default text color from config item `ForeColor` with width `1`.
 - Then writes the requested dash style / dash cap and returns `1`.
 
 **Errors & validation**

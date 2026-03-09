@@ -23,8 +23,8 @@
 - If the target graphics does not exist or has already been disposed, returns `0`.
 - Two-argument form draws at `(0, 0)`.
 - Four-argument form draws at `(x, y)`.
-- Fill / outline behavior follows the current graphics state: the fill uses the current brush or `Config.ForeColor` when no brush is set, and the outline uses the current pen or `Config.ForeColor` when no pen is set.
-- Font behavior follows the current graphics state: if no font has been set with `GSETFONT`, drawing uses `Config.FontName` at size `100` with the current console font style.
+- Fill / outline behavior follows the current graphics state: the fill uses the current brush or the default text color from config item `ForeColor` when no brush is set, and the outline uses the current pen or that same default color when no pen is set.
+- Font behavior follows the current graphics state: if no font has been set with `GSETFONT`, drawing uses the default font family from config item `FontName` at size `100` with the current console font style.
 - On success returns `1`, stores measured width in `RESULT:1`, and stores measured height in `RESULT:2`. `RESULT:0` is not used by this function.
 
 **Errors & validation**

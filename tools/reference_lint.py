@@ -16,6 +16,7 @@ import sys
 import re
 
 import reference_common as ref_common
+import reference_config_registry as ref_cfg
 import reference_engine_registry as ref_engine
 
 
@@ -85,6 +86,7 @@ FAIL_ON_CODES = (
     "topic-doc-vague-phrase",
     "structured-syntax-missing-code-block",
     "structured-examples-missing-erabasic-block",
+    "raw-config-surface-implementation-name",
 )
 
 _read_text = ref_common.read_text
@@ -577,6 +579,44 @@ def _parse_argument_bullets(secs: dict[str, list[str]]) -> tuple[list[str], dict
     return order, meta
 
 
+def _literal_name_pattern(name: str) -> re.Pattern[str]:
+    if "." in name:
+        prefix = r"(?<![A-Za-z0-9_])"
+    else:
+        prefix = r"(?<![A-Za-z0-9_.])"
+    return re.compile(prefix + re.escape(name) + r"(?![A-Za-z0-9_])")
+
+
+def _lint_registered_config_surface_names(*, path: Path, kind: str, name: str, lines: list[str]) -> list[ValidationIssue]:
+    if path.name == "config-items.md":
+        return []
+    issues: list[ValidationIssue] = []
+    rel = path.relative_to(REPO_ROOT)
+    regs = ref_cfg.load_config_surface_regs()
+    patterns = [
+        (reg.kind, reg.canonical_term, impl_name, _literal_name_pattern(impl_name))
+        for reg in regs
+        for impl_name in reg.implementation_names
+    ]
+    for line_no, raw in enumerate(lines, start=1):
+        raw_l = raw.lower()
+        if "implementation property" in raw_l or "implementation accessor" in raw_l or "implementation-facing" in raw_l:
+            continue
+        for surface_kind, canonical_term, impl_name, pat in patterns:
+            if not pat.search(raw):
+                continue
+            issues.append(
+                ValidationIssue(
+                    severity="WARN",
+                    code="raw-config-surface-implementation-name",
+                    kind=kind,
+                    name=name,
+                    message=f"{rel}:{line_no}: references {surface_kind} `{canonical_term}` via implementation name `{impl_name}`; use the canonical spec term or mark this as an implementation mapping note.",
+                )
+            )
+    return issues
+
+
 def _line_pattern_issues(*, path: Path, kind: str, name: str, lines: list[str], source_path_code: str, internal_symbol_code: str, vague_code: str, check_required_marker: bool = True, source_path_exempt_lines: set[int] | None = None, internal_symbol_exempt_lines: set[int] | None = None) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
     rel = path.relative_to(REPO_ROOT)
@@ -912,6 +952,7 @@ def validate_builtins_overrides(instr_regs: list[InstructionReg], method_regs: l
     def check_override_file(kind: str, name: str, path: Path, secs: dict[str, list[str]]) -> None:
         rel = path.relative_to(REPO_ROOT)
         issues.extend(_line_pattern_issues(path=path, kind=kind, name=name, lines=_lines(path), source_path_code="user-doc-source-path-leak", internal_symbol_code="user-doc-internal-symbol-leak", vague_code="banned-vague-phrase", check_required_marker=False))
+        issues.extend(_lint_registered_config_surface_names(path=path, kind=kind, name=name, lines=_lines(path)))
         issues.extend(_lint_override_structure(path=path, kind=kind, name=name, secs=secs))
         issues.extend(_lint_override_required_markers(path=path, kind=kind, name=name))
         issues.extend(_lint_override_argument_wording(path=path, kind=kind, name=name))
@@ -1033,6 +1074,7 @@ def validate_authored_docs() -> list[ValidationIssue]:
             reference_exempt_lines = set(range(1, len(lines) + 1))
 
         issues.extend(_line_pattern_issues(path=path, kind="doc", name=doc_name, lines=lines, source_path_code="topic-doc-source-path-leak", internal_symbol_code="topic-doc-internal-symbol-leak", vague_code="topic-doc-vague-phrase", check_required_marker=False, source_path_exempt_lines=reference_exempt_lines, internal_symbol_exempt_lines=reference_exempt_lines))
+        issues.extend(_lint_registered_config_surface_names(path=path, kind="doc", name=doc_name, lines=lines))
 
         seen_anchor_lines: dict[str, int] = {}
         for line_no, raw in enumerate(lines, start=1):

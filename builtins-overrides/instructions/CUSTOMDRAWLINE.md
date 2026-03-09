@@ -14,8 +14,8 @@
 **Semantics**
 - Skipped when output skipping is active (via `SKIPDISP`).
 - Expands `<pattern>` to a full-width bar using the engine’s “custom bar” algorithm:
-  - Measure is based on rendered display width (using the configured default font and `DrawableWidth`).
-  - Repeats `<pattern>` until the measured width reaches/exceeds `DrawableWidth`, then removes characters from the end until it fits.
+  - Measure is based on rendered display width using the configured default font and the derived runtime value `drawable width` (see `config-items.md`).
+  - Repeats `<pattern>` until the measured width reaches/exceeds that width, then removes characters from the end until it fits.
 - Prints the expanded bar with font style forced to `Regular`, then prints a newline.
 
 **Errors & validation**
