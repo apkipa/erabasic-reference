@@ -27,6 +27,7 @@
   - Resolves the source filename as `txt{source:00}.txt` in the normal save-text directory, or the forced save-text directory when `forceSavdir != 0`.
 - Explicit-path mode (`source` is string):
   - Applies the same safe relative-path normalization used by `EXISTFILE`.
+  - So parent-directory segments such as `../` / `..\` are stripped rather than rejected.
   - If normalization fails, returns `""`.
   - The path must already have an extension present in config item `ValidExtension`; otherwise returns `""`.
   - `forceSavdir` is ignored.
@@ -36,6 +37,7 @@
   - detects encoding as UTF-8 with BOM / UTF-8 when valid, otherwise falls back to Shift-JIS,
   - removes every `` character from the loaded text before returning it,
   - returns `""` on any failure.
+- Path-handling family for explicit-path mode: see `filesystem-paths.md` Family A.
 
 **Errors & validation**
 - None; failure paths return `""`.

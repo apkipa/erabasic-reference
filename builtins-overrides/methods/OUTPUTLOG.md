@@ -37,7 +37,9 @@
   - if `<filename>` is omitted or `""`, the path is `ExeDir/emuera.log`,
   - otherwise the engine builds the path by raw string concatenation: `ExeDir + <filename>`,
   - if that resulting path text contains literal `../`, the call is rejected,
+  - backslash parent-directory text such as `..\` is not specially stripped or rejected before the host file API sees the path,
   - the host also applies a raw string-prefix check against `ExeDir`; this is not a canonicalized path-safety check.
+- Path-handling family: see `filesystem-paths.md` Family B.
 - On successful file creation while the window exists, the host appends a normal **system line** announcing the created log file.
   - That announcement happens **after** the file has already been written, so the just-written file does not contain its own success message.
   - Because that success path uses the normal system-line path, any pending print buffer may become visible on screen at that point even though it was not included in the file.

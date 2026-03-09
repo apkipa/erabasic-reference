@@ -146,6 +146,7 @@ These built-ins do **not** all use the same path-base rule as sprite lookup.
 Compatibility consequence:
 
 - `PLAYSOUND` / `PLAYBGM` and `EXISTSOUND` usually point at the same `sound/` tree in ordinary launches, but they are not implemented through the same helper and should not be treated as byte-for-byte identical path-resolution APIs.
+- The cross-built-in path families are summarized centrally in `filesystem-paths.md`.
 
 ## 7) Supported image and audio format contract
 

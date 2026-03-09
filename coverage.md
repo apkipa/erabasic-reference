@@ -341,7 +341,7 @@ Where described today:
 
 - ✅ Common filesystem-touching helpers relied on by games are now documented:
   - `EXISTFILE`, `ENUMFILES`, `SAVETEXT`, `LOADTEXT`, `OUTPUTLOG`, `GCREATEFROMFILE`, `EXISTSOUND`, `GSAVE`, and `GLOAD`
-  - path rules, encoding/newline behavior, and return/error contracts are covered across `builtins-reference.md`, `save-files.md`, `resources-and-sprites.md`, and `output-flow.md`
+  - path rules, encoding/newline behavior, and return/error contracts are covered across `builtins-reference.md`, `filesystem-paths.md`, `save-files.md`, `resources-and-sprites.md`, and `output-flow.md`
 
 ## 12) Host/UI tooling and extensions (deferred)
 

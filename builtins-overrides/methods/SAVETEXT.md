@@ -29,6 +29,7 @@
   - Creates the chosen destination directory if needed.
 - Explicit-path mode (`target` is string):
   - Applies the same safe relative-path normalization used by `EXISTFILE`.
+  - So parent-directory segments such as `../` / `..\` are stripped rather than rejected.
   - If normalization fails, returns `0`.
   - If the path's extension is missing or not present in config item `ValidExtension`, rewrites the extension to `.txt`.
   - Creates any missing parent directories under the resolved path.
@@ -37,6 +38,7 @@
   - writes the exact string content without newline normalization or automatic extra terminators,
   - writes using the runtime save-text encoding; in this build that encoding is UTF-8 with BOM,
   - returns `1` on success and `0` on any failure.
+- Path-handling family for explicit-path mode: see `filesystem-paths.md` Family A.
 
 **Errors & validation**
 - None; failure paths return `0`.

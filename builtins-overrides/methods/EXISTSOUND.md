@@ -21,6 +21,7 @@
 - No safe-path normalization is applied here:
   - subdirectories are allowed,
   - parent-directory segments such as `..` are not stripped before full-path resolution.
+- Path-handling family: see `filesystem-paths.md` Family E.
 
 **Errors & validation**
 - None.

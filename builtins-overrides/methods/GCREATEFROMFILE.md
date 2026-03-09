@@ -26,6 +26,11 @@
 - Format handling:
   - `.webp` is handled explicitly through the engine's WebP loader.
   - other extensions are delegated to the host bitmap loader.
+- Path handling:
+  - rooted / absolute paths are used as-is,
+  - in non-rooted `isRelative == 0` mode, the engine prepends `ExeDir/resources/`,
+  - in non-rooted `isRelative != 0` mode, the engine keeps the path text unchanged,
+  - parent-directory segments such as `..` are not stripped by the engine before file lookup.
 - Success/failure boundary:
   - if that graphics ID already refers to a created graphics surface, returns `0` and does nothing,
   - if the file does not exist, is not loadable as an image, or exceeds the graphics engine's maximum supported image size, returns `0`,
@@ -33,6 +38,7 @@
 - Absolute paths are used directly.
 - Layer boundary:
   - this does not itself print anything or modify the normal output model.
+- Path-handling family: see `filesystem-paths.md` Family C.
 
 **Errors & validation**
 - Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.

@@ -8853,6 +8853,7 @@ ENCODETOUNI "ABC"
 
 **Semantics**
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
+- Parent-directory segments such as `..` are not stripped before that full-path resolution, so the final target is based from `sound/` but not sandboxed inside it.
 - If the file does not exist, no-op.
 - Format handling:
   - `.wav` uses the wave-file loader.
@@ -8862,6 +8863,7 @@ ENCODETOUNI "ABC"
   - There are 10 slots (`0 <= slot <= 9`).
   - The engine prefers the first non-playing slot; if all are playing, it reuses slot `0`.
 - Playback is independent from BGM (`PLAYBGM`).
+- Path-handling family: see `filesystem-paths.md` Family D.
 
 **Errors & validation**
 - Runtime error if the file exists but cannot be decoded/played by the audio backend.
@@ -8910,6 +8912,7 @@ ENCODETOUNI "ABC"
 
 **Semantics**
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
+- Parent-directory segments such as `..` are not stripped before that full-path resolution, so the final target is based from `sound/` but not sandboxed inside it.
 - If the file does not exist, no-op (does not stop any currently playing BGM).
 - Format handling:
   - `.wav` uses the wave-file loader.
@@ -8917,6 +8920,7 @@ ENCODETOUNI "ABC"
   - other extensions are delegated to the host media backend and are therefore not a stable portability guarantee.
 - Otherwise, starts playback on the BGM channel and repeats indefinitely.
   - Starting a new BGM replaces the previous BGM.
+- Path-handling family: see `filesystem-paths.md` Family D.
 
 **Errors & validation**
 - Runtime error if the file exists but cannot be decoded/played by the audio backend.
@@ -14265,6 +14269,7 @@ R = SPRITESETPOS("ICON", 100, 50)
   - Creates the chosen destination directory if needed.
 - Explicit-path mode (`target` is string):
   - Applies the same safe relative-path normalization used by `EXISTFILE`.
+  - So parent-directory segments such as `../` / `..\` are stripped rather than rejected.
   - If normalization fails, returns `0`.
   - If the path's extension is missing or not present in config item `ValidExtension`, rewrites the extension to `.txt`.
   - Creates any missing parent directories under the resolved path.
@@ -14273,6 +14278,7 @@ R = SPRITESETPOS("ICON", 100, 50)
   - writes the exact string content without newline normalization or automatic extra terminators,
   - writes using the runtime save-text encoding; in this build that encoding is UTF-8 with BOM,
   - returns `1` on success and `0` on any failure.
+- Path-handling family for explicit-path mode: see `filesystem-paths.md` Family A.
 
 **Errors & validation**
 - None; failure paths return `0`.
@@ -14312,6 +14318,7 @@ R = SPRITESETPOS("ICON", 100, 50)
   - Resolves the source filename as `txt{source:00}.txt` in the normal save-text directory, or the forced save-text directory when `forceSavdir != 0`.
 - Explicit-path mode (`source` is string):
   - Applies the same safe relative-path normalization used by `EXISTFILE`.
+  - So parent-directory segments such as `../` / `..\` are stripped rather than rejected.
   - If normalization fails, returns `""`.
   - The path must already have an extension present in config item `ValidExtension`; otherwise returns `""`.
   - `forceSavdir` is ignored.
@@ -14322,6 +14329,7 @@ R = SPRITESETPOS("ICON", 100, 50)
   - removes every `
 ` character from the loaded text before returning it,
   - returns `""` on any failure.
+- Path-handling family for explicit-path mode: see `filesystem-paths.md` Family A.
 
 **Errors & validation**
 - None; failure paths return `""`.
@@ -14556,6 +14564,11 @@ R = GCREATE(GID, 640, 480)
 - Format handling:
   - `.webp` is handled explicitly through the engine's WebP loader.
   - other extensions are delegated to the host bitmap loader.
+- Path handling:
+  - rooted / absolute paths are used as-is,
+  - in non-rooted `isRelative == 0` mode, the engine prepends `ExeDir/resources/`,
+  - in non-rooted `isRelative != 0` mode, the engine keeps the path text unchanged,
+  - parent-directory segments such as `..` are not stripped by the engine before file lookup.
 - Success/failure boundary:
   - if that graphics ID already refers to a created graphics surface, returns `0` and does nothing,
   - if the file does not exist, is not loadable as an image, or exceeds the graphics engine's maximum supported image size, returns `0`,
@@ -14563,6 +14576,7 @@ R = GCREATE(GID, 640, 480)
 - Absolute paths are used directly.
 - Layer boundary:
   - this does not itself print anything or modify the normal output model.
+- Path-handling family: see `filesystem-paths.md` Family C.
 
 **Errors & validation**
 - Runtime error if the host is using the `WINAPI` text-drawing mode; this method is GDI+-only.
@@ -15595,7 +15609,9 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
   - if `<filename>` is omitted or `""`, the path is `ExeDir/emuera.log`,
   - otherwise the engine builds the path by raw string concatenation: `ExeDir + <filename>`,
   - if that resulting path text contains literal `../`, the call is rejected,
+  - backslash parent-directory text such as `..\` is not specially stripped or rejected before the host file API sees the path,
   - the host also applies a raw string-prefix check against `ExeDir`; this is not a canonicalized path-safety check.
+- Path-handling family: see `filesystem-paths.md` Family B.
 - On successful file creation while the window exists, the host appends a normal **system line** announcing the created log file.
   - That announcement happens **after** the file has already been written, so the just-written file does not contain its own success message.
   - Because that success path uses the normal system-line path, any pending print buffer may become visible on screen at that point even though it was not included in the file.
@@ -15759,12 +15775,13 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 **Semantics**
 - Normalizes the supplied path before checking:
   - `/` is converted to `\`,
-  - literal parent-directory segments `..\` are stripped,
+  - literal parent-directory segments are stripped after that slash normalization, so both `../` and `..\` are removed rather than rejected,
   - rooted / absolute paths are rejected.
 - The resulting relative path is resolved under the executable directory.
 - Returns `1` if the resolved path exists and is a file.
 - Returns `0` if normalization fails or the resolved file does not exist.
 - This API does **not** apply the `LOADTEXT` / `SAVETEXT` extension allow-list.
+- Path-handling family: see `filesystem-paths.md` Family A.
 
 **Errors & validation**
 - None.
@@ -16223,6 +16240,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
 
 **Semantics**
 - Resolves `dir` using the same safe relative-path normalization used by `EXISTFILE`.
+  - So parent-directory segments such as `../` / `..\` are stripped rather than rejected.
 - Returns `-1` if normalization fails or the resolved directory does not exist.
 - Enumerates files using the host filesystem's wildcard matching rules.
 - If `recursive == 0`, searches only the top directory.
@@ -16235,6 +16253,7 @@ PRINTVL HTML_STRINGLINES("AB<b>CD</b>", 4)
   - This is `min(foundCount, destinationLength)`, not the total number of matches when truncation occurs.
 - The destination is not cleared beyond the copied prefix.
 - Returns `-1` if enumeration throws.
+- Path-handling family: see `filesystem-paths.md` Family A.
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine's function-method argument checker.
@@ -18353,6 +18372,7 @@ ARRAYMSORTEX(A, SORT_TARGETS, 1)
 - No safe-path normalization is applied here:
   - subdirectories are allowed,
   - parent-directory segments such as `..` are not stripped before full-path resolution.
+- Path-handling family: see `filesystem-paths.md` Family E.
 
 **Errors & validation**
 - None.

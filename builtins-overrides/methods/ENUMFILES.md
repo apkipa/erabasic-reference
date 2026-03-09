@@ -21,6 +21,7 @@
 
 **Semantics**
 - Resolves `dir` using the same safe relative-path normalization used by `EXISTFILE`.
+  - So parent-directory segments such as `../` / `..\` are stripped rather than rejected.
 - Returns `-1` if normalization fails or the resolved directory does not exist.
 - Enumerates files using the host filesystem's wildcard matching rules.
 - If `recursive == 0`, searches only the top directory.
@@ -33,6 +34,7 @@
   - This is `min(foundCount, destinationLength)`, not the total number of matches when truncation occurs.
 - The destination is not cleared beyond the copied prefix.
 - Returns `-1` if enumeration throws.
+- Path-handling family: see `filesystem-paths.md` Family A.
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine's function-method argument checker.
