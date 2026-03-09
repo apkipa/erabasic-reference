@@ -252,7 +252,7 @@ Typical-game compatibility requires a subset of “UI-ish” built-ins to be spe
   - temporary trailing line as a distinct visible state rather than just buffered text
 - 🟡 Remaining output-edge details:
   - the shared pending-buffer/materialization model is documented
-  - remaining gaps are mainly newline/layout/wrapping/clipping rules, plus a few producer-specific “buffer vs temporary line vs system line” notes
+  - remaining gaps are mainly the non-HTML newline/layout/wrapping/clipping/width-measurement rules, plus a few producer-specific “buffer vs temporary line vs system line” notes
 - ✅ Output skipping baseline:
   - `SKIPDISP` suppresses output producers at the producer side rather than merely hiding already-produced output
   - reaching input while `SKIPDISP`-driven skipping is active is an error boundary, not a hidden auto-input path
@@ -289,14 +289,17 @@ Where described today:
 - ✅ Choice/input-request entry conditions and shared submission paths:
   - how waits become active (explicit input instructions vs selectable buttons already present)
   - button-click submission vs textbox submission, including the boundary against `CBG` hit-maps
-- 🟡 Integer input parsing contract:
+- ✅ Integer input parsing / rejection contract:
   - shared trimming/sign/rejection behavior is documented
-  - per-prompt retry/default rules and host-side invalid-input messaging still need fuller per-built-in coverage
-- 🟡 Time-limited input and request-kind differences beyond the shared model (per built-in timeout/cancel/result contracts).
-- 🟡 Blocking input instructions and their observable effects on output:
+  - per-family default/retry rules are documented for the `INPUT*` / `BINPUT*` / `TINPUT*` families
+  - rejection-side host UX (textbox clearing, no separate warning/system line) is documented
+- ✅ Time-limited input and request-kind differences beyond the shared model:
+  - `TINPUT*`, `TWAIT`, and `INPUTMOUSEKEY` timeout/result contracts are documented
+  - primitive waits explicitly document that this host exposes no separate cancel event beyond ordinary key/mouse events plus timeout
+- ✅ Blocking input instructions and their observable effects on output:
   - the shared wait/submission flow is documented
-  - per built-in flush points and timeout/cancel return values still need fuller catalog coverage
-- 🟡 Keyboard/mouse state built-ins and their interaction with the input loop:
+  - visibility-before-wait / flush behavior is documented for `WAIT` / `WAITANYKEY` / `FORCEWAIT` / `TWAIT` / `BINPUT*`, with the shared materialization rule centralized in `output-flow.md`
+- ✅ Keyboard/mouse state built-ins and their interaction with the input loop:
   - `GETKEY`, `GETKEYTRIGGERED`, `MOUSEX`, `MOUSEY`, `MOUSEB`, `MOUSESKIP` (coordinate system, polling vs event semantics, and when values update)
 - ✅ Mouse input “mapping color” side channel for `<img srcm='...'>`:
   - how the mapping sprite is selected and sampled

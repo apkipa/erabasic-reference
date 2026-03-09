@@ -11490,6 +11490,10 @@ PRINTFORML RESULTS:1 = %RESULTS:1%
 - Enters a wait state for *primitive* input events (not text box submission).
 - See also: `input-flow.md` (how primitive waits differ from textbox-segmentation waits) and `cbg-layer.md` (why `RESULT:4` is a separate CBG hit-map channel rather than an ordinary output-button value).
 - This instruction is **not** skipped by output skipping (`SKIPDISP`) because it is not a print-skip instruction.
+- This host does **not** define a separate cancel/abort payload for this instruction:
+  - Esc is reported on the ordinary key-press path,
+  - right/middle click are reported on the ordinary mouse-down path,
+  - only timer expiry produces the dedicated timeout event kind.
 - When an event occurs, the engine resumes script execution and assigns `RESULT_ARRAY[0]` through `RESULT_ARRAY[5]` (i.e. `RESULT` and `RESULT:1` through `RESULT:5`) as follows.
 
 Event type (`RESULT`):

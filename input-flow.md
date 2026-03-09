@@ -177,6 +177,12 @@ It waits for primitive mouse/key/timeout events and reports them through its own
 
 It still follows the same high-level rule that an accepted event resumes script execution immediately, but it does not consume textbox segments and does not participate in the multi-segment submission-pass model.
 
+On this host, that primitive path also does **not** define a separate “cancel/abort” outcome:
+
+- Esc is reported as an ordinary key event,
+- right/middle mouse buttons are reported as ordinary mouse-button events,
+- only timer expiry produces the dedicated timeout event kind.
+
 ## 4) Generic acceptance and rejection effects
 
 This section describes the **shared** effects around textbox/button-based completion.
@@ -204,6 +210,12 @@ For acceptance models that can reject submitted text (for example invalid intege
 - script execution does not resume yet,
 - the rejected text is not echoed,
 - acceptance-side `RESULT*` writes do not occur for that segment.
+
+Host UI note for keyboard/textbox submission:
+
+- the textbox widget is cleared as part of the submission attempt before acceptance is decided,
+- so an ordinary rejection does not leave the rejected text in the host textbox,
+- and the host does not print a separate warning/system line just for that rejection.
 
 A rejected segment does **not** by itself terminate the surrounding submission pass; later segments from the same submission may still be tried.
 
