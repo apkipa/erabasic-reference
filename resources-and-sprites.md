@@ -1,4 +1,4 @@
-# Resources and Sprites (`resources/`) (Emuera EvilMask)
+# Resources, Sprites, and Media Files (`resources/`, `sound/`) (Emuera EvilMask)
 
 This engine loads image resources from `ExeDir/resources/` into a **sprite dictionary** that is used by:
 
@@ -6,7 +6,11 @@ This engine loads image resources from `ExeDir/resources/` into a **sprite dicti
 - `PRINT_IMG`
 - sprite-related built-ins such as `SPRITEGETCOLOR`, `SPRITEWIDTH/HEIGHT`, `CBGSETSPRITE`, etc.
 
-This document specifies the **observable contracts** needed to reimplement sprite name resolution and the `resources/**/*.csv` loader.
+This document specifies the **observable contracts** needed to reimplement:
+
+- sprite name resolution and the `resources/**/*.csv` loader,
+- direct image loading used by `GCREATEFROMFILE`,
+- and direct audio path resolution used by `PLAYSOUND`, `PLAYBGM`, and `EXISTSOUND`.
 
 ## 1) Load point and directory enumeration
 
@@ -120,3 +124,68 @@ Sprite lookup by name (e.g. `<img src='NAME'>`) behaves as:
 - Therefore ASCII names behave case-insensitively under this mapping, while non-ASCII names follow the current culture’s uppercase mapping.
 
 If lookup fails, HTML `<img ...>` falls back to displaying the tag as literal text (see `html-output.md`).
+
+## 6) Directory roots used by direct file-based image/audio built-ins
+
+These built-ins do **not** all use the same path-base rule as sprite lookup.
+
+- Sprite lookup (`<img src='...'>`, `PRINT_IMG`, sprite built-ins) uses the already-loaded sprite dictionary from `resources/**/*.csv`.
+  - It does **not** resolve a filename at call time.
+- `GCREATEFROMFILE` loads an image file directly.
+  - If the path is rooted/absolute, it is used as-is.
+  - If the path is non-rooted and `isRelative == 0`, the engine prepends `ExeDir/resources/`.
+  - If the path is non-rooted and `isRelative != 0`, the engine uses the given path text as-is.
+- `PLAYSOUND` and `PLAYBGM` load audio files directly.
+  - They resolve the path as `Path.GetFullPath(ExeDir/sound/ + filename)`.
+  - Missing files are ignored (no-op).
+- `EXISTSOUND` is similar in purpose but **not** identical in path handling.
+  - It resolves the path as `Path.GetFullPath("./sound/" + mediaFile)` under the current working directory.
+  - It does not use the runtime's `Program.SoundDir` field.
+  - It does not apply the safe relative-path normalization used by `EXISTFILE`.
+
+Compatibility consequence:
+
+- `PLAYSOUND` / `PLAYBGM` and `EXISTSOUND` usually point at the same `sound/` tree in ordinary launches, but they are not implemented through the same helper and should not be treated as byte-for-byte identical path-resolution APIs.
+
+## 7) Supported image and audio format contract
+
+### 7.1 Images
+
+The common image-loading surface used by sprite CSV entries and `GCREATEFROMFILE` is:
+
+- explicit `.webp` handling through the bundled native WebP loader,
+- otherwise the host bitmap loader (`System.Drawing.Bitmap`) for other image extensions.
+
+Observable contract:
+
+- `.webp` is intentionally supported by this engine build.
+- Other image formats follow whatever the host bitmap loader accepts.
+- If `.webp` support is unavailable at runtime (for example native library load failure) or decoding fails, the load fails the same way as any other invalid image.
+
+### 7.2 Audio
+
+The common audio-loading surface used by `PLAYSOUND` and `PLAYBGM` is:
+
+- direct `.wav` loading,
+- direct `.ogg` loading,
+- delegation of all other extensions to the host media backend.
+
+Compatibility reading rule:
+
+- `.wav` and `.ogg` are the stable audio formats this reference treats as portable script-visible compatibility surface.
+- Other extensions may still work on some hosts, but that behavior is backend-dependent and is **not** promised as a stable cross-host contract here.
+
+## 8) Shared failure model for common resource built-ins
+
+- Sprite CSV image entries:
+  - missing/unloadable images produce a warning and the sprite definition is ignored.
+  - oversized images (`> 8192` in either dimension) are accepted with a warning.
+- `GCREATEFROMFILE`:
+  - returns `0` if the target graphics ID already exists, the file is missing, decoding fails, or the decoded image exceeds the graphics size limit.
+  - raises a runtime error only for the GDI+-only / invalid-ID argument boundaries described in its built-in entry.
+- `PLAYSOUND` / `PLAYBGM`:
+  - missing files are ignored.
+  - if the file exists but the audio backend cannot open/decode/play it, execution raises a runtime error.
+- `EXISTSOUND`:
+  - returns `1` only when the resolved path exists as a file.
+  - otherwise returns `0`; it does not report richer failure detail.

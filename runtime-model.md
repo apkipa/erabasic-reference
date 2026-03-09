@@ -432,7 +432,14 @@ This happens:
 
 ERH-defined user variables exist outside any call frame and can be marked with persistence keywords like `SAVEDATA`, `GLOBAL`, and `CHARADATA`.
 
-Their exact persistence and save/load semantics are out of scope for this doc, but their existence and name resolution affects parsing and execution.
+This document only records the runtime-execution boundary relevant here: these variables live outside the call stack, so their storage is not created/destroyed by ordinary function entry/return.
+
+Their persistence partitions, reset boundaries, and save/load semantics are specified elsewhere:
+
+- `variables.md` — storage classes, reset behavior, and which buckets survive/reset under each engine operation
+- `save-files.md` — on-disk save/global-save partitions and load/write behavior
+
+So this is "out of scope for this document", not an unspecified part of the overall reference.
 
 ## 8) User-defined expression functions (`#FUNCTION/#FUNCTIONS`)
 

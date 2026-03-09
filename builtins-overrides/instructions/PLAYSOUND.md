@@ -15,6 +15,10 @@
 **Semantics**
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
 - If the file does not exist, no-op.
+- Format handling:
+  - `.wav` uses the wave-file loader.
+  - `.ogg` uses the Vorbis loader.
+  - other extensions are delegated to the host media backend and are therefore not a stable portability guarantee.
 - Otherwise, starts playback on a “sound effect slot”:
   - There are 10 slots (`0 <= slot <= 9`).
   - The engine prefers the first non-playing slot; if all are playing, it reuses slot `0`.

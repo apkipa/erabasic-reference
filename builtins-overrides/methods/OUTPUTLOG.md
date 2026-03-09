@@ -1,5 +1,5 @@
 **Summary**
-- Writes the current retained normal output log to a UTF-8-with-BOM text file under the executable-root directory.
+- Writes the current retained normal output log to a UTF-8-with-BOM text file using an `ExeDir`-prefixed path.
 
 **Tags**
 - io
@@ -33,10 +33,11 @@
   - HTML/button markup is stripped,
   - one retained display row becomes one output file line.
 - If `<hideInfo> != 1`, the file begins with environment/title/log header text before the retained output lines.
-- Path restriction model:
-  - output is restricted to the executable-root directory tree,
-  - if the effective path text contains `../`, the call is rejected,
-  - if the effective path is judged outside the executable-root tree, the call is rejected.
+- Path handling is text-based, not `EXISTFILE`-style safe normalization:
+  - if `<filename>` is omitted or `""`, the path is `ExeDir/emuera.log`,
+  - otherwise the engine builds the path by raw string concatenation: `ExeDir + <filename>`,
+  - if that resulting path text contains literal `../`, the call is rejected,
+  - the host also applies a raw string-prefix check against `ExeDir`; this is not a canonicalized path-safety check.
 - On successful file creation while the window exists, the host appends a normal **system line** announcing the created log file.
   - That announcement happens **after** the file has already been written, so the just-written file does not contain its own success message.
   - Because that success path uses the normal system-line path, any pending print buffer may become visible on screen at that point even though it was not included in the file.
@@ -46,7 +47,7 @@
   - Failure is instead signaled by host dialog/error UI and by the absence of the success system line.
 
 **Errors & validation**
-- Invalid path destinations are rejected by host error UI.
+- Textually rejected path strings are rejected by host error UI.
 - File-write failures are rejected by host error UI.
 - No exception-style success/failure code is exposed through the return value.
 

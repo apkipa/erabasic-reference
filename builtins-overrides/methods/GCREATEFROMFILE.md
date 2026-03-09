@@ -23,6 +23,9 @@
 
 **Semantics**
 - Loads an image file and creates the graphics surface at `<graphicsId>` from that image.
+- Format handling:
+  - `.webp` is handled explicitly through the engine's WebP loader.
+  - other extensions are delegated to the host bitmap loader.
 - Success/failure boundary:
   - if that graphics ID already refers to a created graphics surface, returns `0` and does nothing,
   - if the file does not exist, is not loadable as an image, or exceeds the graphics engine's maximum supported image size, returns `0`,

@@ -7,7 +7,7 @@ Generated on `2026-03-09`.
 > Make persistent content changes in `erabasic-reference/builtins-overrides/**` or the generator/tooling inputs, then regenerate this file.
 
 This file is **user-facing**: it contains only human-written documentation overrides.
-Undocumented built-ins are listed but contain only a `(TODO)` placeholder.
+Undocumented built-ins are listed but contain only a `(TODO)` placeholder. If you see a `(TODO)` entry, please report it to the maintainers.
 
 For engine-extracted skeletons, validation structures, and file/line references, see:
 - `erabasic-reference/appendix/tooling/builtins-reference-engine.md` (writer/debug dump; not user-facing)
@@ -8854,6 +8854,10 @@ ENCODETOUNI "ABC"
 **Semantics**
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
 - If the file does not exist, no-op.
+- Format handling:
+  - `.wav` uses the wave-file loader.
+  - `.ogg` uses the Vorbis loader.
+  - other extensions are delegated to the host media backend and are therefore not a stable portability guarantee.
 - Otherwise, starts playback on a “sound effect slot”:
   - There are 10 slots (`0 <= slot <= 9`).
   - The engine prefers the first non-playing slot; if all are playing, it reuses slot `0`.
@@ -8907,6 +8911,10 @@ ENCODETOUNI "ABC"
 **Semantics**
 - Resolves the path by concatenating the engine’s sound directory with `<filename>`, then normalizing to an absolute path.
 - If the file does not exist, no-op (does not stop any currently playing BGM).
+- Format handling:
+  - `.wav` uses the wave-file loader.
+  - `.ogg` uses the Vorbis loader.
+  - other extensions are delegated to the host media backend and are therefore not a stable portability guarantee.
 - Otherwise, starts playback on the BGM channel and repeats indefinitely.
   - Starting a new BGM replaces the previous BGM.
 
@@ -8914,7 +8922,7 @@ ENCODETOUNI "ABC"
 - Runtime error if the file exists but cannot be decoded/played by the audio backend.
 
 **Examples**
-- `PLAYBGM "bgm\\theme.flac"`
+- `PLAYBGM "bgm\\theme.ogg"`
 
 ## STOPBGM (instruction)
 
@@ -14545,6 +14553,9 @@ R = GCREATE(GID, 640, 480)
 
 **Semantics**
 - Loads an image file and creates the graphics surface at `<graphicsId>` from that image.
+- Format handling:
+  - `.webp` is handled explicitly through the engine's WebP loader.
+  - other extensions are delegated to the host bitmap loader.
 - Success/failure boundary:
   - if that graphics ID already refers to a created graphics surface, returns `0` and does nothing,
   - if the file does not exist, is not loadable as an image, or exceeds the graphics engine's maximum supported image size, returns `0`,
@@ -15391,7 +15402,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 **Semantics**
 - If the graphics surface does not exist or has already been disposed, returns `0`.
 - If `fileNo < 0` or `fileNo > 2147483647`, returns `0`.
-- Otherwise writes the bitmap to `sav/img{fileNo:0000}.png`, creating the save directory if needed, and returns `1` on success.
+- Otherwise writes the bitmap to `SavDir/img{fileNo:0000}.png`, creating `SavDir` if needed, and returns `1` on success.
 
 **Errors & validation**
 - Runtime error in `WINAPI` text-drawing mode; these graphics built-ins are GDI+-only.
@@ -15423,7 +15434,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 **Semantics**
 - If the target graphics surface already exists, returns `0` without overwriting it.
 - If `fileNo < 0` or `fileNo > 2147483647`, returns `0`.
-- Loads from `sav/img{fileNo:0000}.png`.
+- Loads from `SavDir/img{fileNo:0000}.png`.
 - If the file does not exist, cannot be decoded, or exceeds the engine image-size limit, returns `0`.
 - On success creates the graphics surface from that image and returns `1`.
 
@@ -15546,7 +15557,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
 ## OUTPUTLOG (expression function)
 
 **Summary**
-- Writes the current retained normal output log to a UTF-8-with-BOM text file under the executable-root directory.
+- Writes the current retained normal output log to a UTF-8-with-BOM text file using an `ExeDir`-prefixed path.
 
 **Tags**
 - io
@@ -15580,10 +15591,11 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
   - HTML/button markup is stripped,
   - one retained display row becomes one output file line.
 - If `<hideInfo> != 1`, the file begins with environment/title/log header text before the retained output lines.
-- Path restriction model:
-  - output is restricted to the executable-root directory tree,
-  - if the effective path text contains `../`, the call is rejected,
-  - if the effective path is judged outside the executable-root tree, the call is rejected.
+- Path handling is text-based, not `EXISTFILE`-style safe normalization:
+  - if `<filename>` is omitted or `""`, the path is `ExeDir/emuera.log`,
+  - otherwise the engine builds the path by raw string concatenation: `ExeDir + <filename>`,
+  - if that resulting path text contains literal `../`, the call is rejected,
+  - the host also applies a raw string-prefix check against `ExeDir`; this is not a canonicalized path-safety check.
 - On successful file creation while the window exists, the host appends a normal **system line** announcing the created log file.
   - That announcement happens **after** the file has already been written, so the just-written file does not contain its own success message.
   - Because that success path uses the normal system-line path, any pending print buffer may become visible on screen at that point even though it was not included in the file.
@@ -15593,7 +15605,7 @@ R = CBGSETBUTTONSPRITE(0x0000FF, "BTN_N", "BTN_H", 100, 40, 10, "Open")
   - Failure is instead signaled by host dialog/error UI and by the absence of the success system line.
 
 **Errors & validation**
-- Invalid path destinations are rejected by host error UI.
+- Textually rejected path strings are rejected by host error UI.
 - File-write failures are rejected by host error UI.
 - No exception-style success/failure code is exposed through the return value.
 

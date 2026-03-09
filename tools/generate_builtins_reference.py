@@ -520,7 +520,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     md_user.append("")
     md_user.append("This file is **user-facing**: it contains only human-written documentation overrides.")
-    md_user.append("Undocumented built-ins are listed but contain only a `(TODO)` placeholder.")
+    md_user.append("Undocumented built-ins are listed but contain only a `(TODO)` placeholder. If you see a `(TODO)` entry, please report it to the maintainers.")
     md_user.append("")
     md_user.append("For engine-extracted skeletons, validation structures, and file/line references, see:")
     md_user.append(f"- `{OUTPUT_ENGINE_MD.relative_to(REPO_ROOT)}` (writer/debug dump; not user-facing)")

@@ -250,12 +250,9 @@ Typical-game compatibility requires a subset of “UI-ish” built-ins to be spe
   - pending print buffer vs visible display-line array vs logical-line grouping
   - separate HTML-island layer outside the normal output/log model
   - temporary trailing line as a distinct visible state rather than just buffered text
-- 🟡 Output buffers and flush points:
-  - which instructions append to the main buffer vs write a “temporary line” vs “system line”
-  - `PRINTFLUSH` behavior (what is flushed, and whether it forces redraw)
-  - newline behavior (what counts as a line break for display and for later retrieval)
-  - alignment and layout behaviors used by typical scripts (`PRINTC`, right-align flags, fixed-width assumptions if any)
-  - display width and wrapping/clipping rules (half-width vs full-width, combining marks/surrogates, and how line breaks are computed)
+- 🟡 Remaining output-edge details:
+  - the shared pending-buffer/materialization model is documented
+  - remaining gaps are mainly newline/layout/wrapping/clipping rules, plus a few producer-specific “buffer vs temporary line vs system line” notes
 - ✅ Output skipping baseline:
   - `SKIPDISP` suppresses output producers at the producer side rather than merely hiding already-produced output
   - reaching input while `SKIPDISP`-driven skipping is active is an error boundary, not a hidden auto-input path
@@ -318,29 +315,33 @@ Where described today:
 
 ### 11.4 Images and sound (commonly used resource built-ins)
 
-- 🟡 Resource lookup and path resolution:
-  - how names map to `resources/` (images) and `sound/` (audio) paths
-  - existence checks and error behavior (`EXIST*` built-ins where applicable)
+- ✅ Resource lookup and path resolution:
+  - sprite names vs direct file-based image/audio paths are now separated explicitly
+  - `GCREATEFROMFILE`, `PLAYSOUND` / `PLAYBGM`, and `EXISTSOUND` path-base differences are now documented
 - ✅ Sprite lookup contract used by `<img src='...'>` / `PRINT_IMG` / sprite built-ins:
   - sprite names are defined by `resources/**/*.csv` and resolved case-insensitively
   - missing sprites fall back to literal-tag text in HTML output
 - ✅ Console background image stack:
   - `SETBGIMAGE` / `REMOVEBGIMAGE` / `CLEARBGIMAGE` (sprite requirements, depth ordering, opacity handling, and removal key matching)
-- 🟡 Supported formats (as an observable contract):
-  - image loading supports `.webp` in addition to the platform’s default image formats; requires native `libwebp.dll` / `libwebp_x86.dll`
-  - sound playback supports `.wav` and `.ogg`
-- 🟡 Failure behavior: missing files, decode failures, and out-of-range parameters (what is returned/printed vs what errors)
+- ✅ Supported formats (as an observable contract):
+  - image loading uses the host bitmap loader plus explicit `.webp` support via the bundled native WebP path
+  - `.wav` / `.ogg` are the stable audio formats this reference treats as portable; other audio extensions are backend-dependent and intentionally not promised
+- ✅ Failure behavior:
+  - missing/decode/size-limit paths are now summarized for sprite CSV loading, `GCREATEFROMFILE`, `PLAYSOUND` / `PLAYBGM`, and `EXISTSOUND`
 
 ### 11.5 Save/load UI behaviors beyond on-disk formats
 
 - ✅ Save/load phase hooks and default fallback behavior when optional hooks are missing.
-- 🟡 Save-slot “sidecar” files written/read by built-ins (often used by games for save/load UIs):
+- ✅ Save-slot “sidecar” files written/read by built-ins (often used by games for save/load UIs):
   - image: `SavDir/img{index:0000}.png` (via `GSAVE/GLOAD`)
-  - text: `SavDir/txt{index:00}.txt` (via `SAVETEXT/LOADTEXT`)
+  - text: `SavDir/txt{index:00}.txt` or `ForceSavDir/txt{index:00}.txt` (via `SAVETEXT/LOADTEXT` numeric-slot mode)
+  - these sidecars are now called out centrally in `save-files.md`
 
 ### 11.6 File-IO helper built-ins used by games
 
-- 🟡 `EXISTFILE` / `GET*` / `SAVE*` / `LOAD*` style helpers that touch the filesystem and are commonly relied on by scripts (paths, encoding, newline normalization, error returns).
+- ✅ Common filesystem-touching helpers relied on by games are now documented:
+  - `EXISTFILE`, `ENUMFILES`, `SAVETEXT`, `LOADTEXT`, `OUTPUTLOG`, `GCREATEFROMFILE`, `EXISTSOUND`, `GSAVE`, and `GLOAD`
+  - path rules, encoding/newline behavior, and return/error contracts are covered across `builtins-reference.md`, `save-files.md`, `resources-and-sprites.md`, and `output-flow.md`
 
 ## 12) Host/UI tooling and extensions (deferred)
 
@@ -368,10 +369,11 @@ These items are **observable engine features** but are deferred because they are
  - ✅ Statement-level grammar + block matching: `grammar.md`.
  - ✅ Expression grammar (EBNF + precedence): `expression-grammar.md`.
  - ✅ FORM/formatted-string subgrammar: `formatted-strings.md`.
-4) 🟡 Finish the **runtime model** for variables, call stack, and control-flow constructs.
-   - 🟡 Core runtime model (stack, events, scopes, and event-dispatch mechanics) exists but still has gaps: `runtime-model.md`.
+4) ✅ Finish the **runtime model** for variables, call stack, and control-flow constructs.
+   - ✅ The runtime-execution core is now covered across `runtime-model.md` (stack / events / scopes / method execution), `control-flow.md` (block and loop runtime behavior), `variables.md` (storage classes / reset boundaries), and `save-files.md` (save/load partitions that affect runtime-visible state).
+   - ✅ Remaining partial items nearby are tracked under their own sections (for example malformed-block diagnostic matrices in §5.3), not as a missing runtime-model core.
 5) 🟡 Specify the **system phase state machine** (host flow) as a reimplementable contract (TITLE/SHOP/TRAIN/...).
    - ✅ Core phase/state-machine contract is now documented in `system-flow.md`; remaining gaps are mainly narrower config/data-driven detail.
 6) 🟡 Specify **typical-game UI contracts** for output/input/HTML and the commonly used UI built-ins.
-   - 🟡 Shared output/input/HTML models are mostly documented; remaining gaps are concentrated in per-built-in edge contracts and some resource/file helper surfaces.
+   - 🟡 Shared output/input/HTML models and the common resource/file helper surfaces are mostly documented; remaining gaps are concentrated in some per-built-in input edge contracts and output layout/width details.
 7) ⛔ Add a **conformance test suite plan** (golden tests) that validates parsing + typical-game execution, plus a minimal host-flow harness.

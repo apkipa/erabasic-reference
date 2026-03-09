@@ -54,6 +54,18 @@ In this engine, some call sites derive the `{name}` portion from an integer slot
 
 The engine also provides an enumeration helper that lists `dat/var_*.dat` or `dat/chara_*.dat` with a wildcard pattern and extracts the `{name}` portion by stripping the prefix and the `.dat` extension.
 
+### 1.5 Sidecar files used by save/load helper built-ins
+
+Some save/load-related built-ins use separate helper files outside the main `.sav` payloads:
+
+- `GSAVE/GLOAD` use `SavDir/img{index:0000}.png`.
+  - These are ordinary PNG files stored alongside the current save directory, not embedded inside `save*.sav`.
+- `SAVETEXT/LOADTEXT` numeric-slot mode uses `txt{index:00}.txt`.
+  - Default numeric-slot path: `SavDir/txt{index:00}.txt`
+  - Forced-save-dir path (`forceSavdir != 0`): `ForceSavDir/txt{index:00}.txt`
+
+Here `ForceSavDir` is always `<ExeDir>/sav/`, while `SavDir` follows the `UseSaveFolder` rule from §1.2.
+
 ## 2) Persistence partitions (what gets saved where)
 
 This engine’s persistence model is not “everything is always saved”. Instead, variables are partitioned into multiple buckets, and different save/load actions touch different buckets.
