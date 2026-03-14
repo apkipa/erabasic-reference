@@ -6,10 +6,10 @@
 - io
 
 **Syntax**
-- `PRINTSDW <text>`
+- `PRINTSDW <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

@@ -6,10 +6,11 @@
 - io
 
 **Syntax**
-- `PRINTVL <value1> [, <value2> ...]`
+- `PRINTVL <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

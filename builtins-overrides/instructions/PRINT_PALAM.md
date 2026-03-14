@@ -36,6 +36,7 @@
       - `name + "[" + barFill + "]" + paramText`
       - where `paramText` is `param` formatted as a decimal integer right-aligned in width 6 (equivalent to C# interpolated `{param,6}` under `CultureInfo.InvariantCulture`).
 - Each produced cell string is printed via `PRINTC`-style output with right alignment.
+  - Therefore, cell width/counting follows `PRINTC`'s hardcoded Shift-JIS byte-count rule (code page 932), not derived runtime value `LanguageCodePage`.
 - Keeps a per-line cell counter:
   - After each printed cell, `count += 1`.
   - If config item `PrintCPerLine` is greater than `0` and `count % PrintCPerLine == 0`, it flushes pending output.

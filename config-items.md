@@ -64,7 +64,9 @@ The full table in this section still lists *all* config items (including UI-only
 - `CompatiCallEvent`: allows `CALL` on event functions (compat toggle).
 - `CompatiErrorLine`: if disabled, the engine exits after load when there were uninterpretable lines; if enabled it continues (important for strict acceptance criteria).
 - `SystemIgnoreTripleSymbol`: disables triple-symbol expansion inside formatted strings (`FORM` parsing).
-- `useLanguage`: affects byte-length based string operations via `LangManager` (string length/substr semantics depend on chosen legacy code page).
+- `useLanguage`: selects two derived runtime values:
+  - `LanguageLCID`, passed to Visual Basic `.NET` `Strings.StrConv(..., Wide/Narrow, ...)` in `TOHALF` / `TOFULL`
+  - `LanguageCodePage`, used by `LangManager` byte-length and byte-index string helpers
 
 ## 5) Main config items (emuera.config + default/fixed layers)
 
@@ -127,6 +129,7 @@ The full table in this section still lists *all* config items (including UI-only
 | `CompatiDRAWLINE` | `bool` | `false` | `DRAWLINEを常に新しい行で行う` | `Always start DRAWLINE in a new line` |
 | `CompatiFunctionNoignoreCase` | `bool` | `false` | `関数・属性については大文字小文字を無視しない` | `Do not ignore case for functions and attributes` |
 | `SystemAllowFullSpace` | `bool` | `true` | `全角スペースをホワイトスペースに含める` | `Whitespace includes full-width space` |
+| `SystemSaveInUTF8` | `bool` | `false` | `セーブデータをUTF-8で保存する` | `Use UTF-8 format for save data (only in non-binary)` |
 | `CompatiLinefeedAs1739` | `bool` | `false` | `ver1739以前の非ボタン折り返しを再現する` | `Reproduce wrapping behavior like in pre ver1739` |
 | `useLanguage` | `UseLanguage` | `UseLanguage.JAPANESE` | `内部で使用する東アジア言語` | `Default ANSI encoding` |
 | `AllowLongInputByMouse` | `bool` | `false` | `ONEINPUT系命令でマウスによる2文字以上の入力を許可する` | `Allow long input by mouse for ONEINPUT` |
@@ -169,6 +172,20 @@ The full table in this section still lists *all* config items (including UI-only
 | `RikaiColorText` | `Color` | `255,255,255` | `ポップアップの文字色` | `Rikai- Text Color` |
 | `RikaiUseSeparateBoxes` | `bool` | `true` | `翻訳中の語句を強調表示する` | `Rikai- Use Separate Boxes` |
 | `Ctrl_Z_Enabled` | `bool` | `false` | `Ctrl-Zで元に戻す機能を有効にする` | `Enable undo with ctrl-z` |
+
+Compatibility note:
+
+- Config item `SystemSaveInUTF8` is accepted by the loader and appears in the UI/config surface, but this build does not wire it into the current text-save writer path.
+- Current text-save writes such as `SAVETEXT` and non-binary save files still use UTF-8 with BOM regardless of config item `SystemSaveInUTF8`.
+- Rikai-related config items are an auxiliary popup-dictionary subsystem rather than core ERB semantics.
+- When that subsystem is enabled, config item `RikaiFilename` points to dictionary data consumed as EUC-JP-oriented EDICT bytes in the current implementation, with a generated/read sidecar index file at `RikaiFilename + ".ind"`.
+- Config item `UseKeyMacro` gates a separate keyboard-macro subsystem backed by `ExeDir/macro.txt`.
+  - Its save path writes with implementation property `Config.Encode`; in this build that is effectively fixed to UTF-8 with BOM.
+  - Its load path uses the shared `EraStreamReader` text-file path, so reading follows the normal text-file detection rules from `data-files.md`.
+  - For host-side load/save timing, file format, and UI-language interaction quirks, see `host-aux-files.md`.
+- Debug UI auxiliary files under `ExeDir/debug/` currently split across two encoding paths:
+  - `debug/watchlist.csv` and `debug/console.log` write with implementation property `Config.Encode`; `watchlist.csv` is also read back with that same encoding directly rather than with auto-detection.
+  - config item `DisplayReport` enables boot timing output to `ExeDir/time.log`, but that file is opened through `new StreamWriter(FileStream)` with no explicit encoding argument, so it does **not** use implementation property `Config.Encode` or implementation property `Config.SaveEncode`.
 
 ## 6) Debug config items (debug.config)
 
@@ -215,6 +232,8 @@ These entries are **not** config items:
 |---|---|---|
 | `ShapePositionShift` | `TextDrawingMode`, `FontSize` | `DrawingParam_ShapePositionShift` |
 | `DrawableWidth` | `WindowX`, `ShapePositionShift` | `DrawableWidth`, `Config.DrawableWidth` |
+| `LanguageLCID` | `useLanguage` | `Config.Language` |
+| `LanguageCodePage` | `useLanguage` | `LangManager.setEncode(...)`, `LangManager.lang` |
 
 ### 8.1 ShapePositionShift
 
@@ -237,3 +256,34 @@ These entries are **not** config items:
 - Implementation mapping:
   - implementation property uses the same spelling: `DrawableWidth`.
   - Some code paths expose the same value through implementation-facing accessor spelling `Config.DrawableWidth`; that accessor name is not a config item.
+
+### 8.3 LanguageLCID
+
+- Kind: derived runtime value (not a config item; not accepted by the config loader).
+- Definition:
+  - if `useLanguage = UseLanguage.JAPANESE`, `LanguageLCID = 0x0411`
+  - if `useLanguage = UseLanguage.KOREAN`, `LanguageLCID = 0x0412`
+  - if `useLanguage = UseLanguage.CHINESE_HANS`, `LanguageLCID = 0x0804`
+  - if `useLanguage = UseLanguage.CHINESE_HANT`, `LanguageLCID = 0x0404`
+- Observable role:
+  - This locale ID is passed to Visual Basic `.NET` `Strings.StrConv(..., Wide/Narrow, LanguageLCID)` for `TOFULL` and `TOHALF`.
+  - In the open-source `.NET` implementation, that path maps to Windows `LCMAP_FULLWIDTH` / `LCMAP_HALFWIDTH`.
+- Compatibility note:
+  - Based on the open-source implementations inspected (`.NET`, Wine, ReactOS), the actual `FULLWIDTH` / `HALFWIDTH` mapping logic is effectively locale-invariant across the East Asian locales accepted here.
+  - The locale ID is still part of the observable call path because the engine passes derived runtime value `LanguageLCID` through unchanged.
+- Implementation mapping:
+  - implementation property `Config.Language`.
+
+### 8.4 LanguageCodePage
+
+- Kind: derived runtime value (not a config item; not accepted by the config loader).
+- Definition:
+  - if `useLanguage = UseLanguage.JAPANESE`, `LanguageCodePage = 932`
+  - if `useLanguage = UseLanguage.KOREAN`, `LanguageCodePage = 949`
+  - if `useLanguage = UseLanguage.CHINESE_HANS`, `LanguageCodePage = 936`
+  - if `useLanguage = UseLanguage.CHINESE_HANT`, `LanguageCodePage = 950`
+- Observable role:
+  - This code page controls `LangManager` byte-count and byte-index string helpers such as `STRLENS`, `SUBSTRING`, and the `%...%` width adjustment used by formatted strings.
+- Implementation mapping:
+  - implementation helper `LangManager.setEncode(...)`.
+  - implementation field `LangManager.lang`.

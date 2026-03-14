@@ -30,6 +30,7 @@
     - If replace item `MoneyFirst` is true: `[{i}] {name}({currencyLabel}{price})`
     - Otherwise: `[{i}] {name}({price}{currencyLabel})`
   - Prints the cell using `PRINTC`-style formatting with left alignment.
+    - Therefore, cell width/counting follows `PRINTC`'s hardcoded Shift-JIS byte-count rule (code page 932), not derived runtime value `LanguageCodePage`.
   - Let `cellsPerLine` be config item `PrintCPerLine`; if `cellsPerLine > 0`, the instruction flushes every `cellsPerLine` printed cells.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.

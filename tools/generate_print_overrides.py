@@ -81,14 +81,14 @@ def _sections_for_print_base(name: str) -> dict[str, list[str]]:
             "Syntax": [
                 "- `PRINT`",
                 "- `PRINT <raw text>`",
-                "- `PRINT;<raw text>`",
+                "- `PRINT;[<raw text>]`",
             ],
             "Arguments": [
-                '- `<raw text>` (optional, default `""`): raw text, not an expression.',
+                '- `<raw text>` (optional, raw text, default `""`): raw text, not an expression.',
                 "- `<raw text>` is taken as the raw character sequence after the instruction delimiter.",
                 "- The parser consumes exactly one delimiter character after the keyword:",
                 "  - a single space / tab",
-                "  - or a full-width space if `SystemAllowFullSpace` is enabled",
+                "  - or a full-width space if config item `SystemAllowFullSpace` is enabled",
                 "  - or a semicolon `;`",
                 "- Because only *one* delimiter character is consumed:",
                 "  - `PRINT X` prints `X` (the one space was consumed as delimiter).",
@@ -227,32 +227,30 @@ def _sections_for_print_variant(name: str) -> dict[str, list[str]]:
     shape = parse_keyword(name)
 
     if shape.mode == "RAW":
-        syntax = [f"- `{name} [<raw text>]`", f"- `{name};<raw text>`"]
+        syntax = [f"- `{name} [<raw text>]`", f"- `{name};[<raw text>]`"]
         arguments = [
-            '- `<raw text>` (optional, default `""`): raw literal text, not an expression.',
+            '- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.',
         ]
     elif shape.mode == "V":
         syntax = [f"- `{name} <expr1> [, <expr2> ...]`"]
         arguments = [
-            "- One or more comma-separated expressions (each may be int or string).",
-            "- Each argument is evaluated; ints are converted with `ToString` and concatenated with no separator.",
+            "- `<expr1>` (int|string): first expression to evaluate and append.",
+            "- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.",
         ]
     elif shape.mode == "S":
         syntax = [f"- `{name} <string expr>`"]
         arguments = [
-            "- A single string expression (must be present).",
+            "- `<string expr>` (string): string expression to evaluate and print.",
         ]
     elif shape.mode == "FORM":
         syntax = [f"- `{name} [<FORM string>]`"]
         arguments = [
-            "- A FORM/formatted string scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).",
-            "- The argument is optional for the `...FORM...` PRINT family (missing means empty string).",
+            '- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).',
         ]
     elif shape.mode == "FORMS":
         syntax = [f"- `{name} <string expr>`"]
         arguments = [
-            "- A string expression (must be present).",
-            "- The resulting string is then treated as a FORM/formatted string **at runtime**.",
+            "- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.",
         ]
     else:
         raise ValueError(shape.mode)
@@ -283,7 +281,7 @@ def _sections_for_print_variant(name: str) -> dict[str, list[str]]:
 
     if shape.align in {"C", "LC"}:
         arguments.append(
-            "- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count."
+            "- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`)."
         )
         semantics.append("- Writes a fixed-width cell; does not append a newline and does not flush immediately.")
         semantics.append("- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).")
@@ -334,6 +332,12 @@ def _sections_for_printdata_base() -> dict[str, list[str]]:
                 "- At runtime, the engine picks one choice uniformly at random, prints it, then jumps to `ENDDATA`.",
             ],
             "Syntax": [
+                "```text",
+                "PRINTDATA [<intVarTerm>]",
+                "    DATA <raw text> / DATAFORM <FORM string> (one or more choices)",
+                "    optionally, DATALIST ... ENDLIST groups to make a multi-line choice",
+                "ENDDATA",
+                "```",
                 "- `PRINTDATA [<intVarTerm>]`",
                 "- Block form:",
                 "  - `PRINTDATA [<intVarTerm>]`",
@@ -371,17 +375,17 @@ def _sections_for_printdata_base() -> dict[str, list[str]]:
             "Examples": [
                 "```erabasic",
                 "PRINTDATA CHOICE",
-                "  DATA First option",
-                "  DATA Second option",
+                "    DATA First option",
+                "    DATA Second option",
                 "ENDDATA",
                 "```",
                 "",
                 "```erabasic",
                 "PRINTDATA",
-                "  DATALIST",
-                "    DATA Line 1",
-                "    DATAFORM Line 2: %TOSTR(RAND:100)%",
-                "  ENDLIST",
+                "    DATALIST",
+                "        DATA Line 1",
+                "        DATAFORM Line 2: %TOSTR(RAND:100)%",
+                "    ENDLIST",
                 "ENDDATA",
                 "```",
             ],
@@ -403,6 +407,11 @@ def _sections_for_printdata_variant(name: str) -> dict[str, list[str]]:
                 "- See `PRINTDATA` for the full block model and structure rules.",
             ],
             "Syntax": [
+                "```text",
+                f"{name} [<intVarTerm>]",
+                "    ... data block body ...",
+                "ENDDATA",
+                "```",
                 f"- `{name} [<intVarTerm>]` ... `ENDDATA`",
             ],
             "Arguments": [
@@ -419,7 +428,12 @@ def _sections_for_printdata_variant(name: str) -> dict[str, list[str]]:
                 "- Same as `PRINTDATA`.",
             ],
             "Examples": [
-                f"- `{name} CHOICE` ... `ENDDATA`",
+                "```erabasic",
+                f"{name} CHOICE",
+                "    DATA First option",
+                "    DATA Second option",
+                "ENDDATA",
+                "```",
             ],
         },
     )
@@ -436,10 +450,10 @@ def _sections_for_data_instructions(name: str) -> dict[str, list[str]]:
                 ],
                 "Syntax": [
                     "- `DATA [<raw text>]`",
-                    "- `DATA;<raw text>`",
+                    "- `DATA;[<raw text>]`",
                 ],
                 "Arguments": [
-                    '- `<raw text>` (optional, default `""`): raw text, not an expression.',
+                    '- `<raw text>` (optional, raw text, default `""`): raw text, not an expression.',
                     "- Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.",
                 ],
                 "Semantics": [
@@ -470,7 +484,7 @@ def _sections_for_data_instructions(name: str) -> dict[str, list[str]]:
                     "- `DATAFORM [<FORM string>]`",
                 ],
                 "Arguments": [
-                    '- `<FORM string>` (optional, default `""`): FORM/formatted string scanned to end-of-line.',
+                    '- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line.',
                 ],
                 "Semantics": [
                     "- Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.",
@@ -498,6 +512,11 @@ def _sections_for_data_instructions(name: str) -> dict[str, list[str]]:
                     "- Each `DATA` / `DATAFORM` inside the list becomes a separate output line when this choice is selected.",
                 ],
                 "Syntax": [
+                    "```text",
+                    "DATALIST",
+                    "    DATA ... / DATAFORM ... (one or more)",
+                    "ENDLIST",
+                    "```",
                     "- `DATALIST`",
                     "  - `DATA ...` / `DATAFORM ...` (one or more)",
                     "- `ENDLIST`",
@@ -516,10 +535,10 @@ def _sections_for_data_instructions(name: str) -> dict[str, list[str]]:
                 "Examples": [
                     "```erabasic",
                     "PRINTDATA",
-                    "  DATALIST",
-                    "    DATA Line 1",
-                    "    DATA Line 2",
-                    "  ENDLIST",
+                    "    DATALIST",
+                    "        DATA Line 1",
+                    "        DATA Line 2",
+                    "    ENDLIST",
                     "ENDDATA",
                     "```",
                 ],
@@ -583,10 +602,15 @@ def _sections_for_data_instructions(name: str) -> dict[str, list[str]]:
                     "- Like `PRINTDATA`, but instead of printing, it selects a `DATA`/`DATAFORM` choice and concatenates it into a destination string variable.",
                 ],
                 "Syntax": [
+                    "```text",
+                    "STRDATA [<strVarTerm>]",
+                    "    DATA ... / DATAFORM ... / DATALIST ...",
+                    "ENDDATA",
+                    "```",
                     "- `STRDATA [<strVarTerm>]` ... `ENDDATA`",
                 ],
                 "Arguments": [
-                    "- `<strVarTerm>` (optional; default `RESULTS`): changeable string variable term to receive the result.",
+                    "- `<strVarTerm>` (optional, changeable string variable term, default `RESULTS`): receives the result.",
                 ],
                 "Semantics": [
                     "- Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).",
@@ -602,8 +626,8 @@ def _sections_for_data_instructions(name: str) -> dict[str, list[str]]:
                 "Examples": [
                     "```erabasic",
                     "STRDATA",
-                    "  DATA Hello",
-                    "  DATA World",
+                    "    DATA Hello",
+                    "    DATA World",
                     "ENDDATA",
                     "PRINTFORML RESULTS",
                     "```",

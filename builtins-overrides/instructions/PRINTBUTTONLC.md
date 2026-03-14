@@ -13,6 +13,7 @@
 **Semantics**
 - Same as `PRINTBUTTONC`, except the label cell is aligned to the left:
   - Uses the same fixed-width cell formatting rules as `PRINTLC`.
+  - That cell formatting uses hardcoded Shift-JIS byte count (code page 932), via the same `CreateTypeCString()` path as `PRINTLC`; it does **not** use derived runtime value `LanguageCodePage`.
 
 **Errors & validation**
 - Same as `PRINTBUTTON`.

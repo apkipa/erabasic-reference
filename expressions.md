@@ -318,7 +318,7 @@ Emuera also supports width/alignment extensions in some FORM placeholders, for e
 - `{X,10,LEFT}` — left-aligned
 - `%STR:0,10%` — similar, for string output
 
-Width calculations for `%...%` placeholders use `LangManager.GetStrlenLang` and therefore depend on the code page selected by config item `useLanguage`: ASCII-only strings count as `Length`, and non-ASCII strings use that code page's byte count before the engine adjusts the requested width. See `formatted-strings.md` for the exact algorithm.
+Width calculations for `%...%` placeholders use `LangManager.GetStrlenLang` and therefore depend on derived runtime value `LanguageCodePage` (from config item `useLanguage`): ASCII-only strings count as `Length`, and non-ASCII strings use that code page's byte count before the engine adjusts the requested width. See `formatted-strings.md` for the exact algorithm.
 
 ### FORM in string-expression contexts: `@"..."`
 

@@ -6,10 +6,10 @@
 - io
 
 **Syntax**
-- `PRINTFORMKL [<formString>]`
+- `PRINTFORMKL [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

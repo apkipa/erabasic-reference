@@ -22,6 +22,7 @@ This means:
 - UTF-8 without BOM is accepted if it is valid UTF-8.
 - Shift-JIS is the “default legacy” fallback when UTF-8 decoding fails.
 - Files with “broken” byte sequences that are invalid in both UTF-8 and Shift-JIS do not decode successfully.
+- Preload-path exception quirk: if opening a text file raises `IOException` during the preload cache read (for example another process is using the file), this build emits a warning and retries `File.ReadAllLines(...)` as UTF-8 with BOM instead of using normal detection.
 - This shared section defines only the decode decision itself; the higher-level loader then decides whether that becomes a warning-and-skip, a printed load-failure, or an abort of that load path.
 
 ### 0.2 Line splitting

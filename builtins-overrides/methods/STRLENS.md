@@ -1,5 +1,5 @@
 **Summary**
-- Returns the length of a string in the engine's language-length unit (the same unit used by `STRLEN`, `SUBSTRING`, and `STRFIND`).
+- Returns the length of a string in the engine's length unit based on derived runtime value `LanguageCodePage` (the same unit used by `STRLEN`, `SUBSTRING`, and `STRFIND`).
 
 **Tags**
 - text
@@ -15,10 +15,10 @@
 
 **Semantics**
 - Returns the same count that command-form `STRLEN` would write to `RESULT`.
-- The count is measured under the engine's configured language encoding:
+- The count is measured under derived runtime value `LanguageCodePage`:
   - ASCII-only text counts as `str.Length`.
   - Non-ASCII text counts by encoded byte length.
-- This is **not** Unicode-scalar counting; the result depends on the active language encoding.
+- This is **not** Unicode-scalar counting; the result depends on derived runtime value `LanguageCodePage`.
 
 **Errors & validation**
 - None.

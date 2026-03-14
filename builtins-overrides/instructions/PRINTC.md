@@ -6,28 +6,17 @@
 - io
 
 **Syntax**
-- `PRINTC`
-- `PRINTC <raw text>`
-- `PRINTC;<raw text>`
+- `PRINTC [<raw text>]`
+- `PRINTC;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
-- If the resulting text is empty, nothing is appended.
-- Output is converted to a fixed-width “cell” string (see below).
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Writes one fixed-width cell; does not append a newline and does not flush immediately.
-- Cell formatting (right-aligned cell; observable behavior):
-  - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
-  - Let `n` be the value of config item `PrintCLength`.
-  - Computes a target pixel width by measuring `n` spaces using the default font.
-  - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
-    - If font creation fails, returns `str` unchanged.
-  - If `len < n`, left-pads spaces to reach exactly `n` bytes.
-  - It then measures the padded string’s pixel width using the created font.
-  - While the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
-  - If `len >= n`, it does not add padding and does not truncate (overlong strings are kept as-is).
+- Writes a fixed-width cell; does not append a newline and does not flush immediately.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 
 **Errors & validation**
 - Argument parsing/type-checking errors follow the underlying argument mode for this variant.

@@ -36,7 +36,9 @@
   - `forceSavdir` is ignored.
 - Writing behavior shared by both modes:
   - writes the exact string content without newline normalization or automatic extra terminators,
-  - writes using the runtime save-text encoding; in this build that encoding is UTF-8 with BOM,
+  - writes using the engine's current text-save writer encoding,
+  - in this build, that writer encoding is effectively fixed to UTF-8 with BOM,
+  - config item `SystemSaveInUTF8` and argument `forceUTF8` do not change the written encoding in this implementation,
   - returns `1` on success and `0` on any failure.
 - Path-handling family for explicit-path mode: see `filesystem-paths.md` Family A.
 

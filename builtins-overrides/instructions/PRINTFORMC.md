@@ -6,16 +6,17 @@
 - io
 
 **Syntax**
-- `PRINTFORMC [<formString>]`
+- `PRINTFORMC [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 
 **Errors & validation**
 - Argument parsing/type-checking errors follow the underlying argument mode for this variant.

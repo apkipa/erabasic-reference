@@ -7,21 +7,13 @@
 **Syntax**
 ```text
 STRDATA [<strVarTerm>]
-    DATA <raw text> | DATAFORM <formString>
-    ...
-    [DATALIST
-        DATA <raw text> | DATAFORM <formString>
-        ...
-    ENDLIST]
+    DATA ... / DATAFORM ... / DATALIST ...
 ENDDATA
 ```
-
-- Header line: `STRDATA [<strVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `STRDATA [<strVarTerm>]` ... `ENDDATA`
 
 **Arguments**
-- `<strVarTerm>` (optional, changeable string variable term; default `RESULTS`): receives the result.
-
+- `<strVarTerm>` (optional, changeable string variable term, default `RESULTS`): receives the result.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).

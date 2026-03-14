@@ -16,8 +16,8 @@
 
 **Semantics**
 - Returns `0` if `str` is `null` or `""`.
-- Rejects any string containing at least one multi-byte character under the engine’s configured language encoding:
-  - If `LangByteCount(str) > str.Length`, returns `0`.
+- Rejects any string containing at least one multi-byte character under derived runtime value `LanguageCodePage`:
+  - If `STRLENS(str) > str.Length`, returns `0`.
 - Rejects strings that do not start with:
   - a digit, or
   - `+`/`-` followed by a digit.

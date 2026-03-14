@@ -6,12 +6,11 @@
 - io
 
 **Syntax**
-- `PRINTD`
-- `PRINTD <raw text>`
-- `PRINTD;<raw text>`
+- `PRINTD [<raw text>]`
+- `PRINTD;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

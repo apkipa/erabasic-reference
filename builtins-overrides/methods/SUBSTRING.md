@@ -1,5 +1,5 @@
 **Summary**
-- Returns a substring where `start`/`length` are measured in the engine’s “language length” units (the same unit returned by `STRLEN`).
+- Returns a substring where `start`/`length` are measured in the engine’s length unit based on derived runtime value `LanguageCodePage` (the same unit returned by `STRLEN`).
 
 **Tags**
 - text
@@ -14,11 +14,11 @@
 
 **Arguments**
 - `str` (string): input string.
-- `start` (optional, int; default `0`): language-length offset; see Semantics.
-- `length` (optional, int; default `-1`): language-length count (`<0` means “to end”).
+- `start` (optional, int; default `0`): offset in the length unit based on derived runtime value `LanguageCodePage`; see Semantics.
+- `length` (optional, int; default `-1`): count in the length unit based on derived runtime value `LanguageCodePage` (`<0` means “to end”).
 
 **Semantics**
-- Let `total = STRLEN(str)` (the engine’s “language length” of `str`).
+- Let `total = STRLEN(str)` (the engine’s length of `str` based on derived runtime value `LanguageCodePage`).
 - `start` and `length` are measured in this same unit.
 - Special cases:
   - If `start >= total` or `length == 0`: returns `""`.
@@ -26,11 +26,11 @@
   - If `start <= 0` and `length == total`: returns `str` unchanged.
 - Start position selection (character-boundary rounding):
   - If `start <= 0`, the substring starts at the first character.
-  - If `start > 0`, the engine scans from the beginning and accumulates the per-character byte count under the current language encoding.
+  - If `start > 0`, the engine scans from the beginning and accumulates the per-character byte count under derived runtime value `LanguageCodePage`.
   - Once that accumulated count becomes `>= start`, the scanned character is skipped and the substring starts at the following character boundary.
   - This means `start` values that fall “inside” a multi-byte character effectively round up to the next character boundary (the multi-byte character is skipped).
 - Length selection (character-boundary rounding):
-  - Starting from the chosen start character, the engine appends characters and accumulates their byte count under the current language encoding.
+  - Starting from the chosen start character, the engine appends characters and accumulates their byte count under derived runtime value `LanguageCodePage`.
   - It stops once that accumulated count becomes `>= length`, or when it reaches end-of-string.
   - This means the returned substring may exceed `length` in bytes if the last included character is multi-byte.
 

@@ -9,18 +9,16 @@
 **Syntax**
 ```text
 PRINTDATA [<intVarTerm>]
-    DATA <raw text> | DATAFORM <formString>
-    ...
-    [DATALIST
-        DATA <raw text> | DATAFORM <formString>
-        ...
-    ENDLIST]
+    DATA <raw text> / DATAFORM <FORM string> (one or more choices)
+    optionally, DATALIST ... ENDLIST groups to make a multi-line choice
 ENDDATA
 ```
-
-- Header line: `PRINTDATA [<intVarTerm>]`
-- Body entries may be single-line `DATA` / `DATAFORM` choices or nested `DATALIST ... ENDLIST` multi-line choices.
-- Terminator line: `ENDDATA`
+- `PRINTDATA [<intVarTerm>]`
+- Block form:
+  - `PRINTDATA [<intVarTerm>]`
+    - `DATA <raw text>` / `DATAFORM <FORM string>` (one or more choices)
+    - optionally, `DATALIST` ... `ENDLIST` groups to make a multi-line choice
+  - `ENDDATA`
 
 **Arguments**
 - `<intVarTerm>` (optional, changeable int variable term): receives the 0-based chosen index.

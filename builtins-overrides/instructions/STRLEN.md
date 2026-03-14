@@ -1,5 +1,5 @@
 **Summary**
-- Sets `RESULT` to the engine’s **language/encoding length** of a raw string argument.
+- Sets `RESULT` to the engine’s length measure based on derived runtime value `LanguageCodePage` for a raw string argument.
 
 **Tags**
 - text
@@ -12,16 +12,16 @@
 
 
 **Semantics**
-- Computes length via the engine’s language-aware length counter and assigns it to `RESULT`:
+- Computes length via the engine’s byte-count rule based on derived runtime value `LanguageCodePage` and assigns it to `RESULT`:
   - For ASCII-only strings: equals `str.Length`.
-  - Otherwise: equals the current configured encoding’s `GetByteCount(str)` (often Shift-JIS in typical setups).
+  - Otherwise: equals the byte count of `str` under derived runtime value `LanguageCodePage` (see `config-items.md`).
 - For normal expression-style string evaluation (quotes, `%...%`, `{...}`), use `STRLENFORM` instead.
 
 **Errors & validation**
 - None (apart from abnormal evaluation errors; the raw-string form is constant).
 
 **Examples**
-- `STRLEN ABC` sets `RESULT` to the byte length of `ABC` under the current encoding.
+- `STRLEN ABC` sets `RESULT` to the byte length of `ABC` under derived runtime value `LanguageCodePage`.
 
 **Progress state**
 - complete

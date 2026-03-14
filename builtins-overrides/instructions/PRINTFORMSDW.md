@@ -6,10 +6,10 @@
 - io
 
 **Syntax**
-- `PRINTFORMSDW <formatSource>`
+- `PRINTFORMSDW <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).

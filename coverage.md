@@ -357,14 +357,16 @@ These items are **observable engine features** but are deferred because they are
 - 🔁 Command-line invocation contract (flags and positional args), including `--ExeDir`, `-Debug`, and `-GenLang`.
 - 🔁 Localization/language pack system under `ExeDir/lang/` (including `-GenLang` template generation and selection/fallback rules).
   - Files/patterns: `lang/emuera.*.xml` (load), `lang/emuera-default-lang.xml` (generated template).
-- 🔁 Keyboard macro system: `ExeDir/macro.txt` + config item `UseKeyMacro` (parsing, enabled/disabled behavior, and effect on the input loop).
+- ✅ Keyboard macro system: `ExeDir/macro.txt` + config item `UseKeyMacro` (load/save timing, file format, localization-sensitive parsing, and input-loop behavior) are specified in `host-aux-files.md`.
 - 🔁 In-game debug command mode: config item `UseDebugCommand` and the console rule “input beginning with `@` is treated as a debug command” (supported syntax subset + restrictions).
 - 🔁 Hotkey scripting extension: `ExeDir/HOTKEY.ERB` + Ctrl+D toggle + its limited grammar, and how it interacts with `HOTKEY_STATE*`.
   - Optional developer dump file: `ExeDir/HOTKEY.ERB.bytecode.txt`.
 - ✅ Plugin system: discovery/load timing, `Plugins/*.dll` admission, `pluginsAware.txt` gating, public plugin contract types, `CALLSHARP` interop, and the public `PluginManager` / `PluginAPICharContext` helper surface are specified in `plugins.md`.
-- 🔁 Debug UI aux files under `ExeDir/debug/`: `debug/debug.config`, `debug/watchlist.csv`, `debug/console.log`.
+- ✅ Debug UI aux files under `ExeDir/debug/`: `debug/debug.config`, `debug/watchlist.csv`, and `debug/console.log` are specified in `host-aux-files.md` together with their path/encoding behavior.
 - 🔁 Rikaichan integration files: config item `RikaiFilename` (dictionary path) and its sidecar index file `RikaiFilename.ind`.
-- 🔁 Misc host diagnostics/aux files: `ExeDir/patch_versions/*.txt`, `ExeDir/emuera.log`, `ExeDir/Analysis.log`, `ExeDir/time.log`, and `img_err.log`.
+- 🟡 Misc host diagnostics/aux files:
+  - `ExeDir/time.log` is now specified in `host-aux-files.md`.
+  - Still deferred: `ExeDir/patch_versions/*.txt`, `ExeDir/emuera.log`, `ExeDir/Analysis.log`, and `img_err.log`.
 - 🔁 Native OS interop dependencies (host implementation detail): `user32.dll`, `winmm.dll`, `kernel32.dll`.
 
 ## Next concrete deliverables (to reach “reimplementable typical-game”)

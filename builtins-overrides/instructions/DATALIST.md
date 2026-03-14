@@ -8,14 +8,12 @@
 **Syntax**
 ```text
 DATALIST
-    DATA <raw text> | DATAFORM <formString>
-    ...
+    DATA ... / DATAFORM ... (one or more)
 ENDLIST
 ```
-
-- Header line: `DATALIST`
-- Item lines: `DATA <raw text>` / `DATAFORM <formString>`
-- Terminator line: `ENDLIST`
+- `DATALIST`
+  - `DATA ...` / `DATAFORM ...` (one or more)
+- `ENDLIST`
 
 **Arguments**
 - None.

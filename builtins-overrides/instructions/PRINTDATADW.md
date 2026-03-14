@@ -9,12 +9,10 @@
 **Syntax**
 ```text
 PRINTDATADW [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATADW [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATADW [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.

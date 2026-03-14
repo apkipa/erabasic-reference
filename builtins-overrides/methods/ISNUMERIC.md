@@ -14,7 +14,7 @@
 - `str` (string): string to test.
 
 **Semantics**
-- Returns `0` immediately if `str` contains any multi-byte character under the current language encoding.
+- Returns `0` immediately if `str` contains any multi-byte character under derived runtime value `LanguageCodePage`.
 - Returns `0` if `str` does not start with:
   - a digit, or
   - `+` / `-` followed by a digit.

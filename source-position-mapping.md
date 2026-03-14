@@ -70,6 +70,11 @@ Patterns used in this engine:
 - **CSV-like files** often use the enabled-line reader path (skip empty/whitespace-only lines after trimming leading whitespace).
 - A few loaders track line numbers manually; at least one such implementation does **not** increment its counter on comment lines, which means the reported `LineNo` can differ from the physical line number in that file.
 
+Separate diagnostic-display quirk:
+
+- When the host later tries to print the original source line text for a stored `.csv` `ScriptPosition`, the existence check correctly looks under `csv/`, but the encoding probe is mistakenly called with the corresponding `erb/` path string.
+- So the stored `(Filename, LineNo)` location remains correct, but the auxiliary “show me the original CSV line text” path can decode with the wrong encoding or fail to show the line at all if the `erb/` sibling path does not behave like the `csv/` file.
+
 ## 6) Runtime errors: which position is shown
 
 At runtime, error reporting prefers:

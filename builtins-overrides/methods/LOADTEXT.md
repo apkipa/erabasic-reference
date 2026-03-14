@@ -34,7 +34,11 @@
 - Reading behavior shared by both modes:
   - if the resolved file does not exist, returns `""`,
   - reads the entire file,
-  - detects encoding as UTF-8 with BOM / UTF-8 when valid, otherwise falls back to Shift-JIS,
+  - detects encoding in this order:
+    - if the file starts with a UTF-8 BOM, reads as UTF-8 with BOM,
+    - otherwise, if the platform BOM-aware reader detects another BOM-tagged encoding during its initial probe, uses that detected encoding,
+    - otherwise, if strict UTF-8 decoding succeeds, reads as UTF-8,
+    - otherwise, falls back to Shift-JIS,
   - removes every `` character from the loaded text before returning it,
   - returns `""` on any failure.
 - Path-handling family for explicit-path mode: see `filesystem-paths.md` Family A.

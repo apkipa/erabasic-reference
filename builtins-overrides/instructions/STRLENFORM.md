@@ -1,5 +1,5 @@
 **Summary**
-- Sets `RESULT` to the engine’s **language/encoding length** of a FORM/formatted string.
+- Sets `RESULT` to the engine’s length measure based on derived runtime value `LanguageCodePage` for a FORM/formatted string.
 
 **Tags**
 - text
@@ -12,7 +12,7 @@
 
 
 **Semantics**
-- Evaluates the formatted string to a string value, then computes its language/encoding length (see `STRLEN` for details).
+- Evaluates the formatted string to a string value, then computes its length based on derived runtime value `LanguageCodePage` (see `STRLEN` for details).
 - Assigns the result to `RESULT`.
 
 **Errors & validation**

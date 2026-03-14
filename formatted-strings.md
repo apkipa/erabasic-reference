@@ -147,17 +147,17 @@ Notes:
 
 ## 5) Width and alignment semantics
 
-### 5.1 `%...%` width uses `useLanguage` byte-count adjustment
+### 5.1 `%...%` width uses derived runtime value `LanguageCodePage`
 
 For `%operand,width%`, padding uses the following effective logic:
 
 - Let `s = operand` (a .NET `string`)
 - Let `byteLen = LangManager.GetStrlenLang(s)`:
   - if `s` is ASCII-only, this is `s.Length`
-  - otherwise, this is the configured legacy code-page byte count (set by `useLanguage`)
+  - otherwise, this is the byte count under derived runtime value `LanguageCodePage` (from config item `useLanguage`)
 - The engine adjusts the requested `width` by subtracting `(byteLen - s.Length)` before calling `.PadLeft/.PadRight`.
 
-This is intended to approximate “display width in the configured legacy encoding” while still using .NET’s character-count-based padding.
+This is intended to approximate “display width under derived runtime value `LanguageCodePage`” while still using .NET’s character-count-based padding.
 
 ### 5.2 `{...}` width pads by character count
 

@@ -6,20 +6,15 @@
 - io
 
 **Syntax**
-- `PRINTN`
-- `PRINTN <raw text>`
-- `PRINTN;<raw text>`
+- `PRINTN [<raw text>]`
+- `PRINTN;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- `PRINTN` appends its text to the pending print buffer, then materializes the current buffered content to retained normal output, then waits for a key **without** ending the logical line.
-- Observable consequence:
-  - the current content becomes part of retained normal output before the wait,
-  - but the next later flush is still merged into that same logical line rather than starting a new one.
-- If output skipping is active (via `SKIPDISP`), this instruction is skipped before execution.
+- Waits for a key **without** ending the logical output line (see `PRINT`).
 
 **Errors & validation**
 - Argument parsing/type-checking errors follow the underlying argument mode for this variant.

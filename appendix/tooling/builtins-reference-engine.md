@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)
 
-Generated from engine source on `2026-03-09`.
+Generated from engine source on `2026-03-15`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `appendix/tooling/builtins-reference-engine.md` by hand.
@@ -542,10 +542,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Syntax**
 - `PRINT`
 - `PRINT <raw text>`
-- `PRINT;<raw text>`
+- `PRINT;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw text, not an expression.
 - `<raw text>` is taken as the raw character sequence after the instruction delimiter.
 - The parser consumes exactly one delimiter character after the keyword:
   - a single space / tab
@@ -622,12 +622,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTL`
-- `PRINTL <raw text>`
-- `PRINTL;<raw text>`
+- `PRINTL [<raw text>]`
+- `PRINTL;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -661,12 +660,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTW`
-- `PRINTW <raw text>`
-- `PRINTW;<raw text>`
+- `PRINTW [<raw text>]`
+- `PRINTW;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -700,10 +698,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTV <value1> [, <value2> ...]`
+- `PRINTV <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -737,10 +736,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVL <value1> [, <value2> ...]`
+- `PRINTVL <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -775,10 +775,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVW <value1> [, <value2> ...]`
+- `PRINTVW <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -813,10 +814,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTS <text>`
+- `PRINTS <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -850,10 +851,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSL <text>`
+- `PRINTSL <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -888,10 +889,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSW <text>`
+- `PRINTSW <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -926,10 +927,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORM [<formString>]`
+- `PRINTFORM [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -963,10 +964,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORML [<formString>]`
+- `PRINTFORML [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1001,10 +1002,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMW [<formString>]`
+- `PRINTFORMW [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1039,10 +1040,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMS <formatSource>`
+- `PRINTFORMS <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1077,10 +1078,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSL <formatSource>`
+- `PRINTFORMSL <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1116,10 +1117,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSW <formatSource>`
+- `PRINTFORMSW <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1155,12 +1156,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTK`
-- `PRINTK <raw text>`
-- `PRINTK;<raw text>`
+- `PRINTK [<raw text>]`
+- `PRINTK;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1194,12 +1194,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTKL`
-- `PRINTKL <raw text>`
-- `PRINTKL;<raw text>`
+- `PRINTKL [<raw text>]`
+- `PRINTKL;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1234,12 +1233,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTKW`
-- `PRINTKW <raw text>`
-- `PRINTKW;<raw text>`
+- `PRINTKW [<raw text>]`
+- `PRINTKW;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1274,10 +1272,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVK <value1> [, <value2> ...]`
+- `PRINTVK <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1312,10 +1311,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVKL <value1> [, <value2> ...]`
+- `PRINTVKL <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1351,10 +1351,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVKW <value1> [, <value2> ...]`
+- `PRINTVKW <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1390,10 +1391,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSK <text>`
+- `PRINTSK <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1428,10 +1429,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSKL <text>`
+- `PRINTSKL <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1467,10 +1468,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSKW <text>`
+- `PRINTSKW <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1506,10 +1507,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMK [<formString>]`
+- `PRINTFORMK [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1544,10 +1545,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMKL [<formString>]`
+- `PRINTFORMKL [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1583,10 +1584,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMKW [<formString>]`
+- `PRINTFORMKW [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1622,10 +1623,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSK <formatSource>`
+- `PRINTFORMSK <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1661,10 +1662,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSKL <formatSource>`
+- `PRINTFORMSKL <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1701,10 +1702,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSKW <formatSource>`
+- `PRINTFORMSKW <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1741,12 +1742,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTD`
-- `PRINTD <raw text>`
-- `PRINTD;<raw text>`
+- `PRINTD [<raw text>]`
+- `PRINTD;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1780,12 +1780,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTDL`
-- `PRINTDL <raw text>`
-- `PRINTDL;<raw text>`
+- `PRINTDL [<raw text>]`
+- `PRINTDL;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1820,12 +1819,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTDW`
-- `PRINTDW <raw text>`
-- `PRINTDW;<raw text>`
+- `PRINTDW [<raw text>]`
+- `PRINTDW;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1860,10 +1858,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVD <value1> [, <value2> ...]`
+- `PRINTVD <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1898,10 +1897,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVDL <value1> [, <value2> ...]`
+- `PRINTVDL <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1937,10 +1937,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTVDW <value1> [, <value2> ...]`
+- `PRINTVDW <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -1976,10 +1977,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSD <text>`
+- `PRINTSD <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2014,10 +2015,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSDL <text>`
+- `PRINTSDL <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2053,10 +2054,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSDW <text>`
+- `PRINTSDW <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2092,10 +2093,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMD [<formString>]`
+- `PRINTFORMD [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2130,10 +2131,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMDL [<formString>]`
+- `PRINTFORMDL [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2169,10 +2170,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMDW [<formString>]`
+- `PRINTFORMDW [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2208,10 +2209,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSD <formatSource>`
+- `PRINTFORMSD <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2247,10 +2248,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSDL <formatSource>`
+- `PRINTFORMSDL <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2287,10 +2288,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMSDW <formatSource>`
+- `PRINTFORMSDW <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2327,12 +2328,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLE`
-- `PRINTSINGLE <raw text>`
-- `PRINTSINGLE;<raw text>`
+- `PRINTSINGLE [<raw text>]`
+- `PRINTSINGLE;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2368,10 +2368,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEV <value1> [, <value2> ...]`
+- `PRINTSINGLEV <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2408,10 +2409,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLES <text>`
+- `PRINTSINGLES <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2448,10 +2449,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORM [<formString>]`
+- `PRINTSINGLEFORM [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2488,10 +2489,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMS <formatSource>`
+- `PRINTSINGLEFORMS <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2529,12 +2530,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEK`
-- `PRINTSINGLEK <raw text>`
-- `PRINTSINGLEK;<raw text>`
+- `PRINTSINGLEK [<raw text>]`
+- `PRINTSINGLEK;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2571,10 +2571,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEVK <value1> [, <value2> ...]`
+- `PRINTSINGLEVK <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2612,10 +2613,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLESK <text>`
+- `PRINTSINGLESK <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2653,10 +2654,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMK [<formString>]`
+- `PRINTSINGLEFORMK [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2694,10 +2695,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMSK <formatSource>`
+- `PRINTSINGLEFORMSK <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2736,12 +2737,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLED`
-- `PRINTSINGLED <raw text>`
-- `PRINTSINGLED;<raw text>`
+- `PRINTSINGLED [<raw text>]`
+- `PRINTSINGLED;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2778,10 +2778,11 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEVD <value1> [, <value2> ...]`
+- `PRINTSINGLEVD <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2819,10 +2820,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLESD <text>`
+- `PRINTSINGLESD <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2860,10 +2861,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMD [<formString>]`
+- `PRINTSINGLEFORMD [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2901,10 +2902,10 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTSINGLEFORMSD <formatSource>`
+- `PRINTSINGLEFORMSD <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -2943,28 +2944,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTC`
-- `PRINTC <raw text>`
-- `PRINTC;<raw text>`
+- `PRINTC [<raw text>]`
+- `PRINTC;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
-- If the resulting text is empty, nothing is appended.
-- Output is converted to a fixed-width “cell” string (see below).
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Writes one fixed-width cell; does not append a newline and does not flush immediately.
-- Cell formatting (right-aligned cell; observable behavior):
-  - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
-  - Let `n` be the value of config item `PrintCLength`.
-  - Computes a target pixel width by measuring `n` spaces using the default font.
-  - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
-    - If font creation fails, returns `str` unchanged.
-  - If `len < n`, left-pads spaces to reach exactly `n` bytes.
-  - It then measures the padded string’s pixel width using the created font.
-  - While the width is greater than the target width and the first character is a space, it removes one leading space and re-measures.
-  - If `len >= n`, it does not add padding and does not truncate (overlong strings are kept as-is).
+- Writes a fixed-width cell; does not append a newline and does not flush immediately.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -2994,28 +2984,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTLC`
-- `PRINTLC <raw text>`
-- `PRINTLC;<raw text>`
+- `PRINTLC [<raw text>]`
+- `PRINTLC;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
-- If the resulting text is empty, nothing is appended.
-- Output is converted to a fixed-width “cell” string (see below).
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- Writes one fixed-width cell; does not append a newline and does not flush immediately.
-- Cell formatting (left-aligned cell; observable behavior):
-  - Measures string length in **Shift-JIS byte count** (hardcoded; code page 932).
-  - Let `n` be the value of config item `PrintCLength`.
-  - Computes a target pixel width by measuring `n` spaces using the default font.
-  - Creates a font using the current text style (font name + style) and the default font size for measurement/rendering.
-    - If font creation fails, returns `str` unchanged.
-  - If `len < n + 1`, right-pads spaces to reach exactly `n + 1` bytes.
-  - It then measures the padded string’s pixel width using the created font.
-  - While the width is greater than the target width and the last character is a space, it removes one trailing space and re-measures.
-  - If `len >= n + 1`, it does not add padding and does not truncate (overlong strings are kept as-is).
+- Writes a fixed-width cell; does not append a newline and does not flush immediately.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3045,16 +3024,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMC [<formString>]`
+- `PRINTFORMC [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3084,16 +3064,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMLC [<formString>]`
+- `PRINTFORMLC [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -3123,18 +3104,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTCK`
-- `PRINTCK <raw text>`
-- `PRINTCK;<raw text>`
+- `PRINTCK [<raw text>]`
+- `PRINTCK;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
@@ -3165,18 +3145,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTLCK`
-- `PRINTLCK <raw text>`
-- `PRINTLCK;<raw text>`
+- `PRINTLCK [<raw text>]`
+- `PRINTLCK;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
@@ -3207,16 +3186,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMCK [<formString>]`
+- `PRINTFORMCK [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
@@ -3247,16 +3227,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMLCK [<formString>]`
+- `PRINTFORMLCK [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Applies kana conversion (`FORCEKANA` state) before writing the cell.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
@@ -3287,18 +3268,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTCD`
-- `PRINTCD <raw text>`
-- `PRINTCD;<raw text>`
+- `PRINTCD [<raw text>]`
+- `PRINTCD;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
@@ -3329,18 +3309,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTLCD`
-- `PRINTLCD <raw text>`
-- `PRINTLCD;<raw text>`
+- `PRINTLCD [<raw text>]`
+- `PRINTLCD;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
-- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using Shift-JIS byte count.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
@@ -3371,16 +3350,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMCD [<formString>]`
+- `PRINTFORMCD [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
@@ -3411,16 +3391,17 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - Implementor (registration): `new PRINT_Instruction("<keyword>")`
 
 **Syntax**
-- `PRINTFORMLCD [<formString>]`
+- `PRINTFORMLCD [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
+- Output is padded/truncated to a fixed-width cell (config item `PrintCLength`) using hardcoded Shift-JIS byte count (code page 932, not derived runtime value `LanguageCodePage`).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
 - The formatted string is scanned at load/parse time and evaluated at runtime.
 - Writes a fixed-width cell; does not append a newline and does not flush immediately.
-- Alignment: `...C` right-aligns; `...LC` left-aligns.
+- Alignment: `...C` right-aligns; `...LC` left-aligns (implementation detail).
 - Ignores `SETCOLOR`’s color for this output (`PRINTD`-style behavior).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
@@ -3454,18 +3435,16 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 **Syntax**
 ```text
 PRINTDATA [<intVarTerm>]
-    DATA <raw text> | DATAFORM <formString>
-    ...
-    [DATALIST
-        DATA <raw text> | DATAFORM <formString>
-        ...
-    ENDLIST]
+    DATA <raw text> / DATAFORM <FORM string> (one or more choices)
+    optionally, DATALIST ... ENDLIST groups to make a multi-line choice
 ENDDATA
 ```
-
-- Header line: `PRINTDATA [<intVarTerm>]`
-- Body entries may be single-line `DATA` / `DATAFORM` choices or nested `DATALIST ... ENDLIST` multi-line choices.
-- Terminator line: `ENDDATA`
+- `PRINTDATA [<intVarTerm>]`
+- Block form:
+  - `PRINTDATA [<intVarTerm>]`
+    - `DATA <raw text>` / `DATAFORM <FORM string>` (one or more choices)
+    - optionally, `DATALIST` ... `ENDLIST` groups to make a multi-line choice
+  - `ENDDATA`
 
 **Arguments**
 - `<intVarTerm>` (optional, changeable int variable term): receives the 0-based chosen index.
@@ -3540,12 +3519,10 @@ ENDDATA
 **Syntax**
 ```text
 PRINTDATAL [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATAL [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATAL [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3597,12 +3574,10 @@ ENDDATA
 **Syntax**
 ```text
 PRINTDATAW [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATAW [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATAW [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3654,12 +3629,10 @@ ENDDATA
 **Syntax**
 ```text
 PRINTDATAK [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATAK [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATAK [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3711,12 +3684,10 @@ ENDDATA
 **Syntax**
 ```text
 PRINTDATAKL [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATAKL [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATAKL [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3768,12 +3739,10 @@ ENDDATA
 **Syntax**
 ```text
 PRINTDATAKW [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATAKW [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATAKW [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3825,12 +3794,10 @@ ENDDATA
 **Syntax**
 ```text
 PRINTDATAD [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATAD [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATAD [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3882,12 +3849,10 @@ ENDDATA
 **Syntax**
 ```text
 PRINTDATADL [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATADL [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATADL [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -3939,12 +3904,10 @@ ENDDATA
 **Syntax**
 ```text
 PRINTDATADW [<intVarTerm>]
-    ...
+    ... data block body ...
 ENDDATA
 ```
-
-- Header line: `PRINTDATADW [<intVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `PRINTDATADW [<intVarTerm>]` ... `ENDDATA`
 
 **Arguments**
 - Same as `PRINTDATA`.
@@ -4063,7 +4026,8 @@ INPUTS
 **Semantics**
 - Same as `PRINTBUTTON`, with these differences:
   - The label still has all `'\n'` characters removed (same as `PRINTBUTTON`).
-  - Before creating the button segment, the label is formatted as a `PRINTC`-style fixed-width cell, aligned to the right (same cell formatting rules as `PRINTC`).
+  - Before creating the button segment, the label is formatted as a `PRINTC`-style fixed-width cell, aligned to the right.
+  - That cell formatting uses hardcoded Shift-JIS byte count (code page 932), via the same `CreateTypeCString()` path as `PRINTC`; it does **not** use derived runtime value `LanguageCodePage`.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = true`
@@ -4102,6 +4066,7 @@ INPUT
 **Semantics**
 - Same as `PRINTBUTTONC`, except the label cell is aligned to the left:
   - Uses the same fixed-width cell formatting rules as `PRINTLC`.
+  - That cell formatting uses hardcoded Shift-JIS byte count (code page 932), via the same `CreateTypeCString()` path as `PRINTLC`; it does **not** use derived runtime value `LanguageCodePage`.
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = true`
@@ -4425,6 +4390,7 @@ PRINT_EXP TARGET
       - `name + "[" + barFill + "]" + paramText`
       - where `paramText` is `param` formatted as a decimal integer right-aligned in width 6 (equivalent to C# interpolated `{param,6}` under `CultureInfo.InvariantCulture`).
 - Each produced cell string is printed via `PRINTC`-style output with right alignment.
+  - Therefore, cell width/counting follows `PRINTC`'s hardcoded Shift-JIS byte-count rule (code page 932), not derived runtime value `LanguageCodePage`.
 - Keeps a per-line cell counter:
   - After each printed cell, `count += 1`.
   - If config item `PrintCPerLine` is greater than `0` and `count % PrintCPerLine == 0`, it flushes pending output.
@@ -4525,6 +4491,7 @@ PRINT_PALAM TARGET
     - If replace item `MoneyFirst` is true: `[{i}] {name}({currencyLabel}{price})`
     - Otherwise: `[{i}] {name}({price}{currencyLabel})`
   - Prints the cell using `PRINTC`-style formatting with left alignment.
+    - Therefore, cell width/counting follows `PRINTC`'s hardcoded Shift-JIS byte-count rule (code page 932), not derived runtime value `LanguageCodePage`.
   - Let `cellsPerLine` be config item `PrintCPerLine`; if `cellsPerLine > 0`, the instruction flushes every `cellsPerLine` printed cells.
 - After finishing the loop, it flushes pending output and refreshes the display.
 - This instruction does not automatically append a trailing newline.
@@ -7075,7 +7042,7 @@ LOOP I < 10
 
 ## STRLEN (instruction)
 **Summary**
-- Sets `RESULT` to the engine’s **language/encoding length** of a raw string argument.
+- Sets `RESULT` to the engine’s length measure based on derived runtime value `LanguageCodePage` for a raw string argument.
 
 **Metadata**
 - Arg spec: (instruction-defined)
@@ -7088,9 +7055,9 @@ LOOP I < 10
 - `<rawString>` (optional, default `""`): literal remainder of the line (not a normal string).
 
 **Semantics**
-- Computes length via the engine’s language-aware length counter and assigns it to `RESULT`:
+- Computes length via the engine’s byte-count rule based on derived runtime value `LanguageCodePage` and assigns it to `RESULT`:
   - For ASCII-only strings: equals `str.Length`.
-  - Otherwise: equals the current configured encoding’s `GetByteCount(str)` (often Shift-JIS in typical setups).
+  - Otherwise: equals the byte count of `str` under derived runtime value `LanguageCodePage` (see `config-items.md`).
 - For normal expression-style string evaluation (quotes, `%...%`, `{...}`), use `STRLENFORM` instead.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = str.Length`
@@ -7100,7 +7067,7 @@ LOOP I < 10
 - None (apart from abnormal evaluation errors; the raw-string form is constant).
 
 **Examples**
-- `STRLEN ABC` sets `RESULT` to the byte length of `ABC` under the current encoding.
+- `STRLEN ABC` sets `RESULT` to the byte length of `ABC` under derived runtime value `LanguageCodePage`.
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -7108,7 +7075,7 @@ LOOP I < 10
 
 ## STRLENFORM (instruction)
 **Summary**
-- Sets `RESULT` to the engine’s **language/encoding length** of a FORM/formatted string.
+- Sets `RESULT` to the engine’s length measure based on derived runtime value `LanguageCodePage` for a FORM/formatted string.
 
 **Metadata**
 - Arg spec: (instruction-defined)
@@ -7121,7 +7088,7 @@ LOOP I < 10
 - `<formString>` (optional, FORM/formatted string; default `""`): its evaluated result is measured; supports `%...%` and `{...}`.
 
 **Semantics**
-- Evaluates the formatted string to a string value, then computes its language/encoding length (see `STRLEN` for details).
+- Evaluates the formatted string to a string value, then computes its length based on derived runtime value `LanguageCodePage` (see `STRLEN` for details).
 - Assigns the result to `RESULT`.
 - Engine-extracted notes (key operations):
   - `exm.VEvaluator.RESULT = str.Length`
@@ -8343,13 +8310,12 @@ SPLIT "a,b,c", ",", PARTS
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`, `PARTIAL`, `PARTIAL`
 
 **Syntax**
-- `DATA`
-- `DATA <raw text>`
-- `DATA;<raw text>`
+- `DATA [<raw text>]`
+- `DATA;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
-  - Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
+- `<raw text>` (optional, raw text, default `""`): raw text, not an expression.
+- Parsing detail: as with most instructions, Emuera consumes exactly one delimiter character after the keyword (space/tab/full-width-space if enabled, or `;`). The remainder of the line becomes the raw text.
 
 **Semantics**
 - At load time, the loader attaches `DATA` lines to the nearest surrounding block (`PRINTDATA*`, `STRDATA`, or `DATALIST`).
@@ -8380,15 +8346,15 @@ ENDDATA
 - Flags (registration): `METHOD_SAFE`, `EXTENDED`, `PARTIAL`
 
 **Syntax**
-- `DATAFORM [<formString>]`
+- `DATAFORM [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line.
 
 **Semantics**
 - Stored into the surrounding `PRINTDATA*` / `STRDATA` / `DATALIST` data list at load time.
 - When selected, evaluated to a string at runtime and printed/concatenated.
-  - The FORM string is scanned at load time and stored as an expression that is evaluated later, so runtime variables inside it are read when the entry is selected.
+  - The FORM string is scanned at load time and stored as an expression that is evaluated later (so it can still depend on runtime variables).
 
 **Errors & validation**
 - Must appear inside a valid surrounding block; otherwise it is a load-time error (the line is marked as error).
@@ -8448,14 +8414,12 @@ ENDDATA
 **Syntax**
 ```text
 DATALIST
-    DATA <raw text> | DATAFORM <formString>
-    ...
+    DATA ... / DATAFORM ... (one or more)
 ENDLIST
 ```
-
-- Header line: `DATALIST`
-- Item lines: `DATA <raw text>` / `DATAFORM <formString>`
-- Terminator line: `ENDLIST`
+- `DATALIST`
+  - `DATA ...` / `DATAFORM ...` (one or more)
+- `ENDLIST`
 
 **Arguments**
 - None.
@@ -8523,20 +8487,13 @@ ENDDATA
 **Syntax**
 ```text
 STRDATA [<strVarTerm>]
-    DATA <raw text> | DATAFORM <formString>
-    ...
-    [DATALIST
-        DATA <raw text> | DATAFORM <formString>
-        ...
-    ENDLIST]
+    DATA ... / DATAFORM ... / DATALIST ...
 ENDDATA
 ```
-
-- Header line: `STRDATA [<strVarTerm>]`
-- Body / terminator structure is the same as `PRINTDATA`.
+- `STRDATA [<strVarTerm>]` ... `ENDDATA`
 
 **Arguments**
-- `<strVarTerm>` (optional, changeable string variable term; default `RESULTS`): receives the result.
+- `<strVarTerm>` (optional, changeable string variable term, default `RESULTS`): receives the result.
 
 **Semantics**
 - Shares the same block structure as `PRINTDATA` (`DATA`, `DATAFORM`, `DATALIST`, `ENDDATA`).
@@ -8907,8 +8864,19 @@ PRINTFORML RESULTS
 
 **Semantics**
 - Updates the persistent kana-conversion state used by print paths that request kana conversion (the `...K` / `K` output family; see the relevant print built-ins and `output-flow.md`).
+- The state is stored as three internal flags:
+  - mode `0`: all flags off
+  - mode `1`: katakana conversion on
+  - mode `2`: hiragana conversion on
+  - mode `3`: hiragana conversion on, plus half-width-to-full-width widening before the hiragana conversion
 - The mode remains in effect until another `FORCEKANA` changes it.
 - It does not retroactively modify text that has already been buffered or printed.
+- When an affected output path converts text, it calls Visual Basic `.NET` `Strings.StrConv(...)` using a fixed Japanese locale ID `0x0411`:
+  - mode `1`: `StrConv(str, Katakana, 0x0411)`
+  - mode `2`: `StrConv(str, Hiragana, 0x0411)`
+  - mode `3`: `StrConv(str, Hiragana | Wide, 0x0411)`
+- This path does **not** use config item `useLanguage`; the locale used for kana conversion is fixed rather than derived from config.
+- Therefore, `FORCEKANA` is a separate conversion mechanism from `TOHALF` / `TOFULL`, even though both ultimately call Visual Basic `.NET` `StrConv`.
 - Engine-extracted notes (key operations):
   - `exm.ForceKana(iValue)`
 
@@ -13002,20 +12970,15 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTN`
-- `PRINTN <raw text>`
-- `PRINTN;<raw text>`
+- `PRINTN [<raw text>]`
+- `PRINTN;[<raw text>]`
 
 **Arguments**
-- `<raw text>` (optional, raw text; default `""`): not an expression.
+- `<raw text>` (optional, raw text, default `""`): raw literal text, not an expression.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
-- `PRINTN` appends its text to the pending print buffer, then materializes the current buffered content to retained normal output, then waits for a key **without** ending the logical line.
-- Observable consequence:
-  - the current content becomes part of retained normal output before the wait,
-  - but the next later flush is still merged into that same logical line rather than starting a new one.
-- If output skipping is active (via `SKIPDISP`), this instruction is skipped before execution.
+- Waits for a key **without** ending the logical output line (see `PRINT`).
 - Engine-extracted notes (key operations):
   - `exm.Console.UseUserStyle = true`
   - `exm.Console.UseSetColorStyle = !func.Function.IsPrintDFunction()`
@@ -13046,10 +13009,11 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTVN <value1> [, <value2> ...]`
+- `PRINTVN <expr1> [, <expr2> ...]`
 
 **Arguments**
-- `<valueN>` (expression): each occurrence must evaluate to an int or string; ints are converted with `ToString` and concatenated with no separator.
+- `<expr1>` (int|string): first expression to evaluate and append.
+- `<expr2>` (optional, int|string): each additional comma-separated expression to evaluate and append; may repeat zero or more times.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -13085,10 +13049,10 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTSN <text>`
+- `PRINTSN <string expr>`
 
 **Arguments**
-- `<text>` (string): text to print.
+- `<string expr>` (string): string expression to evaluate and print.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -13124,10 +13088,10 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTFORMN [<formString>]`
+- `PRINTFORMN [<FORM string>]`
 
 **Arguments**
-- `<formString>` (optional, FORM/formatted string; default `""`): scanned to end-of-line.
+- `<FORM string>` (optional, FORM/formatted string, default `""`): scanned to end-of-line (supports `%...%` and `{...}` placeholders, etc.).
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -13163,10 +13127,10 @@ HTML_PRINT_ISLAND_CLEAR
 - Note: Config-gated: `JSONConfig.Data.UseScopedVariableInstruction`
 
 **Syntax**
-- `PRINTFORMSN <formatSource>`
+- `PRINTFORMSN <string expr>`
 
 **Arguments**
-- `<formatSource>` (string): evaluated to a string, then parsed as a FORM/formatted string at runtime.
+- `<string expr>` (string): string expression whose result is then treated as a FORM/formatted string **at runtime**.
 
 **Semantics**
 - See `PRINT` for shared PRINT-family rules (delimiter handling, buffering, suffix semantics).
@@ -16600,7 +16564,7 @@ ARRAYMSORT(A, B, C)
 
 ## STRLENS (expression function)
 **Summary**
-- Returns the length of a string in the engine's language-length unit (the same unit used by `STRLEN`, `SUBSTRING`, and `STRFIND`).
+- Returns the length of a string in the engine's length unit based on derived runtime value `LanguageCodePage` (the same unit used by `STRLEN`, `SUBSTRING`, and `STRFIND`).
 
 **Metadata**
 - Implementor: `new StrlenMethod()`
@@ -16618,10 +16582,10 @@ ARRAYMSORT(A, B, C)
 
 **Semantics**
 - Returns the same count that command-form `STRLEN` would write to `RESULT`.
-- The count is measured under the engine's configured language encoding:
+- The count is measured under derived runtime value `LanguageCodePage`:
   - ASCII-only text counts as `str.Length`.
   - Non-ASCII text counts by encoded byte length.
-- This is **not** Unicode-scalar counting; the result depends on the active language encoding.
+- This is **not** Unicode-scalar counting; the result depends on derived runtime value `LanguageCodePage`.
 
 **Errors & validation**
 - None.
@@ -16669,7 +16633,7 @@ ARRAYMSORT(A, B, C)
 
 ## SUBSTRING (expression function)
 **Summary**
-- Returns a substring where `start`/`length` are measured in the engine’s “language length” units (the same unit returned by `STRLEN`).
+- Returns a substring where `start`/`length` are measured in the engine’s length unit based on derived runtime value `LanguageCodePage` (the same unit returned by `STRLEN`).
 
 **Metadata**
 - Implementor: `new SubstringMethod()`
@@ -16686,11 +16650,11 @@ ARRAYMSORT(A, B, C)
 
 **Arguments**
 - `str` (string): input string.
-- `start` (optional, int; default `0`): language-length offset; see Semantics.
-- `length` (optional, int; default `-1`): language-length count (`<0` means “to end”).
+- `start` (optional, int; default `0`): offset in the length unit based on derived runtime value `LanguageCodePage`; see Semantics.
+- `length` (optional, int; default `-1`): count in the length unit based on derived runtime value `LanguageCodePage` (`<0` means “to end”).
 
 **Semantics**
-- Let `total = STRLEN(str)` (the engine’s “language length” of `str`).
+- Let `total = STRLEN(str)` (the engine’s length of `str` based on derived runtime value `LanguageCodePage`).
 - `start` and `length` are measured in this same unit.
 - Special cases:
   - If `start >= total` or `length == 0`: returns `""`.
@@ -16698,11 +16662,11 @@ ARRAYMSORT(A, B, C)
   - If `start <= 0` and `length == total`: returns `str` unchanged.
 - Start position selection (character-boundary rounding):
   - If `start <= 0`, the substring starts at the first character.
-  - If `start > 0`, the engine scans from the beginning and accumulates the per-character byte count under the current language encoding.
+  - If `start > 0`, the engine scans from the beginning and accumulates the per-character byte count under derived runtime value `LanguageCodePage`.
   - Once that accumulated count becomes `>= start`, the scanned character is skipped and the substring starts at the following character boundary.
   - This means `start` values that fall “inside” a multi-byte character effectively round up to the next character boundary (the multi-byte character is skipped).
 - Length selection (character-boundary rounding):
-  - Starting from the chosen start character, the engine appends characters and accumulates their byte count under the current language encoding.
+  - Starting from the chosen start character, the engine appends characters and accumulates their byte count under derived runtime value `LanguageCodePage`.
   - It stops once that accumulated count becomes `>= length`, or when it reaches end-of-string.
   - This means the returned substring may exceed `length` in bytes if the last included character is multi-byte.
 
@@ -16760,7 +16724,7 @@ ARRAYMSORT(A, B, C)
 
 ## STRFIND (expression function)
 **Summary**
-- Searches a string and returns the first match position in the engine's language-length unit.
+- Searches a string and returns the first match position in the engine's length unit based on derived runtime value `LanguageCodePage`.
 
 **Metadata**
 - Implementor: `new StrfindMethod(false)`
@@ -16781,12 +16745,12 @@ ARRAYMSORT(A, B, C)
 
 **Semantics**
 - Uses ordinal, case-sensitive substring search.
-- `start` is interpreted in the same language-length unit returned by `STRLENS`.
+- `start` is interpreted in the same length unit based on derived runtime value `LanguageCodePage` returned by `STRLENS`.
 - Effective start-position rules:
   - If `start <= 0`, search begins at the start of `target`.
   - If `start` falls inside a multi-byte character, the effective start moves to the following character boundary.
   - If the effective start is at or past the end of `target`, returns `-1`.
-- Returns the first match position in the same language-length unit.
+- Returns the first match position in the same length unit based on derived runtime value `LanguageCodePage`.
 - Returns `-1` if no match is found.
 - If `word == ""`, returns the effective start position when that position is still inside the string; otherwise returns `-1`.
 
@@ -16936,8 +16900,8 @@ ARRAYMSORT(A, B, C)
 
 **Semantics**
 - Returns `0` if `str` is `null` or `""`.
-- Rejects any string containing at least one multi-byte character under the engine’s configured language encoding:
-  - If `LangByteCount(str) > str.Length`, returns `0`.
+- Rejects any string containing at least one multi-byte character under derived runtime value `LanguageCodePage`:
+  - If `STRLENS(str) > str.Length`, returns `0`.
 - Rejects strings that do not start with:
   - a digit, or
   - `+`/`-` followed by a digit.
@@ -17035,7 +16999,7 @@ ARRAYMSORT(A, B, C)
 
 ## TOHALF (expression function)
 **Summary**
-- Converts full-width characters to half-width (narrow) form using the engine’s configured language encoding (config item `useLanguage`).
+- Converts characters to half-width (narrow) form by passing the East Asian locale ID selected by config item `useLanguage` to the platform width-conversion routine.
 
 **Metadata**
 - Implementor: `new StrChangeStyleMethod(StrFormType.Half)`
@@ -17053,14 +17017,22 @@ ARRAYMSORT(A, B, C)
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
-- Otherwise: uses VisualBasic `Strings.StrConv(..., Narrow, <code page>)`, where `<code page>` is the engine’s current language code page (derived from `useLanguage`).
+- Otherwise:
+  - compute the derived runtime value `LanguageLCID` from config item `useLanguage` (see `config-items.md`).
+  - call Visual Basic `.NET` API `Microsoft.VisualBasic.Strings.StrConv(str, Narrow, <locale id>)`, using derived runtime value `LanguageLCID` as the third argument.
+- In the open-source `.NET` implementation, that `StrConv(..., Narrow, ...)` path validates the locale as Japanese/Korean/Chinese, sets `LCMAP_HALFWIDTH`, and then calls the Windows NLS mapping routine.
+- The engine does not apply its own post-processing or per-character remapping after that call.
+- The engine has no script-visible per-language branch here other than selecting derived runtime value `LanguageLCID` and passing it through to `StrConv`.
+- Exact per-character results are whatever the platform Visual Basic / Windows `Narrow` conversion routine returns for that locale ID.
+- See the note under derived runtime value `LanguageLCID` in `config-items.md` for the compatibility conclusion about locale invariance across the East Asian locales accepted here.
+- This function does **not** use the derived runtime value `LanguageCodePage`; that code page is used by `LangManager` byte-length helpers instead.
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.
-- Any runtime exceptions from the underlying `.NET` conversion routine propagate as engine errors.
+- Any runtime exception from the underlying conversion routine propagates as an engine error.
 
 **Examples**
-- `TOHALF("ＡＢＣ")` → `"ABC"`
+- `TOHALF("ＡＢＣ１２３")` → `"ABC123"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17068,7 +17040,7 @@ ARRAYMSORT(A, B, C)
 
 ## TOFULL (expression function)
 **Summary**
-- Converts half-width characters to full-width (wide) form using the engine’s configured language encoding (config item `useLanguage`).
+- Converts characters to full-width (wide) form by passing the East Asian locale ID selected by config item `useLanguage` to the platform width-conversion routine.
 
 **Metadata**
 - Implementor: `new StrChangeStyleMethod(StrFormType.Full)`
@@ -17086,14 +17058,22 @@ ARRAYMSORT(A, B, C)
 
 **Semantics**
 - If `str` is null/empty: returns `""`.
-- Otherwise: uses VisualBasic `Strings.StrConv(..., Wide, <code page>)`, where `<code page>` is the engine’s current language code page (derived from `useLanguage`).
+- Otherwise:
+  - compute the derived runtime value `LanguageLCID` from config item `useLanguage` (see `config-items.md`).
+  - call Visual Basic `.NET` API `Microsoft.VisualBasic.Strings.StrConv(str, Wide, <locale id>)`, using derived runtime value `LanguageLCID` as the third argument.
+- In the open-source `.NET` implementation, that `StrConv(..., Wide, ...)` path validates the locale as Japanese/Korean/Chinese, sets `LCMAP_FULLWIDTH`, and then calls the Windows NLS mapping routine.
+- The engine does not apply its own post-processing or per-character remapping after that call.
+- The engine has no script-visible per-language branch here other than selecting derived runtime value `LanguageLCID` and passing it through to `StrConv`.
+- Exact per-character results are whatever the platform Visual Basic / Windows `Wide` conversion routine returns for that locale ID.
+- See the note under derived runtime value `LanguageLCID` in `config-items.md` for the compatibility conclusion about locale invariance across the East Asian locales accepted here.
+- This function does **not** use the derived runtime value `LanguageCodePage`; that code page is used by `LangManager` byte-length helpers instead.
 
 **Errors & validation**
 - Argument type/count errors are rejected by the engine’s function-method argument checker.
-- Any runtime exceptions from the underlying `.NET` conversion routine propagate as engine errors.
+- Any runtime exception from the underlying conversion routine propagates as an engine error.
 
 **Examples**
-- `TOFULL("ABC")` → `"ＡＢＣ"`
+- `TOFULL("ABC123")` → `"ＡＢＣ１２３"`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17323,7 +17303,7 @@ ARRAYMSORT(A, B, C)
 - `str` (string): string to test.
 
 **Semantics**
-- Returns `0` immediately if `str` contains any multi-byte character under the current language encoding.
+- Returns `0` immediately if `str` contains any multi-byte character under derived runtime value `LanguageCodePage`.
 - Returns `0` if `str` does not start with:
   - a digit, or
   - `+` / `-` followed by a digit.
@@ -18533,7 +18513,9 @@ R = SPRITESETPOS("ICON", 100, 50)
   - `forceSavdir` is ignored.
 - Writing behavior shared by both modes:
   - writes the exact string content without newline normalization or automatic extra terminators,
-  - writes using the runtime save-text encoding; in this build that encoding is UTF-8 with BOM,
+  - writes using the engine's current text-save writer encoding,
+  - in this build, that writer encoding is effectively fixed to UTF-8 with BOM,
+  - config item `SystemSaveInUTF8` and argument `forceUTF8` do not change the written encoding in this implementation,
   - returns `1` on success and `0` on any failure.
 - Path-handling family for explicit-path mode: see `filesystem-paths.md` Family A.
 
@@ -18586,7 +18568,11 @@ R = SPRITESETPOS("ICON", 100, 50)
 - Reading behavior shared by both modes:
   - if the resolved file does not exist, returns `""`,
   - reads the entire file,
-  - detects encoding as UTF-8 with BOM / UTF-8 when valid, otherwise falls back to Shift-JIS,
+  - detects encoding in this order:
+    - if the file starts with a UTF-8 BOM, reads as UTF-8 with BOM,
+    - otherwise, if the platform BOM-aware reader detects another BOM-tagged encoding during its initial probe, uses that detected encoding,
+    - otherwise, if strict UTF-8 decoding succeeds, reads as UTF-8,
+    - otherwise, falls back to Shift-JIS,
   - removes every `
 ` character from the loaded text before returning it,
   - returns `""` on any failure.

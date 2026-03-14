@@ -67,6 +67,7 @@ This reference has two “layers”:
 ### Implementation detail / diagnostics
 
 - [`source-position-mapping.md`](source-position-mapping.md) — how Emuera maps warnings/errors to file/line (diagnostic behavior)
+- [`host-aux-files.md`](host-aux-files.md) — keyboard macros, debug auxiliary files, and selected host-side log files
 - [`appendix/implementation/builtins-core-implementation-notes.md`](appendix/implementation/builtins-core-implementation-notes.md) — legacy (kept for older links; content migrated into the main docs)
 
 ### Data and config (tightly coupled to language use)

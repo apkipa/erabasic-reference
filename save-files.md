@@ -440,8 +440,13 @@ Engine quirk:
 
 ### 4.1 Text encoding
 
-- Write: `StreamWriter(..., configured save-text encoding)` (default UTF-8 with BOM in this engine).
-- Read: `StreamReader(..., DetectEncoding(file))` (BOM-aware / heuristic).
+- Write: UTF-8 with BOM in this engine build.
+  - The apparent UTF-8 save toggle is not wired into the writer here; current text-save writes do not switch away from UTF-8 with BOM.
+- Read: `DetectEncoding(file)` with this behavior:
+  - if the file starts with a UTF-8 BOM, read as UTF-8 with BOM,
+  - otherwise, if BOM-based probing detects another BOM-tagged encoding, use that detected encoding,
+  - otherwise, if strict UTF-8 decoding succeeds, use UTF-8,
+  - otherwise, fall back to Shift-JIS.
 
 ### 4.2 Primitive encodings
 
