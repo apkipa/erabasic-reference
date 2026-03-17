@@ -21,13 +21,13 @@ Important:
 
 # Expression functions as statements (METHOD-dispatch)
 
-In this engine, **expression functions** (the `# Expression functions (methods)` section below) are also registered as **instruction keywords** when there is no name conflict with an existing instruction keyword.
-This allows writing method names as standalone statements (without `=` assignment).
+In this engine, built-in **expression functions** (the `# Expression functions (methods)` section below) are also registered as **instruction keywords** when there is no name conflict with an existing instruction keyword.
+This allows writing some built-in method names as standalone statements (without `=` assignment). User-defined `#FUNCTION/#FUNCTIONS` are not auto-exposed through this path.
 
 Statement form (best-effort description):
 - A line whose keyword matches an expression function name is executed by a shared internal instruction (`METHOD_Instruction`).
-- Instruction-style separation still applies after the keyword: `TOSTR 42` or `TOSTR (42)` can work, but `TOSTR(42)` is rejected before method-argument parsing begins.
-- The remaining argument text is parsed as comma-separated expressions.
+- The remaining argument text is parsed as the normal top-level expression list to end-of-line.
+- So `TOSTR 42`, `TOSTR (42)`, and `TOSTR(42)` all supply one argument; `TOSTR(42)` here is still statement-form `TOSTR` with one grouped argument expression, not an ordinary function-call expression used as a statement; `TOSTR(1, 2)` is not the statement-form two-argument syntax.
 - The engine validates argument types/count using the method’s own argument checker.
 - The method is evaluated; if it returns:
   - `long`: assigns `RESULT` (integer).

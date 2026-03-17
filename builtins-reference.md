@@ -47,8 +47,10 @@ Unless an entry explicitly says otherwise, interpret this reference using the co
 
 # Expression functions as statements
 
-Some expression functions are also accepted as standalone statements (without `=` assignment), but only when no ordinary instruction keyword already owns that name.
-Statement form still uses instruction-style separation after the method name (for example `TOSTR 42`, not `TOSTR(42)`).
+Some built-in expression functions are also accepted as standalone statements (without `=` assignment), but only when no ordinary instruction keyword already owns that name.
+User-defined `#FUNCTION/#FUNCTIONS` are not auto-exposed through this statement-form path.
+Statement form parses the post-keyword tail as the normal top-level expression list to end-of-line, not as `CALLF`-style parenthesized argument syntax.
+So both `TOSTR 42` and `TOSTR(42)` are accepted, but `TOSTR(1, 2)` is not the statement-form two-argument syntax.
 In statement form, the engine evaluates the function and writes the return value to:
 - `RESULT` for integer-returning functions
 - `RESULTS` for string-returning functions

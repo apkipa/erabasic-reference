@@ -192,7 +192,7 @@ Where described today:
 - ✅ Argument binding (`ARG/ARGS`) including defaults and omitted args (including implicit defaults for some formals).
 - ✅ Empty-slot parsing is specified for both expression calls and instruction-style comma lists, including the engine quirk that `F(a,,c)` creates a `null` middle slot but trailing `F(a,)` / `CALL X, a,` do **not** create an extra final omitted slot.
 - ✅ Pass-by-reference via `REF` formal parameters.
-- ✅ Expression functions (`#FUNCTION/#FUNCTIONS`): call sites, method-safe restriction model, side-effect caveats, and the main disallowed instruction families are specified.
+- ✅ Expression functions (`#FUNCTION/#FUNCTIONS`): call sites, statement-form boundaries, method-safe restriction model, side-effect caveats, and the main disallowed instruction families are specified.
 - ✅ Error behavior on missing functions and labels (including `TRY*`, `TRYC*`, `TRY*LIST`, `CALLF`, and `TRYCALLF`), calling event functions, and `CompatiCallEvent` / config item `FunctionNotFoundWarning` effects is specified.
 - 🟡 Execution modes that affect call/IO behavior (e.g. output skipping `SKIPDISP` / script-runner skip-print mode, and message-skip `MesSkip`) are documented at the shared-rule level; a tighter exhaustive inventory of print-like built-ins is still desirable.
 

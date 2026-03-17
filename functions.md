@@ -61,16 +61,19 @@ This engine also supports statement-level method execution in three related form
 - If a line’s keyword matches a registered expression function name, the engine executes that function and writes:
   - numeric result → `RESULT`
   - string result → `RESULTS`
-- This path exists only when no ordinary instruction keyword already owns that name. Built-in methods and user-defined `#FUNCTION/#FUNCTIONS` are auto-exposed in statement form only on non-conflicting names.
-- Statement form still uses instruction-style argument parsing, not expression-call syntax.
+- This path exists only when no ordinary instruction keyword already owns that name.
+- In the current engine, the auto-exposed statement-form names come from the built-in expression-method registry, not from user-defined `#FUNCTION/#FUNCTIONS`.
+- Statement form parses the post-keyword tail as the normal top-level expression list to end-of-line, not as `CALLF`-style parenthesized argument syntax.
   - Valid standalone line: `TOSTR 42`
-  - Invalid standalone line: `TOSTR(42)`
+  - Valid standalone line: `TOSTR(42)` (`(42)` is just one grouped expression, not an ordinary function-call expression being used as a statement)
+  - Invalid standalone line: `TOSTR(1, 2)` (the comma inside the parentheses is not a top-level argument separator here)
+  - Invalid standalone line: `USER_FUNCTION()`
 
 2) **`CALLF` / `CALLFORMF` (explicit method-name call)**
 
 - `CALLF` / `CALLFORMF` resolve and evaluate an expression function by name.
 - In this engine, these instructions **do not** assign the return value into `RESULT/RESULTS` (the value is computed and discarded).
-  - Use expression-call form or statement-form method execution if you need the value in `RESULT` / `RESULTS`.
+  - Use expression-call form if you need the value in surrounding expression evaluation; built-in statement-form method execution also writes `RESULT` / `RESULTS`, but user-defined `#FUNCTION/#FUNCTIONS` are not auto-exposed through that path.
 
 3) **`TRYCALLF` / `TRYCALLFORMF` (soft user-method call)**
 
