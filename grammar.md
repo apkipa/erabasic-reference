@@ -295,7 +295,9 @@ arglist          ::= [ arg ] { "," [ arg ] } ;
 arg              ::= EXPR ;
 ```
 
-An empty field between commas denotes an **omitted argument**.
+An empty field **between commas** denotes an **omitted argument**.
+
+A trailing comma before `)` or end-of-line does **not** create an extra final omitted slot in the current engine.
 
 ## 7) Core control-flow blocks (structural rules + argument syntax)
 

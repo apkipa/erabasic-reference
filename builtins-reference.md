@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference (Emuera / EvilMask)
 
-Generated on `2026-03-15`.
+Generated on `2026-03-17`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `builtins-reference.md` by hand.

@@ -18,6 +18,9 @@ Many call-like built-ins parse their *target* with optional “tails”:
 Engine-accurate notes:
 
 - The `NAME` text is read up to one of: `(`, `[`, `,`, `;` (then trimmed of half-width spaces/tabs). `;` starts a comment.
+- For the comma-form argument tail, only an empty field **between commas** creates an omitted/`null` slot:
+  - `CALL X, a,,c` produces row arguments `[a, null, c]`
+  - `CALL X, a,` does **not** produce an extra final omitted slot; it is parsed like one argument `[a]`
 - In this Emuera codebase, the bracket list is **parsed and stored** on the call argument object as `SubNames`, but it is **not used for runtime dispatch**:
   - it does not change which `@NAME` / `$NAME` is selected,
   - and it is not evaluated at runtime (so it cannot cause runtime errors/side-effects by itself).

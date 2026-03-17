@@ -51,14 +51,14 @@ The engine also stores one display name per group.
 
 When config item `UseKeyMacro` is enabled, the main window intercepts these key combinations:
 
-- `F1`..`F12` with **no modifiers**:
+- `F1` through `F12` with **no modifiers**:
   - replace the current input textbox contents with the stored macro text for the current group and that F-key slot,
   - move the caret to the end,
   - this happens even if the stored macro is empty (the input box becomes empty).
-- `Shift+F1`..`Shift+F12`:
+- `Shift+F1` through `Shift+F12`:
   - if the current input textbox is non-empty, store its current text into that slot of the current group,
   - if the input textbox is empty, do nothing.
-- `Ctrl+0`..`Ctrl+9`:
+- `Ctrl+0` through `Ctrl+9`:
   - switch the current macro group,
   - accept both the top-row digit keys and numpad digits,
   - show a temporary on-screen label with the group's display name.
@@ -90,7 +90,7 @@ Important compatibility quirk:
 - The group-header prefix is hardcoded Japanese `グループ`.
 - The macro-slot prefixes are **not** hardcoded:
   - group `0` uses the current localized `MacroKeyF` pattern,
-  - groups `1..9` use the current localized `GMacroKeyF` pattern.
+  - groups satisfying `1 <= group <= 9` use the current localized `GMacroKeyF` pattern.
 - So the parseable `macro.txt` surface depends on the current language resources loaded into the host UI.
 
 Examples of slot prefixes in the English language pack:
@@ -113,7 +113,7 @@ Per-line behavior:
 - lines whose first character is `;` are ignored
 - a line starting with `グループ` can update one group's display name if all of these hold:
   - the line is at least 4 characters past the prefix,
-  - the next character after `グループ` is a single digit `0`..`9`,
+  - the next character after `グループ` is a single decimal digit satisfying `0 <= digit <= 9`,
   - the next character after that digit is `:`
 - otherwise, the loader scans all 120 current slot-name prefixes and, on the first `StartsWith(...)` match, stores the line suffix as that macro's text
 

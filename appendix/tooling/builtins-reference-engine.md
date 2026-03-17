@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)
 
-Generated from engine source on `2026-03-15`.
+Generated from engine source on `2026-03-17`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `appendix/tooling/builtins-reference-engine.md` by hand.
@@ -13169,7 +13169,8 @@ For `argumentTypeArrayEx` entries:
 - `OmitStart = k` is a **0-based index** controlling omission/`null`:
   - Argument count must satisfy `k <= argc <= len(ArgTypes)` (unless variadic). If `OmitStart = -1`, then `argc` must equal `len(ArgTypes)` (unless variadic).
   - Trailing arguments may be omitted by passing fewer than `len(ArgTypes)` arguments (method supplies defaults in its implementation, typically by checking `arguments.Count`).
-  - A blank argument inside the call (e.g. `FUNC(a,,c)` or `FUNC(a,)`) becomes `null`. `null` is rejected for positions `< OmitStart`, and may also be rejected at/after `OmitStart` when the rule includes `DisallowVoid`.
+  - A blank argument between commas inside the call (e.g. `FUNC(a,,c)`) becomes `null`. `null` is rejected for positions `< OmitStart`, and may also be rejected at/after `OmitStart` when the rule includes `DisallowVoid`.
+  - A trailing comma does not create an extra final `null` argument in the current engine: `FUNC(a,)` is parsed like one argument (`a`), not two slots.
 - Common `ArgType` flags you may see:
   - `Ref*`: argument must be a variable term (by-reference-like), not an arbitrary expression.
   - `AllowConstRef`: allows referencing `CONST` variables where otherwise refs reject them.

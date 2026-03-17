@@ -244,9 +244,12 @@ arglist   ::= expr { "," expr } ;
 Notes:
 
 - `IDENT "[" ... "]"` function calls are explicitly rejected in this engine.
-- Argument lists can contain **empty slots** (e.g. `F(a,,c)` or `F(a,)`):
+- Argument lists can contain **empty slots** between commas (e.g. `F(a,,c)`):
   - the expression parser represents an empty slot as `null` in the argument list
   - whether `null` is accepted, treated as “omitted”, or rejected is method-specific (validated by the called built-in method or user-defined signature rules)
+- A trailing comma before `)` does **not** create an extra final empty slot in the current engine:
+  - `F(a,,c)` parses as three positions: `[a, null, c]`
+  - `F(a,)` parses as one argument: `[a]`
 
 ### 5.2 Variable term
 
