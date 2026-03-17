@@ -6955,6 +6955,7 @@ LOOP I < 10
 
 **Errors & validation**
 - Errors if any argument cannot be evaluated as an integer.
+- `RETURN` inside a user-defined expression-function body (`#FUNCTION` / `#FUNCTIONS`) is a load-time error (the line is marked as error), because `RETURN` is not method-safe there; use `RETURNF` instead.
 
 **Examples**
 - `RETURN`
@@ -6993,6 +6994,7 @@ LOOP I < 10
 
 **Errors & validation**
 - Errors if any parsed expression is not a valid integer expression.
+- `RETURNFORM` inside a user-defined expression-function body (`#FUNCTION` / `#FUNCTIONS`) is a load-time error (the line is marked as error), because `RETURNFORM` is not method-safe there; use `RETURNF` instead.
 
 **Examples**
 - `RETURNFORM 1, 2, %A%`

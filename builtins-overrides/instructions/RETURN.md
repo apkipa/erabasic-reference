@@ -20,6 +20,7 @@
 
 **Errors & validation**
 - Errors if any argument cannot be evaluated as an integer.
+- `RETURN` inside a user-defined expression-function body (`#FUNCTION` / `#FUNCTIONS`) is a load-time error (the line is marked as error), because `RETURN` is not method-safe there; use `RETURNF` instead.
 
 **Examples**
 - `RETURN`

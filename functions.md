@@ -422,6 +422,12 @@ Main consequences:
 - Input/wait and other host-suspending instructions are rejected here.
 - In practice, local control flow, ordinary assignments, array/variable helpers, many plain output instructions, and method-oriented calls such as expression-call form / `CALLF` / `TRYCALLF` remain usable.
 
+Implementation-model note (why this is more than a style rule):
+
+- User-defined expression functions are evaluated as part of synchronous expression evaluation and return through a dedicated method-return slot, not through ordinary `RESULT`/`RETURN` flow.
+- `RETURN` / `RETURNFORM` are therefore not just “discouraged”: their implementation path writes `RESULT` and then performs ordinary function return handling, while method evaluation expects `RETURNF` / implicit end-of-method return to fill the dedicated method-return slot instead.
+- Instructions that suspend for host input/wait, switch host phases (`BEGIN`-style), or enter ordinary call/event-control paths are likewise excluded because they do not fit this “evaluate now and produce one method value” execution model.
+
 ### Side effects and evaluation caveats
 
 Expression functions can still mutate state, but compatibility-sensitive code should assume only these ordering guarantees:

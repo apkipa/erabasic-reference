@@ -238,7 +238,9 @@ This matters because `RESULT`/`RESULTS` are global and are not saved/restored.
     - `RESULT` when the function returns numeric (`long`)
     - `RESULTS` when the function returns string (`string`)
   - Not all expression functions are callable in statement form; name conflicts with existing instruction keywords block this statement-form entry path.
-  - Like other instruction statements, this still uses instruction-style separation after the keyword: `TOSTR 42` can work, but whole-line `TOSTR(42)` does not enter this path.
+  - This path parses the post-keyword tail as the normal top-level expression list to end-of-line, not as `CALLF`-style parenthesized argument syntax.
+  - So `TOSTR 42` and `TOSTR(42)` both enter this statement-form path as one-argument calls; in `TOSTR(42)`, `(42)` is just one grouped argument expression, not an ordinary function-call expression being used as a statement.
+  - Conversely, `TOSTR(1, 2)` is not the statement-form two-argument syntax.
 - **`CALLF` / `CALLFORMF`**:
   - These explicitly call an expression function by name, but in this engine they do **not** assign the return value into `RESULT`/`RESULTS`.
   - If you need the value, call the function in an expression (e.g. `X = FOO(...)`) or use statement-form method execution where available.
