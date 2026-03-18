@@ -22,7 +22,7 @@
 - `CALLSHARP` resolves `<methodName>` to a plugin method registered by the plugin system and calls it.
 - `<methodName>` is not an expression:
   - It is parsed as raw text up to the first `(`, `[`, `,`, or `;`, then trimmed.
-  - Backslash escapes are processed while parsing the raw token (e.g. `\\s` = space, `\\t` = tab, and `\\,` can be used to include a comma in the name).
+  - Backslash escapes are processed while parsing the raw token (e.g. `\s` = space, `\t` = tab, and `\,` can be used to include a comma in the name).
   - Quotation marks are not special here; `CALLSHARP "X"` looks for a method literally named `"X"`.
 - Argument passing:
   - Each `<argN>` is evaluated before the plugin is invoked.
