@@ -130,7 +130,7 @@ Case-sensitivity note:
 ERH is parsed **before ERB**. In this engine, ERH is allowed to contain:
 
 - `#DEFINE` macros
-- `#DIM/#DIMS` global variable declarations (processed in a second pass)
+- `#DIM/#DIMS` global variable declarations (processed in a second pass with limited retry-based resolution)
 
 Anything else in ERH is treated as an error.
 

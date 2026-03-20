@@ -484,6 +484,9 @@ An initializer list is permitted only when all of these hold:
 Initializer rules:
 
 - The initializer list is parsed as a comma-separated list of expressions, but **each element must be a compile-time constant** (`SingleLongTerm` for `#DIM`, `SingleStrTerm` for `#DIMS`).
+- In ERH global declarations, this “compile-time constant” check is applied within the loader's later `#DIM/#DIMS` batch pass rather than strictly in source order:
+  - a declaration may reference another user-defined variable declared later in ERH, as long as some later retry pass can resolve it to a constant,
+  - but this is only a limited order-independence mechanism for `#DIM/#DIMS`, not a general dependency solver.
 - Omitted elements (`,,`) are not allowed.
 - If a size was specified:
   - the initializer count must be `<= size`
@@ -507,6 +510,12 @@ Example:
   - function-entry allocation for private `DYNAMIC` storage
 
 If you write `CONST` without an initializer, the declaration fails.
+
+Dependency boundary:
+
+- Mutual / circular dependencies between `#DIM/#DIMS` constant declarations do **not** resolve.
+- The loader retries unresolved declarations while some progress is still being made.
+- If no pass makes progress, the remaining unresolved declarations are downgraded to warnings and are not created.
 
 ### 5) `CONST`
 
