@@ -126,9 +126,11 @@ Macros do **not** apply to:
 
 - raw/simple string arguments parsed as plain text by specific instructions
 - literal segments of FORM strings (outside `%...%` / `{...}`)
+- ERB line-start classification itself (`@` / `$` label lines, post-label `#...` lines, and `[` preprocessor directives) because that classification happens before token-level macro expansion
 
 ### 2.4 Limitations and common pitfalls
 
 - Macros do not turn text into statements: a macro replacement is still just expression tokens.
+- In particular, a macro expansion cannot turn an ordinary ERB line into an `@LABEL`, `$LABEL`, `#...`, or `[...]` line-start structure.
 - Even though macro declarations are tokenized with “assignment allowed” in ERH, using `=` inside a normal expression is still an error at expression-parse time.
 - Because replacement is token-based (not raw text), you cannot rely on “spacing tricks” inside macro bodies; use parentheses explicitly to avoid precedence surprises.

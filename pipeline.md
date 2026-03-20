@@ -198,6 +198,8 @@ For each enabled ERB line, the loader classifies it by its first non-whitespace 
 - `@` / `$` → label line (`FunctionLabelLine` / `GotoLabelLine`)
 - otherwise → statement line (`InstructionLine` or `InvalidLine`)
 
+This classification sees the text **after** line-reader transforms such as `[[...]]` rename replacement and `{...}` continuation joining, but **before** token-level `#DEFINE` macro expansion. So rename replacement can change whether a line is treated as `@` / `$` / `#` / `[`-started structure, while `#DEFINE` expansion cannot.
+
 This step does **not** fully parse instruction arguments in the general case. Most instruction lines store a raw “argument slice” and are parsed later (either during load-time validation, or lazily at runtime).
 
 Certain parse failures clear the loader's coarse “load succeeded?” flag even though the loader continues to read the rest of the files:

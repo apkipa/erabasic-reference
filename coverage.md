@@ -65,6 +65,7 @@ Where described today:
 ### 3.3 Macro system (`#DEFINE`) and conditional blocks
 
 - ✅ Macro expansion model: token-based, where expansion applies, recursion limit.
+- ✅ Boundary against line-level structure: `#DEFINE` expansion does not change whether an ERB line is classified as `@` / `$` / `#` / `[`-started structure vs ordinary statement; `[[...]]` rename replacement can, because it runs earlier during line reading.
 - ✅ Conditional inclusion blocks: `[IF]...[ENDIF]`, `[IF_DEBUG]`, `[IF_NDEBUG]`, and their interaction with line reading.
 - ✅ `[SKIPSTART]...[SKIPEND]` handling (skip-forces-disabled, but directives still parsed).
 
