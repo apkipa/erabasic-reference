@@ -23,7 +23,7 @@
 - Same as `JUMP`, but errors may occur at runtime if the evaluated function name varies.
 
 **Examples**
-- `JUMPFORM "EVENT_%COUNT%"`
+- `JUMPFORM EVENT_{COUNT}`
 
 **Progress state**
 - complete

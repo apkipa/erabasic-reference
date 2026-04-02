@@ -18,7 +18,7 @@
 - Still errors if the label exists but is invalid.
 
 **Examples**
-- `TRYGOTOFORM "LABEL_%RESULT%"`
+- `TRYGOTOFORM LABEL_{RESULT}`
 
 **Progress state**
 - complete

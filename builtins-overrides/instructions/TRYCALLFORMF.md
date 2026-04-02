@@ -27,7 +27,7 @@
 - Same as `TRYCALLF`.
 
 **Examples**
-- `TRYCALLFORMF "HOOK_%TARGET%", TARGET`
+- `TRYCALLFORMF HOOK_{TARGET}, TARGET`
 
 **Progress state**
 - complete

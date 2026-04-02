@@ -25,9 +25,9 @@ ENDCATCH
 
 **Examples**
 ```erabasic
-TRYCGOTOFORM "LABEL_%RESULT%"
+TRYCGOTOFORM LABEL_{RESULT}
 CATCH
-    PRINTL "label missing"
+    PRINTL label missing
 ENDCATCH
 ```
 

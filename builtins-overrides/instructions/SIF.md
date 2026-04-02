@@ -30,7 +30,7 @@
 
 **Examples**
 - `SIF A == 0`
-- `PRINTL "A is non-zero"`
+- `PRINTL A is non-zero`
 
 **Progress state**
 - complete

@@ -27,7 +27,7 @@
 - Errors if the method does not exist or if argument checking fails.
 
 **Examples**
-- `CALLFORMF "FUNC_%X%", A, B`
+- `CALLFORMF FUNC_{TARGET}, A, B`
 
 **Progress state**
 - complete

@@ -26,7 +26,7 @@
 
 **Examples**
 ```erabasic
-DEBUGPRINTFORM "X={VALUE}"
+DEBUGPRINTFORM X={VALUE}
 ```
 
 **Progress state**

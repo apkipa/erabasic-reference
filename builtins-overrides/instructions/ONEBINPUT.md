@@ -30,7 +30,7 @@
 ```erabasic
 PRINTBUTTON "0", 0
 PRINTBUTTON "1", 1
-PRINTL ""
+PRINTL
 ONEBINPUT
 ```
 

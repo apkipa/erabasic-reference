@@ -23,7 +23,7 @@
 - `RETURNFORM` inside a user-defined expression-function body (`#FUNCTION` / `#FUNCTIONS`) is a load-time error (the line is marked as error), because `RETURNFORM` is not method-safe there; use `RETURNF` instead.
 
 **Examples**
-- `RETURNFORM 1, 2, %A%`
+- `RETURNFORM 1, 2, {A}`
 
 **Progress state**
 - complete

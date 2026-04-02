@@ -32,7 +32,7 @@ ENDFUNC
 **Examples**
 ```erabasic
 TRYJUMPLIST
-    FUNC PHASE_%COUNT%
+    FUNC PHASE_{COUNT}
     FUNC PHASE_DEFAULT
 ENDFUNC
 ```

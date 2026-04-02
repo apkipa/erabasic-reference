@@ -28,7 +28,7 @@ ENDCATCH
 ```erabasic
 TRYCGOTO OPTIONAL_LABEL
 CATCH
-    PRINTL "label missing"
+    PRINTL label missing
 ENDCATCH
 ```
 

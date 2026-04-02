@@ -1,6 +1,6 @@
 # EraBasic Built-ins Writing Progress (Emuera / EvilMask)
 
-Generated on `2026-03-18`.
+Generated on `2026-04-02`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `builtins-progress.md` by hand.

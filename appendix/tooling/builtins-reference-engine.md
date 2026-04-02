@@ -1,6 +1,6 @@
 # EraBasic Built-ins Reference — Engine Dump (Emuera / EvilMask)
 
-Generated from engine source on `2026-03-18`.
+Generated from engine source on `2026-04-02`.
 
 > [!WARNING]
 > This file is generated. Do **not** edit `appendix/tooling/builtins-reference-engine.md` by hand.
@@ -522,7 +522,7 @@ Total (engine-registered keywords, incl. internal `SET`): `303`.
 - `A += 1`
 - `A <<= 2`
 - `++A`
-- `S = "Hello, %NAME%!"`
+- `S = Hello, %NAME%!`
 - `S '= TOSTR(A)`
 - `ARR:0 = 1, 2, 3, 4`
 
@@ -5321,8 +5321,8 @@ Compatibility notes:
 
 **Examples**
 ```erabasic
-REUSELASTLINE "Now loading..."
-REUSELASTLINE %TIME%
+REUSELASTLINE Now loading...
+REUSELASTLINE {TIME}
 ```
 
 **Engine references (fact-check)**
@@ -5683,7 +5683,7 @@ DELCHARA 1, 3
 - None.
 
 **Examples**
-- `PUTFORM %PLAYERNAME% - Day %DAY%`
+- `PUTFORM %PLAYERNAME% - Day {DAY}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6191,7 +6191,7 @@ DELCHARA 1, 3
 
 **Examples**
 - `SIF A == 0`
-- `PRINTL "A is non-zero"`
+- `PRINTL A is non-zero`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -6244,9 +6244,9 @@ ENDIF
 **Examples**
 ```erabasic
 IF FLAG
-    PRINTL "yes"
+    PRINTL yes
 ELSE
-    PRINTL "no"
+    PRINTL no
 ENDIF
 ```
 
@@ -6392,12 +6392,12 @@ ENDSELECT
 **Examples**
 ```erabasic
 SELECTCASE A
-CASE 0
-    PRINTL "zero"
-CASE 1 TO 9
-    PRINTL "small"
-CASEELSE
-    PRINTL "other"
+    CASE 0
+        PRINTL zero
+    CASE 1 TO 9
+        PRINTL small
+    CASEELSE
+        PRINTL other
 ENDSELECT
 ```
 
@@ -6997,7 +6997,7 @@ LOOP I < 10
 - `RETURNFORM` inside a user-defined expression-function body (`#FUNCTION` / `#FUNCTIONS`) is a load-time error (the line is marked as error), because `RETURNFORM` is not method-safe there; use `RETURNF` instead.
 
 **Examples**
-- `RETURNFORM 1, 2, %A%`
+- `RETURNFORM 1, 2, {A}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -8329,8 +8329,8 @@ SPLIT "a,b,c", ",", PARTS
 **Examples**
 ```erabasic
 PRINTDATA
-  DATA Hello
-  DATA;World
+    DATA Hello
+    DATA;World
 ENDDATA
 ```
 
@@ -8364,7 +8364,7 @@ ENDDATA
 **Examples**
 ```erabasic
 PRINTDATA
-  DATAFORM Hello, %NAME%!
+    DATAFORM Hello, %NAME%!
 ENDDATA
 ```
 
@@ -9464,7 +9464,7 @@ ENDNOSKIP
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `JUMPFORM "EVENT_%COUNT%"`
+- `JUMPFORM EVENT_{COUNT}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -9508,7 +9508,7 @@ ENDNOSKIP
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `CALLFORM "TRAIN_%TARGET%", TARGET`
+- `CALLFORM TRAIN_{TARGET}, TARGET`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -9549,7 +9549,7 @@ ENDNOSKIP
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `TRYJUMPFORM "OPTIONAL_%COUNT%"`
+- `TRYJUMPFORM OPTIONAL_{COUNT}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -9590,7 +9590,7 @@ ENDNOSKIP
   - `throw new CodeEE(errMes)`
 
 **Examples**
-- `TRYCALLFORM "HOOK_%TARGET%"`
+- `TRYCALLFORM HOOK_{TARGET}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -9644,7 +9644,7 @@ ENDCATCH
 ```erabasic
 TRYCJUMP OPTIONAL_PHASE
 CATCH
-    PRINTL "phase missing"
+    PRINTL phase missing
 ENDCATCH
 ```
 
@@ -9701,7 +9701,7 @@ ENDCATCH
 ```erabasic
 TRYCCALL OPTIONAL_HOOK
 CATCH
-    PRINTL "hook missing"
+    PRINTL hook missing
 ENDCATCH
 ```
 
@@ -9754,9 +9754,9 @@ ENDCATCH
 
 **Examples**
 ```erabasic
-TRYCJUMPFORM "OPTIONAL_%COUNT%"
+TRYCJUMPFORM OPTIONAL_{COUNT}
 CATCH
-    PRINTL "missing"
+    PRINTL missing
 ENDCATCH
 ```
 
@@ -9809,9 +9809,9 @@ ENDCATCH
 
 **Examples**
 ```erabasic
-TRYCCALLFORM "HOOK_%TARGET%"
+TRYCCALLFORM HOOK_{TARGET}
 CATCH
-    PRINTL "hook missing"
+    PRINTL hook missing
 ENDCATCH
 ```
 
@@ -9937,7 +9937,7 @@ ENDCATCH
   - `throw new CodeEE(string.Format(trerror.NotDefinedUserFunc.Text, labelName))`
 
 **Examples**
-- `CALLFORMF "FUNC_%X%", A, B`
+- `CALLFORMF FUNC_{TARGET}, A, B`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10152,7 +10152,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
   - `throw new CodeEE(string.Format(trerror.InvalidLabelName.Text, label))`
 
 **Examples**
-- `GOTOFORM "CASE_%RESULT%"`
+- `GOTOFORM CASE_{RESULT}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10188,7 +10188,7 @@ See `plugins.md` for how plugins are discovered/loaded and how methods are regis
   - `throw new CodeEE(string.Format(trerror.InvalidLabelName.Text, label))`
 
 **Examples**
-- `TRYGOTOFORM "LABEL_%RESULT%"`
+- `TRYGOTOFORM LABEL_{RESULT}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10235,7 +10235,7 @@ ENDCATCH
 ```erabasic
 TRYCGOTO OPTIONAL_LABEL
 CATCH
-    PRINTL "label missing"
+    PRINTL label missing
 ENDCATCH
 ```
 
@@ -10281,9 +10281,9 @@ ENDCATCH
 
 **Examples**
 ```erabasic
-TRYCGOTOFORM "LABEL_%RESULT%"
+TRYCGOTOFORM LABEL_{RESULT}
 CATCH
-    PRINTL "label missing"
+    PRINTL label missing
 ENDCATCH
 ```
 
@@ -10326,7 +10326,7 @@ ENDCATCH
 ```erabasic
 TRYCCALL OPTIONAL_HOOK
 CATCH
-    PRINTL "hook missing"
+    PRINTL hook missing
 ENDCATCH
 ```
 
@@ -10422,7 +10422,7 @@ ENDFUNC
 **Examples**
 ```erabasic
 TRYCALLLIST
-    FUNC HOOK_%TARGET%, TARGET
+    FUNC HOOK_{TARGET}, TARGET
     FUNC HOOK_DEFAULT
 ENDFUNC
 ```
@@ -10474,7 +10474,7 @@ ENDFUNC
 **Examples**
 ```erabasic
 TRYJUMPLIST
-    FUNC PHASE_%COUNT%
+    FUNC PHASE_{COUNT}
     FUNC PHASE_DEFAULT
 ENDFUNC
 ```
@@ -10531,7 +10531,7 @@ ENDFUNC
 **Examples**
 ```erabasic
 TRYGOTOLIST
-    FUNC LABEL_%RESULT%
+    FUNC LABEL_{RESULT}
     FUNC LABEL_DEFAULT
 ENDFUNC
 ```
@@ -10577,7 +10577,7 @@ ENDFUNC
 - `FUNC` must appear only inside `TRY*LIST ... ENDFUNC`; otherwise it is a load-time error (the line is marked as error).
 
 **Examples**
-- `FUNC HOOK_%TARGET%, TARGET`
+- `FUNC HOOK_{TARGET}, TARGET`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -10719,7 +10719,7 @@ ENDFUNC
 
 **Examples**
 ```erabasic
-DEBUGPRINTFORM "X={VALUE}"
+DEBUGPRINTFORM X={VALUE}
 ```
 
 **Engine references (fact-check)**
@@ -10756,7 +10756,7 @@ DEBUGPRINTFORM "X={VALUE}"
 
 **Examples**
 ```erabasic
-DEBUGPRINTFORML "phase={PHASE}"
+DEBUGPRINTFORML phase={PHASE}
 ```
 
 **Engine references (fact-check)**
@@ -11132,7 +11132,7 @@ HTML_PRINT "<p align='center'><b>Hello</b> <font color='red'>world</font></p>"
 
 ```erabasic
 HTML_PRINT "<b>HP:</b> 10", 1
-PRINTL ""
+PRINTL
 ```
 
 **Engine references (fact-check)**
@@ -11508,7 +11508,7 @@ Payload (`RESULT:*`), by event type:
 **Examples**
 ```erabasic
 INPUTMOUSEKEY 1000
-PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
+PRINTFORML type={RESULT} x={RESULT:2} y={RESULT:3}
 ```
 
 **Engine references (fact-check)**
@@ -11768,7 +11768,7 @@ PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
 
 **Examples**
 ```erabasic
-ENCODETOUNI "ABC"
+ENCODETOUNI ABC
 ; RESULT:0 = 3
 ; RESULT:1 = 65
 ; RESULT:2 = 66
@@ -12059,7 +12059,7 @@ ENCODETOUNI "ABC"
 - Same as `TRYCALLF`.
 
 **Examples**
-- `TRYCALLFORMF "HOOK_%TARGET%", TARGET`
+- `TRYCALLFORMF HOOK_{TARGET}, TARGET`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -12111,7 +12111,7 @@ ENCODETOUNI "ABC"
 
 **Examples**
 - `UPDATECHECK`
-- `PRINTFORML "updatecheck=" + RESULT`
+- `PRINTFORML updatecheck={RESULT}`
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/FunctionIdentifier.cs`
@@ -12278,12 +12278,11 @@ ENCODETOUNI "ABC"
 
 **Examples**
 ```erabasic
+RESULT = -1
+RESULTS '= "(unchanged)"
 INPUTANY
-IF RESULTS != ""
-  PRINTFORML "string: " + RESULTS
-ELSE
-  PRINTFORML "int: " + RESULT
-ENDIF
+PRINTFORML RESULT={RESULT}
+PRINTFORML RESULTS=%RESULTS%
 ```
 
 **Engine references (fact-check)**
@@ -12521,9 +12520,9 @@ ENDIF
 ```erabasic
 PRINTBUTTON "A", 10
 PRINTBUTTON "B", 20
-PRINTL ""
+PRINTL
 BINPUT
-PRINTFORML "picked=" + RESULT
+PRINTFORML picked={RESULT}
 ```
 
 **Engine references (fact-check)**
@@ -12603,9 +12602,9 @@ PRINTFORML "picked=" + RESULT
 ```erabasic
 PRINTBUTTONS "Yes", "Y"
 PRINTBUTTONS "No", "N"
-PRINTL ""
+PRINTL
 BINPUTS
-PRINTFORML "picked=" + RESULTS
+PRINTFORML picked=%RESULTS%
 ```
 
 **Engine references (fact-check)**
@@ -12658,7 +12657,7 @@ PRINTFORML "picked=" + RESULTS
 ```erabasic
 PRINTBUTTON "0", 0
 PRINTBUTTON "1", 1
-PRINTL ""
+PRINTL
 ONEBINPUT
 ```
 
@@ -12711,7 +12710,7 @@ ONEBINPUT
 ```erabasic
 PRINTBUTTONS "A", "A"
 PRINTBUTTONS "B", "B"
-PRINTL ""
+PRINTL
 ONEBINPUTS
 ```
 
@@ -14226,7 +14225,10 @@ Total (method names in `FunctionMethodCreator`): `266`.
 - (none)
 
 **Examples**
-- `if ISSKIP() == 0: PRINTFORML "not skipping"`
+```erabasic
+SIF ISSKIP() == 0
+    PRINTFORML not skipping
+```
 
 **Engine references (fact-check)**
 - Registration: `emuera.em/Emuera/Runtime/Script/Statements/Function/Creator.cs` (dictionary `methodList`)
@@ -17736,8 +17738,8 @@ PRINTL S
 
 **Examples**
 ```erabasic
-PRINTL "Hello"
-PRINTL "World"
+PRINTL Hello
+PRINTL World
 S = HTML_GETPRINTEDSTR(0)
 ```
 
@@ -17787,7 +17789,7 @@ S = HTML_GETPRINTEDSTR(0)
 
 **Examples**
 ```erabasic
-PRINT "A"
+PRINT A
 PRINTBUTTON "[B]", "B"
 S = HTML_POPPRINTINGSTR()
 ; The buffer is now cleared and nothing was added to visible output.
@@ -24194,8 +24196,8 @@ R = GDRAWLINE(GID, 0, 0, 100, 100)
 
 **Examples**
 ```erabasic
-PRINTL "AAA"
-PRINTL "BBB"
+PRINTL AAA
+PRINTL BBB
 S = GETDISPLAYLINE(0)
 ```
 

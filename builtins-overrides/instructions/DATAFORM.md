@@ -21,7 +21,7 @@
 **Examples**
 ```erabasic
 PRINTDATA
-  DATAFORM Hello, %NAME%!
+    DATAFORM Hello, %NAME%!
 ENDDATA
 ```
 

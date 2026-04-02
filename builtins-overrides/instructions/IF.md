@@ -38,9 +38,9 @@ ENDIF
 **Examples**
 ```erabasic
 IF FLAG
-    PRINTL "yes"
+    PRINTL yes
 ELSE
-    PRINTL "no"
+    PRINTL no
 ENDIF
 ```
 

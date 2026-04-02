@@ -36,7 +36,7 @@ ENDCATCH
 ```erabasic
 TRYCJUMP OPTIONAL_PHASE
 CATCH
-    PRINTL "phase missing"
+    PRINTL phase missing
 ENDCATCH
 ```
 

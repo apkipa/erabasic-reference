@@ -23,7 +23,7 @@
 - None.
 
 **Examples**
-- `PUTFORM %PLAYERNAME% - Day %DAY%`
+- `PUTFORM %PLAYERNAME% - Day {DAY}`
 
 **Progress state**
 - complete

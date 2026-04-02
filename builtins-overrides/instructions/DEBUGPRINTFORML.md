@@ -24,7 +24,7 @@
 
 **Examples**
 ```erabasic
-DEBUGPRINTFORML "phase={PHASE}"
+DEBUGPRINTFORML phase={PHASE}
 ```
 
 **Progress state**

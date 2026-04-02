@@ -35,7 +35,7 @@
 
 **Examples**
 - `UPDATECHECK`
-- `PRINTFORML "updatecheck=" + RESULT`
+- `PRINTFORML updatecheck={RESULT}`
 
 **Progress state**
 - complete

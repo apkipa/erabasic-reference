@@ -38,8 +38,8 @@
 
 **Examples**
 ```erabasic
-PRINTL "Hello"
-PRINTL "World"
+PRINTL Hello
+PRINTL World
 S = HTML_GETPRINTEDSTR(0)
 ```
 

@@ -35,8 +35,8 @@
 
 **Examples**
 ```erabasic
-PRINTL "AAA"
-PRINTL "BBB"
+PRINTL AAA
+PRINTL BBB
 S = GETDISPLAYLINE(0)
 ```
 

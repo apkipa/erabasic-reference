@@ -29,7 +29,7 @@
 
 **Examples**
 ```erabasic
-ENCODETOUNI "ABC"
+ENCODETOUNI ABC
 ; RESULT:0 = 3
 ; RESULT:1 = 65
 ; RESULT:2 = 66

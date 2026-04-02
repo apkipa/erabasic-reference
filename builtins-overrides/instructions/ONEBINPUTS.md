@@ -29,7 +29,7 @@
 ```erabasic
 PRINTBUTTONS "A", "A"
 PRINTBUTTONS "B", "B"
-PRINTL ""
+PRINTL
 ONEBINPUTS
 ```
 

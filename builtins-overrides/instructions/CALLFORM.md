@@ -27,7 +27,7 @@
 - Same as `CALL`, but errors may occur at runtime if the evaluated function name varies.
 
 **Examples**
-- `CALLFORM "TRAIN_%TARGET%", TARGET`
+- `CALLFORM TRAIN_{TARGET}, TARGET`
 
 **Progress state**
 - complete

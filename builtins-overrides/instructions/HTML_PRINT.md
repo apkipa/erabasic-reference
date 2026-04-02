@@ -44,7 +44,7 @@ HTML_PRINT "<p align='center'><b>Hello</b> <font color='red'>world</font></p>"
 
 ```erabasic
 HTML_PRINT "<b>HP:</b> 10", 1
-PRINTL ""
+PRINTL
 ```
 
 **Progress state**

@@ -33,9 +33,9 @@ ENDCATCH
 
 **Examples**
 ```erabasic
-TRYCJUMPFORM "OPTIONAL_%COUNT%"
+TRYCJUMPFORM OPTIONAL_{COUNT}
 CATCH
-    PRINTL "missing"
+    PRINTL missing
 ENDCATCH
 ```
 

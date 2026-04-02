@@ -37,7 +37,7 @@ ENDCATCH
 ```erabasic
 TRYCCALL OPTIONAL_HOOK
 CATCH
-    PRINTL "hook missing"
+    PRINTL hook missing
 ENDCATCH
 ```
 

@@ -39,12 +39,12 @@ ENDSELECT
 **Examples**
 ```erabasic
 SELECTCASE A
-CASE 0
-    PRINTL "zero"
-CASE 1 TO 9
-    PRINTL "small"
-CASEELSE
-    PRINTL "other"
+    CASE 0
+        PRINTL zero
+    CASE 1 TO 9
+        PRINTL small
+    CASEELSE
+        PRINTL other
 ENDSELECT
 ```
 

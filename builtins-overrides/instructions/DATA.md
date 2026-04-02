@@ -23,8 +23,8 @@
 **Examples**
 ```erabasic
 PRINTDATA
-  DATA Hello
-  DATA;World
+    DATA Hello
+    DATA;World
 ENDDATA
 ```
 

@@ -17,7 +17,7 @@
 - Same as `GOTO`, but errors may occur at runtime if the evaluated label name varies.
 
 **Examples**
-- `GOTOFORM "CASE_%RESULT%"`
+- `GOTOFORM CASE_{RESULT}`
 
 **Progress state**
 - complete

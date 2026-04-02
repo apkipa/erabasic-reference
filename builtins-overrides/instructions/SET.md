@@ -61,7 +61,7 @@
 - `A += 1`
 - `A <<= 2`
 - `++A`
-- `S = "Hello, %NAME%!"`
+- `S = Hello, %NAME%!`
 - `S '= TOSTR(A)`
 - `ARR:0 = 1, 2, 3, 4`
 

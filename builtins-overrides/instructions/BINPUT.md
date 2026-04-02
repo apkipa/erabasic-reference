@@ -53,9 +53,9 @@
 ```erabasic
 PRINTBUTTON "A", 10
 PRINTBUTTON "B", 20
-PRINTL ""
+PRINTL
 BINPUT
-PRINTFORML "picked=" + RESULT
+PRINTFORML picked={RESULT}
 ```
 
 **Progress state**

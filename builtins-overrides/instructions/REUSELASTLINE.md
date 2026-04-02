@@ -27,8 +27,8 @@
 
 **Examples**
 ```erabasic
-REUSELASTLINE "Now loading..."
-REUSELASTLINE %TIME%
+REUSELASTLINE Now loading...
+REUSELASTLINE {TIME}
 ```
 
 **Progress state**

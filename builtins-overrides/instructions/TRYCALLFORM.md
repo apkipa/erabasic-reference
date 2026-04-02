@@ -24,7 +24,7 @@
 - Still errors for invalid argument binding/type conversion when a function is found.
 
 **Examples**
-- `TRYCALLFORM "HOOK_%TARGET%"`
+- `TRYCALLFORM HOOK_{TARGET}`
 
 **Progress state**
 - complete

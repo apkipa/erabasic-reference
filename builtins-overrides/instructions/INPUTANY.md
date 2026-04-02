@@ -29,12 +29,11 @@
 
 **Examples**
 ```erabasic
+RESULT = -1
+RESULTS '= "(unchanged)"
 INPUTANY
-IF RESULTS != ""
-  PRINTFORML "string: " + RESULTS
-ELSE
-  PRINTFORML "int: " + RESULT
-ENDIF
+PRINTFORML RESULT={RESULT}
+PRINTFORML RESULTS=%RESULTS%
 ```
 
 **Progress state**

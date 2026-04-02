@@ -24,7 +24,7 @@
 - Still errors for invalid argument binding/type conversion when a function is found.
 
 **Examples**
-- `TRYJUMPFORM "OPTIONAL_%COUNT%"`
+- `TRYJUMPFORM OPTIONAL_{COUNT}`
 
 **Progress state**
 - complete

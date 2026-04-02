@@ -20,8 +20,10 @@
 - (none)
 
 **Examples**
-- `if ISSKIP() == 0: PRINTFORML "not skipping"`
+```erabasic
+SIF ISSKIP() == 0
+    PRINTFORML not skipping
+```
 
 **Progress state**
 - complete
-

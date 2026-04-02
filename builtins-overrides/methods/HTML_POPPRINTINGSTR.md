@@ -35,7 +35,7 @@
 
 **Examples**
 ```erabasic
-PRINT "A"
+PRINT A
 PRINTBUTTON "[B]", "B"
 S = HTML_POPPRINTINGSTR()
 ; The buffer is now cleared and nothing was added to visible output.

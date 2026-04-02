@@ -32,7 +32,7 @@
 - `FUNC` must appear only inside `TRY*LIST ... ENDFUNC`; otherwise it is a load-time error (the line is marked as error).
 
 **Examples**
-- `FUNC HOOK_%TARGET%, TARGET`
+- `FUNC HOOK_{TARGET}, TARGET`
 
 **Progress state**
 - complete

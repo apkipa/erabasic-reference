@@ -33,9 +33,9 @@ ENDCATCH
 
 **Examples**
 ```erabasic
-TRYCCALLFORM "HOOK_%TARGET%"
+TRYCCALLFORM HOOK_{TARGET}
 CATCH
-    PRINTL "hook missing"
+    PRINTL hook missing
 ENDCATCH
 ```
 

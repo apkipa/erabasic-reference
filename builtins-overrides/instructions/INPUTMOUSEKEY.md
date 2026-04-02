@@ -62,7 +62,7 @@ Payload (`RESULT:*`), by event type:
 **Examples**
 ```erabasic
 INPUTMOUSEKEY 1000
-PRINTFORML "type=" + RESULT + " x=" + RESULT:2 + " y=" + RESULT:3
+PRINTFORML type={RESULT} x={RESULT:2} y={RESULT:3}
 ```
 
 **Progress state**
