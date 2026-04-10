@@ -41,6 +41,13 @@ Emuera’s loaders are a mix of “open an exact filename in `csv/`” and “en
   - `CHARA*.CSV` discovery is affected by config item `SearchSubdirectory` / config item `SortWithFilename`, which change whether subfolders are searched and how results are ordered.
   - `VarExt*.csv` (save-extension settings) is enumerated with `SearchOption.AllDirectories` unconditionally and is not explicitly sorted.
 
+`CHARA*.CSV` compatibility note:
+
+- After discovery/load, character templates are later deduplicated by character registration number (`NO`).
+- A duplicate `NO` in the same target template dictionary emits a level-1 warning and retains only one template for that `NO`.
+- The retained duplicate winner is not specified as “original discovery-order first wins”: duplicate detection happens after the engine sorts the temporary template list by `NO`, and equal-`NO` ordering is not documented as stable.
+- If config item `CompatiSPChara` = `YES`, normal and SP templates are keyed in separate dictionaries; otherwise they compete in the same duplicate-detection space.
+
 For the full runtime load order and ordering quirks, see `pipeline.md`.
 
 ## 1) Config files (`*.config`)
@@ -259,7 +266,7 @@ Rules:
 - `INDEX` must parse as an integer.
 - `INDEX` must be within bounds of the target name array (as sized by `VariableSize.CSV` reconciliation).
 - `NAME` is taken as the raw substring after the first comma (it is not fully CSV-escaped).
-- Duplicate `INDEX` definitions warn and overwrite.
+- Duplicate `INDEX` definitions emit a level-1 warning and overwrite the earlier row's stored value for that numeric slot.
 
 Some tables also parse a third field as a numeric value (example: `ITEM.CSV` can store an item price).
 
@@ -275,7 +282,8 @@ The engine stores `ALIAS → INDEX` mappings.
 
 Important:
 
-- Alias keys must be unique. Duplicate alias strings can raise an exception in the loader (treated as an unexpected error).
+- Reusing the same numeric `INDEX` on multiple alias lines emits a level-1 warning but still adds each distinct alias string.
+- Alias keys themselves must be unique. Reusing the same alias string throws during alias-map insertion; the loader treats that as an unexpected error and stops loading that `.als` file at that point.
 - Alias index bounds are not validated at load time.
 
 ## 7) ERD identifier files (`*.ERD`) for user-defined variables
@@ -302,7 +310,7 @@ ERD files use the same simple format as name tables:
 
 When multiple ERD/CSV files are collected for the same key group, the engine merges them, but:
 
-- if the same `NAME` is defined more than once across files, the engine errors
+- if the same `NAME` is defined more than once across files, the engine errors rather than picking a first/last winner
 
 ### 7.3 When they apply
 
@@ -314,7 +322,98 @@ This enables expressions like:
 
 for user-defined variables, using the same “string indexing” mechanism as built-in CSV-backed variables.
 
-## 8) `VarExt*.csv` (EM extension save partitions: Map / XML / DataTable)
+## 8) `CHARA*.CSV` (character templates)
+
+`CHARA*.CSV` files define one character template per file for the constant-data loader.
+
+### 8.1 Overall shape
+
+Each enabled line is split by a plain comma split:
+
+    CATEGORY,arg1,arg2,...
+
+There is no CSV quote/escape layer here.
+
+The loader does not create a template until it sees:
+
+    NO,<integer>
+
+Rules:
+
+- Lines before the first successful `NO,...` emit a level-1 warning and are ignored.
+- A file effectively defines at most one template. After a template has started, a second `NO,...` line emits a level-1 warning and is ignored; it does not start a second template.
+- `NO` must parse as an integer. If it does not, the line emits a level-1 warning, no template is created, and later data lines are still treated as “before `NO`” until a valid `NO,...` line appears.
+
+### 8.2 Accepted categories
+
+Accepted category names are:
+
+- scalar string fields: `NAME`, `CALLNAME`, `NICKNAME`, `MASTERNAME`
+- numeric keyed fields: `MARK`, `EXP`, `ABL`, `BASE`, `TALENT`, `RELATION`, `CFLAG`, `EQUIP`, `JUEL`
+- string keyed field: `CSTR`
+- compatibility no-op: `ISASSI`
+
+The loader also accepts the built-in Japanese labels for those categories.
+Exception: `CSTR` has no separate Japanese alias in this loader path; only literal `CSTR` is recognized for that category.
+Latin-script category names are matched case-insensitively by invariant uppercasing in this loader path; this does not depend on config item `IgnoreCase`.
+
+For scalar string fields, the stored value is exactly the second comma-split token (`tokens[1]` in implementation terms).
+If a line contains extra commas after that field, those later tokens are discarded rather than being joined back into the stored string.
+
+For keyed categories, `arg1` is either:
+
+- a numeric slot index, or
+- a symbolic key resolved through the already-loaded name table for that category
+
+Numeric slot parsing here is prefix-based, not “whole token must be an integer” validation.
+The loader accepts any token whose leading prefix is a valid integer literal and stops at the first non-numeric character.
+
+This means:
+
+- symbolic-key lookup uses these name tables:
+  - `MARK` -> `MARK.CSV`
+  - `EXP` -> `EXP.CSV`
+  - `ABL` -> `ABL.CSV`
+  - `BASE` -> `BASE.CSV`
+  - `TALENT` -> `TALENT.CSV`
+  - `CFLAG` -> `CFLAG.CSV`
+  - `EQUIP` -> `EQUIP.CSV`
+  - `JUEL` -> `PALAM.CSV`
+  - `CSTR` -> `CSTR.CSV`
+- those symbolic-key lookups follow the corresponding name-table dictionary behavior documented in `string-key-indexing.md`
+- `RELATION` has no symbolic name table in this loader path, so its second field must be numeric
+
+### 8.3 Loader-local diagnostics and overwrite rules
+
+Observable loader behavior:
+
+- Fewer than 2 comma-separated fields: emits a level-1 warning and ignores the line.
+- Empty first field: emits a level-1 warning and ignores the line.
+- Unknown `CATEGORY`: emits a level-1 warning and ignores the line.
+- Symbolic key not found in the corresponding name table: emits a level-1 warning naming that table and ignores the line.
+- Numeric or resolved key outside the category's currently allowed bounds: emits a level-1 warning and ignores the line.
+- For categories that require numeric indexing in this path (notably `RELATION`), a non-numeric second field does not do name-table lookup; it follows the generic “missing second identifier / cannot interpret” warning path instead.
+
+Per-slot duplicate behavior inside one template:
+
+- If two lines resolve to the same destination slot of the same category, the second line emits a level-1 warning and overwrites the earlier stored value.
+
+Stored-value rules:
+
+- For numeric keyed categories, if the third field is missing or its token does not begin with a valid integer literal, the stored value defaults to `1`.
+- For numeric keyed categories, third-field numeric parsing is also prefix-based rather than whole-token validation, so a token such as `1x` is read as `1`.
+- For `CSTR`, a present third field is stored verbatim as the third comma-split token only.
+- If a `CSTR` line contains extra commas after that third field, those later tokens are discarded rather than being joined back into the stored string.
+- For `CSTR`, an actually missing third token first emits a level-1 warning and then trips the file's unexpected-error path, aborting the rest of that file's `CHARA*.CSV` load.
+
+Whitespace/lookup quirk:
+
+- `NO` numeric parsing trims trailing whitespace from the second field before parsing.
+- Keyed-category numeric slot parsing uses that same trailing-whitespace trimming on the second field before the prefix parse.
+- Symbolic keyed lookups do not apply general trimming to the key token before dictionary lookup, so accidental surrounding spaces can change success into a missing-key warning.
+- Numeric third-field parsing does not apply that extra `TrimEnd()` step; surrounding whitespace therefore does not behave identically to `NO`/slot parsing.
+
+## 9) `VarExt*.csv` (EM extension save partitions: Map / XML / DataTable)
 
 This codebase implements additional persistent containers not present in classic EraMaker:
 
@@ -330,7 +429,7 @@ These are keyed by an arbitrary **string key name** (e.g. `"FOO"`), and various 
 - **global-save partition**: cleared on global reset/load; stored in the global save file
 - **static partition**: cleared only on global reset; **not** stored in save files
 
-### 8.1 Discovery rules
+### 9.1 Discovery rules
 
 At constant-data load time, the engine enumerates:
 
@@ -341,7 +440,7 @@ Ordering notes:
 - The enumeration is not explicitly sorted in this engine.
 - The settings from all discovered files are merged (union of key sets).
 
-### 8.2 File format and parsing
+### 9.2 File format and parsing
 
 Each enabled line is split using a simple comma split:
 
@@ -365,7 +464,7 @@ Important: key matching is case-sensitive.
 - The key sets are stored in normal `HashSet<string>` and are checked by exact string equality.
 - The runtime dictionaries (`DataStringMaps` / `DataXmlDocument` / `DataDataTables`) also use case-sensitive keys by default.
 
-### 8.3 Runtime effects (what is cleared, loaded, and saved)
+### 9.3 Runtime effects (what is cleared, loaded, and saved)
 
 Clearing boundaries (engine-accurate):
 

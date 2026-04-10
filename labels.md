@@ -131,7 +131,7 @@ So “first-defined” means the earliest according to that ordering.
 ### 4.2 Normal (non-event) functions
 
 - The engine chooses the **first-defined** definition as the callable target for `CALL @NAME` / `JUMP @NAME`.
-- Later definitions with the same name are ignored for normal calls. If config item `WarnNormalFunctionOverloading` = `YES` (or analysis mode is active), the loader still emits a warning when a non-event function name is defined more than once.
+- Later definitions with the same name are ignored for normal calls. If config item `WarnNormalFunctionOverloading` = `YES` (or analysis mode is active), the loader emits a level-1 warning when a non-event function name is defined more than once.
 
 ### 4.3 Event functions: grouping by `#` attributes
 
@@ -151,7 +151,7 @@ Important quirks:
     - group 2 (“normal” list; the engine adds any label that is neither `#PRI` nor `#LATER`).
   - Runtime event iteration stops immediately after returning from a `#ONLY` label, so the “normal group” inclusion never results in a second execution during normal event dispatch (see `runtime-model.md`).
 - Within each group, labels are processed in the stable “first-defined” ordering used for label registration.
-- If multiple definitions of the same event label name specify `#ONLY`, the loader emits a warning but still accepts them.
+- If multiple definitions of the same event label name specify `#ONLY`, the loader emits a level-1 warning but still accepts them.
 
 The runtime meaning of these attributes (and how `RETURN` values affect event iteration) is specified in `runtime-model.md`.
 

@@ -6,6 +6,11 @@ This document specifies the **observable compatibility contract** for that state
 
 Config-surface names in this reference follow the canonical terms from `config-items.md` (e.g. config item `SaveDataNos`, replace item `MaxShopItem`, replace item `ComAbleDefault`).
 
+System-flow start boundary:
+
+- The phase machine described here starts only after script/data initialization succeeds.
+- If startup aborts during ERH loading, the engine never enters `TITLE`; the host stays in its initialization-error state instead of beginning system flow.
+
 ## 1) Concepts
 
 ### 1.1 System phases vs script execution

@@ -31,7 +31,14 @@ Legend:
 - ✅ File encodings and newline normalization.
 - ✅ `_Rename.csv` missing-file behavior when config item `UseRenameFile` = `YES` (host prints an error and continues with an empty rename map).
 - ✅ `_Replace.csv` replaceable-item set and its main script-visible effects (it targets a fixed replace-item table, including some runtime defaults, not arbitrary config keys).
-- 🟡 Error/warning behavior on duplicate definitions and missing references.
+- 🟡 `GAMEBASE.CSV` is only covered indirectly today; the row-key/field contract, missing-file behavior, compatibility-version gate, title/version metadata, default-character/no-item fields, update-check metadata, and derived `GAMEBASE_*` constants still need a dedicated spec.
+- 🟡 Character-template string-field compatibility rules are still incomplete:
+  - config item `CompatiCALLNAME` can replace an empty loaded template `CALLNAME` with that template's `NAME`
+  - the boundary between that runtime fallback and CSV-defined `CALLNAME` readback helpers such as `CSVCALLNAME` is not yet stated explicitly
+- 🟡 Config-file compatibility aliases are still incomplete:
+  - deprecated config item `CompatiDRAWLINE` is still accepted by the config loader and remapped onto config item `CompatiLinefeedAs1739`
+- ✅ Duplicate-definition behavior across labels, macros, user-defined variables, name tables, ERD/alias files, character templates, sprite tables, and plugins, including overwrite/first-wins/non-merge cases where applicable.
+- ✅ Missing-reference behavior across script lookup, ERD/string-key lookup, rename-time unresolved keys, and loader-local data-file symbolic-key diagnostics is specified.
 
 Where described today:
 
@@ -66,6 +73,7 @@ Where described today:
 
 - ✅ Macro expansion model: token-based, where expansion applies, recursion limit.
 - ✅ Boundary against line-level structure: `#DEFINE` expansion does not change whether an ERB line is classified as `@` / `$` / `#` / `[`-started structure vs ordinary statement; `[[...]]` rename replacement can, because it runs earlier during line reading.
+- ✅ Macro declaration collision/redefinition behavior, including duplicate-name rejection and ERH load-failure consequences.
 - ✅ Conditional inclusion blocks: `[IF]...[ENDIF]`, `[IF_DEBUG]`, `[IF_NDEBUG]`, and their interaction with line reading.
 - ✅ `[SKIPSTART]...[SKIPEND]` handling (skip-forces-disabled, but directives still parsed).
 
@@ -113,6 +121,9 @@ Where described today:
   - `BREAK/CONTINUE`
   - `CALL/JUMP/RETURN/RETURNFORM/RETURNF` interactions with `RESULT/RESULTS`
 - ✅ Line-start dispatch special cases (e.g. `;!;`, `{...}` concatenation blocks, `@/$/#` label/directive lines, and prefix `++/--` parsing).
+- 🟡 Load-time argument reduction policy is still incomplete:
+  - the shared `NeedReduceArgumentOnLoad=YES` path is documented
+  - config item `ReduceArgumentOnLoad` with value `ONCE` still lacks its update-detection contract, including persisted config item `LastKey` and the file-change key that decides whether load-time reduction is re-enabled
 - 🟡 Error behavior on malformed blocks, cross-block jumps, and direct-entry via `GOTO/JUMP` into blocks.
   - ✅ Unstructured entry via `GOTO $label` (allowed) and the “advance-first” marker-skipping implications are specified (see `runtime-model.md` and `control-flow.md`).
   - 🟡 Still missing: a fully enumerated matrix of which malformed-nest situations become “error lines” vs warnings, and which ones can still run.
@@ -167,6 +178,9 @@ Where described today:
 - ✅ Bounds checking and prohibited-variable errors (no config knobs observed for relaxing bounds checks).
 - ✅ CSV-name indexing resolution rules and ambiguity rules.
 - ✅ Built-in variable catalog + lifecycle beyond `RESULT/RESULTS/COUNT`: selector variables (`MASTER/TARGET/ASSI/PLAYER`), `CHARANUM`, character-list mutation boundaries, reset-sensitive command arrays, and global-reset survivors are specified.
+- 🟡 Built-in metadata / host-state variable inventory is still incomplete:
+  - `GAMEBASE_*` constants, `EMUERA_VERSION`, and `_Replace`/host-derived variables such as `MONEYLABEL` and `DRAWLINESTR` are not yet documented as a coherent variable surface
+  - `WINDOW_TITLE` is documented, but the adjacent metadata/UI-state variable family is still missing
 
 ### 7.2 User-defined variables
 
@@ -174,10 +188,12 @@ Where described today:
 - ✅ `DYNAMIC` lifetime and recursion behavior.
 - ✅ `CONST` write-protection and interaction constraints.
 - ✅ `REF` reference binding rules and mutation behavior (for user-function ref parameters).
+- ✅ Duplicate private/global user-defined variable names, including rejection/retention behavior and ERH failure consequences.
 
 ### 7.3 Global scope (ERH variables)
 
 - ✅ `SAVEDATA/GLOBAL/CHARADATA` storage partitioning and reset/load boundaries (engine-accurate).
+- 🟡 `CHARADATA` user-defined variable persistence details are still deferred beyond the current reset/load-boundary model.
 - ✅ Save/load built-in semantics (see `builtins-reference.md`).
 - ✅ On-disk save file formats (field/byte-level spec): `save-files.md`.
 
@@ -207,6 +223,9 @@ Where described today:
 
 - ✅ Taxonomy of parse-time vs load-time vs runtime errors.
 - 🟡 Warning vs error behavior for every individual diagnostic family is still incomplete, but the core warning/error model and error-line mechanics are specified.
+- 🟡 The runtime infinite-loop watchdog is still undocumented as an observable error path:
+  - config item `InfiniteLoopAlertTime` controls when the host starts prompting during long-running execution
+  - the continue-vs-abort dialog path, timer reset behavior, and resulting runtime error on forced exit still need a dedicated spec
 - ✅ Line/position reporting and how concatenated lines map to file locations.
 
 Where described today:
@@ -230,6 +249,9 @@ Coverage target (core-compat requirements):
 - ✅ Specify which labels are called in each phase (including required/optional labels and default fallbacks when labels are missing).
 - ✅ Specify mandatory “must execute `BEGIN`” contracts (and error behavior when violated), including `@SYSTEM_TITLE`, `@EVENTFIRST`, `@EVENTEND`, `@EVENTTURNEND`, and the distinct post-load fallback path.
 - ✅ Specify the key variable initialization/reset performed when entering phases (including TRAIN pre-initialization and the post-load SHOP fallback that skips `@EVENTSHOP`).
+- 🟡 SHOP-entry autosave is only partially tied back to its host/config contract:
+  - config item `AutoSave` as the gate for the normal-state SHOP-entry autosave branch is not yet stated explicitly
+  - the default autosave-write failure path (host error lines, acknowledgement wait, then continue into SHOP flow) is still undocumented
 - 🟡 Specify which parts are configurable via `_replace.csv` / config (including a tighter inventory of host message texts/ranges that are data-driven vs fixed).
 - ✅ Specify the minimal host I/O contract that system flow depends on:
   - system input request behavior (integer parsing, defaults, and retry behavior on invalid input)
@@ -255,6 +277,9 @@ Typical-game compatibility requires a subset of “UI-ish” built-ins to be spe
 - ✅ Shared console layout primitives:
   - the common width-measurement / row-formation / splitting / alignment backend used by plain-text and HTML output is documented
   - HTML `<div>` subdivision width feeds that same backend rather than using a separate row builder
+- 🟡 Retained-output history truncation is still undocumented as a shared output contract:
+  - config item `MaxLog` caps retained display rows and forces oldest-row eviction
+  - the resulting line-number / readback correction rules for retained-output helpers still need a dedicated spec
 - 🟡 Remaining output-edge details:
   - the shared pending-buffer/materialization model is documented
   - remaining gaps are now mostly a smaller set of producer-specific “buffer vs temporary line vs system line” notes and other isolated producer/readback quirks
@@ -307,9 +332,19 @@ Where described today:
   - visibility-before-wait / flush behavior is documented for `WAIT` / `WAITANYKEY` / `FORCEWAIT` / `TWAIT` / `BINPUT*`, with the shared materialization rule centralized in `output-flow.md`
 - ✅ Keyboard/mouse state built-ins and their interaction with the input loop:
   - `GETKEY`, `GETKEYTRIGGERED`, `MOUSEX`, `MOUSEY`, `MOUSEB`, `MOUSESKIP` (coordinate system, polling vs event semantics, and when values update)
+- 🟡 Ordinary output-button pointer hover/readback is still under-specified as a shared host/input contract:
+  - hover detection for retained output buttons is distinct from wait-time selectability, so stale-generation or backlog-visible buttons can still affect `MOUSEB()` and tooltip source selection
+  - overlapping normal-output buttons can share the host's hover set while only one pointed button is chosen for readback/selection
+- 🟡 Mouse-enable gating via config item `UseMouse` is not yet specified as an input contract:
+  - disabling mouse input changes whether the host processes pointer move/down/leave paths for ordinary button selection and related mouse-driven waits
+  - the exact interaction with mouse-state built-ins and click-based submission paths still needs a dedicated spec
 - ✅ Mouse input “mapping color” side channel for `<img srcm='...'>`:
   - how the mapping sprite is selected and sampled
   - which `RESULT:*` indices it is written to (depends on input wait type)
+- ✅ Separate `CBG` hit-map / button-value channel:
+  - the `CBG` layer is a separate host/UI subsystem, not ordinary retained output or ordinary output-button state
+  - pointer-side `CBG` hit selection takes precedence over ordinary output-button hover selection at the same point
+  - `INPUTMOUSEKEY` reports `CBG` hit-map value and ordinary output-button selection through separate result channels
 
 ### 11.3 HTML output and HTML-string helpers
 
@@ -329,9 +364,23 @@ Where described today:
   - `GCREATEFROMFILE`, `PLAYSOUND` / `PLAYBGM`, and `EXISTSOUND` path-base differences are now documented
 - ✅ Sprite lookup contract used by `<img src='...'>` / `PRINT_IMG` / sprite built-ins:
   - sprite names are defined by `resources/**/*.csv` and resolved case-insensitively
+  - duplicate sprite names warn and keep the earlier definition
   - missing sprites fall back to literal-tag text in HTML output
+- 🟡 Created graphics/sprite registry lifecycle is still incomplete as a shared host/resource contract:
+  - the host-side registries behind `GCREATE*` / `GDISPOSE` and `SPRITECREATE*` / `SPRITEDISPOSE*` are only documented entry-by-entry today, not as one coherent state model
+  - reset/title/phase/reload boundaries for temporary loaded images versus dynamically created graphics/sprites are not yet stated centrally
+- 🟡 Graphics-surface drawing-state model is still incomplete as a shared graphics contract:
+  - each created graphics surface carries separate stored brush, pen, and font/style state, but the lifecycle of that state across `GCREATE`, `GCREATEFROMFILE`, `GLOAD`, and `GDISPOSE` is not stated centrally
+  - stateful interactions such as `GSETPEN` preserving the previous pen's dash style/cap, `GDASHSTYLE` creating a default config item `ForeColor` / width-`1` pen when no pen exists yet, and the different unset-state behavior between `GDRAWTEXT` / `GFILLRECTANGLE` / `GDRAWLINE` and the `GGET*` readback family are still only implicit
+- 🟡 Animated sprite playback is still incomplete as a shared graphics/runtime contract:
+  - `SPRITEANIMECREATE`, `SPRITEANIMEADDFRAME`, and `SETANIMETIMER` are documented individually, but the shared frame-selection/timebase model is not
+  - remaining gaps include first-draw start timing, loop progression by accumulated frame delays, and the boundary between sprite playback and host repaint/wait scheduling
 - ✅ Console background image stack:
   - `SETBGIMAGE` / `REMOVEBGIMAGE` / `CLEARBGIMAGE` (sprite requirements, depth ordering, opacity handling, and removal key matching)
+- ✅ `CBG` graphics/hit-map layer:
+  - `CBG` is specified as a separate host/UI graphics layer with its own visual-entry list, optional hit map, and current selected button value
+  - `zDepth` is defined relative to ordinary output (`zDepth > 0` under text, `zDepth < 0` over text, `zDepth == 0` rejected)
+  - visible `CBG` entries and hit-map state have separate removal/clear boundaries, and `CBG` remains outside normal output history/readback APIs
 - ✅ Supported formats (as an observable contract):
   - image loading uses the host bitmap loader plus explicit `.webp` support via the bundled native WebP path
   - `.wav` / `.ogg` are the stable audio formats this reference treats as portable; other audio extensions are backend-dependent and intentionally not promised
@@ -359,13 +408,58 @@ These items are **observable engine features** but are deferred because they are
 - 🔁 Command-line invocation contract (flags and positional args), including `--ExeDir`, `-Debug`, and `-GenLang`.
 - 🔁 Localization/language pack system under `ExeDir/lang/` (including `-GenLang` template generation and selection/fallback rules).
   - Files/patterns: `lang/emuera.*.xml` (load), `lang/emuera-default-lang.xml` (generated template).
+  - config item `EmueraLang` and config item `EnglishConfigOutput` are not yet tied into one explicit host/configuration contract
+- 🔁 Analysis-mode tooling profile is not yet specified as one coherent host contract:
+  - how positional file/directory args enable analysis mode and populate the analysis target list
+  - subsystem differences such as skipping `_Replace.csv` and `macro.txt`, forcing wider warning/report output, and writing `ExeDir/Analysis.log`
+  - UI restrictions such as the “cannot return to title” paths while analysis mode is active
 - ✅ Keyboard macro system: `ExeDir/macro.txt` + config item `UseKeyMacro` (load/save timing, file format, localization-sensitive parsing, and input-loop behavior) are specified in `host-aux-files.md`.
-- 🔁 In-game debug command mode: config item `UseDebugCommand` and the console rule “input beginning with `@` is treated as a debug command” (supported syntax subset + restrictions).
+- 🔁 In-game debug command mode: config item `UseDebugCommand`, config item `ChangeMasterNameIfDebug`, and the console rule “input beginning with `@` is treated as a debug command” (supported syntax subset + restrictions).
 - 🔁 Hotkey scripting extension: `ExeDir/HOTKEY.ERB` + Ctrl+D toggle + its limited grammar, and how it interacts with `HOTKEY_STATE*`.
   - Optional developer dump file: `ExeDir/HOTKEY.ERB.bytecode.txt`.
+- 🔁 Main-window shell configuration is not yet specified as a host contract:
+  - single-instance gating via config item `AllowMultipleInstances`
+  - menu/window presentation controls such as config item `UseMenu`, config item `SizableWindow`, config item `SetWindowPos`, and config item `WindowMaximixed`
+  - window-geometry inputs such as config item `WindowX`, config item `WindowY`, config item `WindowPosX`, and config item `WindowPosY`
+  - custom window icon loading via config item `EmueraIcon`
+- 🔁 Main-window display defaults are not yet specified as a coherent host/UI contract:
+  - config item `FontName`, config item `FontSize`, and config item `LineHeight`
+  - config item `ForeColor`, config item `BackColor`, config item `FocusColor`, and config item `LogColor`
+  - current-build validation/clamping such as minimum font size and `LineHeight < FontSize` adjustment is still undocumented
+- 🔁 Main-window repaint pacing is not yet specified as a host/UI contract:
+  - config item `FPS` sets the redraw-throttle interval used by ordinary non-forced repaint passes
+  - the exact boundary against forced repaint paths and redraw-adjacent waits is still undocumented
+- 🔁 Debug-window UI shell is not yet specified as a host contract:
+  - startup opening requires debug-mode launch plus debug item `DebugShowWindow`
+  - debug item `DebugWindowTopMost`, debug item `DebugWindowWidth`, debug item `DebugWindowHeight`, debug item `DebugSetWindowPos`, debug item `DebugWindowPosX`, and debug item `DebugWindowPosY` control the initial shell state
+  - the watch/trace/console panes and debug-config dialog interactions are still undocumented as UI behavior
+- 🔁 `Ctrl+Z` rewind subsystem: config item `Ctrl_Z_Enabled`, rewind-state capture, silent save/load/replay behavior, and its RNG/input-history constraints are not yet specified.
+- 🔁 Main-window live-reload tooling: selected-file / folder partial `ERB` reload and `resources/` reload actions, including availability guards and path-handling behavior.
+- 🔁 External-editor launch / source-open tooling is not yet specified:
+  - config item `TextEditor` plus config item `EditorType` and config item `EditorArgument`
+  - file-kind-dependent source-path reconstruction (`csv/` vs `erb/`, with analysis-mode absolute-path differences)
+  - host failure behavior when the editor process cannot be started
+- 🟡 Accepted config/UI toggles whose current-build effect is still undocumented:
+  - config item `SkipFrame`
+  - config item `CompatiFunctionNoignoreCase`
+  - these currently appear in the config surface, but their current-build runtime effect or no-effect status has not yet been stated explicitly
+- 🔁 Main-window backlog navigation / scrolling shell is not yet specified:
+  - config item `ScrollHeight`, mouse-wheel scrolling, and `PageUp` / `PageDown` history navigation
+  - backlog-mode repaint/selection behavior and the “ordinary keypress snaps back to bottom” path
+  - the separate Ctrl+wheel clipboard-scroll path when the clipboard-assist subsystem is enabled
+- 🔁 Textbox widget state/positioning is not yet specified as one coherent host/UI contract:
+  - `GETTEXTBOX` / `SETTEXTBOX` expose the live textbox widget rather than a detached input-buffer snapshot
+  - `MOVETEXTBOX` / `RESUMETEXTBOX` participate in a pending/applied/scrolled-back textbox-position lifecycle whose apply points, backlog interaction, and successful-input reset behavior are not yet stated centrally
+- 🔁 Tooltip popup behavior is not yet specified as one coherent host/UI contract:
+  - HTML button `title` / `clearbutton notooltip`, CBG button-sprite tooltip text, and the `TOOLTIP_*` customization built-ins are documented individually, but the shared popup source-precedence and hover/display lifecycle are not
+  - remaining gaps include delay cancellation when the hover target changes, popup placement/clamping, and the boundary against backlog-visible / no-longer-selectable hovered regions
 - ✅ Plugin system: discovery/load timing, `Plugins/*.dll` admission, `pluginsAware.txt` gating, public plugin contract types, `CALLSHARP` interop, and the public `PluginManager` / `PluginAPICharContext` helper surface are specified in `plugins.md`.
+- 🔁 EM extension container built-ins over `DataStringMaps` / `DataXmlDocument` / `DataDataTables` remain deferred; `VarExt*.csv` partitioning is specified in `data-files.md`, but the manipulating built-in semantics are not yet inventoried here.
+- 🔁 Clipboard-assist subsystem: config item `CBUseClipboard`, clipboard-triggered copy/export behavior, and the host-side click/wait/scroll trigger paths are not yet specified.
+  - still missing the rest of the clipboard config surface, including tag filtering/replacement, buffer-clearing, trigger-selection flags, and copy-buffer size/scroll/timer controls
 - ✅ Debug UI aux files under `ExeDir/debug/`: `debug/debug.config`, `debug/watchlist.csv`, and `debug/console.log` are specified in `host-aux-files.md` together with their path/encoding behavior.
 - 🔁 Rikaichan integration files: config item `RikaiFilename` (dictionary path) and its sidecar index file `RikaiFilename.ind`.
+  - config item `RikaiEnabled`, config item `RikaiColorBack`, config item `RikaiColorText`, and config item `RikaiUseSeparateBoxes` are also still undocumented as one subsystem contract
 - 🟡 Misc host diagnostics/aux files:
   - `ExeDir/time.log` is now specified in `host-aux-files.md`.
   - Still deferred: `ExeDir/patch_versions/*.txt`, `ExeDir/emuera.log`, `ExeDir/Analysis.log`, and `img_err.log`.

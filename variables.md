@@ -446,15 +446,18 @@ For both scopes:
   - built-in variable names
   - user-defined macro names
   - already-declared user-defined global variables
+- For ERH global declarations, colliding with an already-declared user-defined global variable is a level-2 warning; the later declaration is not created, the earlier variable remains in effect, and ERH loading ultimately fails. In this engine, that means startup does not proceed into ERB loading or `TITLE`.
 
 Private-only rule:
 
+- Reusing the same private-variable name within one function is a level-2 warning and rejects the later declaration; the first-defined private variable remains the binding for that name in that function.
 - A private variable name starting with an ASCII digit is rejected.
 
 Additional warnings:
 
 - If config item `UseERD` = `YES` and config item `CheckDuplicateIdentifier` = `YES`, declaring a user variable whose name equals any ERD key name emits a warning.
 - If the variable name matches any CSV “name key” (from the built-in name tables), the engine emits a warning.
+- These warnings do not by themselves reject the declaration.
 
 ### 3) Dimensions and size expressions
 
@@ -515,7 +518,8 @@ Dependency boundary:
 
 - Mutual / circular dependencies between `#DIM/#DIMS` constant declarations do **not** resolve.
 - The loader retries unresolved declarations while some progress is still being made.
-- If no pass makes progress, the remaining unresolved declarations are downgraded to warnings and are not created.
+- If no pass makes progress, the remaining unresolved declarations are downgraded to level-2 warnings and are not created.
+- These final unresolved-dependency warnings do not by themselves make ERH loading fail; startup can continue using only the declarations that were resolved successfully.
 
 ### 5) `CONST`
 
@@ -586,6 +590,7 @@ Header constraints:
 - `STATIC` / `DYNAMIC` are not permitted in ERH declarations.
 - `REF` is treated as “not implemented” for ERH and the header load fails if it is used.
 - `GLOBAL` cannot be combined with `CHARADATA`.
+- Duplicate global names are rejected during the ERH `#DIM/#DIMS` batch pass as described in §2: the later declaration is dropped, the earlier variable remains, and startup does not proceed into ERB loading.
 
 Binary-save constraint (config-dependent):
 

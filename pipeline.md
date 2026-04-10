@@ -43,6 +43,11 @@ Host-boundary note: steps (1)–(4) span an early preload stage and a later runt
 14) **Load script files** `*.ERB` (with rename processing enabled only if configured).
 15) Parse/build the script and run syntax checks.
 
+Startup-failure boundary:
+
+- If initialization fails during step 12 (ERH loading), this engine does not continue to steps 13-15.
+- In that case, ERB files are not loaded, no system-phase entry such as `TITLE` begins, and the host remains in its initialization-error state after flushing the accumulated diagnostics.
+
 The rest of this document breaks down the interpreter-relevant parts of those steps.
 
 ## Config load order and layering

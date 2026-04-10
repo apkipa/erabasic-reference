@@ -52,10 +52,14 @@ At runtime, a string-key argument is resolved as follows:
    - `dict` is retrieved via `ConstantData.GetKeywordDictionary(out errPos, variableCode, argIndex, varNameForERD)`
 2) Evaluate the key string `key = (stringExpr)`
 3) If `key` is empty: error
-4) If `dict` is `null`: error (ERD-specific error message may be used)
+4) If `dict` is `null`: error
+   - for ERD-backed user-defined variable paths, this is reported through the ERD-specific “key not defined” error family
+   - other unsupported string-key paths are still errors; the exact message wording depends on which resolution path reached the failure
 5) Look up `key` in `dict` (exact match):
    - if found, the result is the numeric index
-   - if not found, error; if `errPos` is known, the error message references that CSV source (e.g. `abl.csv`)
+   - if not found, error
+   - if `errPos` is known, the error message references that CSV source (e.g. `abl.csv`)
+   - for ERD-backed user-defined variable paths, the externally relevant contract is still simply “string-key lookup fails”; the implementation's exact message family differs from built-in CSV-backed lookup
 
 ### 4.1 Exact-match semantics (case sensitivity)
 
@@ -73,7 +77,8 @@ For built-in CSV-backed tables, the reverse dictionaries are constructed as:
 1) add each non-empty CSV “name” if the key is not already present
 2) add each non-empty alias key if it is not already present
 
-So the first occurrence wins; later duplicates are ignored.
+So the first occurrence wins; later duplicates are ignored without a replacement warning.
+In particular, a CSV-provided name also keeps priority over a later alias with the same effective key text.
 
 ## 5) Which variables accept string keys (built-in tables)
 
@@ -163,4 +168,8 @@ ERD dictionary selection is **variable-code-specific** and depends on which argu
 - `VAR3D`, `VARS3D`:
   - resolving `argIndex == k` uses dictionary key `varname@{k+1}` and allows only that same `argIndex`
 
-If the ERD dictionary is missing, string-key indexing for that variable fails (the engine throws an ERD-specific “key not defined” error).
+If the ERD dictionary is missing, the variable declaration itself does not fail merely because no matching ERD dictionary exists.
+Later string-key use then fails on the first path that needs that dictionary:
+
+- a bare identifier key such as `MYVAR:Foo` fails during expression parsing / load-time validation
+- a dynamic string-key path whose key is produced only at evaluation time fails at runtime

@@ -566,6 +566,6 @@ A compatible reimplementation of this plugin system should, at minimum, preserve
 - plugin admission is based on a type named exactly `PluginManifest`,
 - plugin methods are registered globally by `IPluginMethod.Name`,
 - case-sensitivity follows the engine's `IgnoreCase` mode,
-- duplicate effective method names abort loading,
+- duplicate effective method names after that normalization are not merged or overridden; registration throws and aborts plugin loading/startup,
 - `CALLSHARP` passes string/int scalar values via `PluginMethodParameter`, and
 - post-call write-back affects only original ERB variable arguments, using `strValue` for string variables and `intValue` for integer variables.

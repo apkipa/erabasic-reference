@@ -98,6 +98,8 @@ lexes as if it were:
 - `#DEFINE NAME ...replacement...` declares a macro named `NAME`.
 - Empty macros are allowed: `#DEFINE NAME` defines `NAME` with an empty replacement.
 - The engine checks macro names for collisions with reserved identifiers and emits warnings/errors accordingly.
+- Name comparison follows the engine's normal identifier-comparison mode (config item `IgnoreCase`).
+- If `NAME` is already present in the macro table, the redeclaration emits a level-2 warning, does not replace the earlier macro, and causes ERH loading to fail for startup purposes.
 
 Function-like macros (`#DEFINE NAME(arg1,...) ...`) are recognized by older/other code paths, but **this engine rejects them in ERH** (declaring one is an error).
 
